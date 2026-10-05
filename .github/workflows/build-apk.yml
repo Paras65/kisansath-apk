@@ -57,18 +57,53 @@ jobs:
           bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
           bubblewrap doctor
 
-      - name: 🔑 Setup Keystore
+      - name: 🔑 Setup Keystore & Digital Asset Links Verification
         working-directory: twa
         run: |
-          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+          if [ -f "kisan-release-key.keystore" ]; then
+            echo "✅ Using persistent repository keystore..."
+          elif [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
             echo "Decoding Keystore from GitHub Secrets..."
             echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > kisan-release-key.keystore
           else
-            echo "Generating self-signed release keystore for CI..."
+            echo "Generating permanent release keystore for CI..."
             keytool -genkey -v -keystore kisan-release-key.keystore -alias kisan-alias -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass "KisanSaathiPass65" -keypass "KisanSaathiPass65" \
               -dname "CN=Kisan Saathi, OU=IT, O=init65, L=Raipur, ST=Chhattisgarh, C=IN"
           fi
+
+          # Extract exact SHA-256 certificate fingerprint
+          SHA256_FINGERPRINT=$(keytool -list -v -keystore kisan-release-key.keystore -alias kisan-alias -storepass "KisanSaathiPass65" | awk -F': ' '/SHA256:/ {print $2}' | tr -d ' \r\n')
+          echo "=========================================================="
+          echo "📱 Android Certificate SHA-256 Fingerprint: $SHA256_FINGERPRINT"
+          echo "=========================================================="
+
+          # Update public/.well-known/assetlinks.json so Android Chrome hides the URL bar completely
+          mkdir -p ../public/.well-known
+          cat <<EOF > ../public/.well-known/assetlinks.json
+          [
+            {
+              "relation": ["delegate_permission/common.handle_all_urls"],
+              "target": {
+                "namespace": "android_app",
+                "package_name": "in.co.init65.kisan",
+                "sha256_cert_fingerprints": [
+                  "$SHA256_FINGERPRINT",
+                  "14:6D:E9:7D:0F:52:AB:3A:4E:91:06:56:88:C6:F8:44:9F:B2:4F:B6:54:1A:56:52:8C:4B:98:4E:14:6D:E9:7D"
+                ]
+              }
+            }
+          ]
+          EOF
+          cp ../public/.well-known/assetlinks.json ./assetlinks.json
+
+          # Persist release keystore and updated assetlinks to repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add kisan-release-key.keystore ../public/.well-known/assetlinks.json || true
+          git commit -m "chore(twa): persist release keystore and matched assetlinks sha256 to hide url bar [skip ci]" || true
+          git push origin main || true
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main || true
 
       - name: 🔨 Build Android APK & AAB via Bubblewrap
         working-directory: twa
@@ -93,6 +128,8 @@ jobs:
           path: |
             twa/*.apk
             twa/*.aab
+            twa/*.keystore
+            twa/assetlinks.json
 
       - name: 🚀 Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -102,6 +139,8 @@ jobs:
           files: |
             twa/*.apk
             twa/*.aab
+            twa/*.keystore
+            twa/assetlinks.json
           draft: false
           prerelease: false
           make_latest: true
