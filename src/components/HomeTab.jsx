@@ -27,10 +27,14 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import HandshakeIcon from '@mui/icons-material/Handshake';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import ScienceIcon from '@mui/icons-material/Science';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
 import { MeraKhetModal } from './MeraKhetModal';
+import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
+import { SoilIotSensorModal } from './SoilIotSensorModal';
 
 const LIFECYCLE_STEPS = [
   {
@@ -92,6 +96,8 @@ const LIFECYCLE_STEPS = [
 export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const [expandedStep, setExpandedStep] = useState(1);
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
+  const [openGpsTracker, setOpenGpsTracker] = useState(false);
+  const [openSoilIot, setOpenSoilIot] = useState(false);
   const [weather, setWeather] = useState(null);
 
   // Live Zero-Key Weather Fetch (Open-Meteo)
@@ -478,7 +484,93 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             </Box>
           </Card>
         </Grid>
+
+        <Grid item xs={6} sm={6} md={4} lg={2}>
+          <Card
+            className="touch-card"
+            onClick={() => setOpenGpsTracker(true)}
+            sx={{
+              p: { xs: 1.6, sm: 2 },
+              height: '100%',
+              cursor: 'pointer',
+              bgcolor: '#ffffff',
+              border: '1.5px solid #a5d6a7',
+              borderRadius: 3.5,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 10px rgba(46, 125, 50, 0.08)',
+              '&:hover': { borderColor: '#2e7d32', boxShadow: '0 6px 20px rgba(46, 125, 50, 0.18)' }
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ bgcolor: '#e8f5e9', p: 1, borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <DirectionsWalkIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
+                </Box>
+                <Chip label="नया" size="small" sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, height: 20, fontSize: '0.65rem' }} />
+              </Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.9rem', sm: '0.96rem' } }}>
+                खेत सीमा जीपीएस मापक
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.76rem', lineHeight: 1.4, mt: 0.5 }}>
+                मेड़ पर चलकर एकड़, डिसमिल व सीमा नापें
+              </Typography>
+            </Box>
+          </Card>
+        </Grid>
+
+        <Grid item xs={6} sm={6} md={4} lg={2}>
+          <Card
+            className="touch-card"
+            onClick={() => setOpenSoilIot(true)}
+            sx={{
+              p: { xs: 1.6, sm: 2 },
+              height: '100%',
+              cursor: 'pointer',
+              bgcolor: '#ffffff',
+              border: '1.5px solid #80cbc4',
+              borderRadius: 3.5,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 10px rgba(0, 121, 107, 0.08)',
+              '&:hover': { borderColor: '#00796b', boxShadow: '0 6px 20px rgba(0, 121, 107, 0.18)' }
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ bgcolor: '#e0f2f1', p: 1, borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ScienceIcon sx={{ color: '#00796b', fontSize: 24 }} />
+                </Box>
+                <Chip label="IoT" size="small" sx={{ bgcolor: '#00796b', color: '#fff', fontWeight: 800, height: 20, fontSize: '0.65rem' }} />
+              </Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.9rem', sm: '0.96rem' } }}>
+                स्मार्ट मिट्टी IoT सेंसर
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.76rem', lineHeight: 1.4, mt: 0.5 }}>
+                ब्लूटूथ प्रोब से pH, नमी, N-P-K जांच व सलाह
+              </Typography>
+            </Box>
+          </Card>
+        </Grid>
       </Grid>
+
+      {/* Field GPS Tracker Modal */}
+      <FieldGpsTrackerModal
+        open={openGpsTracker}
+        onClose={() => setOpenGpsTracker(false)}
+        onSaveArea={(acres) => {
+          setOpenMeraKhet(true);
+        }}
+      />
+
+      {/* Soil IoT Sensor Modal */}
+      <SoilIotSensorModal
+        open={openSoilIot}
+        onClose={() => setOpenSoilIot(false)}
+        onApplyToCalculator={() => onNavigate('schemes')}
+      />
 
 
       {/* Complete Lifecycle Stepper (फसल से लेकर बिक्री तक 6 चरण) */}

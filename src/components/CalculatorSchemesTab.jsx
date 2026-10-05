@@ -22,11 +22,13 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import LaunchIcon from '@mui/icons-material/Launch';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import ScienceIcon from '@mui/icons-material/Science';
 import { FERTILIZER_DOSES, SCHEMES, CROPS } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
+import { SoilIotSensorModal } from './SoilIotSensorModal';
 
 export const CalculatorSchemesTab = () => {
   const [subTab, setSubTab] = useState(0);
@@ -39,6 +41,8 @@ export const CalculatorSchemesTab = () => {
   const [fertCrop, setFertCrop] = useState('paddy');
   const [fertAcres, setFertAcres] = useState(1);
   const [soilType, setSoilType] = useState('सामान्य');
+  const [openSoilIot, setOpenSoilIot] = useState(false);
+  const [soilSensorData, setSoilSensorData] = useState(null);
 
   // Paddy Kharidi Calculator State
   const [paddyAcres, setPaddyAcres] = useState(2.5);
@@ -56,9 +60,22 @@ export const CalculatorSchemesTab = () => {
   const activeFert = fertData[fertCrop] || fertData.paddy || FERTILIZER_DOSES.paddy;
   const acresNum = parseFloat(fertAcres) || 0;
 
-  const totalUreaKg = Math.round(activeFert.ureaTotal * acresNum);
-  const totalDapKg = Math.round(activeFert.dapTotal * acresNum);
-  const totalMopKg = Math.round(activeFert.mopTotal * acresNum);
+  // Multipliers based on live Soil IoT probe readings
+  let nMult = 1.0;
+  let pMult = 1.0;
+  let kMult = 1.0;
+  if (soilSensorData && soilSensorData.analysis) {
+    if (soilSensorData.analysis.nLevel === 'कम') nMult = 1.15;
+    else if (soilSensorData.analysis.nLevel === 'अधिक') nMult = 0.8;
+    if (soilSensorData.analysis.pLevel === 'कम') pMult = 1.2;
+    else if (soilSensorData.analysis.pLevel === 'अधिक') pMult = 0.85;
+    if (soilSensorData.analysis.kLevel === 'कम') kMult = 1.25;
+    else if (soilSensorData.analysis.kLevel === 'अधिक') kMult = 0.8;
+  }
+
+  const totalUreaKg = Math.round(activeFert.ureaTotal * acresNum * nMult);
+  const totalDapKg = Math.round(activeFert.dapTotal * acresNum * pMult);
+  const totalMopKg = Math.round(activeFert.mopTotal * acresNum * kMult);
   const totalZincKg = Math.round(activeFert.zincSulfate * acresNum);
 
   // Bags estimation (Urea 45kg bag, DAP 50kg bag, MOP 50kg bag)
@@ -181,6 +198,35 @@ export const CalculatorSchemesTab = () => {
                 </TextField>
               </Grid>
             </Grid>
+
+            {/* Smart Soil IoT Sensor Integration */}
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#e0f2f1', p: 1.3, borderRadius: 2.5, border: '1.2px solid #80cbc4', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ScienceIcon sx={{ color: '#00796b', fontSize: 24 }} />
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#004d40' }}>
+                    🔬 स्मार्ट मिट्टी IoT सेंसर
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#00695c', fontSize: '0.73rem', display: 'block' }}>
+                    {soilSensorData ? `सेंसर सक्रिय: pH ${soilSensorData.soilReading.ph} (${soilSensorData.analysis.phStatus}) • N: ${soilSensorData.soilReading.nitrogen}, P: ${soilSensorData.soilReading.phosphorus}, K: ${soilSensorData.soilReading.potassium} kg/ha` : 'ब्लूटूथ प्रोब से वास्तविक pH व N-P-K मापकर सटीक संशोधित खाद मात्रा पाएं'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => setOpenSoilIot(true)}
+                sx={{ bgcolor: '#00796b', color: '#fff', fontSize: '0.72rem', fontWeight: 700, borderRadius: 2, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#004d40' } }}
+              >
+                {soilSensorData ? 'पुनः जांचें' : 'सेंसर कनेक्ट करें'}
+              </Button>
+            </Box>
+
+            {soilSensorData && (
+              <Alert severity="success" sx={{ mb: 2, borderRadius: 2.5, fontSize: '0.8rem' }} onClose={() => setSoilSensorData(null)}>
+                <strong>स्मार्ट खाद समायोजन लागू:</strong> यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
+              </Alert>
+            )}
 
             {/* Regional Soil Health Advisory Box */}
             {soilType !== 'सामान्य' && CG_SOIL_PROFILES[soilType] && (
@@ -575,6 +621,14 @@ export const CalculatorSchemesTab = () => {
         </Grid>
       )}
 
+      {/* Soil IoT Sensor Modal */}
+      <SoilIotSensorModal
+        open={openSoilIot}
+        onClose={() => setOpenSoilIot(false)}
+        onApplyToCalculator={(data) => {
+          setSoilSensorData(data);
+        }}
+      />
     </Box>
   );
 };

@@ -34,6 +34,8 @@ import AgricultureIcon from '@mui/icons-material/Agriculture';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import ScienceIcon from '@mui/icons-material/Science';
 
 import {
   getActiveFarmer,
@@ -52,12 +54,16 @@ import { FERTILIZER_DOSES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { fetchLiveWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
+import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
+import { SoilIotSensorModal } from './SoilIotSensorModal';
 
 export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायपुर', weatherContext }) => {
   const [farmer, setFarmer] = useState(getActiveFarmer());
   const [plots, setPlots] = useState([]);
   const [activePlotIndex, setActivePlotIndex] = useState(0);
   const [openAddPlotDialog, setOpenAddPlotDialog] = useState(false);
+  const [openGpsTracker, setOpenGpsTracker] = useState(false);
+  const [openSoilIot, setOpenSoilIot] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [liveWeather, setLiveWeather] = useState(weatherContext || null);
 
@@ -471,6 +477,26 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                         <Typography variant="caption" sx={{ color: '#666' }}>
                           बुआई की तारीख: {activePlot.sowDate} • मौसम: {activePlot.season}
                         </Typography>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 0.8, flexWrap: 'wrap' }}>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<DirectionsWalkIcon sx={{ fontSize: 16 }} />}
+                            onClick={() => setOpenGpsTracker(true)}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 1, borderRadius: 2, borderColor: '#a5d6a7', color: '#1b5e20', fontWeight: 700 }}
+                          >
+                            📍 GPS सीमा नापें
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<ScienceIcon sx={{ fontSize: 16 }} />}
+                            onClick={() => setOpenSoilIot(true)}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 1, borderRadius: 2, borderColor: '#80cbc4', color: '#004d40', fontWeight: 700 }}
+                          >
+                            🔬 मिट्टी IoT जांच
+                          </Button>
+                        </Box>
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -836,16 +862,26 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
             <MenuItem value="maize">मक्का (Maize)</MenuItem>
           </TextField>
 
-          <TextField
-            label="रकबा (एकड़ में)"
-            placeholder="1.0"
-            type="number"
-            fullWidth
-            size="small"
-            value={newPlot.areaAcres}
-            onChange={(e) => setNewPlot({ ...newPlot, areaAcres: e.target.value })}
-            helperText="उदा. 0.5 या 1.0 एकड़"
-          />
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+            <TextField
+              label="रकबा (एकड़ में)"
+              placeholder="1.0"
+              type="number"
+              fullWidth
+              size="small"
+              value={newPlot.areaAcres}
+              onChange={(e) => setNewPlot({ ...newPlot, areaAcres: e.target.value })}
+              helperText="उदा. 0.5 या 1.0 एकड़"
+            />
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setOpenGpsTracker(true)}
+              sx={{ minWidth: 96, height: 40, whiteSpace: 'nowrap', borderColor: '#2e7d32', color: '#1b5e20', fontWeight: 700, fontSize: '0.72rem' }}
+            >
+              📍 GPS नापें
+            </Button>
+          </Box>
 
           <TextField
             label="बुआई की तारीख"
@@ -889,6 +925,31 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         autoHideDuration={4000}
         onClose={() => setSnackbarMsg('')}
         message={snackbarMsg}
+      />
+
+      {/* Field GPS Tracker Modal */}
+      <FieldGpsTrackerModal
+        open={openGpsTracker}
+        onClose={() => setOpenGpsTracker(false)}
+        plotName={openAddPlotDialog ? newPlot.plotName || 'नया खेत' : activePlot?.plotName || 'खेत'}
+        onSaveArea={(acres) => {
+          if (openAddPlotDialog) {
+            setNewPlot((prev) => ({ ...prev, areaAcres: String(acres) }));
+            setSnackbarMsg(`GPS से ${acres} एकड़ रकबा दर्ज किया गया!`);
+          } else if (activePlot) {
+            const updated = { ...activePlot, areaAcres: Number(acres) };
+            saveFarmerPlot(farmer.phone, updated);
+            loadPlots(farmer.phone);
+            setSnackbarMsg(`"${activePlot.plotName}" का रकबा अपडेट होकर ${acres} एकड़ हुआ!`);
+          }
+        }}
+      />
+
+      {/* Soil IoT Sensor Modal */}
+      <SoilIotSensorModal
+        open={openSoilIot}
+        onClose={() => setOpenSoilIot(false)}
+        plotName={activePlot?.plotName || 'खेत'}
       />
     </>
   );

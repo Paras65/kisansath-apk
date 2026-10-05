@@ -37,7 +37,9 @@ jobs:
         run: |
           mkdir -p ~/.bubblewrap
           echo "{\"jdkPath\": \"$JAVA_HOME\", \"androidSdkPath\": \"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME" || true
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+          bubblewrap doctor || true
 
       - name: 🔑 Setup Keystore
         working-directory: twa
@@ -58,11 +60,12 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'KisanSaathiPass65' }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'KisanSaathiPass65' }}
         run: |
-          bubblewrap build --manifest=twa-manifest.json \
+          printf 'n\n%s\nn\n%s\n' "$JAVA_HOME" "$ANDROID_HOME" | bubblewrap build --manifest=twa-manifest.json \
             --signingKeyPath=./kisan-release-key.keystore \
             --signingKeyAlias=kisan-alias \
             --skipPwaValidation
           cp app-release-signed.apk kisan-saathi.apk || true
+
 
 
       - name: 📤 Upload Build Artifacts
