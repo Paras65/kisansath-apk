@@ -78,7 +78,9 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'KisanSaathiPass65' }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'KisanSaathiPass65' }}
         run: |
-          bubblewrap build --manifest=twa-manifest.json \
+          # Automatically answer 'yes' to regenerate project files and checksum non-interactively
+          yes | bubblewrap update --manifest=twa-manifest.json --skipPwaValidation || true
+          yes | bubblewrap build --manifest=twa-manifest.json \
             --signingKeyPath=./kisan-release-key.keystore \
             --signingKeyAlias=kisan-alias \
             --skipPwaValidation
