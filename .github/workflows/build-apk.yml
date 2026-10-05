@@ -1,0 +1,84 @@
+name: 📱 Build Kisan Saathi Android APK & AAB
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    name: 🏗️ Compile Android TWA (APK & AAB)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install Bubblewrap CLI
+        run: npm install -g @bubblewrap/cli
+
+      - name: 🔑 Setup Keystore
+        working-directory: twa
+        run: |
+          if [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "Decoding Keystore from GitHub Secrets..."
+            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > kisan-release-key.keystore
+          else
+            echo "Generating self-signed release keystore for CI..."
+            keytool -genkey -v -keystore kisan-release-key.keystore -alias kisan-alias -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "KisanSaathiPass65" -keypass "KisanSaathiPass65" \
+              -dname "CN=Kisan Saathi, OU=IT, O=init65, L=Raipur, ST=Chhattisgarh, C=IN"
+          fi
+
+      - name: 🔨 Build Android APK & AAB via Bubblewrap
+        working-directory: twa
+        env:
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'KisanSaathiPass65' }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'KisanSaathiPass65' }}
+        run: |
+          bubblewrap build --manifest=twa-manifest.json \
+            --signingKeyPath=./kisan-release-key.keystore \
+            --signingKeyAlias=kisan-alias
+          cp app-release-signed.apk kisan-saathi.apk || true
+
+      - name: 📤 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: kisan-saathi-android-apk
+          path: |
+            twa/*.apk
+            twa/*.aab
+
+      - name: 🚀 Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            twa/*.apk
+            twa/*.aab
+          name: Release ${{ github.ref_name }} - किसान साथी Android App
+          body: |
+            ## 🌾 किसान साथी Android App (संस्करण ${{ github.ref_name }})
+            
+            - **पैकेज आईडी:** `in.co.init65.kisan`
+            - **वेबसाइट:** [kisan.init65.co.in](https://kisan.init65.co.in)
+            
+            ### 📥 डाउनलोड लिंक:
+            - **Direct Android APK:** फोन में सीधे इंस्टॉल करने हेतु नीचे अटैच की गई `.apk` फाइल डाउनलोड करें।
+            - **Google Play Store Bundle:** Play Store कंसोल पर अपलोड करने हेतु `.aab` फाइल का उपयोग करें।

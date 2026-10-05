@@ -1,0 +1,53 @@
+{
+  "packageId": "in.co.init65.kisan",
+  "host": "kisan.init65.co.in",
+  "name": "किसान साथी - फसल से बिक्री तक",
+  "launcherName": "किसान साथी",
+  "display": "standalone",
+  "themeColor": "#2E7D32",
+  "themeColorDark": "#1B5E20",
+  "navigationColor": "#1B5E20",
+  "navigationColorDark": "#0A290C",
+  "navigationDividerColor": "#00000000",
+  "navigationDividerColorDark": "#00000000",
+  "backgroundColor": "#1B5E20",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://kisan.init65.co.in/icons/kisan-icon.svg",
+  "maskableIconUrl": "https://kisan.init65.co.in/icons/kisan-icon.svg",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "./kisan-release-key.keystore",
+    "alias": "kisan-alias"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "फसल डॉक्टर",
+      "shortName": "डॉक्टर",
+      "url": "/?tab=doctor",
+      "icon": "https://kisan.init65.co.in/icons/kisan-icon.svg"
+    },
+    {
+      "name": "मंडी भाव",
+      "shortName": "मंडी भाव",
+      "url": "/?tab=mandi",
+      "icon": "https://kisan.init65.co.in/icons/kisan-icon.svg"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://kisan.init65.co.in/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  }
+}

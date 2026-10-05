@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "in.co.init65.kisan",
+      "sha256_cert_fingerprints": [
+        "14:6D:E9:7D:0F:52:AB:3A:4E:91:06:56:88:C6:F8:44:9F:B2:4F:B6:54:1A:56:52:8C:4B:98:4E:14:6D:E9:7D"
+      ]
+    }
+  }
+]

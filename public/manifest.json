@@ -1,0 +1,58 @@
+{
+  "name": "किसान साथी - फसल से बिक्री तक",
+  "short_name": "किसान साथी",
+  "description": "फसल बुआई, मौसम, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और लाइव मंडी भाव - किसानों का सम्पूर्ण साथी",
+  "start_url": "/",
+  "id": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1b5e20",
+  "theme_color": "#2e7d32",
+  "lang": "hi",
+  "categories": ["business", "finance", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/kisan-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/kisan-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "फसल डॉक्टर (Crop Doctor)",
+      "short_name": "डॉक्टर",
+      "description": "फसल के रोगों और कीटों का तुरंत इलाज जानें",
+      "url": "/?tab=doctor",
+      "icons": [{ "src": "/icons/kisan-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "लाइव मंडी भाव (Mandi Rates)",
+      "short_name": "मंडी भाव",
+      "description": "छत्तीसगढ़ और राष्ट्रीय मंडियों के आज के ताजा भाव",
+      "url": "/?tab=mandi",
+      "icons": [{ "src": "/icons/kisan-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "खाद कैलकुलेटर (Fertilizer Calculator)",
+      "short_name": "खाद मात्रा",
+      "description": "एकड़ के हिसाब से यूरिया, डीएपी और पोटाश की सही मात्रा",
+      "url": "/?tab=schemes",
+      "icons": [{ "src": "/icons/kisan-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "टोकन व धान योजना (Krishi Unnati)",
+      "short_name": "धान योजना",
+      "description": "₹3100 प्रति क्विंटल धान खरीदी व टोकन तुंहर हाथ",
+      "url": "/?tab=schemes",
+      "icons": [{ "src": "/icons/kisan-icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}
