@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Paper, Typography, Button, IconButton } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AndroidIcon from '@mui/icons-material/Android';
@@ -6,8 +6,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
+import { ShareModal } from './ShareModal';
 
 export const InstallPrompt = ({ onInstall, onDismiss }) => {
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   return (
     <Paper
       elevation={4}
@@ -26,7 +28,8 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
         <Box
           component="img"
-          src="/icons/kisan-icon.svg"
+          src="/icons/kisan-icon-512.png"
+          onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
           alt="Icon"
           sx={{ width: 44, height: 44, borderRadius: 2 }}
         />
@@ -87,7 +90,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
           variant="outlined"
           size="small"
           startIcon={<ShareIcon />}
-          onClick={shareApp}
+          onClick={() => setShareModalOpen(true)}
           sx={{
             borderColor: '#81c784',
             color: '#1b5e20',
@@ -106,6 +109,12 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
           <CloseIcon fontSize="small" />
         </IconButton>
       </Box>
+
+      {/* Share Modal */}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
     </Paper>
   );
 };

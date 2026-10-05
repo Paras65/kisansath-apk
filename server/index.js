@@ -64,8 +64,9 @@ app.use(
 // Database Connection
 connectDB();
 
-// API Routes
+// API Routes - Mounted under both /api and root / for seamless compatibility
 app.use('/api', apiRoutes);
+app.use('/', apiRoutes);
 
 // Health check endpoints (Render and monitoring friendly)
 const getHealthStatus = () => ({

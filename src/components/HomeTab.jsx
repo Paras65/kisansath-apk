@@ -41,6 +41,7 @@ import { MeraKhetModal } from './MeraKhetModal';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { MotorControllerModal } from './MotorControllerModal';
+import { ShareModal } from './ShareModal';
 
 const LIFECYCLE_STEPS = [
   {
@@ -105,6 +106,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [openMotorModal, setOpenMotorModal] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [weather, setWeather] = useState(null);
 
   // Live Zero-Key Weather Fetch (Open-Meteo)
@@ -621,6 +623,12 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         weatherContext={weather}
       />
 
+      {/* Enhanced Share Modal */}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
+
 
       {/* Complete Lifecycle Stepper (फसल से लेकर बिक्री तक 6 चरण) */}
       <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -790,7 +798,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               variant="outlined"
               size="small"
               startIcon={<ShareIcon />}
-              onClick={shareApp}
+              onClick={() => setShareModalOpen(true)}
               sx={{ borderColor: 'rgba(255,255,255,0.7)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.8, py: 0.8, fontSize: '0.8rem', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)', borderColor: '#fff' } }}
             >
               शेयर करें

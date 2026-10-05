@@ -28,6 +28,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
+import { ShareModal } from './ShareModal';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'होम', icon: HomeIcon },
@@ -47,6 +48,7 @@ export const Header = ({
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -154,7 +156,8 @@ export const Header = ({
         >
           <Box
             component="img"
-            src="/icons/kisan-icon.svg"
+            src="/icons/kisan-icon-512.png"
+            onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
             alt={appConfig.appName}
             sx={{
               width: { xs: 38, sm: 42 },
@@ -285,7 +288,7 @@ export const Header = ({
           {/* Share App Button */}
           <Tooltip title="किसान भाइयों को ऐप शेयर करें">
             <IconButton
-              onClick={shareApp}
+              onClick={() => setShareModalOpen(true)}
               sx={{
                 bgcolor: 'rgba(255,255,255,0.14)',
                 color: '#fff',
@@ -300,6 +303,12 @@ export const Header = ({
           </Tooltip>
         </Box>
       </Toolbar>
+
+      {/* Share Modal */}
+      <ShareModal
+        open={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+      />
     </AppBar>
   );
 };

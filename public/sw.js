@@ -4,6 +4,7 @@ const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/icons/kisan-icon-512.png',
   '/icons/kisan-icon.svg',
   '/favicon.svg'
 ];

@@ -1,7 +1,16 @@
-// किसान साथी - Frontend API Service connected to MongoDB
-// All data dynamically loads from MongoDB Atlas endpoints with smart offline caching.
+import { FERTILIZER_DOSES, SCHEMES, CROPS, MANDI_RATES, MACHINERY_RENTALS } from '../data/kisanData';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+// Ensure API_BASE_URL properly handles whether host environment supplies with or without /api or trailing slash
+const getNormalizedApiBaseUrl = () => {
+  let url = (import.meta.env.VITE_API_BASE_URL || 'https://kisan-saathi-api-4sdo.onrender.com/api').trim();
+  url = url.replace(/\/+$/, ''); // Strip trailing slash
+  if (!url.endsWith('/api')) {
+    url = `${url}/api`;
+  }
+  return url;
+};
+
+const API_BASE_URL = getNormalizedApiBaseUrl();
 
 // Helper for caching and network requests
 const fetchWithCache = async (endpoint, cacheKey, fallbackDefault = []) => {
@@ -30,12 +39,12 @@ const fetchWithCache = async (endpoint, cacheKey, fallbackDefault = []) => {
 
 // 1. Crops
 export const getCrops = async () => {
-  return await fetchWithCache('/crops', 'crops');
+  return await fetchWithCache('/crops', 'crops', CROPS);
 };
 
 // 2. Fertilizers
 export const getFertilizers = async () => {
-  return await fetchWithCache('/fertilizers', 'fertilizers', {});
+  return await fetchWithCache('/fertilizers', 'fertilizers', FERTILIZER_DOSES);
 };
 
 // 3. Diseases
@@ -46,17 +55,17 @@ export const getDiseases = async (cropId = '') => {
 
 // 4. Mandi Rates
 export const getMandiRates = async () => {
-  return await fetchWithCache('/mandi-rates', 'mandi_rates');
+  return await fetchWithCache('/mandi-rates', 'mandi_rates', MANDI_RATES);
 };
 
 // 5. Schemes
 export const getSchemes = async () => {
-  return await fetchWithCache('/schemes', 'schemes');
+  return await fetchWithCache('/schemes', 'schemes', SCHEMES);
 };
 
 // 6. Machinery Rentals
 export const getMachinery = async () => {
-  return await fetchWithCache('/machinery', 'machinery');
+  return await fetchWithCache('/machinery', 'machinery', MACHINERY_RENTALS);
 };
 
 // 7. Community Q&A

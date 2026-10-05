@@ -13,8 +13,8 @@
   "backgroundColor": "#1B5E20",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://kisan.init65.co.in/icons/kisan-icon.svg",
-  "maskableIconUrl": "https://kisan.init65.co.in/icons/kisan-icon.svg",
+  "iconUrl": "https://kisan.init65.co.in/icons/kisan-icon-512.png",
+  "maskableIconUrl": "https://kisan.init65.co.in/icons/kisan-icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./kisan-release-key.keystore",
@@ -27,13 +27,13 @@
       "name": "फसल डॉक्टर",
       "shortName": "डॉक्टर",
       "url": "/?tab=doctor",
-      "icon": "https://kisan.init65.co.in/icons/kisan-icon.svg"
+      "chosenIconUrl": "https://kisan.init65.co.in/icons/kisan-icon-512.png"
     },
     {
       "name": "मंडी भाव",
       "shortName": "मंडी भाव",
       "url": "/?tab=mandi",
-      "icon": "https://kisan.init65.co.in/icons/kisan-icon.svg"
+      "chosenIconUrl": "https://kisan.init65.co.in/icons/kisan-icon-512.png"
     }
   ],
   "generatorApp": "bubblewrap-cli",

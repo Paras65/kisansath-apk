@@ -1,77 +1,240 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1b5e20"/>
-      <stop offset="50%" stop-color="#2e7d32"/>
-      <stop offset="100%" stop-color="#388e3c"/>
+    <!-- Background Outer Squircle 3D Gradient -->
+    <linearGradient id="bgGrad3D" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#2e7d32"/>
+      <stop offset="35%" stop-color="#1b5e20"/>
+      <stop offset="85%" stop-color="#0e3d13"/>
+      <stop offset="100%" stop-color="#08260b"/>
     </linearGradient>
-    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fff176"/>
+
+    <!-- Top Gloss Rim Reflection -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.6"/>
+      <stop offset="25%" stop-color="#a5d6a7" stop-opacity="0.3"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.4"/>
+    </linearGradient>
+
+    <!-- 3D Rising Sun / Morning Bloom -->
+    <radialGradient id="sunGlow" cx="50%" cy="40%" r="55%" fx="50%" fy="35%">
+      <stop offset="0%" stop-color="#fff9c4" stop-opacity="1"/>
+      <stop offset="25%" stop-color="#ffe082" stop-opacity="0.95"/>
+      <stop offset="55%" stop-color="#ffb300" stop-opacity="0.65"/>
+      <stop offset="80%" stop-color="#f57c00" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#1b5e20" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- 3D Golden Grain Metallic Gradient -->
+    <linearGradient id="goldGrain3D" x1="20%" y1="0%" x2="90%" y2="100%">
+      <stop offset="0%" stop-color="#fffde7"/>
+      <stop offset="20%" stop-color="#fff59d"/>
       <stop offset="50%" stop-color="#fbc02d"/>
-      <stop offset="100%" stop-color="#f57f17"/>
+      <stop offset="80%" stop-color="#f57f17"/>
+      <stop offset="100%" stop-color="#b26a00"/>
     </linearGradient>
-    <linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#ffe082"/>
-      <stop offset="100%" stop-color="#ffb300"/>
+
+    <!-- 3D Grain Highlight (Light side) -->
+    <linearGradient id="grainHi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#fff59d" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#fbc02d" stop-opacity="0"/>
     </linearGradient>
+
+    <!-- 3D Emerald Sprout Leaf Gradient (Bright Side) -->
+    <linearGradient id="leafGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#c8e6c9"/>
+      <stop offset="25%" stop-color="#81c784"/>
+      <stop offset="70%" stop-color="#43a047"/>
+      <stop offset="100%" stop-color="#2e7d32"/>
+    </linearGradient>
+
+    <!-- 3D Emerald Sprout Leaf Gradient (Shadow Side) -->
+    <linearGradient id="leafGradDark" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4caf50"/>
+      <stop offset="40%" stop-color="#2e7d32"/>
+      <stop offset="80%" stop-color="#1b5e20"/>
+      <stop offset="100%" stop-color="#0b380f"/>
+    </linearGradient>
+
+    <!-- Terraced 3D Field Layer 1 -->
+    <linearGradient id="fieldGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2e7d32"/>
+      <stop offset="100%" stop-color="#144617"/>
+    </linearGradient>
+
+    <!-- Terraced 3D Field Layer 2 -->
+    <linearGradient id="fieldGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1b5e20"/>
+      <stop offset="100%" stop-color="#0a280d"/>
+    </linearGradient>
+
+    <!-- Drop Shadow Filter for 3D Floating Elements -->
+    <filter id="shadow3D" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#000000" flood-opacity="0.45"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#000000" flood-opacity="0.3"/>
+    </filter>
+
+    <!-- Soft Grain Shadow Filter -->
+    <filter id="grainShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="2" dy="5" stdDeviation="3.5" flood-color="#0a2a0d" flood-opacity="0.5"/>
+    </filter>
+
+    <!-- Ambient Occlusion / Deep Shadow -->
+    <filter id="deepShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="14" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.5"/>
+      </feComponentTransfer>
+      <feMerge> 
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- 3D Badge Drop Shadow -->
+    <filter id="squircleShadow" x="-10%" y="-10%" width="120%" height="125%">
+      <feDropShadow dx="0" dy="18" stdDeviation="16" flood-color="#051a08" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
   </defs>
 
-  <!-- Background circle with smooth corners -->
-  <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
-  
-  <!-- Outer glowing ring -->
-  <rect x="16" y="16" width="480" height="480" rx="98" fill="none" stroke="rgba(255,255,255,0.18)" stroke-width="6"/>
+  <!-- 1. BASE SQUIRCLE WITH 3D ELEVATION -->
+  <rect x="20" y="16" width="472" height="472" rx="112" fill="url(#bgGrad3D)" filter="url(#squircleShadow)"/>
 
-  <!-- Rising Sun in Background -->
-  <circle cx="256" cy="210" r="88" fill="url(#sunGrad)" opacity="0.85"/>
-  
-  <!-- Sun rays -->
-  <g stroke="url(#sunGrad)" stroke-width="5" stroke-linecap="round" opacity="0.6">
-    <line x1="256" y1="95" x2="256" y2="70"/>
-    <line x1="337" y1="128" x2="355" y2="110"/>
-    <line x1="371" y1="210" x2="396" y2="210"/>
-    <line x1="175" y1="128" x2="157" y2="110"/>
-    <line x1="141" y1="210" x2="116" y2="210"/>
+  <!-- 2. INSET 3D BEVEL RIM LIGHTING -->
+  <rect x="23" y="19" width="466" height="466" rx="109" fill="none" stroke="url(#rimGrad)" stroke-width="4.5"/>
+  <rect x="26" y="22" width="460" height="460" rx="106" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="1.5"/>
+
+  <!-- 3. RISING SUN 3D RADIANCE BLOOM -->
+  <circle cx="256" cy="205" r="135" fill="url(#sunGlow)"/>
+
+  <!-- 3D Sun Orb with Golden Rim -->
+  <circle cx="256" cy="195" r="76" fill="#fbc02d" opacity="0.9" filter="url(#deepShadow)"/>
+  <circle cx="256" cy="195" r="76" fill="url(#goldGrain3D)"/>
+  <!-- Specular Sun Highlight -->
+  <ellipse cx="256" cy="160" rx="46" ry="22" fill="#ffffff" opacity="0.45"/>
+
+  <!-- Sun Rays (Diffused 3D Sheen) -->
+  <g stroke="#ffe082" stroke-width="4.5" stroke-linecap="round" opacity="0.55">
+    <line x1="256" y1="88" x2="256" y2="60"/>
+    <line x1="345" y1="125" x2="368" y2="102"/>
+    <line x1="382" y1="195" x2="410" y2="195"/>
+    <line x1="167" y1="125" x2="144" y2="102"/>
+    <line x1="130" y1="195" x2="102" y2="195"/>
   </g>
 
-  <!-- Fertile Land / Furrows (Khet) -->
-  <path d="M40 430 C120 370, 200 370, 256 390 C312 410, 392 410, 472 350 L472 472 C472 494, 454 512, 432 512 L80 512 C58 512, 40 494, 40 472 Z" fill="#1b5e20" opacity="0.95"/>
-  <path d="M40 460 C140 415, 240 425, 300 440 C360 455, 410 445, 472 410 L472 512 L80 512 Z" fill="#144417"/>
+  <!-- 4. 3D CONTOURED FIELDS (KHET KI MEAD / FURROWS) -->
+  <!-- Back Tier -->
+  <path d="M22 410 C110 350, 200 355, 256 375 C315 395, 395 385, 490 330 L490 440 C465 480, 420 488, 380 488 L132 488 C90 488, 45 470, 22 430 Z" 
+        fill="url(#fieldGrad1)" opacity="0.95"/>
+  
+  <!-- Front Tier with Depth Edge -->
+  <path d="M22 445 C125 395, 220 405, 275 422 C335 438, 410 422, 490 380 L490 450 C460 485, 410 488, 380 488 L132 488 C70 488, 35 470, 22 445 Z" 
+        fill="url(#fieldGrad2)" filter="url(#grainShadow)"/>
 
-  <!-- Golden Wheat / Paddy Stalk (धान की बाली) -->
-  <g fill="url(#goldGrad)" stroke="#c67d00" stroke-width="2">
-    <!-- Center Stem -->
-    <path d="M256 160 Q254 280 256 420" stroke="url(#goldGrad)" stroke-width="8" stroke-linecap="round" fill="none"/>
-    
-    <!-- Top Grain -->
-    <path d="M256 140 C265 155, 265 175, 256 185 C247 175, 247 155, 256 140 Z"/>
-    
-    <!-- Grain Left 1 -->
-    <path d="M252 175 C232 170, 218 190, 230 205 C245 208, 254 195, 252 175 Z"/>
-    <!-- Grain Right 1 -->
-    <path d="M260 175 C280 170, 294 190, 282 205 C267 208, 258 195, 260 175 Z"/>
+  <!-- Field Furrow Accent Lines (Tilled Earth Perspective) -->
+  <path d="M80 455 Q200 425 310 440 Q400 452 460 420" stroke="#43a047" stroke-width="2.5" fill="none" opacity="0.35"/>
+  <path d="M120 472 Q220 448 330 460 Q410 470 450 450" stroke="#2e7d32" stroke-width="2" fill="none" opacity="0.45"/>
 
-    <!-- Grain Left 2 -->
-    <path d="M250 205 C222 200, 206 225, 222 242 C239 245, 252 230, 250 205 Z"/>
-    <!-- Grain Right 2 -->
-    <path d="M262 205 C290 200, 306 225, 290 242 C273 245, 260 230, 262 205 Z"/>
+  <!-- 5. 3D GOLDEN PADDY / WHEAT STALK (धान की सुनहरी 3D बाली) -->
+  <g filter="url(#shadow3D)">
+    <!-- Central Curved Stem (3D Round Shading) -->
+    <path d="M256 120 Q254 260 256 415" stroke="#8d5600" stroke-width="9" stroke-linecap="round" fill="none"/>
+    <path d="M256 120 Q254 260 256 415" stroke="url(#goldGrain3D)" stroke-width="6.5" stroke-linecap="round" fill="none"/>
+    <path d="M255 120 Q253 260 255 415" stroke="#fff9c4" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.8"/>
 
-    <!-- Grain Left 3 -->
-    <path d="M248 240 C215 235, 195 265, 215 285 C235 288, 250 270, 248 240 Z"/>
-    <!-- Grain Right 3 -->
-    <path d="M264 240 C297 235, 317 265, 297 285 C277 288, 262 270, 264 240 Z"/>
+    <!-- Top Crown Grain (Awn / Tip) -->
+    <g filter="url(#grainShadow)">
+      <path d="M256 95 C268 115, 268 142, 256 155 C244 142, 244 115, 256 95 Z" fill="url(#goldGrain3D)"/>
+      <path d="M256 98 C263 115, 263 138, 256 148 C252 138, 252 115, 256 98 Z" fill="url(#grainHi)"/>
+      <!-- Grain Awn / Fur -->
+      <line x1="256" y1="95" x2="256" y2="72" stroke="#fbc02d" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
 
-    <!-- Grain Left 4 -->
-    <path d="M248 280 C210 275, 190 310, 212 330 C234 332, 250 312, 248 280 Z"/>
-    <!-- Grain Right 4 -->
-    <path d="M264 280 C302 275, 322 310, 300 330 C278 332, 262 312, 264 280 Z"/>
+    <!-- Pair 1: Upper Grains -->
+    <!-- Left 1 -->
+    <g filter="url(#grainShadow)">
+      <path d="M252 142 C228 135, 212 160, 226 178 C244 182, 255 168, 252 142 Z" fill="url(#goldGrain3D)"/>
+      <path d="M250 144 C232 139, 218 158, 228 172 C238 174, 248 162, 250 144 Z" fill="url(#grainHi)"/>
+      <line x1="226" y1="178" x2="202" y2="162" stroke="#fbc02d" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <!-- Right 1 -->
+    <g filter="url(#grainShadow)">
+      <path d="M260 142 C284 135, 300 160, 286 178 C268 182, 257 168, 260 142 Z" fill="url(#goldGrain3D)"/>
+      <path d="M262 144 C280 139, 294 158, 284 172 C274 174, 264 162, 262 144 Z" fill="url(#grainHi)"/>
+      <line x1="286" y1="178" x2="310" y2="162" stroke="#fbc02d" stroke-width="2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Pair 2: Mid-Upper Grains -->
+    <!-- Left 2 -->
+    <g filter="url(#grainShadow)">
+      <path d="M250 180 C216 172, 196 202, 216 225 C237 228, 253 210, 250 180 Z" fill="url(#goldGrain3D)"/>
+      <path d="M248 183 C222 177, 204 200, 220 218 C234 220, 246 206, 248 183 Z" fill="url(#grainHi)"/>
+      <line x1="216" y1="225" x2="184" y2="205" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+    <!-- Right 2 -->
+    <g filter="url(#grainShadow)">
+      <path d="M262 180 C296 172, 316 202, 296 225 C275 228, 259 210, 262 180 Z" fill="url(#goldGrain3D)"/>
+      <path d="M264 183 C290 177, 308 200, 292 218 C278 220, 266 206, 264 183 Z" fill="url(#grainHi)"/>
+      <line x1="296" y1="225" x2="328" y2="205" stroke="#fbc02d" stroke-width="2.2" stroke-linecap="round"/>
+    </g>
+
+    <!-- Pair 3: Plump Central Grains -->
+    <!-- Left 3 -->
+    <g filter="url(#grainShadow)">
+      <path d="M248 224 C206 216, 184 252, 208 278 C232 282, 252 260, 248 224 Z" fill="url(#goldGrain3D)"/>
+      <path d="M245 228 C212 222, 193 250, 212 270 C230 272, 245 255, 245 228 Z" fill="url(#grainHi)"/>
+      <line x1="208" y1="278" x2="170" y2="255" stroke="#fbc02d" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+    <!-- Right 3 -->
+    <g filter="url(#grainShadow)">
+      <path d="M264 224 C306 216, 328 252, 304 278 C280 282, 260 260, 264 224 Z" fill="url(#goldGrain3D)"/>
+      <path d="M267 228 C300 222, 319 250, 300 270 C282 272, 267 255, 267 228 Z" fill="url(#grainHi)"/>
+      <line x1="304" y1="278" x2="342" y2="255" stroke="#fbc02d" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+
+    <!-- Pair 4: Lower Heavy Grains -->
+    <!-- Left 4 -->
+    <g filter="url(#grainShadow)">
+      <path d="M248 274 C202 266, 180 306, 206 335 C232 338, 252 314, 248 274 Z" fill="url(#goldGrain3D)"/>
+      <path d="M245 278 C210 272, 190 304, 210 326 C228 328, 244 308, 245 278 Z" fill="url(#grainHi)"/>
+      <line x1="206" y1="335" x2="164" y2="310" stroke="#fbc02d" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <!-- Right 4 -->
+    <g filter="url(#grainShadow)">
+      <path d="M264 274 C310 266, 332 306, 306 335 C280 338, 260 314, 264 274 Z" fill="url(#goldGrain3D)"/>
+      <path d="M267 278 C302 272, 322 304, 302 326 C284 328, 268 308, 267 278 Z" fill="url(#grainHi)"/>
+      <line x1="306" y1="335" x2="348" y2="310" stroke="#fbc02d" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
   </g>
 
-  <!-- Green Sprout Leaves on Base -->
-  <path d="M254 350 C210 320, 160 340, 150 390 C180 395, 230 380, 254 350 Z" fill="#66bb6a" stroke="#2e7d32" stroke-width="2"/>
-  <path d="M258 350 C302 320, 352 340, 362 390 C332 395, 282 380, 258 350 Z" fill="#81c784" stroke="#2e7d32" stroke-width="2"/>
+  <!-- 6. 3D GLOSSY EMERALD SPROUT LEAVES (नवअंकुरित 3D पत्तियां) -->
+  <g filter="url(#shadow3D)">
+    <!-- Left Leaf - 3D Bevelled Halves -->
+    <!-- Left Leaf Light Half -->
+    <path d="M254 360 C198 322, 140 348, 126 405 C162 412, 222 396, 254 360 Z" 
+          fill="url(#leafGradLight)"/>
+    <!-- Left Leaf Shadow Half & Vein -->
+    <path d="M254 360 C215 350, 168 375, 126 405 C170 400, 220 382, 254 360 Z" 
+          fill="url(#leafGradDark)"/>
+    <!-- Leaf Spine & Gloss Sheen -->
+    <path d="M254 360 Q180 370 126 405" stroke="#c8e6c9" stroke-width="3" fill="none" opacity="0.9"/>
+    <path d="M240 364 Q190 355 145 385" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6"/>
 
-  <!-- Text Badge "किसान साथी" at bottom -->
-  <rect x="126" y="440" width="260" height="44" rx="22" fill="#ffffff" opacity="0.95"/>
-  <text x="256" y="470" font-family="'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="bold" fill="#1b5e20" text-anchor="middle">किसान साथी</text>
+    <!-- Right Leaf - 3D Bevelled Halves -->
+    <!-- Right Leaf Light Half -->
+    <path d="M258 360 C314 322, 372 348, 386 405 C350 412, 290 396, 258 360 Z" 
+          fill="url(#leafGradLight)"/>
+    <!-- Right Leaf Shadow Half -->
+    <path d="M258 360 C297 350, 344 375, 386 405 C342 400, 292 382, 258 360 Z" 
+          fill="url(#leafGradDark)"/>
+    <!-- Leaf Spine & Gloss Sheen -->
+    <path d="M258 360 Q332 370 386 405" stroke="#c8e6c9" stroke-width="3" fill="none" opacity="0.9"/>
+    <path d="M272 364 Q322 355 367 385" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.6"/>
+  </g>
+
+  <!-- 7. TOP CORNER SPECULAR 3D GLOSS ARCH -->
+  <path d="M50 80 C80 40, 140 26, 220 24 C140 36, 80 70, 50 120 Z" fill="#ffffff" opacity="0.25"/>
 </svg>
