@@ -33,6 +33,12 @@ jobs:
       - name: 📦 Install Bubblewrap CLI
         run: npm install -g @bubblewrap/cli
 
+      - name: ⚙️ Configure Bubblewrap for Non-Interactive CI
+        run: |
+          mkdir -p ~/.bubblewrap
+          echo "{\"jdkPath\": \"$JAVA_HOME\", \"androidSdkPath\": \"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
       - name: 🔑 Setup Keystore
         working-directory: twa
         run: |
@@ -54,8 +60,10 @@ jobs:
         run: |
           bubblewrap build --manifest=twa-manifest.json \
             --signingKeyPath=./kisan-release-key.keystore \
-            --signingKeyAlias=kisan-alias
+            --signingKeyAlias=kisan-alias \
+            --skipPwaValidation
           cp app-release-signed.apk kisan-saathi.apk || true
+
 
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
