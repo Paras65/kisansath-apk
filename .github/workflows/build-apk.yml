@@ -97,11 +97,11 @@ jobs:
           EOF
           cp ../public/.well-known/assetlinks.json ./assetlinks.json
 
-          # Persist release keystore and updated assetlinks to repo
+          # Persist ONLY the public assetlinks.json to git (Keystore is strictly private and gitignored)
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add kisan-release-key.keystore ../public/.well-known/assetlinks.json || true
-          git commit -m "chore(twa): persist release keystore and matched assetlinks sha256 to hide url bar [skip ci]" || true
+          git add ../public/.well-known/assetlinks.json || true
+          git commit -m "chore(twa): update public assetlinks sha256 to hide url bar [skip ci]" || true
           git push origin main || true
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main || true
 
@@ -128,8 +128,6 @@ jobs:
           path: |
             twa/*.apk
             twa/*.aab
-            twa/*.keystore
-            twa/assetlinks.json
 
       - name: 🚀 Publish GitHub Release
         uses: softprops/action-gh-release@v2
@@ -139,8 +137,6 @@ jobs:
           files: |
             twa/*.apk
             twa/*.aab
-            twa/*.keystore
-            twa/assetlinks.json
           draft: false
           prerelease: false
           make_latest: true
