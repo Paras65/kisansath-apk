@@ -7,13 +7,15 @@ import {
   Paper,
   Typography,
   Button,
-  CssBaseline
+  CssBaseline,
+  Fab
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
+import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 
 import { theme } from './theme';
 import { Header } from './components/Header';
@@ -25,6 +27,7 @@ import { MandiTab } from './components/MandiTab';
 import { ChaupalTab } from './components/ChaupalTab';
 import { appConfig } from './config/appConfig';
 import { isNativePlatform } from './utils/capacitorUtils';
+import { stopSpeech, subscribeSpeechState } from './utils/speech';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -74,6 +77,15 @@ function App() {
   const [selectedDistrict, setSelectedDistrict] = useState(appConfig.defaultDistrict);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [isSpeakingActive, setIsSpeakingActive] = useState(false);
+
+  // Synchronize global speech state
+  useEffect(() => {
+    const unsubscribe = subscribeSpeechState((speaking) => {
+      setIsSpeakingActive(speaking);
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Read URL query param if opened from PWA shortcut
   useEffect(() => {
@@ -118,7 +130,7 @@ function App() {
   // Hardware back button support for Android TWA / PWA
   useEffect(() => {
     const handlePopState = () => {
-
+      stopSpeech(); // Stop any active speech on back navigation
       if (currentTab !== 'home') {
         setCurrentTab('home');
       }
@@ -128,6 +140,7 @@ function App() {
   }, [currentTab]);
 
   const handleTabChange = (newTab) => {
+    stopSpeech(); // Stop any active speech when switching tabs
     if (newTab !== currentTab) {
       window.history.pushState({ tab: newTab }, '');
       setCurrentTab(newTab);
@@ -249,6 +262,34 @@ function App() {
             />
           </BottomNavigation>
         </Paper>
+
+        {/* Floating Global Stop Voice Button (बोलना बंद करें) */}
+        {isSpeakingActive && (
+          <Fab
+            variant="extended"
+            onClick={stopSpeech}
+            sx={{
+              position: 'fixed',
+              bottom: { xs: 74, md: 24 },
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 3000,
+              bgcolor: '#c62828',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.86rem',
+              boxShadow: '0 6px 22px rgba(198, 40, 40, 0.55)',
+              px: 2.5,
+              py: 1,
+              '&:hover': { bgcolor: '#b71c1c' },
+              border: '2px solid #ffffff',
+              textTransform: 'none'
+            }}
+          >
+            <VolumeOffIcon sx={{ mr: 1, fontSize: 20 }} />
+            🛑 बोलना बंद करें (Stop Voice)
+          </Fab>
+        )}
       </Box>
     </ThemeProvider>
   );

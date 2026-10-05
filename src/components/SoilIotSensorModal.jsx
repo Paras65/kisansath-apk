@@ -35,7 +35,7 @@ import {
   analyzeSoilTelemetry,
   generateSimulatedSoilData
 } from '../utils/bluetoothSoilSensor';
-import { speakText } from '../utils/speech';
+import { speakText, stopSpeech } from '../utils/speech';
 
 export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotName = 'खेत' }) => {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -47,6 +47,15 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
   useEffect(() => {
     setBluetoothSupported(isWebBluetoothSupported());
   }, []);
+
+  useEffect(() => {
+    if (!open) {
+      stopSpeech();
+    }
+    return () => {
+      stopSpeech();
+    };
+  }, [open]);
 
   const handleConnectBleDevice = async () => {
     setBleError('');

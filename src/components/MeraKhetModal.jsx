@@ -52,7 +52,7 @@ import {
   analyzePlotLifecycle
 } from '../utils/cropLifecycleEngine';
 import { FERTILIZER_DOSES } from '../data/kisanData';
-import { speakText } from '../utils/speech';
+import { speakText, stopSpeech } from '../utils/speech';
 import { fetchLiveWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
@@ -77,7 +77,12 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
       } else {
         fetchLiveWeather(selectedDistrict).then((w) => setLiveWeather(w));
       }
+    } else {
+      stopSpeech();
     }
+    return () => {
+      stopSpeech();
+    };
   }, [open, selectedDistrict, weatherContext]);
 
   // Login Form State (सरल व बिना किसी जमीन की बाध्यता के)

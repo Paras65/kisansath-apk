@@ -35,7 +35,7 @@ import {
   calculatePerimeter,
   calculateDistanceMeters
 } from '../utils/geoUtils';
-import { speakText } from '../utils/speech';
+import { speakText, stopSpeech } from '../utils/speech';
 
 export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'खेत' }) => {
   const [trackingState, setTrackingState] = useState('idle'); // 'idle' | 'tracking' | 'paused' | 'completed'
@@ -75,11 +75,13 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
     if (!open) {
       stopTracking();
       releaseWakeLock();
+      stopSpeech();
       if (simIntervalRef.current) clearInterval(simIntervalRef.current);
     }
     return () => {
       stopTracking();
       releaseWakeLock();
+      stopSpeech();
       if (simIntervalRef.current) clearInterval(simIntervalRef.current);
     };
   }, [open]);

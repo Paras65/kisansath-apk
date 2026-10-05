@@ -38,7 +38,7 @@ import {
   getGsmActionUri,
   getMotorTelemetry
 } from '../utils/motorControllerService';
-import { speakText } from '../utils/speech';
+import { speakText, stopSpeech } from '../utils/speech';
 
 export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   const [config, setConfig] = useState(getStoredMotorConfig());
@@ -54,7 +54,12 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
       setConfig(stored);
       setIsMotorOn(stored.lastState === 'ON');
       setStarterPhoneInput(stored.starterPhone || '');
+    } else {
+      stopSpeech();
     }
+    return () => {
+      stopSpeech();
+    };
   }, [open]);
 
   const telemetry = getMotorTelemetry(isMotorOn);

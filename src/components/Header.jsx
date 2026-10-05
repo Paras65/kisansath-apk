@@ -25,7 +25,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
-import { speakText, stopSpeech } from '../utils/speech';
+import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
@@ -63,14 +63,20 @@ export const Header = ({
     };
   }, []);
 
+  // Sync Header speaker icon with global speech engine
+  useEffect(() => {
+    const unsub = subscribeSpeechState((isSpeaking) => {
+      setSpeaking(isSpeaking);
+    });
+    return () => unsub();
+  }, []);
+
   const handleVoiceWelcome = () => {
     if (speaking) {
       stopSpeech();
-      setSpeaking(false);
     } else {
-      setSpeaking(true);
       const text = `${appConfig.appName} ऐप में आपका स्वागत है। फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और मंडी भाव के लिए नीचे दिए गए विकल्पों का चयन करें।`;
-      speakText(text, () => setSpeaking(false));
+      speakText(text);
     }
   };
 
