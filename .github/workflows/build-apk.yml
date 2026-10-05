@@ -43,15 +43,8 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
-      - name: 🎨 Apply Premium 3D App Icon
-        run: |
-          # Copy 3D icon to Android launcher mipmap resources
-          for dir in android/app/src/main/res/mipmap-*; do
-            if [ -d "$dir" ]; then
-              cp public/icons/kisan-icon-512.png "$dir/ic_launcher.png" || true
-              cp public/icons/kisan-icon-512.png "$dir/ic_launcher_round.png" || true
-            fi
-          done
+      - name: 🛠️ Configure Android 3D Icons & Module Permissions
+        run: node scripts/configure-android.js
 
       - name: 🔑 Build Native Android APK via Gradle
         working-directory: android

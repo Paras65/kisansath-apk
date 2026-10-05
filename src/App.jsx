@@ -24,6 +24,7 @@ import { CalculatorSchemesTab } from './components/CalculatorSchemesTab';
 import { MandiTab } from './components/MandiTab';
 import { ChaupalTab } from './components/ChaupalTab';
 import { appConfig } from './config/appConfig';
+import { isNativePlatform } from './utils/capacitorUtils';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -83,8 +84,13 @@ function App() {
     }
   }, []);
 
-  // Listen for PWA beforeinstallprompt event
+  // Listen for PWA beforeinstallprompt event (suppressed in native APK)
   useEffect(() => {
+    if (isNativePlatform()) {
+      setShowInstallBanner(false);
+      return;
+    }
+
     const handleBeforeInstall = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);

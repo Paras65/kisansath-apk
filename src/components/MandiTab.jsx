@@ -416,7 +416,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                   variant="outlined"
                   size="small"
                   startIcon={<CallIcon />}
-                  onClick={() => window.open(`tel:${listing.phone}`)}
+                  onClick={() => { window.location.href = `tel:${listing.phone}`; }}
                   sx={{
                     color: '#2e7d32',
                     borderColor: '#81c784',

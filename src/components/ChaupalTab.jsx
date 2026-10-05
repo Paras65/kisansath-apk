@@ -237,7 +237,7 @@ export const ChaupalTab = () => {
                           variant="contained"
                           size="small"
                           startIcon={<CallIcon />}
-                          onClick={() => window.open(`tel:${item.phone}`)}
+                          onClick={() => { window.location.href = `tel:${item.phone}`; }}
                           sx={{
                             bgcolor: '#1b7a2d',
                             fontSize: '0.75rem',
