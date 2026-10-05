@@ -1,0 +1,14 @@
+{
+  "appId": "in.co.init65.kisan",
+  "appName": "किसान साथी",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "StatusBar": {
+      "style": "DARK",
+      "backgroundColor": "#1B5E20"
+    }
+  }
+}

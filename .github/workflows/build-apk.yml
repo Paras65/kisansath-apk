@@ -1,4 +1,4 @@
-name: 📱 Build Kisan Saathi Android APK & AAB
+name: 📱 Build Kisan Saathi Native Android APK
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build-apk:
-    name: 🏗️ Compile Android TWA (APK & AAB)
+    name: 🏗️ Compile Native Android APK (Capacitor)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,121 +32,64 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: 📦 Install Bubblewrap CLI
-        run: npm install -g @bubblewrap/cli
+      - name: 📦 Install Dependencies
+        run: npm install
 
-      - name: ⚙️ Configure Bubblewrap for Non-Interactive CI
+      - name: 🔨 Build Web Application
+        run: npm run build
+
+      - name: 📱 Add & Sync Capacitor Android
         run: |
-          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
-          export ANDROID_SDK_ROOT="$ANDROID_HOME"
-          
-          # Fix for Bubblewrap: create symlink from cmdline-tools/latest to tools
-          sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
-          
-          # Accept Android SDK licenses
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
-          
-          # Configure Bubblewrap paths
-          mkdir -p ~/.bubblewrap
-          cat <<EOF > ~/.bubblewrap/config.json
-          {
-            "jdkPath": "$JAVA_HOME",
-            "androidSdkPath": "$ANDROID_HOME"
-          }
-          EOF
-          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
-          bubblewrap doctor
+          npx cap add android || true
+          npx cap sync android
 
-      - name: 🔑 Setup Keystore & Digital Asset Links Verification
-        working-directory: twa
+      - name: 🎨 Apply Premium 3D App Icon
         run: |
-          if [ -f "kisan-release-key.keystore" ]; then
-            echo "✅ Using persistent repository keystore..."
-          elif [ -n "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
-            echo "Decoding Keystore from GitHub Secrets..."
-            echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > kisan-release-key.keystore
-          else
-            echo "Generating permanent release keystore for CI..."
-            keytool -genkey -v -keystore kisan-release-key.keystore -alias kisan-alias -keyalg RSA -keysize 2048 -validity 10000 \
-              -storepass "KisanSaathiPass65" -keypass "KisanSaathiPass65" \
-              -dname "CN=Kisan Saathi, OU=IT, O=init65, L=Raipur, ST=Chhattisgarh, C=IN"
-          fi
+          # Copy 3D icon to Android launcher mipmap resources
+          for dir in android/app/src/main/res/mipmap-*; do
+            if [ -d "$dir" ]; then
+              cp public/icons/kisan-icon-512.png "$dir/ic_launcher.png" || true
+              cp public/icons/kisan-icon-512.png "$dir/ic_launcher_round.png" || true
+            fi
+          done
 
-          # Extract exact SHA-256 certificate fingerprint
-          SHA256_FINGERPRINT=$(keytool -list -v -keystore kisan-release-key.keystore -alias kisan-alias -storepass "KisanSaathiPass65" | awk -F': ' '/SHA256:/ {print $2}' | tr -d ' \r\n')
-          echo "=========================================================="
-          echo "📱 Android Certificate SHA-256 Fingerprint: $SHA256_FINGERPRINT"
-          echo "=========================================================="
-
-          # Update public/.well-known/assetlinks.json so Android Chrome hides the URL bar completely
-          mkdir -p ../public/.well-known
-          cat <<EOF > ../public/.well-known/assetlinks.json
-          [
-            {
-              "relation": ["delegate_permission/common.handle_all_urls"],
-              "target": {
-                "namespace": "android_app",
-                "package_name": "in.co.init65.kisan",
-                "sha256_cert_fingerprints": [
-                  "$SHA256_FINGERPRINT",
-                  "14:6D:E9:7D:0F:52:AB:3A:4E:91:06:56:88:C6:F8:44:9F:B2:4F:B6:54:1A:56:52:8C:4B:98:4E:14:6D:E9:7D"
-                ]
-              }
-            }
-          ]
-          EOF
-          cp ../public/.well-known/assetlinks.json ./assetlinks.json
-
-          # Persist ONLY the public assetlinks.json to git (Keystore is strictly private and gitignored)
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add ../public/.well-known/assetlinks.json || true
-          git commit -m "chore(twa): update public assetlinks sha256 to hide url bar [skip ci]" || true
-          git push origin main || true
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main || true
-
-      - name: 🔨 Build Android APK & AAB via Bubblewrap
-        working-directory: twa
-        env:
-          ANDROID_HOME: /usr/local/lib/android/sdk
-          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
-          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'KisanSaathiPass65' }}
-          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'KisanSaathiPass65' }}
+      - name: 🔑 Build Native Android APK via Gradle
+        working-directory: android
         run: |
-          # Automatically answer 'yes' to regenerate project files and checksum non-interactively
-          yes | bubblewrap update --manifest=twa-manifest.json --skipPwaValidation || true
-          yes | bubblewrap build --manifest=twa-manifest.json \
-            --signingKeyPath=./kisan-release-key.keystore \
-            --signingKeyAlias=kisan-alias \
-            --skipPwaValidation
-          cp app-release-signed.apk kisan-saathi.apk || true
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+          # Prepare output folder
+          mkdir -p ../output-apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../output-apk/kisan-saathi.apk
+          cp app/build/outputs/apk/debug/app-debug.apk ../output-apk/kisan-saathi-native.apk
 
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: kisan-saathi-android-apk
-          path: |
-            twa/*.apk
-            twa/*.aab
+          name: kisan-saathi-native-apk
+          path: output-apk/*.apk
 
       - name: 🚀 Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.0-latest' }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0} - किसान साथी Android App', github.ref_name) || '📱 किसान साथी Android App (Latest Release)' }}
-          files: |
-            twa/*.apk
-            twa/*.aab
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0} - किसान साथी Native Android APK', github.ref_name) || '📱 किसान साथी Native Android APK (100% Real App)' }}
+          files: output-apk/*.apk
           draft: false
           prerelease: false
           make_latest: true
           generate_release_notes: true
           body: |
-            ## 🌾 किसान साथी Android App (नवीनतम रिलीज)
+            ## 🌾 किसान साथी Native Android App (100% Real Android APK)
             
+            - **इंजन:** `@capacitor/android` Native Bridge
             - **पैकेज आईडी:** `in.co.init65.kisan`
-            - **वेबसाइट (PWA):** [kisan.init65.co.in](https://kisan.init65.co.in)
+            - **फीचर्स:**
+              - 🚫 **कोई ब्राउज़र URL बार नहीं:** शुद्ध फुल-स्क्रीन असली ऐप अनुभव
+              - 🚀 **100% नेटिव फील:** हार्डवेयर बैक बटन, स्टेटस बार थीम (`#1b5e20`)
+              - 🎨 **प्रीमियम 3D आइकॉन:** सोने की बाली व एमराल्ड पत्ती
+              - ⚡ **ऑफलाइन सक्षम:** बिना इंटरनेट के भी सुपरफ़ास्ट
             
             ### 📥 डाउनलोड लिंक:
-            - **Direct Android APK:** फोन में सीधे इंस्टॉल करने हेतु नीचे अटैच की गई `kisan-saathi.apk` या `app-release-signed.apk` फाइल डाउनलोड करें।
-            - **Google Play Store Bundle:** Play Store कंसोल पर अपलोड करने हेतु `app-release-bundle.aab` फाइल का उपयोग करें।
+            - नीचे दी गई `kisan-saathi.apk` सीधे अपने Android फोन में इंस्टॉल करें।
