@@ -23,8 +23,11 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
+import AndroidIcon from '@mui/icons-material/Android';
+import ShareIcon from '@mui/icons-material/Share';
 import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
+import { shareApp } from '../utils/shareUtils';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'होम', icon: HomeIcon },
@@ -252,31 +255,49 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* Install PWA Button */}
-          {isInstallable && (
-            <Tooltip title="मोबाइल में ऐप इंस्टॉल करें">
+          {/* APK Download Button */}
+          {appConfig.apkDownloadUrl && (
+            <Tooltip title="Android APK डाउनलोड करें">
               <Button
-                variant="contained"
+                variant="outlined"
                 size="small"
-                startIcon={<GetAppIcon sx={{ fontSize: 16 }} />}
-                onClick={onInstallClick}
+                startIcon={<AndroidIcon sx={{ fontSize: 16 }} />}
+                href={appConfig.apkDownloadUrl}
+                target="_blank"
+                download
                 sx={{
-                  bgcolor: '#f59e0b',
-                  color: '#ffffff',
+                  color: '#ffeb3b',
+                  borderColor: 'rgba(255,235,59,0.5)',
                   fontWeight: 800,
-                  fontSize: '0.78rem',
-                  py: 0.6,
-                  px: 1.4,
+                  fontSize: '0.74rem',
+                  py: 0.5,
+                  px: 1.2,
                   borderRadius: 2.5,
-                  boxShadow: '0 2px 10px rgba(245, 158, 11, 0.35)',
                   display: { xs: 'none', sm: 'inline-flex' },
-                  '&:hover': { bgcolor: '#d97706' }
+                  '&:hover': { bgcolor: 'rgba(255,235,59,0.15)', borderColor: '#ffeb3b' }
                 }}
               >
-                ऐप इंस्टॉल
+                APK डाउनलोड
               </Button>
             </Tooltip>
           )}
+
+          {/* Share App Button */}
+          <Tooltip title="किसान भाइयों को ऐप शेयर करें">
+            <IconButton
+              onClick={shareApp}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.14)',
+                color: '#fff',
+                width: 36,
+                height: 36,
+                borderRadius: 2.5,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+              }}
+            >
+              <ShareIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Toolbar>
     </AppBar>

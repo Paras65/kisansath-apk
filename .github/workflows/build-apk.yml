@@ -2,6 +2,8 @@ name: 📱 Build Kisan Saathi Android APK & AAB
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -77,19 +79,22 @@ jobs:
             twa/*.aab
 
       - name: 🚀 Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.0-latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0} - किसान साथी Android App', github.ref_name) || '📱 किसान साथी Android App (Latest Release)' }}
           files: |
             twa/*.apk
             twa/*.aab
-          name: Release ${{ github.ref_name }} - किसान साथी Android App
+          draft: false
+          prerelease: false
+          generate_release_notes: true
           body: |
-            ## 🌾 किसान साथी Android App (संस्करण ${{ github.ref_name }})
+            ## 🌾 किसान साथी Android App (नवीनतम रिलीज)
             
             - **पैकेज आईडी:** `in.co.init65.kisan`
-            - **वेबसाइट:** [kisan.init65.co.in](https://kisan.init65.co.in)
+            - **वेबसाइट (PWA):** [kisan.init65.co.in](https://kisan.init65.co.in)
             
             ### 📥 डाउनलोड लिंक:
-            - **Direct Android APK:** फोन में सीधे इंस्टॉल करने हेतु नीचे अटैच की गई `.apk` फाइल डाउनलोड करें।
-            - **Google Play Store Bundle:** Play Store कंसोल पर अपलोड करने हेतु `.aab` फाइल का उपयोग करें।
+            - **Direct Android APK:** फोन में सीधे इंस्टॉल करने हेतु नीचे अटैच की गई `kisan-saathi.apk` या `app-release-signed.apk` फाइल डाउनलोड करें।
+            - **Google Play Store Bundle:** Play Store कंसोल पर अपलोड करने हेतु `app-release-bundle.aab` फाइल का उपयोग करें।

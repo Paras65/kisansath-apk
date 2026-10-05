@@ -30,9 +30,13 @@ import AgricultureIcon from '@mui/icons-material/Agriculture';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ScienceIcon from '@mui/icons-material/Science';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import AndroidIcon from '@mui/icons-material/Android';
+import ShareIcon from '@mui/icons-material/Share';
+import GetAppIcon from '@mui/icons-material/GetApp';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
+import { shareApp } from '../utils/shareUtils';
 import { MeraKhetModal } from './MeraKhetModal';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
@@ -742,6 +746,58 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           </Accordion>
         ))}
       </Box>
+
+      {/* 📲 Android APK Download & Share Card */}
+      <Card
+        sx={{
+          mt: 3,
+          borderRadius: 3.5,
+          background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
+          color: '#ffffff',
+          p: { xs: 2, sm: 2.5 },
+          boxShadow: '0 4px 18px rgba(27,94,32,0.25)',
+          border: '1.5px solid #81c784'
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', p: 1.2, borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AndroidIcon sx={{ fontSize: 36, color: '#ffeb3b' }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff', fontSize: '1rem', lineHeight: 1.2 }}>
+                📱 किसान साथी Android App (APK)
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#c8e6c9', display: 'block', fontSize: '0.76rem', mt: 0.3 }}>
+                सीधे फोन में इंस्टॉल करें • 1.5 MB लाइटवेट • बिना इंटरनेट भी चलेगा
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<GetAppIcon />}
+              href={appConfig.apkDownloadUrl}
+              target="_blank"
+              download
+              sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, px: 2, py: 0.8, fontSize: '0.8rem', '&:hover': { bgcolor: '#fff' } }}
+            >
+              APK डाउनलोड
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<ShareIcon />}
+              onClick={shareApp}
+              sx={{ borderColor: 'rgba(255,255,255,0.7)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.8, py: 0.8, fontSize: '0.8rem', '&:hover': { bgcolor: 'rgba(255,255,255,0.15)', borderColor: '#fff' } }}
+            >
+              शेयर करें
+            </Button>
+          </Box>
+        </Box>
+      </Card>
     </Box>
   );
 };

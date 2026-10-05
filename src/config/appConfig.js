@@ -14,7 +14,9 @@ export const appConfig = {
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
 
   // 2. Mobile & App Downloads
-  apkDownloadUrl: env.VITE_APK_DOWNLOAD_URL || '',
+  apkDownloadUrl:
+    env.VITE_APK_DOWNLOAD_URL ||
+    'https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk',
   twaPackageId: env.VITE_TWA_PACKAGE_ID || 'in.co.init65.kisan',
 
   // 2. Helpline & Contacts

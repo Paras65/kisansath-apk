@@ -3,7 +3,9 @@ import { Box, Paper, Typography, Button, IconButton } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AndroidIcon from '@mui/icons-material/Android';
 import CloseIcon from '@mui/icons-material/Close';
+import ShareIcon from '@mui/icons-material/Share';
 import { appConfig } from '../config/appConfig';
+import { shareApp } from '../utils/shareUtils';
 
 export const InstallPrompt = ({ onInstall, onDismiss }) => {
   return (
@@ -80,6 +82,25 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
             APK डाउनलोड
           </Button>
         )}
+
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<ShareIcon />}
+          onClick={shareApp}
+          sx={{
+            borderColor: '#81c784',
+            color: '#1b5e20',
+            fontWeight: 700,
+            fontSize: '0.75rem',
+            whiteSpace: 'nowrap',
+            py: 0.5,
+            px: 1.2,
+            '&:hover': { bgcolor: '#c8e6c9' }
+          }}
+        >
+          शेयर करें
+        </Button>
 
         <IconButton size="small" onClick={onDismiss} sx={{ color: '#558b2f' }}>
           <CloseIcon fontSize="small" />
