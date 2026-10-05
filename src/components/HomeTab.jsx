@@ -29,12 +29,14 @@ import CampaignIcon from '@mui/icons-material/Campaign';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ScienceIcon from '@mui/icons-material/Science';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
 import { MeraKhetModal } from './MeraKhetModal';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
+import { MotorControllerModal } from './MotorControllerModal';
 
 const LIFECYCLE_STEPS = [
   {
@@ -98,6 +100,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
+  const [openMotorModal, setOpenMotorModal] = useState(false);
   const [weather, setWeather] = useState(null);
 
   // Live Zero-Key Weather Fetch (Open-Meteo)
@@ -554,6 +557,41 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             </Box>
           </Card>
         </Grid>
+
+        <Grid item xs={6} sm={6} md={4} lg={2}>
+          <Card
+            className="touch-card"
+            onClick={() => setOpenMotorModal(true)}
+            sx={{
+              p: { xs: 1.6, sm: 2 },
+              height: '100%',
+              cursor: 'pointer',
+              bgcolor: '#ffffff',
+              border: '1.5px solid #81d4fa',
+              borderRadius: 3.5,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 2px 10px rgba(1, 87, 155, 0.08)',
+              '&:hover': { borderColor: '#0288d1', boxShadow: '0 6px 20px rgba(1, 87, 155, 0.18)' }
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                <Box sx={{ bgcolor: '#e1f5fe', p: 1, borderRadius: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 24 }} />
+                </Box>
+                <Chip label="IoT/GSM" size="small" sx={{ bgcolor: '#0288d1', color: '#fff', fontWeight: 800, height: 20, fontSize: '0.65rem' }} />
+              </Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.9rem', sm: '0.96rem' } }}>
+                स्मार्ट ट्यूबवेल कंट्रोलर
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.76rem', lineHeight: 1.4, mt: 0.5 }}>
+                घर बैठे बोरवेल मोटर चालू/बंद व 3-फेज बिजली जांच
+              </Typography>
+            </Box>
+          </Card>
+        </Grid>
       </Grid>
 
       {/* Field GPS Tracker Modal */}
@@ -570,6 +608,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         open={openSoilIot}
         onClose={() => setOpenSoilIot(false)}
         onApplyToCalculator={() => onNavigate('schemes')}
+      />
+
+      {/* Smart Tubewell Motor Controller Modal */}
+      <MotorControllerModal
+        open={openMotorModal}
+        onClose={() => setOpenMotorModal(false)}
+        weatherContext={weather}
       />
 
 

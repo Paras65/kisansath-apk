@@ -36,6 +36,7 @@ import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ScienceIcon from '@mui/icons-material/Science';
+import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 
 import {
   getActiveFarmer,
@@ -56,6 +57,7 @@ import { fetchLiveWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
+import { MotorControllerModal } from './MotorControllerModal';
 
 export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायपुर', weatherContext }) => {
   const [farmer, setFarmer] = useState(getActiveFarmer());
@@ -64,6 +66,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
   const [openAddPlotDialog, setOpenAddPlotDialog] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
+  const [openMotorModal, setOpenMotorModal] = useState(false);
   const [snackbarMsg, setSnackbarMsg] = useState('');
   const [liveWeather, setLiveWeather] = useState(weatherContext || null);
 
@@ -495,6 +498,15 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                             sx={{ fontSize: '0.7rem', py: 0.2, px: 1, borderRadius: 2, borderColor: '#80cbc4', color: '#004d40', fontWeight: 700 }}
                           >
                             🔬 मिट्टी IoT जांच
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<PowerSettingsNewIcon sx={{ fontSize: 16 }} />}
+                            onClick={() => setOpenMotorModal(true)}
+                            sx={{ fontSize: '0.7rem', py: 0.2, px: 1, borderRadius: 2, borderColor: '#81d4fa', color: '#01579b', fontWeight: 700 }}
+                          >
+                            ⚡ बोरवेल मोटर
                           </Button>
                         </Box>
                       </Box>
@@ -950,6 +962,13 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         open={openSoilIot}
         onClose={() => setOpenSoilIot(false)}
         plotName={activePlot?.plotName || 'खेत'}
+      />
+
+      {/* Smart Tubewell Motor Controller Modal */}
+      <MotorControllerModal
+        open={openMotorModal}
+        onClose={() => setOpenMotorModal(false)}
+        weatherContext={liveWeather}
       />
     </>
   );
