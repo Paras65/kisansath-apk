@@ -14,6 +14,7 @@ import {
   Alert,
   IconButton,
   Divider,
+  Paper,
   CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';

@@ -37,11 +37,25 @@ jobs:
 
       - name: ⚙️ Configure Bubblewrap for Non-Interactive CI
         run: |
+          export ANDROID_HOME="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+          
+          # Fix for Bubblewrap: create symlink from cmdline-tools/latest to tools
+          sudo ln -sf "$ANDROID_HOME/cmdline-tools/latest" "$ANDROID_HOME/tools"
+          
+          # Accept Android SDK licenses
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          
+          # Configure Bubblewrap paths
           mkdir -p ~/.bubblewrap
-          echo "{\"jdkPath\": \"$JAVA_HOME\", \"androidSdkPath\": \"$ANDROID_HOME\"}" > ~/.bubblewrap/config.json
-          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME" || true
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          bubblewrap doctor || true
+          cat <<EOF > ~/.bubblewrap/config.json
+          {
+            "jdkPath": "$JAVA_HOME",
+            "androidSdkPath": "$ANDROID_HOME"
+          }
+          EOF
+          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+          bubblewrap doctor
 
       - name: 🔑 Setup Keystore
         working-directory: twa
@@ -59,16 +73,16 @@ jobs:
       - name: 🔨 Build Android APK & AAB via Bubblewrap
         working-directory: twa
         env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD || 'KisanSaathiPass65' }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD || 'KisanSaathiPass65' }}
         run: |
-          printf 'n\n%s\nn\n%s\n' "$JAVA_HOME" "$ANDROID_HOME" | bubblewrap build --manifest=twa-manifest.json \
+          bubblewrap build --manifest=twa-manifest.json \
             --signingKeyPath=./kisan-release-key.keystore \
             --signingKeyAlias=kisan-alias \
             --skipPwaValidation
           cp app-release-signed.apk kisan-saathi.apk || true
-
-
 
       - name: 📤 Upload Build Artifacts
         uses: actions/upload-artifact@v4
@@ -88,6 +102,7 @@ jobs:
             twa/*.aab
           draft: false
           prerelease: false
+          make_latest: true
           generate_release_notes: true
           body: |
             ## 🌾 किसान साथी Android App (नवीनतम रिलीज)
