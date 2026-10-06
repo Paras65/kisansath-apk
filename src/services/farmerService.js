@@ -4,13 +4,24 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 const ACTIVE_FARMER_KEY = 'kisan_active_farmer';
+const JWT_TOKEN_KEY = 'kisan_auth_jwt_token';
+
+// Helper: Get JWT authorization header
+export const getAuthHeaders = () => {
+  try {
+    const token = localStorage.getItem(JWT_TOKEN_KEY);
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+};
 
 // 1. Get current logged-in farmer session
 export const getActiveFarmer = () => {
   try {
     const data = localStorage.getItem(ACTIVE_FARMER_KEY);
     return data ? JSON.parse(data) : null;
-  } catch (e) {
+  } catch {
     return null;
   }
 };
@@ -35,7 +46,11 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
     });
 
     if (res.ok) {
-      const farmer = await res.json();
+      const data = await res.json();
+      const farmer = data.farmer || data;
+      if (data.token) {
+        localStorage.setItem(JWT_TOKEN_KEY, data.token);
+      }
       localStorage.setItem(ACTIVE_FARMER_KEY, JSON.stringify(farmer));
       localStorage.setItem(`kisan_farmer_plots_${cleanPhone}`, JSON.stringify(farmer.plots || []));
       if (typeof window !== 'undefined') {
@@ -73,6 +88,7 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
 // 3. Logout Farmer & Actively Purge Active Session Memory (Rule 13)
 export const logoutFarmer = () => {
   localStorage.removeItem(ACTIVE_FARMER_KEY);
+  localStorage.removeItem(JWT_TOKEN_KEY);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('kisan_farmer_session_changed', { detail: null }));
   }
@@ -84,7 +100,9 @@ export const getFarmerPlots = async (phone) => {
   const cacheKey = `kisan_farmer_plots_${cleanPhone}`;
 
   try {
-    const res = await fetch(`${API_BASE_URL}/farmer/profile/${cleanPhone}`);
+    const res = await fetch(`${API_BASE_URL}/farmer/profile/${cleanPhone}`, {
+      headers: { ...getAuthHeaders() },
+    });
     if (res.ok) {
       const profile = await res.json();
       const plots = profile.plots || [];
@@ -100,7 +118,7 @@ export const getFarmerPlots = async (phone) => {
   if (cached) {
     try {
       return JSON.parse(cached);
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -117,7 +135,7 @@ export const saveFarmerPlot = async (phone, plotData) => {
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) currentPlots = JSON.parse(cached);
-  } catch (e) {}
+  } catch {}
 
   let updatedPlots = [...currentPlots];
   if (plotData.plotId) {
@@ -139,7 +157,7 @@ export const saveFarmerPlot = async (phone, plotData) => {
   try {
     const res = await fetch(`${API_BASE_URL}/farmer/plots/${cleanPhone}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify(plotData),
     });
     if (res.ok) {
@@ -163,7 +181,7 @@ export const deleteFarmerPlot = async (phone, plotId) => {
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) currentPlots = JSON.parse(cached);
-  } catch (e) {}
+  } catch {}
 
   const filtered = currentPlots.filter((p) => p.plotId !== plotId);
   localStorage.setItem(cacheKey, JSON.stringify(filtered));
@@ -171,6 +189,7 @@ export const deleteFarmerPlot = async (phone, plotId) => {
   try {
     const res = await fetch(`${API_BASE_URL}/farmer/plots/${cleanPhone}/${plotId}`, {
       method: 'DELETE',
+      headers: { ...getAuthHeaders() },
     });
     if (res.ok) {
       const serverPlots = await res.json();
@@ -193,7 +212,7 @@ export const togglePlotTask = async (phone, plotId, taskId) => {
   try {
     const cached = localStorage.getItem(cacheKey);
     if (cached) currentPlots = JSON.parse(cached);
-  } catch (e) {}
+  } catch {}
 
   const updated = currentPlots.map((plot) => {
     if (plot.plotId === plotId) {
@@ -212,7 +231,7 @@ export const togglePlotTask = async (phone, plotId, taskId) => {
   try {
     await fetch(`${API_BASE_URL}/farmer/tasks/${cleanPhone}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ plotId, taskId }),
     });
   } catch (err) {

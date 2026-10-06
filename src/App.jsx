@@ -31,6 +31,7 @@ import { appConfig } from './config/appConfig';
 import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
 import { DeviceHubModal } from './components/DeviceHubModal';
+import { SuperAdminModal } from './components/SuperAdminModal';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -82,6 +83,7 @@ function App() {
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
+  const [openAdminModal, setOpenAdminModal] = useState(false);
 
   // Synchronize global speech state
   useEffect(() => {
@@ -177,6 +179,7 @@ function App() {
           currentTab={currentTab}
           onNavigate={handleTabChange}
           onOpenDeviceHub={() => setOpenDeviceHub(true)}
+          onOpenAdmin={() => setOpenAdminModal(true)}
         />
 
         {/* PWA Install Banner */}
@@ -328,6 +331,11 @@ function App() {
         <DeviceHubModal
           open={openDeviceHub}
           onClose={() => setOpenDeviceHub(false)}
+        />
+        {/* Super Admin & Extension Worker Command Center */}
+        <SuperAdminModal
+          open={openAdminModal}
+          onClose={() => setOpenAdminModal(false)}
         />
       </Box>
     </ThemeProvider>

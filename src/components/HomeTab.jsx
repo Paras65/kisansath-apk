@@ -43,6 +43,7 @@ import { getActiveFarmer } from '../services/farmerService';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { shareOnWhatsApp } from '../utils/shareUtils';
 import { checkForAppUpdate } from '../services/updateService';
+import { getPublicBroadcasts } from '../services/adminService';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import { MeraKhetModal } from './MeraKhetModal';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
@@ -153,6 +154,18 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [weather, setWeather] = useState(null);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
+  const [activeBroadcasts, setActiveBroadcasts] = useState([]);
+
+  // Fetch active department broadcasts
+  useEffect(() => {
+    let isMounted = true;
+    getPublicBroadcasts(selectedDistrict).then((data) => {
+      if (isMounted && Array.isArray(data)) {
+        setActiveBroadcasts(data);
+      }
+    });
+    return () => { isMounted = false; };
+  }, [selectedDistrict]);
 
   // Refresh active farmer session when Mera Khet modal is closed
   useEffect(() => {
@@ -336,6 +349,53 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           >
             अभी अपडेट करें
           </Button>
+        </Paper>
+      )}
+
+      {/* 2.5 Official Department Emergency Broadcast Banner */}
+      {activeBroadcasts && activeBroadcasts.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            px: 2,
+            mb: 2,
+            borderRadius: 3,
+            bgcolor: activeBroadcasts[0].severity === 'urgent' ? '#fff1f2' : activeBroadcasts[0].severity === 'warning' ? '#fffbeb' : '#eff6ff',
+            border: `1.5px solid ${activeBroadcasts[0].severity === 'urgent' ? '#fda4af' : activeBroadcasts[0].severity === 'warning' ? '#fde68a' : '#bfdbfe'}`,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.8
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CampaignIcon sx={{ color: activeBroadcasts[0].severity === 'urgent' ? '#e11d48' : activeBroadcasts[0].severity === 'warning' ? '#d97706' : '#2563eb', fontSize: 24 }} />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                📢 {activeBroadcasts[0].title}
+              </Typography>
+              <Chip
+                label={activeBroadcasts[0].severity === 'urgent' ? 'अति गंभीर चेतावनी' : activeBroadcasts[0].severity === 'warning' ? 'विभागीय चेतावनी' : 'कृषि परामर्श'}
+                size="small"
+                color={activeBroadcasts[0].severity === 'urgent' ? 'error' : activeBroadcasts[0].severity === 'warning' ? 'warning' : 'primary'}
+                sx={{ fontWeight: 800, fontSize: '0.68rem', height: 20 }}
+              />
+            </Box>
+            <IconButton
+              size="small"
+              onClick={() => speakText(`${activeBroadcasts[0].title}। ${activeBroadcasts[0].message}`)}
+              sx={{ bgcolor: 'rgba(0,0,0,0.05)', color: '#0f172a' }}
+            >
+              <VolumeUpIcon fontSize="small" />
+            </IconButton>
+          </Box>
+          <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.4 }}>
+            {activeBroadcasts[0].message}
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b' }}>
+            <span>जारीकर्ता: {activeBroadcasts[0].author || 'कृषि विशेषज्ञ'}</span>
+            <span>वैधता: {activeBroadcasts[0].validTill || 'सक्रिय'}</span>
+          </Box>
         </Paper>
       )}
 

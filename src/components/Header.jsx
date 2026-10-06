@@ -27,6 +27,7 @@ import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SensorsIcon from '@mui/icons-material/Sensors';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
@@ -48,7 +49,8 @@ export const Header = ({
   isInstallable,
   currentTab = 'home',
   onNavigate = () => {},
-  onOpenDeviceHub = () => {}
+  onOpenDeviceHub = () => {},
+  onOpenAdmin = () => {}
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
@@ -301,6 +303,24 @@ export const Header = ({
               }}
             >
               <SensorsIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
+
+          {/* Super Admin Oversight Button */}
+          <Tooltip title="सुपर एडमिन कंट्रोल रूम (प्रशासकीय)">
+            <IconButton
+              onClick={onOpenAdmin}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.14)',
+                color: '#38bdf8',
+                width: 36,
+                height: 36,
+                borderRadius: 2.5,
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(56,189,248,0.25)', color: '#ffffff' }
+              }}
+            >
+              <AdminPanelSettingsIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </Tooltip>
 
