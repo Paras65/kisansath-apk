@@ -1,4 +1,4 @@
-import { FERTILIZER_DOSES, SCHEMES, CROPS, MANDI_RATES, MACHINERY_RENTALS } from '../data/kisanData';
+import { FERTILIZER_DOSES, SCHEMES, CROPS, MANDI_RATES, MACHINERY_RENTALS, CROP_DISEASES } from '../data/kisanData';
 import { appConfig } from '../config/appConfig';
 
 const API_BASE_URL = appConfig.apiBaseUrl;
@@ -99,4 +99,33 @@ export const postMarketplaceListing = async (payload) => {
     console.warn('[Marketplace Post Offline]', err);
   }
   return null;
+};
+
+// 9. Live Gemini Vision AI Plant Doctor Diagnosis (Zero-False-Data Policy)
+export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', district = 'रायपुर' }) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/crop-doctor/diagnose`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageBase64, cropId, district }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    } else {
+      const errData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        error: errData.error || 'AI सर्वर से जांच रिपोर्ट प्राप्त नहीं हो सकी।'
+      };
+    }
+  } catch (err) {
+    console.warn('[AI Vision Offline]', err.message);
+    return {
+      success: false,
+      isOffline: true,
+      error: 'इंटरनेट कनेक्शन उपलब्ध नहीं है। लाइव AI फोटो जांच के लिए इंटरनेट आवश्यक है। किसानों की सुरक्षा हेतु कोई भी नकली या अनुमानित (False/Dummy) डेटा नहीं दिखाया जाता है।'
+    };
+  }
 };

@@ -11,6 +11,7 @@ import FarmerProfile from '../models/FarmerProfile.js';
 import BroadcastAdvisory from '../models/BroadcastAdvisory.js';
 import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
+import { diagnoseWithGeminiVision } from '../services/geminiVisionService.js';
 import crypto from 'node:crypto';
 
 const router = express.Router();
@@ -119,6 +120,47 @@ router.get('/diseases', async (req, res) => {
     res.json(diseases);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch diseases data' });
+  }
+});
+
+// 3(b). Crop Doctor Live Multimodal Vision AI Diagnosis
+router.post('/crop-doctor/diagnose', async (req, res) => {
+  try {
+    const { image, cropId, district } = req.body || {};
+
+    if (!image || typeof image !== 'string' || image.length < 50) {
+      return res.status(400).json({
+        success: false,
+        error: 'कृपया पौधे/पत्ती की वैध तस्वीर भेजें (Image is required).'
+      });
+    }
+
+    // Rate limiting: max 15 scans per minute per IP to protect server quota
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`crop-diag:${clientIp}`, 15, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({
+        success: false,
+        error: 'कृपया थोड़ा रुकें। प्रति मिनट अधिकतम 15 तस्वीरें स्कैन की जा सकती हैं।'
+      });
+    }
+
+    const cleanCropId = sanitize(cropId || '', 40);
+    const cleanDistrict = sanitize(district || 'रायपुर', 40);
+
+    const diagnosis = await diagnoseWithGeminiVision({
+      imageString: image,
+      cropId: cleanCropId,
+      district: cleanDistrict
+    });
+
+    res.json(diagnosis);
+  } catch (err) {
+    console.error('[CropDoctor Diagnose API Error]', err);
+    res.status(500).json({
+      success: false,
+      error: 'एआई फोटो जांच में समस्या आई। कृपया पुनः प्रयास करें।'
+    });
   }
 });
 

@@ -9,9 +9,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security Middleware: Payload bounding to prevent DoS attacks
-app.use(express.json({ limit: '50kb' }));
-app.use(express.urlencoded({ extended: true, limit: '50kb' }));
+// Security Middleware: Payload bounding with support for camera photos (10mb)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Security Headers (OWASP & Industry Best Practices)
 app.use((req, res, next) => {
