@@ -14,19 +14,38 @@ const API_BASE_URL = getNormalizedApiBaseUrl();
 const ADMIN_JWT_KEY = 'kisan_admin_jwt_token';
 const ADMIN_SESSION_KEY = 'kisan_admin_session';
 
+// Enterprise Zero-PII & Zero-Persistence: Purge legacy localStorage immediately
+if (typeof window !== 'undefined') {
+  try {
+    localStorage.removeItem(ADMIN_JWT_KEY);
+    localStorage.removeItem(ADMIN_SESSION_KEY);
+  } catch {}
+}
+
+let inactivityTimer = null;
+const IDLE_TIMEOUT_MS = 15 * 60 * 1000; // 15-minute strict inactivity auto-logout
+
+export const resetAdminInactivityTimer = (onTimeout) => {
+  if (inactivityTimer) clearTimeout(inactivityTimer);
+  inactivityTimer = setTimeout(() => {
+    adminLogout();
+    if (onTimeout) onTimeout();
+  }, IDLE_TIMEOUT_MS);
+};
+
 const getAdminHeaders = () => {
   try {
-    const token = localStorage.getItem(ADMIN_JWT_KEY);
+    const token = sessionStorage.getItem(ADMIN_JWT_KEY);
     return token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' };
   } catch {
     return { 'Content-Type': 'application/json' };
   }
 };
 
-// 1. Check if admin is currently authenticated
+// 1. Check if admin is currently authenticated in active session
 export const isAdminLoggedIn = () => {
   try {
-    return !!localStorage.getItem(ADMIN_JWT_KEY);
+    return !!sessionStorage.getItem(ADMIN_JWT_KEY);
   } catch {
     return false;
   }
@@ -44,8 +63,9 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
     if (res.ok) {
       const data = await res.json();
       if (data.token) {
-        localStorage.setItem(ADMIN_JWT_KEY, data.token);
-        localStorage.setItem(
+        // STRICT EPHEMERAL STORAGE: sessionStorage ONLY, never persistent in localStorage
+        sessionStorage.setItem(ADMIN_JWT_KEY, data.token);
+        sessionStorage.setItem(
           ADMIN_SESSION_KEY,
           JSON.stringify({ username, loginTime: Date.now() })
         );
@@ -59,22 +79,25 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
     // Offline / Local fallback: allow admin if passkey matches default
     if (passkey === 'kisanAdmin2026') {
       const fallbackToken = 'local_admin_session_token_' + Date.now();
-      localStorage.setItem(ADMIN_JWT_KEY, fallbackToken);
-      localStorage.setItem(
+      sessionStorage.setItem(ADMIN_JWT_KEY, fallbackToken);
+      sessionStorage.setItem(
         ADMIN_SESSION_KEY,
         JSON.stringify({ username, loginTime: Date.now(), offline: true })
       );
-      return { success: true, message: 'ऑफलाइन मोड में एडमिन प्रमाणीकरण सफल।' };
+      return { success: true, message: 'ऑफलाइन सत्र में एडमिन प्रमाणीकरण सफल।' };
     }
     return { success: false, error: 'सर्वर से संपर्क नहीं हो सका। पासकी जांचें।' };
   }
 };
 
-// 3. Admin Logout
+// 3. Admin Logout: Purge all session memory instantly
 export const adminLogout = () => {
   try {
+    sessionStorage.removeItem(ADMIN_JWT_KEY);
+    sessionStorage.removeItem(ADMIN_SESSION_KEY);
     localStorage.removeItem(ADMIN_JWT_KEY);
     localStorage.removeItem(ADMIN_SESSION_KEY);
+    if (inactivityTimer) clearTimeout(inactivityTimer);
   } catch (e) {
     console.error(e);
   }

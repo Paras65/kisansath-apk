@@ -87,8 +87,21 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
 
 // 3. Logout Farmer & Actively Purge Active Session Memory (Rule 13)
 export const logoutFarmer = () => {
-  localStorage.removeItem(ACTIVE_FARMER_KEY);
-  localStorage.removeItem(JWT_TOKEN_KEY);
+  try {
+    localStorage.removeItem(ACTIVE_FARMER_KEY);
+    localStorage.removeItem(JWT_TOKEN_KEY);
+    sessionStorage.removeItem(ACTIVE_FARMER_KEY);
+    sessionStorage.removeItem(JWT_TOKEN_KEY);
+    // Purge any cached plots keys
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('kisan_farmer_plots_')) {
+        localStorage.removeItem(key);
+      }
+    }
+  } catch (e) {
+    console.warn(e);
+  }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('kisan_farmer_session_changed', { detail: null }));
   }

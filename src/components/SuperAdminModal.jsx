@@ -56,6 +56,7 @@ import {
   deleteAdminBroadcast,
   deleteMarketListing,
   deleteCommunityQA,
+  resetAdminInactivityTimer,
 } from '../services/adminService';
 import { getMarketplaceListings, getCommunityQA } from '../services/apiService';
 import { notify } from '../services/notificationService';
@@ -119,6 +120,24 @@ export const SuperAdminModal = ({ open, onClose }) => {
       }
     }
   }, [open, loadAllData]);
+
+  // Enterprise Security: 15-minute strict inactivity auto-lock
+  useEffect(() => {
+    if (!isAuth) return;
+    const handleActivity = () => {
+      resetAdminInactivityTimer(() => {
+        setIsAuth(false);
+        notify.warning('सुरक्षा कारणों से 15 मिनट निष्क्रियता के बाद एडमिन सत्र स्वतः लॉक हो गया।');
+      });
+    };
+    handleActivity();
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    return () => {
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [isAuth]);
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
@@ -949,6 +968,34 @@ export const SuperAdminModal = ({ open, onClose }) => {
                       <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
                       <Typography variant="body2" sx={{ color: '#334155' }}>
                         <strong>Zero-PII डेटा सुरक्षा (OWASP/ISO 27001):</strong> आधार, बैंक खाता या संवेदनशील विवरण क्लाइंट साइड पर कभी उजागर नहीं किए जाते।
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                      <Typography variant="body2" sx={{ color: '#334155' }}>
+                        <strong>जीरो-परसिस्टेंस नीति (Zero-Persistence Storage):</strong> एडमिन टोकन localStorage में कभी सुरक्षित नहीं होता; यह केवल अल्पकालिक sessionStorage में रहता है और टैब बंद होते ही स्वतः नष्ट हो जाता है।
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                      <Typography variant="body2" sx={{ color: '#334155' }}>
+                        <strong>15-मिनट निष्क्रियता ऑटो-लॉक (Inactivity Eviction):</strong> 15 मिनट तक कोई कार्य न होने पर सुरक्षा कारणों से एडमिन सत्र स्वतः समाप्त हो जाता है।
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                      <Typography variant="body2" sx={{ color: '#334155' }}>
+                        <strong>ब्रूट-फोर्स सुरक्षा व टाइमिंग-सेफ कम्पेरिज़न:</strong> लगातार 5 असफल प्रयासों पर आईपी 15 मिनट के लिए लॉक हो जाती है और क्रिप्टोग्राफिक टाइमिंग-अटैक सुरक्षित है।
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                      <Typography variant="body2" sx={{ color: '#334155' }}>
+                        <strong>2-घंटे अल्पकालिक टोकन (2-Hour Hard TTL):</strong> एडमिन सुरक्षा टोकन 2 घंटे बाद सर्वर स्तर पर स्वतः अमान्य हो जाता है।
                       </Typography>
                     </Box>
 

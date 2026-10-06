@@ -11,10 +11,45 @@ import FarmerProfile from '../models/FarmerProfile.js';
 import BroadcastAdvisory from '../models/BroadcastAdvisory.js';
 import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
+import crypto from 'node:crypto';
 
 const router = express.Router();
 
 const getJwtSecret = () => process.env.JWT_SECRET || 'kisan_saathi_default_fallback_jwt_key_2026';
+
+// Enterprise Security Helper: Constant-Time String Comparison (Mitigates side-channel timing attacks)
+const timingSafeStringEqual = (a, b) => {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const hashA = crypto.createHash('sha256').update(a).digest();
+  const hashB = crypto.createHash('sha256').update(b).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
+};
+
+// Enterprise Security: In-Memory IP Brute-Force Rate Limiter
+const rateLimitMap = new Map();
+
+const checkRateLimit = (key, maxAttempts, windowMs) => {
+  const now = Date.now();
+  const record = rateLimitMap.get(key) || { count: 0, resetAt: now + windowMs };
+
+  if (now > record.resetAt) {
+    record.count = 0;
+    record.resetAt = now + windowMs;
+  }
+
+  record.count += 1;
+  rateLimitMap.set(key, record);
+
+  return {
+    isBlocked: record.count > maxAttempts,
+    remainingMs: Math.max(0, record.resetAt - now),
+    attempts: record.count,
+  };
+};
+
+const resetRateLimit = (key) => {
+  rateLimitMap.delete(key);
+};
 
 // Helper: Sanitize string to prevent XSS / NoSQL payload injections
 const sanitize = (str, maxLen = 200) => {
@@ -199,6 +234,12 @@ router.post('/marketplace', async (req, res) => {
 // 9. Farmer Login / Auto-Registration with 4-Digit PIN
 router.post('/farmer/auth', async (req, res) => {
   try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'farmer_client';
+    const rate = checkRateLimit(`farmer_${clientIp}`, 15, 60000); // 15 attempts per minute
+    if (rate.isBlocked) {
+      return res.status(429).json({ error: 'अत्यधिक अनुरोध! कृपया 1 मिनट बाद पुनः प्रयास करें।' });
+    }
+
     const { phone, name, pin, village, district, totalLandAcres } = req.body;
     const cleanPhone = (phone || '').replace(/[\s\-\+]/g, '').slice(-10);
 
@@ -210,11 +251,12 @@ router.post('/farmer/auth', async (req, res) => {
     let farmer = await FarmerProfile.findOne({ phone: cleanPhone });
 
     if (farmer) {
-      // Authenticate existing farmer
-      if (farmer.pin && farmer.pin !== cleanPin) {
+      // Authenticate existing farmer with timing-safe constant-time comparison
+      if (farmer.pin && !timingSafeStringEqual(farmer.pin, cleanPin)) {
         return res.status(401).json({ error: 'पिन गलत है। कृपया सही 4-अंकीय पिन दर्ज करें।' });
       }
-      const token = signJwt({ phone: farmer.phone, id: farmer._id }, getJwtSecret());
+      resetRateLimit(`farmer_${clientIp}`);
+      const token = signJwt({ phone: farmer.phone, id: farmer._id, role: 'farmer' }, getJwtSecret(), 7 * 86400); // 7-day expiry
       const farmerSafe = farmer.toObject ? farmer.toObject() : { ...farmer };
       delete farmerSafe.pin;
       delete farmerSafe.__v;
@@ -233,7 +275,8 @@ router.post('/farmer/auth', async (req, res) => {
     });
 
     const saved = await farmer.save();
-    const token = signJwt({ phone: saved.phone, id: saved._id }, getJwtSecret());
+    resetRateLimit(`farmer_${clientIp}`);
+    const token = signJwt({ phone: saved.phone, id: saved._id, role: 'farmer' }, getJwtSecret(), 7 * 86400); // 7-day expiry
     const farmerSafe = saved.toObject ? saved.toObject() : { ...saved };
     delete farmerSafe.pin;
     delete farmerSafe.__v;
@@ -383,16 +426,30 @@ router.get('/broadcasts', async (req, res) => {
   }
 });
 
-// 15. Super Admin Passkey Login (Issues Admin JWT)
+// 15. Super Admin Passkey Login (Issues Admin JWT with Rate-Limiting & Timing-Safe Security)
 router.post('/admin/login', (req, res) => {
   try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'admin_client';
+    const rate = checkRateLimit(`admin_${clientIp}`, 5, 15 * 60000); // 5 attempts per 15 minutes
+
+    if (rate.isBlocked) {
+      const waitMin = Math.ceil(rate.remainingMs / 60000);
+      return res.status(429).json({
+        error: `अत्यधिक असफल प्रयास! सुरक्षा कारणों से एडमिन लॉगिन ${waitMin} मिनट के लिए लॉक कर दिया गया है।`,
+      });
+    }
+
     const { passkey, username } = req.body;
     const configuredSecret = getAdminSecret();
 
-    if (!passkey || passkey.trim() !== configuredSecret) {
+    if (!passkey || !timingSafeStringEqual(passkey.trim(), configuredSecret)) {
       return res.status(401).json({ error: 'अमान्य एडमिन पासकी। कृपया सही क्रेडेंशियल दर्ज करें।' });
     }
 
+    // Success: reset brute-force counter
+    resetRateLimit(`admin_${clientIp}`);
+
+    // Issue strictly short-lived 2-hour JWT (7200 seconds)
     const token = signJwt(
       {
         role: 'superadmin',
@@ -400,13 +457,14 @@ router.post('/admin/login', (req, res) => {
         authTime: Date.now(),
       },
       getJwtSecret(),
-      86400 // 24 hours
+      7200 // 2 hours strict expiration
     );
 
     res.json({
       success: true,
       token,
       role: 'superadmin',
+      expiresIn: 7200,
       message: 'सुपर एडमिन प्रमाणीकरण सफल।',
     });
   } catch (err) {
