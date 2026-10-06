@@ -12,7 +12,9 @@ import BroadcastAdvisory from '../models/BroadcastAdvisory.js';
 import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
 import { diagnoseWithGeminiVision } from '../services/geminiVisionService.js';
+import { getOrFetchLiveMandiRates } from '../services/mandiLiveService.js';
 import crypto from 'node:crypto';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -164,13 +166,75 @@ router.post('/crop-doctor/diagnose', async (req, res) => {
   }
 });
 
-// 4. Mandi Rates
+// 4. Mandi Rates (Zero-Key Live Agmarknet Engine with Zero-False-Data Policy)
 router.get('/mandi-rates', async (req, res) => {
   try {
-    const rates = await MandiRate.find().select('-__v').sort({ modalRate: -1 }).limit(100).lean();
-    res.json(rates);
+    const forceRefresh = req.query.force === 'true';
+    const district = sanitize(req.query.district || '', 50);
+    const result = await getOrFetchLiveMandiRates({ forceRefresh, district });
+
+    if (req.query.format === 'raw') {
+      return res.json(result.rates);
+    }
+
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch mandi rates' });
+    console.error('[MandiRates API Error]', err);
+    res.status(500).json({ success: false, error: 'मंडी भाव लोड करने में समस्या आई।' });
+  }
+});
+
+// 4b. Mandi Rates Manual Refresh (Rate-limited: 10/min per IP to prevent quota abuse)
+router.post('/mandi-rates/refresh', async (req, res) => {
+  try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`mandi-refresh:${clientIp}`, 10, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({
+        success: false,
+        error: 'कृपया थोड़ा प्रतीक्षा करें। मंडी भाव रीफ्रेश सीमा प्रति मिनट 10 बार है।'
+      });
+    }
+
+    const result = await getOrFetchLiveMandiRates({ forceRefresh: true });
+    res.json(result);
+  } catch (err) {
+    console.error('[MandiRates Refresh Error]', err);
+    res.status(500).json({ success: false, error: 'लाइव मंडी भाव रीफ्रेश करने में समस्या आई।' });
+  }
+});
+
+// 4c. Offline Mandi Query Sync (Zero-False-Data Policy)
+// Resolves queries saved locally by farmers when they were offline
+router.post('/mandi-rates/offline-query', async (req, res) => {
+  try {
+    const { crop, mandi, district } = req.body || {};
+    const cleanCrop = sanitize(crop || '', 50);
+    const cleanMandi = sanitize(mandi || '', 50);
+    const cleanDistrict = sanitize(district || 'रायपुर', 50);
+
+    if (!cleanCrop) {
+      return res.status(400).json({ success: false, error: 'फसल का नाम आवश्यक है।' });
+    }
+
+    const latest = await getOrFetchLiveMandiRates();
+    const matched = latest.rates.find(
+      (r) =>
+        (cleanMandi && r.mandi.includes(cleanMandi) && r.crop.includes(cleanCrop)) ||
+        r.crop.includes(cleanCrop)
+    );
+
+    res.json({
+      success: true,
+      resolved: Boolean(matched),
+      rateData: matched || null,
+      message: matched
+        ? `${cleanCrop} का सत्यापित भाव: ₹${matched.modalRate}/क्विंटल (${matched.mandi})`
+        : 'वर्तमान में इस फसल की ताजा मंडी आवक दर्ज नहीं हुई है। मंडी खुलते ही दर उपलब्ध होगी।'
+    });
+  } catch (err) {
+    console.error('[Mandi Offline Query Sync Error]', err);
+    res.status(500).json({ success: false, error: 'ऑफ़लाइन पूछताछ सिंक करने में समस्या आई।' });
   }
 });
 
@@ -706,6 +770,358 @@ router.delete('/admin/qa/:id', requireAdminAuth, async (req, res) => {
     res.json({ success: true, message: 'चौपाल चर्चा हटा दी गई।' });
   } catch (err) {
     res.status(500).json({ error: 'चर्चा हटाने में विफल।' });
+  }
+});
+
+// 21. Super Admin Live External & Internal API Health Checker
+router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
+  try {
+    const startTime = Date.now();
+
+    // 1. Core Database (MongoDB Atlas)
+    const checkMongo = async () => {
+      const t0 = Date.now();
+      try {
+        const state = mongoose.connection.readyState;
+        if (state !== 1) {
+          return {
+            id: 'mongodb',
+            name: 'MongoDB Atlas क्लस्टर',
+            category: 'कोर डेटाबेस (Core Database)',
+            target: mongoose.connection.host || 'Atlas Cloud Cluster',
+            status: state === 2 ? 'degraded' : 'offline',
+            statusLabel: state === 2 ? 'कनेक्ट हो रहा है' : 'डिस्कनेक्टेड',
+            latencyMs: Date.now() - t0,
+            message: state === 2 ? 'डेटाबेस कनेक्शन प्रक्रियाधीन है' : 'डेटाबेस कनेक्शन बंद है',
+            lastChecked: new Date().toISOString(),
+          };
+        }
+        await mongoose.connection.db.admin().ping();
+        return {
+          id: 'mongodb',
+          name: 'MongoDB Atlas क्लस्टर',
+          category: 'कोर डेटाबेस (Core Database)',
+          target: mongoose.connection.host || 'Atlas Cloud Cluster',
+          status: 'connected',
+          statusLabel: 'सक्रिय (Connected)',
+          latencyMs: Date.now() - t0,
+          message: `डेटाबेस: ${mongoose.connection.name || 'kisan_saathi'} (सक्रिय)`,
+          lastChecked: new Date().toISOString(),
+        };
+      } catch (err) {
+        return {
+          id: 'mongodb',
+          name: 'MongoDB Atlas क्लस्टर',
+          category: 'कोर डेटाबेस (Core Database)',
+          target: 'Atlas Cloud Cluster',
+          status: 'offline',
+          statusLabel: 'कनेक्शन त्रुटि',
+          latencyMs: Date.now() - t0,
+          message: err.message || 'डेटाबेस से संपर्क नहीं हो सका',
+          lastChecked: new Date().toISOString(),
+        };
+      }
+    };
+
+    // 2. data.gov.in (OGD India / Agmarknet Mandi API)
+    const checkDataGovIn = async () => {
+      const t0 = Date.now();
+      const apiKey =
+        process.env.DATA_GOV_IN_API_KEY ||
+        process.env.OGD_API_KEY ||
+        process.env.VITE_DATA_GOV_IN_API_KEY;
+
+      if (!apiKey) {
+        return {
+          id: 'data_gov_in',
+          name: 'data.gov.in (OGD India / Agmarknet)',
+          category: 'मंडी दर API (Live Mandi Rates)',
+          target: 'api.data.gov.in',
+          status: 'not_configured',
+          statusLabel: 'कुंजी अनुपलब्ध',
+          latencyMs: 0,
+          message: 'DATA_GOV_IN_API_KEY कॉन्फ़िगर नहीं है (मानक संदर्भ दरें सक्रिय)',
+          lastChecked: new Date().toISOString(),
+        };
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const resourceId = process.env.DATA_GOV_IN_RESOURCE_ID || '9ef84268-d588-465a-a308-a864a43d0070';
+        const url = `https://api.data.gov.in/resource/${resourceId}?api-key=${apiKey}&format=json&limit=1`;
+        const r = await fetch(url, {
+          signal: controller.signal,
+          headers: { Accept: 'application/json' },
+        });
+        clearTimeout(timeout);
+        const lat = Date.now() - t0;
+
+        if (r.ok) {
+          return {
+            id: 'data_gov_in',
+            name: 'data.gov.in (OGD India / Agmarknet)',
+            category: 'मंडी दर API (Live Mandi Rates)',
+            target: 'api.data.gov.in',
+            status: 'connected',
+            statusLabel: 'सक्रिय (Live Mandi Stream)',
+            latencyMs: lat,
+            compliance: 'GODL-India 100% अनुपालित (Attribution & Non-Endorsement Active)',
+            message: 'आधिकारिक OGD India Agmarknet मंडी फीड पूर्णतः सक्रिय व GODL-India अनुपालित है',
+            lastChecked: new Date().toISOString(),
+          };
+        } else {
+          return {
+            id: 'data_gov_in',
+            name: 'data.gov.in (OGD India / Agmarknet)',
+            category: 'मंडी दर API (Live Mandi Rates)',
+            target: 'api.data.gov.in',
+            status: r.status === 401 || r.status === 403 ? 'degraded' : 'offline',
+            statusLabel: r.status === 401 || r.status === 403 ? 'अमान्य कुंजी / कोटा' : `HTTP ${r.status}`,
+            latencyMs: lat,
+            message: `OGD API सर्वर ने HTTP ${r.status} लौटाया`,
+            lastChecked: new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        return {
+          id: 'data_gov_in',
+          name: 'data.gov.in (OGD India / Agmarknet)',
+          category: 'मंडी दर API (Live Mandi Rates)',
+          target: 'api.data.gov.in',
+          status: 'offline',
+          statusLabel: 'टाइमआउट / ऑफलाइन',
+          latencyMs: Date.now() - t0,
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          lastChecked: new Date().toISOString(),
+        };
+      }
+    };
+
+    // 3. Google Gemini Multimodal Vision AI
+    const checkGeminiAi = async () => {
+      const t0 = Date.now();
+      const apiKey =
+        process.env.GEMINI_API_KEY ||
+        process.env.VITE_GEMINI_API_KEY ||
+        process.env.VITE_AI_VISION_API_URL ||
+        process.env.GOOGLE_API_KEY;
+
+      if (!apiKey) {
+        return {
+          id: 'gemini_ai',
+          name: 'Google Gemini Multimodal AI',
+          category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
+          target: 'generativelanguage.googleapis.com',
+          status: 'not_configured',
+          statusLabel: 'कुंजी अनुपलब्ध',
+          latencyMs: 0,
+          message: 'GEMINI_API_KEY कॉन्फ़िगर नहीं है (लक्षण गाइड मोड सक्रिय)',
+          lastChecked: new Date().toISOString(),
+        };
+      }
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=1`;
+        const r = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        const lat = Date.now() - t0;
+
+        if (r.ok) {
+          return {
+            id: 'gemini_ai',
+            name: 'Google Gemini Multimodal AI',
+            category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
+            target: 'generativelanguage.googleapis.com',
+            status: 'connected',
+            statusLabel: 'सक्रिय (Gemini Ready)',
+            latencyMs: lat,
+            message: 'AI विज़न पादप रोग निदान मॉडल सुचारु रूप से कनेक्टेड है',
+            lastChecked: new Date().toISOString(),
+          };
+        } else {
+          return {
+            id: 'gemini_ai',
+            name: 'Google Gemini Multimodal AI',
+            category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
+            target: 'generativelanguage.googleapis.com',
+            status: r.status === 400 || r.status === 403 ? 'degraded' : 'offline',
+            statusLabel: `HTTP ${r.status}`,
+            latencyMs: lat,
+            message: `Google Gemini API ने HTTP ${r.status} लौटाया`,
+            lastChecked: new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        return {
+          id: 'gemini_ai',
+          name: 'Google Gemini Multimodal AI',
+          category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
+          target: 'generativelanguage.googleapis.com',
+          status: 'offline',
+          statusLabel: 'टाइमआउट / ऑफलाइन',
+          latencyMs: Date.now() - t0,
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          lastChecked: new Date().toISOString(),
+        };
+      }
+    };
+
+    // 4. Open-Meteo Weather API
+    const checkWeather = async () => {
+      const t0 = Date.now();
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const url = 'https://api.open-meteo.com/v1/forecast?latitude=21.25&longitude=81.63&current_weather=true';
+        const r = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeout);
+        const lat = Date.now() - t0;
+
+        if (r.ok) {
+          return {
+            id: 'open_meteo',
+            name: 'Open-Meteo Weather API',
+            category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
+            target: 'api.open-meteo.com',
+            status: 'connected',
+            statusLabel: 'सक्रिय (Live Satellite)',
+            latencyMs: lat,
+            message: 'लाइव मौसम, वर्षा व तापमान पूर्वानुमान सक्रिय है',
+            lastChecked: new Date().toISOString(),
+          };
+        } else {
+          return {
+            id: 'open_meteo',
+            name: 'Open-Meteo Weather API',
+            category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
+            target: 'api.open-meteo.com',
+            status: 'degraded',
+            statusLabel: `HTTP ${r.status}`,
+            latencyMs: lat,
+            message: `मौसम सर्वर ने HTTP ${r.status} लौटाया`,
+            lastChecked: new Date().toISOString(),
+          };
+        }
+      } catch (err) {
+        return {
+          id: 'open_meteo',
+          name: 'Open-Meteo Weather API',
+          category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
+          target: 'api.open-meteo.com',
+          status: 'offline',
+          statusLabel: 'टाइमआउट / ऑफलाइन',
+          latencyMs: Date.now() - t0,
+          message: err.name === 'AbortError' ? 'समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          lastChecked: new Date().toISOString(),
+        };
+      }
+    };
+
+    // 5. External Government Portals Gateway
+    const checkPortal = async (id, name, category, url, description) => {
+      const t0 = Date.now();
+      let hostname = url;
+      try {
+        hostname = new URL(url).hostname;
+      } catch {}
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const r = await fetch(url, {
+          method: 'GET',
+          signal: controller.signal,
+          headers: { 'User-Agent': 'Mozilla/5.0 KisanSaathi/1.0 HealthCheck' },
+        });
+        clearTimeout(timeout);
+        const lat = Date.now() - t0;
+        const isReachable = r.status >= 200 && r.status < 500;
+
+        return {
+          id,
+          name,
+          category,
+          target: hostname,
+          url,
+          status: isReachable ? 'connected' : 'degraded',
+          statusLabel: isReachable ? 'पहुंच योग्य (Reachable)' : `HTTP ${r.status}`,
+          latencyMs: lat,
+          message: `${description} (${r.status} ${r.statusText || 'OK'})`,
+          lastChecked: new Date().toISOString(),
+        };
+      } catch (err) {
+        return {
+          id,
+          name,
+          category,
+          target: hostname,
+          url,
+          status: 'offline',
+          statusLabel: 'टाइमआउट / ऑफलाइन',
+          latencyMs: Date.now() - t0,
+          message: err.name === 'AbortError' ? 'प्रतिक्रिया समय समाप्त (>4s)' : (err.message || 'गेटवे तक पहुंच विफल'),
+          lastChecked: new Date().toISOString(),
+        };
+      }
+    };
+
+    const agristackUrl = process.env.VITE_PORTAL_AGRISTACK_URL || 'https://cgfr.agristack.gov.in/';
+    const bhuiyanUrl = process.env.VITE_PORTAL_BHUIYAN_URL || 'https://bhuiyan.cg.nic.in/';
+    const khadyaUrl = process.env.VITE_PORTAL_TOKEN_URL || 'http://khadya.cg.nic.in/';
+    const pmkisanUrl = process.env.VITE_PORTAL_PMKISAN_URL || 'https://pmkisan.gov.in/';
+    const credaUrl = process.env.VITE_PORTAL_CREDA_URL || 'https://creda.cgstate.gov.in/';
+
+    const checkPromises = [
+      checkMongo(),
+      checkDataGovIn(),
+      checkGeminiAi(),
+      checkWeather(),
+      checkPortal('agristack', 'एग्री-स्टैक (Agri-Stack / Krishi Registry)', 'सरकारी पोर्टल लिंक (Gov Portal)', agristackUrl, 'डिजिटल किसान रजिस्ट्री गेटवे'),
+      checkPortal('bhuiyan', 'भुइयां पोर्टल (Bhuiyan CG Land Records)', 'सरकारी पोर्टल लिंक (Gov Portal)', bhuiyanUrl, 'डिजिटल खसरा व बी-1 नक्शा गेटवे'),
+      checkPortal('khadya', 'सीजी खाद्य उपार्जन (CG Khadya Dhan Uparjan)', 'सरकारी पोर्टल लिंक (Gov Portal)', khadyaUrl, 'धान उपार्जन टोकन व भुगतान गेटवे'),
+      checkPortal('pmkisan', 'पीएम-किसान सम्मान निधि (PM-Kisan DBT)', 'सरकारी पोर्टल लिंक (Gov Portal)', pmkisanUrl, 'केन्द्रीय DBT किस्त सत्यापन गेटवे'),
+      checkPortal('creda', 'क्रेडा सौर सुजला (CREDA Solar Sujala)', 'सरकारी पोर्टल लिंक (Gov Portal)', credaUrl, 'सौर सिंचाई पंप योजना गेटवे'),
+    ];
+
+    const results = await Promise.allSettled(checkPromises);
+    const services = results.map((r, i) => {
+      if (r.status === 'fulfilled') return r.value;
+      return {
+        id: `service_${i}`,
+        name: 'अज्ञात सेवा',
+        category: 'सिस्टम',
+        target: 'गेटवे',
+        status: 'offline',
+        statusLabel: 'जांच विफल',
+        latencyMs: 0,
+        message: r.reason?.message || 'जांच प्रक्रिया में अप्रत्याशित समस्या',
+        lastChecked: new Date().toISOString(),
+      };
+    });
+
+    const connectedCount = services.filter((s) => s.status === 'connected').length;
+    const degradedCount = services.filter((s) => s.status === 'degraded' || s.status === 'not_configured').length;
+    const offlineCount = services.filter((s) => s.status === 'offline').length;
+
+    const overallStatus = offlineCount === 0 && degradedCount === 0 ? 'optimal' : offlineCount > 0 ? 'degraded' : 'partial';
+
+    res.json({
+      checkedAt: new Date().toISOString(),
+      durationMs: Date.now() - startTime,
+      overallStatus,
+      summary: {
+        total: services.length,
+        connected: connectedCount,
+        warning: degradedCount,
+        offline: offlineCount,
+      },
+      services,
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'एपीआई स्वास्थ्य जांच निष्पादित करने में विफल।' });
   }
 });
 

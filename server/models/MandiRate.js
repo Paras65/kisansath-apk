@@ -13,6 +13,9 @@ const mandiRateSchema = new mongoose.Schema(
     unit: { type: String, default: '₹ / क्विंटल' },
     arrival: { type: String },
     date: { type: String, default: 'आज के भाव' },
+    isLive: { type: Boolean, default: false },
+    source: { type: String, default: 'Agmarknet' },
+    lastUpdated: { type: Date, default: Date.now },
   },
   { timestamps: true }
 );

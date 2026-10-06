@@ -54,6 +54,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import ShieldIcon from '@mui/icons-material/Shield';
 import SpeedIcon from '@mui/icons-material/Speed';
+import DnsIcon from '@mui/icons-material/Dns';
+import PublicIcon from '@mui/icons-material/Public';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ErrorOutlineIcon from '@mui/icons-material/Error';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 import {
   isAdminLoggedIn,
@@ -67,6 +72,7 @@ import {
   deleteMarketListing,
   deleteCommunityQA,
   resetAdminInactivityTimer,
+  checkAllApisHealth,
 } from '../services/adminService';
 import { getMarketplaceListings, getCommunityQA } from '../services/apiService';
 import { notify } from '../services/notificationService';
@@ -100,6 +106,11 @@ export const AdminPortal = ({ onExit }) => {
   const [broadcasts, setBroadcasts] = useState([]);
   const [listings, setListings] = useState([]);
   const [qaList, setQaList] = useState([]);
+
+  // Live API Health Check states
+  const [apiHealth, setApiHealth] = useState(null);
+  const [checkingApis, setCheckingApis] = useState(false);
+  const [apiFilter, setApiFilter] = useState('all');
 
   // New broadcast form state
   const [newBroadcast, setNewBroadcast] = useState({
@@ -251,6 +262,33 @@ export const AdminPortal = ({ onExit }) => {
     setFarmers(data || []);
     setLoading(false);
   };
+
+  const handleCheckApiHealth = useCallback(async () => {
+    setCheckingApis(true);
+    try {
+      const data = await checkAllApisHealth();
+      setApiHealth(data);
+      if (data?.overallStatus === 'optimal') {
+        notify.success('सभी एक्सटर्नल एपीआई एवं सेवाएं पूर्णतः सक्रिय हैं!');
+      } else if (data?.overallStatus === 'degraded' || (data?.summary?.offline || 0) > 0) {
+        notify.warning(`${data?.summary?.offline || 1} सेवाएं ऑफलाइन या पहुंच से बाहर पाई गईं।`);
+      } else {
+        notify.info('एपीआई कनेक्टिविटी स्वास्थ्य जांच पूर्ण हुई।');
+      }
+    } catch (err) {
+      console.warn('[API Health Check Error]', err);
+      notify.error('कनेक्टिविटी जांच में त्रुटि आई।');
+    } finally {
+      setCheckingApis(false);
+    }
+  }, []);
+
+  // Auto-run API health check on entering Module 5 if not yet loaded
+  useEffect(() => {
+    if (isAuth && currentModule === 5 && !apiHealth && !checkingApis) {
+      handleCheckApiHealth();
+    }
+  }, [isAuth, currentModule, apiHealth, checkingApis, handleCheckApiHealth]);
 
   // ==========================================
   // 🔐 ADMIN LOGIN FULL-PAGE WORKSTATION
@@ -1173,6 +1211,361 @@ export const AdminPortal = ({ onExit }) => {
               ======================================================== */}
           {currentModule === 5 && (
             <Grid container spacing={3}>
+              {/* ========================================================
+                  LIVE API & EXTERNAL SERVICES CONNECTION CHECKER
+                  ======================================================== */}
+              <Grid item xs={12}>
+                <Paper
+                  sx={{
+                    p: { xs: 2.5, sm: 3 },
+                    borderRadius: 3.5,
+                    border: '1px solid #e2e8f0',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    background: '#ffffff',
+                  }}
+                >
+                  {/* Top Bar: Title, badges and re-test button */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: { xs: 'flex-start', md: 'center' },
+                      gap: 2,
+                      mb: 2.5,
+                    }}
+                  >
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                          📡 लाइव एपीआई व एक्सटर्नल सर्विस कनेक्टिविटी जांच
+                        </Typography>
+                        {apiHealth?.overallStatus === 'optimal' && (
+                          <Chip
+                            icon={<CheckCircleIcon sx={{ fontSize: '15px !important' }} />}
+                            label="100% सक्रिय"
+                            size="small"
+                            color="success"
+                            sx={{ fontWeight: 800, fontSize: '0.75rem' }}
+                          />
+                        )}
+                        {apiHealth?.overallStatus === 'partial' && (
+                          <Chip
+                            icon={<WarningAmberIcon sx={{ fontSize: '15px !important' }} />}
+                            label="आंशिक सक्रिय"
+                            size="small"
+                            color="warning"
+                            sx={{ fontWeight: 800, fontSize: '0.75rem' }}
+                          />
+                        )}
+                        {apiHealth?.overallStatus === 'degraded' && (
+                          <Chip
+                            icon={<ErrorOutlineIcon sx={{ fontSize: '15px !important' }} />}
+                            label="ध्यान दें"
+                            size="small"
+                            color="error"
+                            sx={{ fontWeight: 800, fontSize: '0.75rem' }}
+                          />
+                        )}
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.5 }}>
+                        बाह्य सरकारी पोर्टल्स (Agri-Stack, Bhuiyan, CG Khadya, PM-Kisan), data.gov.in मंडी स्ट्रीम, Gemini AI, Weather API व MongoDB Atlas की लाइव कनेक्टिविटी स्थिति
+                      </Typography>
+                    </Box>
+
+                    {/* Re-test button */}
+                    <Button
+                      variant="contained"
+                      onClick={handleCheckApiHealth}
+                      disabled={checkingApis}
+                      startIcon={
+                        <RefreshIcon
+                          sx={{
+                            animation: checkingApis ? 'spin 1s linear infinite' : 'none',
+                            '@keyframes spin': {
+                              '0%': { transform: 'rotate(0deg)' },
+                              '100%': { transform: 'rotate(360deg)' },
+                            },
+                          }}
+                        />
+                      }
+                      sx={{
+                        bgcolor: '#16a34a',
+                        '&:hover': { bgcolor: '#15803d' },
+                        fontWeight: 800,
+                        borderRadius: 2.5,
+                        px: 2.5,
+                        py: 1,
+                        textTransform: 'none',
+                        boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
+                        alignSelf: { xs: 'stretch', md: 'auto' },
+                      }}
+                    >
+                      {checkingApis ? 'कनेक्टिविटी जांची जा रही है...' : 'सभी एपीआई पुनः जांचें (Re-test All)'}
+                    </Button>
+                  </Box>
+
+                  {/* Progress bar during testing */}
+                  {checkingApis && (
+                    <Box sx={{ mb: 2 }}>
+                      <LinearProgress color="success" sx={{ borderRadius: 2, height: 6 }} />
+                      <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, mt: 0.5, display: 'block' }}>
+                        सभी बाह्य सर्वरों और डेटाबेस क्लस्टर से पिंग परीक्षण चल रहा है...
+                      </Typography>
+                    </Box>
+                  )}
+
+                  {/* Summary Metric Cards */}
+                  <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+                    <Grid item xs={6} sm={3}>
+                      <Card variant="outlined" sx={{ bgcolor: '#f0fdf4', borderColor: '#bbf7d0', borderRadius: 2 }}>
+                        <CardContent sx={{ p: '12px !important' }}>
+                          <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, display: 'block' }}>
+                            🟢 सक्रिय सेवाएं
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 900, color: '#166534' }}>
+                            {apiHealth?.summary?.connected ?? '—'} / {apiHealth?.summary?.total ?? '—'}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    <Grid item xs={6} sm={3}>
+                      <Card variant="outlined" sx={{ bgcolor: '#fffbeb', borderColor: '#fef3c7', borderRadius: 2 }}>
+                        <CardContent sx={{ p: '12px !important' }}>
+                          <Typography variant="caption" sx={{ color: '#b45309', fontWeight: 700, display: 'block' }}>
+                            🟡 चेतावनी / गाइड मोड
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 900, color: '#b45309' }}>
+                            {apiHealth?.summary?.warning ?? '—'}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    <Grid item xs={6} sm={3}>
+                      <Card variant="outlined" sx={{ bgcolor: '#fef2f2', borderColor: '#fecaca', borderRadius: 2 }}>
+                        <CardContent sx={{ p: '12px !important' }}>
+                          <Typography variant="caption" sx={{ color: '#b91c1c', fontWeight: 700, display: 'block' }}>
+                            🔴 ऑफलाइन / विफल
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 900, color: '#b91c1c' }}>
+                            {apiHealth?.summary?.offline ?? '—'}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+
+                    <Grid item xs={6} sm={3}>
+                      <Card variant="outlined" sx={{ bgcolor: '#f8fafc', borderColor: '#e2e8f0', borderRadius: 2 }}>
+                        <CardContent sx={{ p: '12px !important' }}>
+                          <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, display: 'block' }}>
+                            ⏱️ कुल परीक्षण समय
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a' }}>
+                            {apiHealth?.durationMs ? `${apiHealth.durationMs} ms` : '—'}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+
+                  {/* Filter Pills */}
+                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1, mb: 2 }}>
+                    {[
+                      { key: 'all', label: 'सभी सेवाएं (All)' },
+                      { key: 'core', label: 'डेटाबेस व कोर API' },
+                      { key: 'data', label: 'मंडी व मौसम (Data APIs)' },
+                      { key: 'portals', label: 'सरकारी गेटवे (Gov Portals)' },
+                    ].map((tab) => (
+                      <Chip
+                        key={tab.key}
+                        label={tab.label}
+                        clickable
+                        onClick={() => setApiFilter(tab.key)}
+                        variant={apiFilter === tab.key ? 'filled' : 'outlined'}
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: '0.78rem',
+                          bgcolor: apiFilter === tab.key ? '#0f172a' : 'transparent',
+                          color: apiFilter === tab.key ? '#ffffff' : '#475569',
+                          borderColor: '#cbd5e1',
+                        }}
+                      />
+                    ))}
+                  </Box>
+
+                  {/* Services Health Table */}
+                  <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 800, color: '#334155' }}>सेवा / API नाम</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#334155' }}>होस्ट / एंडपॉइंट</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#334155' }}>स्थिति (Status)</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#334155' }}>विलंबता (Latency)</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#334155' }}>विवरण व संदेश</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {!apiHealth?.services ? (
+                          <TableRow>
+                            <TableCell colSpan={5} sx={{ textAlign: 'center', py: 4, color: '#64748b' }}>
+                              {checkingApis ? 'कनेक्टिविटी स्थिति जांची जा रही है...' : 'कोई डेटा नहीं। कृपया "सभी एपीआई पुनः जांचें" पर क्लिक करें।'}
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          apiHealth.services
+                            .filter((s) => {
+                              if (apiFilter === 'core') return s.id === 'mongodb' || s.id === 'gemini_ai' || s.id === 'kisan_api_server';
+                              if (apiFilter === 'data') return s.id === 'data_gov_in' || s.id === 'open_meteo';
+                              if (apiFilter === 'portals') return ['agristack', 'bhuiyan', 'khadya', 'pmkisan', 'creda'].includes(s.id);
+                              return true;
+                            })
+                            .map((srv) => {
+                              const isGreen = srv.status === 'connected';
+                              const isYellow = srv.status === 'degraded' || srv.status === 'not_configured';
+                              const isRed = srv.status === 'offline';
+
+                              return (
+                                <TableRow key={srv.id} hover>
+                                  {/* Service Name & Category */}
+                                  <TableCell>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                      {srv.id === 'mongodb' && <DnsIcon sx={{ color: '#0369a1', fontSize: 20 }} />}
+                                      {srv.id === 'gemini_ai' && <SecurityIcon sx={{ color: '#7c3aed', fontSize: 20 }} />}
+                                      {srv.id === 'open_meteo' && <SpeedIcon sx={{ color: '#0284c7', fontSize: 20 }} />}
+                                      {srv.id === 'data_gov_in' && <StorefrontIcon sx={{ color: '#16a34a', fontSize: 20 }} />}
+                                      {['agristack', 'bhuiyan', 'khadya', 'pmkisan', 'creda'].includes(srv.id) && (
+                                        <PublicIcon sx={{ color: '#475569', fontSize: 20 }} />
+                                      )}
+                                      <Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                                          {srv.name}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                                          {srv.category}
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  </TableCell>
+
+                                  {/* Host / Endpoint */}
+                                  <TableCell>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#334155', fontWeight: 600 }}>
+                                        {srv.target}
+                                      </Typography>
+                                      {srv.url && (
+                                        <IconButton
+                                          size="small"
+                                          href={srv.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          sx={{ p: 0.3, color: '#64748b' }}
+                                        >
+                                          <OpenInNewIcon sx={{ fontSize: 13 }} />
+                                        </IconButton>
+                                      )}
+                                    </Box>
+                                  </TableCell>
+
+                                  {/* Status Chip */}
+                                  <TableCell>
+                                    {isGreen && (
+                                      <Chip
+                                        icon={<CheckCircleIcon sx={{ fontSize: '14px !important' }} />}
+                                        label={srv.statusLabel || 'सक्रिय'}
+                                        size="small"
+                                        color="success"
+                                        variant="filled"
+                                        sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                                      />
+                                    )}
+                                    {isYellow && (
+                                      <Chip
+                                        icon={<WarningAmberIcon sx={{ fontSize: '14px !important' }} />}
+                                        label={srv.statusLabel || 'चेतावनी'}
+                                        size="small"
+                                        color="warning"
+                                        variant="filled"
+                                        sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                                      />
+                                    )}
+                                    {isRed && (
+                                      <Chip
+                                        icon={<ErrorOutlineIcon sx={{ fontSize: '14px !important' }} />}
+                                        label={srv.statusLabel || 'ऑफलाइन'}
+                                        size="small"
+                                        color="error"
+                                        variant="filled"
+                                        sx={{ fontWeight: 700, fontSize: '0.72rem' }}
+                                      />
+                                    )}
+                                  </TableCell>
+
+                                  {/* Latency */}
+                                  <TableCell>
+                                    {srv.latencyMs > 0 ? (
+                                      <Chip
+                                        label={`${srv.latencyMs} ms`}
+                                        size="small"
+                                        sx={{
+                                          fontWeight: 800,
+                                          fontSize: '0.72rem',
+                                          bgcolor:
+                                            srv.latencyMs < 300
+                                              ? '#dcfce7'
+                                              : srv.latencyMs < 1000
+                                              ? '#fef3c7'
+                                              : '#fee2e2',
+                                          color:
+                                            srv.latencyMs < 300
+                                              ? '#15803d'
+                                              : srv.latencyMs < 1000
+                                              ? '#b45309'
+                                              : '#b91c1c',
+                                        }}
+                                      />
+                                    ) : (
+                                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                                        —
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+
+                                  {/* Details Message */}
+                                  <TableCell>
+                                    <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.78rem' }}>
+                                      {srv.message}
+                                    </Typography>
+                                    {srv.compliance && (
+                                      <Chip
+                                        label={`⚖️ ${srv.compliance}`}
+                                        size="small"
+                                        variant="outlined"
+                                        sx={{ mt: 0.4, height: 18, fontSize: '0.64rem', fontWeight: 700, color: '#0369a1', borderColor: '#bae6fd' }}
+                                      />
+                                    )}
+                                    {srv.lastChecked && (
+                                      <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem', display: 'block' }}>
+                                        जांच: {new Date(srv.lastChecked).toLocaleTimeString('hi-IN')}
+                                      </Typography>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                        )}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Paper>
+              </Grid>
+
+              {/* ========================================================
+                  SECURITY AUDIT CHECKLIST
+                  ======================================================== */}
               <Grid item xs={12} md={6}>
                 <Paper sx={{ p: 3, borderRadius: 3.5, border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
                   <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>

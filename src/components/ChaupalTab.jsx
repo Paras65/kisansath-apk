@@ -28,9 +28,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PrintIcon from '@mui/icons-material/Print';
-import { MACHINERY_RENTALS, COMMUNITY_QA } from '../data/kisanData';
 import { speakText } from '../utils/speech';
-import { getMachinery, getCommunityQA, postCommunityQuestion } from '../services/apiService';
+import { getMachinery, getCommunityQA, postCommunityQuestion, getCachedModuleData } from '../services/apiService';
 import { generateAndPrintKccReport } from '../utils/printReportHelper';
 import { getActiveFarmer } from '../services/farmerService';
 import { MeraKhetModal } from './MeraKhetModal';
@@ -41,19 +40,28 @@ export const ChaupalTab = () => {
   const [openAskModal, setOpenAskModal] = useState(false);
   const [openDiaryModal, setOpenDiaryModal] = useState(false);
   const [openMeraKhetModal, setOpenMeraKhetModal] = useState(false);
-  const [machineryList, setMachineryList] = useState(MACHINERY_RENTALS);
 
-  // Community Questions state from MongoDB
-  const [questions, setQuestions] = useState(COMMUNITY_QA);
+  // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
+  const [machineryList, setMachineryList] = useState(() => {
+    const cached = getCachedModuleData('machinery');
+    return cached && Array.isArray(cached.data) ? cached.data : [];
+  });
+
+  // Community Questions state from cache or empty
+  const [questions, setQuestions] = useState(() => {
+    const cached = getCachedModuleData('community_qa');
+    return cached && Array.isArray(cached.data) ? cached.data : [];
+  });
 
   // Load from MongoDB
+  const loadFromMongo = async () => {
+    const liveMachinery = await getMachinery();
+    if (liveMachinery && Array.isArray(liveMachinery)) setMachineryList(liveMachinery);
+    const liveQA = await getCommunityQA();
+    if (liveQA && Array.isArray(liveQA)) setQuestions(liveQA);
+  };
+
   useEffect(() => {
-    const loadFromMongo = async () => {
-      const liveMachinery = await getMachinery();
-      if (liveMachinery && liveMachinery.length > 0) setMachineryList(liveMachinery);
-      const liveQA = await getCommunityQA();
-      if (liveQA && liveQA.length > 0) setQuestions(liveQA);
-    };
     loadFromMongo();
   }, []);
 
@@ -184,9 +192,74 @@ export const ChaupalTab = () => {
               </Typography>
             </Box>
           </Box>
+          {/* Zero-False-Data Benchmark Notice */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.4,
+              mb: 2,
+              borderRadius: 2.5,
+              bgcolor: '#f1f8e9',
+              border: '1.2px solid #c8e6c9',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 1.2
+            }}
+          >
+            <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>🏛️</Typography>
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem', mb: 0.2 }}>
+                कस्टम हायरिंग सेंटर (CHC) अनुमोदित मानक संदर्भ दरें
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
+                यह दरें छत्तीसगढ़ कृषि अभियांत्रिकी विभाग व स्थानीय कस्टम हायरिंग समितियों द्वारा अनुशंसित मानक रेंटल दरें हैं। ग्राम पंचायत में सरकारी मशीनरी रेंटल व सब्सिडी सहायता हेतु किसान कॉल सेंटर टोल-फ्री <strong>1800-180-1551</strong> पर संपर्क करें।
+              </Typography>
+            </Box>
+          </Paper>
 
-          <Grid container spacing={2}>
-            {machineryList.map((item) => (
+          {machineryList.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3.5,
+                textAlign: 'center',
+                borderRadius: '16px',
+                bgcolor: '#f8fafc',
+                border: '1.5px dashed #cbd5e1',
+                mb: 3
+              }}
+            >
+              <PrecisionManufacturingIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                कोई मशीनरी रेंटल डेटा उपलब्ध नहीं है
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 460, mx: 'auto', mb: 2 }}>
+                शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई फर्जी या अप्रमाणित नंबर नहीं दिखाया जाता। कस्टम हायरिंग सेंटर (CHC) मशीनरी बुकिंग व किराए की जानकारी हेतु किसान कॉल सेंटर पर सीधे संपर्क करें।
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
+                  size="small"
+                  startIcon={<CallIcon />}
+                  onClick={() => openNativeDialer('18001801551')}
+                  sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
+                >
+                  📞 किसान कॉल सेंटर (1800-180-1551)
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<PrecisionManufacturingIcon />}
+                  onClick={loadFromMongo}
+                  sx={{ fontWeight: 800, borderRadius: 2 }}
+                >
+                  🔄 पुनः प्रयास करें
+                </Button>
+              </Box>
+            </Paper>
+          ) : (
+            <Grid container spacing={2}>
+              {machineryList.map((item) => (
               <Grid item xs={12} sm={6} md={4} key={item.id} sx={{ display: 'flex' }}>
                 <Card
                   className="touch-card"
@@ -260,8 +333,8 @@ export const ChaupalTab = () => {
                             size="small"
                             startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
                             onClick={() => {
-                              const msg = `नमस्ते ${item.contactName} जी, मुझे आपकी मशीनरी (${item.title} - ${item.rate}) किराए पर चाहिए। क्या यह उपलब्ध है?`;
-                              openNativeWhatsApp(item.phone, msg);
+                              const msg = `नमस्ते, मुझे कस्टम हायरिंग सेंटर से (${item.title} - ${item.rate}) रेंटल हेतु जानकारी व बुकिंग मार्गदर्शन चाहिए।`;
+                              openNativeWhatsApp(item.isHelpline ? '' : item.phone, msg);
                             }}
                             sx={{
                               borderColor: '#25D366',
@@ -274,7 +347,7 @@ export const ChaupalTab = () => {
                               '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
                             }}
                           >
-                            व्हाट्सएप
+                            मार्गदर्शन
                           </Button>
                           <Button
                             variant="contained"
@@ -292,7 +365,7 @@ export const ChaupalTab = () => {
                               '&:hover': { bgcolor: '#125420' }
                             }}
                           >
-                            कॉल
+                            {item.isHelpline ? '1800-180-1551 (टोल-फ्री)' : 'कॉल'}
                           </Button>
                         </Box>
                       </Box>
@@ -302,6 +375,7 @@ export const ChaupalTab = () => {
               </Grid>
             ))}
           </Grid>
+        )}
         </Box>
       )}
 
@@ -336,8 +410,38 @@ export const ChaupalTab = () => {
             </Button>
           </Box>
 
-          <Grid container spacing={2}>
-            {questions.map((q) => (
+          {questions.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3.5,
+                textAlign: 'center',
+                borderRadius: '16px',
+                bgcolor: '#f8fafc',
+                border: '1.5px dashed #cbd5e1',
+                mb: 3
+              }}
+            >
+              <ForumIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                वर्तमान में कोई चौपाल प्रश्न उपलब्ध नहीं हैं
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
+                साथी किसानों व कृषि वैज्ञानिकों से मार्गदर्शन पाने के लिए अपना पहला सवाल पूछें।
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddCircleIcon />}
+                onClick={() => setOpenAskModal(true)}
+                sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
+              >
+                + पहला सवाल पूछें
+              </Button>
+            </Paper>
+          ) : (
+            <Grid container spacing={2}>
+              {questions.map((q) => (
               <Grid item xs={12} md={6} key={q.id} sx={{ display: 'flex' }}>
                 <Card
                   className="touch-card"
@@ -405,6 +509,7 @@ export const ChaupalTab = () => {
               </Grid>
             ))}
           </Grid>
+        )}
         </Box>
       )}
 

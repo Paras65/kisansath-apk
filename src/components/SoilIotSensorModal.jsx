@@ -122,11 +122,16 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
 
   const handleApply = () => {
     if (onApplyToCalculator && sensorData && analysis) {
+      if (!deviceConnected) {
+        notify.warning('⚠️ ध्यान दें: यह डेमो रीडिंग है। वास्तविक खेत में खाद की सही मात्रा जानने हेतु प्रयोगशाला मृदा स्वास्थ्य कार्ड (Soil Health Card) का उपयोग करें।');
+      }
       onApplyToCalculator({
-        soilReading: sensorData,
+        soilReading: { ...sensorData, isDemo: !deviceConnected },
         analysis
       });
-      notify.success('सेंसर डेटा खाद कैलकुलेटर में भेजा गया!');
+      if (deviceConnected) {
+        notify.success('🟢 लाइव सेंसर डेटा खाद कैलकुलेटर में भेजा गया!');
+      }
       onClose();
     }
   };
@@ -202,9 +207,32 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
           </Box>
         </Paper>
 
-        {/* Live Soil Telemetry Cards */}
+        {/* Zero-False-Data Policy Demo Alert */}
+        {!deviceConnected && (
+          <Alert
+            severity="info"
+            icon={false}
+            sx={{
+              mb: 2,
+              borderRadius: 2.5,
+              bgcolor: '#fffde7',
+              border: '1.2px solid #ffe082',
+              color: '#5d4037',
+              p: 1.2
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#f57f17', fontSize: '0.82rem', mb: 0.2 }}>
+              ⚠️ डेमो / सिमुलेशन मोड (Demo Mode - कोई भौतिक सेंसर कनेक्ट नहीं)
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
+              नीचे दिखाए जा रहे pH एवं N-P-K मान केवल तकनीकी प्रदर्शन हेतु हैं। वास्तविक खेत की मिट्टी जांच हेतु ऊपर <strong>"सेंसर कनेक्ट करें"</strong> बटन दबाएं अथवा अपनी सरकारी प्रयोगशाला (मृदा स्वास्थ्य कार्ड) रिपोर्ट का उपयोग करें।
+            </Typography>
+          </Alert>
+        )}
+
+        {/* Soil Telemetry Cards */}
         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#004d40', mb: 1, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-          <span>📊</span> लाइव मृदा टेलीमेट्री (Live Soil Telemetry)
+          <span>📊</span> {deviceConnected ? 'लाइव मृदा टेलीमेट्री (🟢 असली सेंसर कनेक्टेड)' : 'मृदा टेलीमेट्री (डेमो सिमुलेशन)'}
         </Typography>
 
         <Grid container spacing={1.5} sx={{ mb: 2 }}>

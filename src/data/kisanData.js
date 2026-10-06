@@ -348,7 +348,7 @@ export const MANDI_RATES = [
     trend: '+150',
     unit: '₹ / क्विंटल',
     arrival: '450 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'रायपुर (Raipur)',
@@ -361,7 +361,7 @@ export const MANDI_RATES = [
     trend: '+80',
     unit: '₹ / क्विंटल',
     arrival: '180 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'बिलासपुर (Bilaspur)',
@@ -374,7 +374,7 @@ export const MANDI_RATES = [
     trend: '+100',
     unit: '₹ / क्विंटल',
     arrival: '320 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'राजनांदगांव (Rajnandgaon)',
@@ -387,7 +387,7 @@ export const MANDI_RATES = [
     trend: '+210',
     unit: '₹ / क्विंटल',
     arrival: '120 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'धमतरी (Dhamtari)',
@@ -400,7 +400,7 @@ export const MANDI_RATES = [
     trend: '+50',
     unit: '₹ / क्विंटल',
     arrival: '510 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'कवर्धा (Kawardha)',
@@ -413,7 +413,7 @@ export const MANDI_RATES = [
     trend: '+45',
     unit: '₹ / क्विंटल',
     arrival: '90 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'भाटापारा (Bhatapara)',
@@ -426,7 +426,7 @@ export const MANDI_RATES = [
     trend: '-30',
     unit: '₹ / क्विंटल',
     arrival: '220 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   },
   {
     mandi: 'जगदलपुर (Jagdalpur)',
@@ -439,7 +439,7 @@ export const MANDI_RATES = [
     trend: '+120',
     unit: '₹ / क्विंटल',
     arrival: '65 टन',
-    date: 'आज के भाव'
+    date: 'संदर्भ दर (Agmarknet)'
   }
 ];
 
@@ -540,8 +540,9 @@ export const MACHINERY_RENTALS = [
     category: 'जुताई एवं खेत तैयारी',
     rate: '₹900 - ₹1,100 / घंटा',
     operatorIncluded: true,
-    contactName: 'रामेश्वर पटेल (कस्टम हायरिंग सेंटर)',
-    phone: '98260XXXXX',
+    contactName: 'कस्टम हायरिंग केंद्र (CHC) - रायपुर/आरंग',
+    phone: '18001801551',
+    isHelpline: true,
     location: 'आरंग / रायपुर',
     features: ['खेत की गहरी जुताई', 'रोटावेटर से मिट्टी भुरभुरी करना', 'लेवलर उपलब्ध']
   },
@@ -551,8 +552,9 @@ export const MACHINERY_RENTALS = [
     category: 'कटाई व थ्रेशिंग',
     rate: '₹1,900 - ₹2,200 / घंटा',
     operatorIncluded: true,
-    contactName: 'सुरेश साहू (कृषि सेवा केंद्र)',
-    phone: '94252XXXXX',
+    contactName: 'कस्टम हायरिंग केंद्र (CHC) - बिलासपुर/तखतपुर',
+    phone: '18001801551',
+    isHelpline: true,
     location: 'तखतपुर / बिलासपुर',
     features: ['1 घंटे में 1 एकड़ धान कटाई व मिंजाई', 'अनाज का न्यूनतम नुकसान', 'स्ट्रॉ रीपर सुविधा']
   },
@@ -562,8 +564,9 @@ export const MACHINERY_RENTALS = [
     category: 'आधुनिक छिड़काव तकनीक',
     rate: '₹350 - ₹400 / एकड़',
     operatorIncluded: true,
-    contactName: 'ग्रीन एग्रो ड्रोन सर्विसेज',
-    phone: '91110XXXXX',
+    contactName: 'कृषि ड्रोन सेवा केंद्र - दुर्ग/पाटन',
+    phone: '18001801551',
+    isHelpline: true,
     location: 'दुर्ग / भिलाई व पाटन',
     features: ['10 मिनट में 1 एकड़ छिड़काव', 'दवा और पानी की 50% बचत', 'पौधों के पत्तों के दोनों तरफ सटीक छिड़काव']
   },
@@ -573,8 +576,9 @@ export const MACHINERY_RENTALS = [
     category: 'जल संरक्षण एवं लेवलिंग',
     rate: '₹1,200 / घंटा',
     operatorIncluded: true,
-    contactName: 'किसान विकास समिति',
-    phone: '97520XXXXX',
+    contactName: 'कस्टम हायरिंग केंद्र (CHC) - बेमेतरा/कवर्धा',
+    phone: '18001801551',
+    isHelpline: true,
     location: 'बेमेतरा / कवर्धा',
     features: ['खेत को 100% समतल करना', 'पानी की 30% बचत', 'उर्वरक का समान फैलाव']
   }

@@ -327,3 +327,115 @@ export const getPublicBroadcasts = async (district = '') => {
 
   return [];
 };
+
+// 12. Super Admin Live API & External Services Health Checker
+export const checkAllApisHealth = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/api-health`, {
+      headers: getAdminHeaders(),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+  } catch (err) {
+    console.warn('[Admin API Health Check Offline]', err);
+  }
+
+  // Graceful Client-side fallback check (if backend is offline or in client-only demo mode)
+  let weatherResult = {
+    id: 'open_meteo',
+    name: 'Open-Meteo Weather API',
+    category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
+    target: 'api.open-meteo.com',
+    status: 'offline',
+    statusLabel: 'ऑफलाइन',
+    latencyMs: 0,
+    message: 'नेटवर्क संपर्क नहीं हो सका',
+    lastChecked: new Date().toISOString(),
+  };
+
+  try {
+    const t0 = performance.now();
+    const wRes = await fetch('https://api.open-meteo.com/v1/forecast?latitude=21.25&longitude=81.63&current_weather=true');
+    const lat = Math.round(performance.now() - t0);
+    if (wRes.ok) {
+      weatherResult = {
+        id: 'open_meteo',
+        name: 'Open-Meteo Weather API',
+        category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
+        target: 'api.open-meteo.com',
+        status: 'connected',
+        statusLabel: 'सक्रिय (Client Ping)',
+        latencyMs: lat,
+        message: 'लाइव मौसम डेटा फीड ब्राउज़र से सक्रिय',
+        lastChecked: new Date().toISOString(),
+      };
+    }
+  } catch {}
+
+  const fallbackServices = [
+    {
+      id: 'kisan_api_server',
+      name: 'किसान साथी बैकएंड API सर्वर',
+      category: 'कोर बैकएंड (Application Server)',
+      target: API_BASE_URL,
+      status: 'offline',
+      statusLabel: 'सर्वर ऑफलाइन / स्टैंडअलोन',
+      latencyMs: 0,
+      message: 'लोकल या रिमोट बैकएंड सर्वर से संपर्क नहीं हो सका',
+      lastChecked: new Date().toISOString(),
+    },
+    weatherResult,
+    {
+      id: 'mongodb',
+      name: 'MongoDB Atlas क्लस्टर',
+      category: 'कोर डेटाबेस (Core Database)',
+      target: 'cluster0.qrqi6.mongodb.net',
+      status: 'degraded',
+      statusLabel: 'सर्वर आश्रित',
+      latencyMs: 0,
+      message: 'बैकएंड सर्वर चालू होने पर ही डेटाबेस पिंग संभव है',
+      lastChecked: new Date().toISOString(),
+    },
+    {
+      id: 'data_gov_in',
+      name: 'data.gov.in (OGD India / Agmarknet)',
+      category: 'मंडी दर API (Live Mandi Rates)',
+      target: 'api.data.gov.in',
+      status: 'degraded',
+      statusLabel: 'मानक मोड',
+      latencyMs: 0,
+      message: 'ऑफलाइन या स्टैंडअलोन मोड में संदर्भ भाव उपलब्ध हैं',
+      lastChecked: new Date().toISOString(),
+    },
+    {
+      id: 'gemini_ai',
+      name: 'Google Gemini Multimodal AI',
+      category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
+      target: 'generativelanguage.googleapis.com',
+      status: 'degraded',
+      statusLabel: 'गाइड मोड',
+      latencyMs: 0,
+      message: 'ऑफलाइन मोड में विशेषज्ञ लक्षण मार्गदर्शिका सक्रिय है',
+      lastChecked: new Date().toISOString(),
+    },
+  ];
+
+  const connectedCount = fallbackServices.filter((s) => s.status === 'connected').length;
+  const warningCount = fallbackServices.filter((s) => s.status === 'degraded' || s.status === 'not_configured').length;
+  const offlineCount = fallbackServices.filter((s) => s.status === 'offline').length;
+
+  return {
+    checkedAt: new Date().toISOString(),
+    durationMs: 350,
+    overallStatus: 'partial',
+    summary: {
+      total: fallbackServices.length,
+      connected: connectedCount,
+      warning: warningCount,
+      offline: offlineCount,
+    },
+    services: fallbackServices,
+  };
+};

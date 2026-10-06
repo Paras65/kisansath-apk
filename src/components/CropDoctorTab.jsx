@@ -35,9 +35,8 @@ import SecurityIcon from '@mui/icons-material/Security';
 import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import SyncIcon from '@mui/icons-material/Sync';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import { CROP_DISEASES, CROPS } from '../data/kisanData';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
-import { getCrops, getDiseases, diagnoseCropWithLiveAi } from '../services/apiService';
+import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData } from '../services/apiService';
 import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
@@ -60,9 +59,19 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [selectedCrop, setSelectedCrop] = useState('paddy');
   const [selectedSymptom, setSelectedSymptom] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cropsList, setCropsList] = useState(CROPS);
-  const [diseasesList, setDiseasesList] = useState(CROP_DISEASES);
-  const [activeDisease, setActiveDisease] = useState(CROP_DISEASES[0]);
+  // Strictly initialize from cache or empty (Zero-False-Data Policy)
+  const [cropsList, setCropsList] = useState(() => {
+    const cached = getCachedModuleData('crops');
+    return cached && Array.isArray(cached.data) ? cached.data : [];
+  });
+  const [diseasesList, setDiseasesList] = useState(() => {
+    const cached = getCachedModuleData('diseases');
+    return cached && Array.isArray(cached.data) ? cached.data : [];
+  });
+  const [activeDisease, setActiveDisease] = useState(() => {
+    const cached = getCachedModuleData('diseases');
+    return cached && Array.isArray(cached.data) && cached.data.length > 0 ? cached.data[0] : null;
+  });
   const [uploadedImage, setUploadedImage] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [aiReport, setAiReport] = useState(null);
@@ -107,16 +116,17 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   }, [selectedDistrict]);
 
   // Load live data from MongoDB if available
+  const loadFromMongo = async () => {
+    const liveCrops = await getCrops();
+    if (liveCrops && liveCrops.length > 0) setCropsList(liveCrops);
+    const liveDiseases = await getDiseases();
+    if (liveDiseases && liveDiseases.length > 0) {
+      setDiseasesList(liveDiseases);
+      setActiveDisease((prev) => prev || liveDiseases[0]);
+    }
+  };
+
   useEffect(() => {
-    const loadFromMongo = async () => {
-      const liveCrops = await getCrops();
-      if (liveCrops && liveCrops.length > 0) setCropsList(liveCrops);
-      const liveDiseases = await getDiseases();
-      if (liveDiseases && liveDiseases.length > 0) {
-        setDiseasesList(liveDiseases);
-        setActiveDisease(liveDiseases[0]);
-      }
-    };
     loadFromMongo();
   }, []);
 
@@ -975,8 +985,40 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         }}
       />
 
-      {/* 7. Quick Disease Selection Pills */}
-      <Box sx={{ mb: 2 }}>
+      {/* 7. Quick Disease Selection Pills & Detailed Prescription Card */}
+      {diseasesList.length === 0 ? (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3.5,
+            mb: 4,
+            textAlign: 'center',
+            borderRadius: '16px',
+            bgcolor: '#f8fafc',
+            border: '1.5px dashed #cbd5e1'
+          }}
+        >
+          <LocalHospitalIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+            रोग निदान लाइब्रेरी डेटा उपलब्ध नहीं है
+          </Typography>
+          <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
+            शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित रोग पर्ची नहीं दिखाई जाती है। प्रमाणिक KVK/ICAR रोग डेटाबेस लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+          </Typography>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<SyncIcon sx={{ fontSize: 16 }} />}
+            onClick={loadFromMongo}
+            sx={{ bgcolor: '#c62828', color: '#fff', fontWeight: 800, borderRadius: 2, '&:hover': { bgcolor: '#b71c1c' } }}
+          >
+            डेटा लोड करें (Retry)
+          </Button>
+        </Paper>
+      ) : (
+        <>
+          {/* 7. Quick Disease Selection Pills */}
+          <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', fontSize: '0.84rem' }}>
             पहचाने गए सामान्य रोग ({filteredDiseases.length}):
@@ -1369,6 +1411,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         >
           इस चयन के लिए कोई रोग नहीं मिला। कृपया अन्य लक्षण या फसल चुनें।
         </Alert>
+      )}
+        </>
       )}
     </Box>
   );

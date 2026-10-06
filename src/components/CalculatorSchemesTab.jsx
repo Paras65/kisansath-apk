@@ -21,10 +21,9 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ScienceIcon from '@mui/icons-material/Science';
-import { FERTILIZER_DOSES, SCHEMES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
-import { getFertilizers, getSchemes } from '../services/apiService';
+import { getFertilizers, getSchemes, getCachedModuleData } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { notify } from '../services/notificationService';
@@ -32,9 +31,15 @@ import { notify } from '../services/notificationService';
 export const CalculatorSchemesTab = () => {
   const [subTab, setSubTab] = useState(0);
 
-  // Dynamic MongoDB state
-  const [fertData, setFertData] = useState(FERTILIZER_DOSES);
-  const [schemesList, setSchemesList] = useState(SCHEMES);
+  // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
+  const [fertData, setFertData] = useState(() => {
+    const cached = getCachedModuleData('fertilizers');
+    return cached && cached.data && Object.keys(cached.data).length > 0 ? cached.data : null;
+  });
+  const [schemesList, setSchemesList] = useState(() => {
+    const cached = getCachedModuleData('schemes');
+    return cached && Array.isArray(cached.data) ? cached.data : [];
+  });
 
   // Fertilizer Calculator State
   const [fertCrop, setFertCrop] = useState('paddy');
@@ -46,17 +51,18 @@ export const CalculatorSchemesTab = () => {
   // Paddy Kharidi Calculator State
   const [paddyAcres, setPaddyAcres] = useState(2.5);
 
+  const loadFromMongo = async () => {
+    const liveFert = await getFertilizers();
+    if (liveFert && Object.keys(liveFert).length > 0) setFertData(liveFert);
+    const liveSchemes = await getSchemes();
+    if (liveSchemes && Array.isArray(liveSchemes)) setSchemesList(liveSchemes);
+  };
+
   useEffect(() => {
-    const loadFromMongo = async () => {
-      const liveFert = await getFertilizers();
-      if (liveFert && Object.keys(liveFert).length > 0) setFertData(liveFert);
-      const liveSchemes = await getSchemes();
-      if (liveSchemes && liveSchemes.length > 0) setSchemesList(liveSchemes);
-    };
     loadFromMongo();
   }, []);
 
-  const activeFert = fertData[fertCrop] || fertData.paddy || FERTILIZER_DOSES.paddy;
+  const activeFert = fertData ? (fertData[fertCrop] || fertData.paddy || Object.values(fertData)[0]) : null;
   const acresNum = parseFloat(fertAcres) || 0;
 
   // Multipliers based on live Soil IoT probe readings
@@ -72,10 +78,10 @@ export const CalculatorSchemesTab = () => {
     else if (soilSensorData.analysis.kLevel === 'अधिक') kMult = 0.8;
   }
 
-  const totalUreaKg = Math.round(activeFert.ureaTotal * acresNum * nMult);
-  const totalDapKg = Math.round(activeFert.dapTotal * acresNum * pMult);
-  const totalMopKg = Math.round(activeFert.mopTotal * acresNum * kMult);
-  const totalZincKg = Math.round(activeFert.zincSulfate * acresNum);
+  const totalUreaKg = activeFert ? Math.round(activeFert.ureaTotal * acresNum * nMult) : 0;
+  const totalDapKg = activeFert ? Math.round(activeFert.dapTotal * acresNum * pMult) : 0;
+  const totalMopKg = activeFert ? Math.round(activeFert.mopTotal * acresNum * kMult) : 0;
+  const totalZincKg = activeFert ? Math.round((activeFert.zincSulfate || 0) * acresNum) : 0;
 
   // Bags estimation (Urea 45kg bag, DAP 50kg bag, MOP 50kg bag)
   const ureaBags = (totalUreaKg / 45).toFixed(1);
@@ -93,6 +99,10 @@ export const CalculatorSchemesTab = () => {
   const bonusPart = Math.round(maxQuintals * bonusRate);
 
   const handleReadFertSummary = () => {
+    if (!activeFert) {
+      speakText('खाद डेटा अभी उपलब्ध नहीं है। कृपया इंटरनेट कनेक्ट कर पुनः लोड करें।');
+      return;
+    }
     const text = `${acresNum} एकड़ ${activeFert.name} के लिए कुल ${totalUreaKg} किलो यूरिया, ${totalDapKg} किलो डीएपी और ${totalMopKg} किलो पोटाश की आवश्यकता होगी।`;
     speakText(text);
   };
@@ -226,8 +236,15 @@ export const CalculatorSchemesTab = () => {
             </Box>
 
             {soilSensorData && (
-              <Alert severity="success" sx={{ mb: 2, borderRadius: 2.5, fontSize: '0.8rem' }} onClose={() => setSoilSensorData(null)}>
-                <strong>स्मार्ट खाद समायोजन लागू:</strong> यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
+              <Alert
+                severity={soilSensorData.soilReading?.isDemo ? 'warning' : 'success'}
+                sx={{ mb: 2, borderRadius: 2.5, fontSize: '0.8rem' }}
+                onClose={() => setSoilSensorData(null)}
+              >
+                <strong>
+                  {soilSensorData.soilReading?.isDemo ? '⚠️ डेमो खाद समायोजन लागू (केवल तकनीकी परीक्षण हेतु): ' : '🟢 लाइव स्मार्ट खाद समायोजन लागू: '}
+                </strong>
+                यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
               </Alert>
             )}
 
@@ -269,261 +286,292 @@ export const CalculatorSchemesTab = () => {
               </Paper>
             )}
 
-            {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
-            <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
-              📦 कुल आवश्यक खाद की बोरी व मात्रा ({acresNum} एकड़ हेतु):
-            </Typography>
-
-            <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-              {/* Urea */}
-              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
-                <Paper
-                  elevation={0}
-                  className="touch-card"
-                  sx={{
-                    p: 1.5,
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    bgcolor: '#ffffff',
-                    border: '1.5px solid #a5d6a7',
-                    borderTop: '4px solid #2e7d32',
-                    borderRadius: '16px',
-                    boxShadow: '0 2px 8px rgba(46, 125, 50, 0.06)'
-                  }}
+            {!activeFert ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3.5,
+                  my: 2,
+                  textAlign: 'center',
+                  borderRadius: '16px',
+                  bgcolor: '#f8fafc',
+                  border: '1.5px dashed #cbd5e1'
+                }}
+              >
+                <ScienceIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                  खाद सिफारिश डेटा उपलब्ध नहीं है
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
+                  शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी अनुमानित या मनगढ़ंत खाद मात्रा नहीं दिखाई जाती। सटीक कृषि विश्वविद्यालय अनुशंसित पोषण लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+                </Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={loadFromMongo}
+                  sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
                 >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                    <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.82rem' }}>
-                      यूरिया (Urea)
-                    </Typography>
-                    <Chip
-                      label="46% N"
-                      size="small"
-                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
-                    />
-                  </Box>
-                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
-                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
-                        {ureaBags}
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.86rem' }}>
-                        बोरी
-                      </Typography>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                      कुल: <strong>{totalUreaKg} kg</strong> (45kg/बोरी)
-                    </Typography>
-                  </Box>
-                  <Box sx={{ bgcolor: '#f1f8e9', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.66rem', fontWeight: 700 }}>
-                      नाइट्रोजन पोषण
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
+                  पुनः लोड करें (Retry)
+                </Button>
+              </Paper>
+            ) : (
+              <>
+                {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
+                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
+                  📦 कुल आवश्यक खाद की बोरी व मात्रा ({acresNum} एकड़ हेतु):
+                </Typography>
 
-              {/* DAP */}
-              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
-                <Paper
-                  elevation={0}
-                  className="touch-card"
-                  sx={{
-                    p: 1.5,
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    bgcolor: '#ffffff',
-                    border: '1.5px solid #90caf9',
-                    borderTop: '4px solid #1565c0',
-                    borderRadius: '16px',
-                    boxShadow: '0 2px 8px rgba(21, 101, 192, 0.06)'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                    <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 800, fontSize: '0.82rem' }}>
-                      डीएपी (DAP)
-                    </Typography>
-                    <Chip
-                      label="18:46:0"
-                      size="small"
-                      sx={{ bgcolor: '#e3f2fd', color: '#0d47a1', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
-                    />
-                  </Box>
-                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
-                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
-                        {dapBags}
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.86rem' }}>
-                        बोरी
-                      </Typography>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                      कुल: <strong>{totalDapKg} kg</strong> (50kg/बोरी)
-                    </Typography>
-                  </Box>
-                  <Box sx={{ bgcolor: '#e3f2fd', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: '#0d47a1', fontSize: '0.66rem', fontWeight: 700 }}>
-                      फास्फोरस व जड़ विकास
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-
-              {/* MOP (Potash) */}
-              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
-                <Paper
-                  elevation={0}
-                  className="touch-card"
-                  sx={{
-                    p: 1.5,
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    bgcolor: '#ffffff',
-                    border: '1.5px solid #ffcc80',
-                    borderTop: '4px solid #e65100',
-                    borderRadius: '16px',
-                    boxShadow: '0 2px 8px rgba(230, 81, 0, 0.06)'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                    <Typography variant="caption" sx={{ color: '#bf360c', fontWeight: 800, fontSize: '0.82rem' }}>
-                      पोटाश (MOP)
-                    </Typography>
-                    <Chip
-                      label="60% K"
-                      size="small"
-                      sx={{ bgcolor: '#fff3e0', color: '#bf360c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
-                    />
-                  </Box>
-                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
-                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
-                        {mopBags}
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
-                        बोरी
-                      </Typography>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                      कुल: <strong>{totalMopKg} kg</strong> (50kg/बोरी)
-                    </Typography>
-                  </Box>
-                  <Box sx={{ bgcolor: '#fff3e0', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: '#bf360c', fontSize: '0.66rem', fontWeight: 700 }}>
-                      दाने चमक व रोग प्रतिरोध
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-
-              {/* Zinc Sulfate */}
-              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
-                <Paper
-                  elevation={0}
-                  className="touch-card"
-                  sx={{
-                    p: 1.5,
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    bgcolor: '#ffffff',
-                    border: '1.5px solid #ce93d8',
-                    borderTop: '4px solid #7b1fa2',
-                    borderRadius: '16px',
-                    boxShadow: '0 2px 8px rgba(123, 31, 162, 0.06)'
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                    <Typography variant="caption" sx={{ color: '#4a148c', fontWeight: 800, fontSize: '0.82rem' }}>
-                      जिंक सल्फेट
-                    </Typography>
-                    <Chip
-                      label="21% Zn"
-                      size="small"
-                      sx={{ bgcolor: '#f3e5f5', color: '#4a148c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
-                    />
-                  </Box>
-                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
-                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#4a148c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
-                        {totalZincKg}
-                      </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#7b1fa2', fontSize: '0.86rem' }}>
-                        kg
-                      </Typography>
-                    </Box>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                      प्रति एकड़ 10 kg मानक
-                    </Typography>
-                  </Box>
-                  <Box sx={{ bgcolor: '#f3e5f5', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
-                    <Typography variant="caption" sx={{ color: '#4a148c', fontSize: '0.66rem', fontWeight: 700 }}>
-                      खैरा रोग से बचाव
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-
-
-            {/* Schedule Accordion / Timeline */}
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1, fontSize: '0.85rem' }}>
-              ⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):
-            </Typography>
-
-            <Grid container spacing={1.5}>
-              {activeFert.schedule.map((step, idx) => (
-                <Grid item xs={12} md={6} key={idx} sx={{ display: 'flex' }}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.3,
-                      width: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      bgcolor: '#fafafa',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: 2
-                    }}
-                  >
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+                  {/* Urea */}
+                  <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
+                    <Paper
+                      elevation={0}
+                      className="touch-card"
+                      sx={{
+                        p: 1.5,
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        bgcolor: '#ffffff',
+                        border: '1.5px solid #a5d6a7',
+                        borderTop: '4px solid #2e7d32',
+                        borderRadius: '16px',
+                        boxShadow: '0 2px 8px rgba(46, 125, 50, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.82rem' }}>
+                          यूरिया (Urea)
+                        </Typography>
                         <Chip
-                          label={`चरण ${idx + 1}`}
+                          label="46% N"
                           size="small"
-                          sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
                         />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem' }}>
-                          {step.stage}
+                      </Box>
+                      <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                        <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                            {ureaBags}
+                          </Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.86rem' }}>
+                            बोरी
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                          कुल: <strong>{totalUreaKg} kg</strong> (45kg/बोरी)
                         </Typography>
                       </Box>
-                      <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
-                        समय: {step.time}
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
-                        {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                        {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                        {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                        {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                      <Box sx={{ bgcolor: '#f1f8e9', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.66rem', fontWeight: 700 }}>
+                          नाइट्रोजन पोषण
+                        </Typography>
                       </Box>
-                    </Box>
-                    {step.note && (
-                      <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
-                        ⚠️ सावधानी: {step.note}
-                      </Typography>
-                    )}
-                  </Paper>
+                    </Paper>
+                  </Grid>
+
+                  {/* DAP */}
+                  <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
+                    <Paper
+                      elevation={0}
+                      className="touch-card"
+                      sx={{
+                        p: 1.5,
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        bgcolor: '#ffffff',
+                        border: '1.5px solid #90caf9',
+                        borderTop: '4px solid #1565c0',
+                        borderRadius: '16px',
+                        boxShadow: '0 2px 8px rgba(21, 101, 192, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 800, fontSize: '0.82rem' }}>
+                          डीएपी (DAP)
+                        </Typography>
+                        <Chip
+                          label="18:46:0"
+                          size="small"
+                          sx={{ bgcolor: '#e3f2fd', color: '#0d47a1', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                        />
+                      </Box>
+                      <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                        <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                            {dapBags}
+                          </Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.86rem' }}>
+                            बोरी
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                          कुल: <strong>{totalDapKg} kg</strong> (50kg/बोरी)
+                        </Typography>
+                      </Box>
+                      <Box sx={{ bgcolor: '#e3f2fd', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#0d47a1', fontSize: '0.66rem', fontWeight: 700 }}>
+                          फास्फोरस व जड़ विकास
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
+
+                  {/* MOP (Potash) */}
+                  <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
+                    <Paper
+                      elevation={0}
+                      className="touch-card"
+                      sx={{
+                        p: 1.5,
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        bgcolor: '#ffffff',
+                        border: '1.5px solid #ffcc80',
+                        borderTop: '4px solid #e65100',
+                        borderRadius: '16px',
+                        boxShadow: '0 2px 8px rgba(230, 81, 0, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="caption" sx={{ color: '#bf360c', fontWeight: 800, fontSize: '0.82rem' }}>
+                          पोटाश (MOP)
+                        </Typography>
+                        <Chip
+                          label="60% K"
+                          size="small"
+                          sx={{ bgcolor: '#fff3e0', color: '#bf360c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                        />
+                      </Box>
+                      <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                        <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                            {mopBags}
+                          </Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
+                            बोरी
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                          कुल: <strong>{totalMopKg} kg</strong> (50kg/बोरी)
+                        </Typography>
+                      </Box>
+                      <Box sx={{ bgcolor: '#fff3e0', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#bf360c', fontSize: '0.66rem', fontWeight: 700 }}>
+                          दाने चमक व रोग प्रतिरोध
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
+
+                  {/* Zinc Sulfate */}
+                  <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
+                    <Paper
+                      elevation={0}
+                      className="touch-card"
+                      sx={{
+                        p: 1.5,
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        bgcolor: '#ffffff',
+                        border: '1.5px solid #ce93d8',
+                        borderTop: '4px solid #7b1fa2',
+                        borderRadius: '16px',
+                        boxShadow: '0 2px 8px rgba(123, 31, 162, 0.06)'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                        <Typography variant="caption" sx={{ color: '#4a148c', fontWeight: 800, fontSize: '0.82rem' }}>
+                          जिंक सल्फेट
+                        </Typography>
+                        <Chip
+                          label="21% Zn"
+                          size="small"
+                          sx={{ bgcolor: '#f3e5f5', color: '#4a148c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                        />
+                      </Box>
+                      <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                        <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#4a148c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                            {totalZincKg}
+                          </Typography>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#7b1fa2', fontSize: '0.86rem' }}>
+                            kg
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                          प्रति एकड़ 10 kg मानक
+                        </Typography>
+                      </Box>
+                      <Box sx={{ bgcolor: '#f3e5f5', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#4a148c', fontSize: '0.66rem', fontWeight: 700 }}>
+                          खैरा रोग से बचाव
+                        </Typography>
+                      </Box>
+                    </Paper>
+                  </Grid>
                 </Grid>
-              ))}
-            </Grid>
+
+                {/* Schedule Accordion / Timeline */}
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1, fontSize: '0.85rem' }}>
+                  ⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):
+                </Typography>
+
+                <Grid container spacing={1.5}>
+                  {activeFert.schedule && activeFert.schedule.map((step, idx) => (
+                    <Grid item xs={12} md={6} key={idx} sx={{ display: 'flex' }}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 1.3,
+                          width: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                          bgcolor: '#fafafa',
+                          border: '1px solid #e0e0e0',
+                          borderRadius: 2
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <Chip
+                              label={`चरण ${idx + 1}`}
+                              size="small"
+                              sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                            />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                              {step.stage}
+                            </Typography>
+                          </Box>
+                          <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
+                            समय: {step.time}
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
+                            {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                            {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                            {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                            {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                          </Box>
+                        </Box>
+                        {step.note && (
+                          <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
+                            ⚠️ सावधानी: {step.note}
+                          </Typography>
+                        )}
+                      </Paper>
+                    </Grid>
+                  ))}
+                </Grid>
+              </>
+            )}
           </Card>
         </Box>
       )}
@@ -693,88 +741,118 @@ export const CalculatorSchemesTab = () => {
 
       {/* TAB 2: GOVERNMENT SCHEMES & PORTALS */}
       {subTab === 2 && (
-        <Grid container spacing={2}>
-          {schemesList.map((scheme) => (
-            <Grid item xs={12} md={6} key={scheme.id}>
-              <Card
-                className="touch-card"
-                sx={{
-                  borderRadius: 3.5,
-                  border: '1.2px solid #e2e8f0',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
-                  '&:hover': { boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }
-                }}
-              >
-                <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Box>
-                        <Chip
-                          label={scheme.badge}
-                          size="small"
-                          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem', mb: 0.5 }}
-                        />
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.98rem', lineHeight: 1.25 }}>
-                          {scheme.title}
-                        </Typography>
-                      </Box>
-                      <Button
-                        size="small"
-                        startIcon={<VolumeUpIcon sx={{ fontSize: 15 }} />}
-                        onClick={() => speakText(`${scheme.title}. ${scheme.summary}`)}
-                        sx={{ color: '#2e7d32', fontSize: '0.72rem', p: 0.5 }}
-                      >
-                        सुनें
-                      </Button>
-                    </Box>
-
-                    <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.84rem', mb: 1.5, lineHeight: 1.5 }}>
-                      {scheme.summary}
-                    </Typography>
-
-                    <Box sx={{ mb: 1.5, pl: 0.5 }}>
-                      {scheme.keyPoints.map((pt, i) => (
-                        <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 0.5 }}>
-                          <CheckCircleIcon sx={{ fontSize: 15, color: '#16a34a', mt: 0.2 }} />
-                          <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.78rem', lineHeight: 1.4 }}>
-                            {pt}
+        schemesList.length === 0 ? (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3.5,
+              my: 2,
+              textAlign: 'center',
+              borderRadius: '16px',
+              bgcolor: '#f8fafc',
+              border: '1.5px dashed #cbd5e1'
+            }}
+          >
+            <PolicyIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+              कोई सरकारी योजना डेटा उपलब्ध नहीं है
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
+              शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत बिना सत्यापन के कोई भी योजना जानकारी नहीं दिखाई जाती। नवीनतम सरकारी योजनाएं लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+            </Typography>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={loadFromMongo}
+              sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
+            >
+              पुनः लोड करें (Retry)
+            </Button>
+          </Paper>
+        ) : (
+          <Grid container spacing={2}>
+            {schemesList.map((scheme) => (
+              <Grid item xs={12} md={6} key={scheme.id}>
+                <Card
+                  className="touch-card"
+                  sx={{
+                    borderRadius: 3.5,
+                    border: '1.2px solid #e2e8f0',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+                    '&:hover': { boxShadow: '0 6px 18px rgba(0,0,0,0.08)' }
+                  }}
+                >
+                  <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Box>
+                          <Chip
+                            label={scheme.badge}
+                            size="small"
+                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem', mb: 0.5 }}
+                          />
+                          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.98rem', lineHeight: 1.25 }}>
+                            {scheme.title}
                           </Typography>
                         </Box>
-                      ))}
-                    </Box>
-                  </Box>
+                        <Button
+                          size="small"
+                          startIcon={<VolumeUpIcon sx={{ fontSize: 15 }} />}
+                          onClick={() => speakText(`${scheme.title}. ${scheme.summary}`)}
+                          sx={{ color: '#2e7d32', fontSize: '0.72rem', p: 0.5 }}
+                        >
+                          सुनें
+                        </Button>
+                      </Box>
 
-                  <Box>
-                    <Divider sx={{ my: 1.2 }} />
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        endIcon={<LaunchIcon sx={{ fontSize: 15 }} />}
-                        href={scheme.linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{
-                          bgcolor: '#1b7a2d',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                          borderRadius: 2.5,
-                          '&:hover': { bgcolor: '#125420' }
-                        }}
-                      >
-                        {scheme.linkText}
-                      </Button>
+                      <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.84rem', mb: 1.5, lineHeight: 1.5 }}>
+                        {scheme.summary}
+                      </Typography>
+
+                      <Box sx={{ mb: 1.5, pl: 0.5 }}>
+                        {scheme.keyPoints.map((pt, i) => (
+                          <Box key={i} sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 0.5 }}>
+                            <CheckCircleIcon sx={{ fontSize: 15, color: '#16a34a', mt: 0.2 }} />
+                            <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.78rem', lineHeight: 1.4 }}>
+                              {pt}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
                     </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+
+                    <Box>
+                      <Divider sx={{ my: 1.2 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          endIcon={<LaunchIcon sx={{ fontSize: 15 }} />}
+                          href={scheme.linkUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            bgcolor: '#1b7a2d',
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            borderRadius: 2.5,
+                            '&:hover': { bgcolor: '#125420' }
+                          }}
+                        >
+                          {scheme.linkText}
+                        </Button>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )
       )}
 
       {/* Soil IoT Sensor Modal */}

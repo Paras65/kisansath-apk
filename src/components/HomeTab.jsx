@@ -53,41 +53,7 @@ import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { MotorControllerModal } from './MotorControllerModal';
 import { DeviceHubModal } from './DeviceHubModal';
 import { ShareModal } from './ShareModal';
-
-const FEATURED_MANDI_RATES = [
-  {
-    crop: 'धान (सरना/मोटा)',
-    rate: `₹${appConfig.paddyScheme.totalRate}`,
-    mktRate: '₹2,320',
-    type: 'सरकारी उपार्जन (MSP + बोनस)',
-    badge: '₹3,100 गारंटी',
-    color: '#1b5e20'
-  },
-  {
-    crop: 'चना (देसी चना)',
-    rate: '₹5,950',
-    mktRate: '₹5,600',
-    type: 'राजनांदगांव / रायपुर मंडी',
-    badge: '+₹210 तेजी',
-    color: '#e65100'
-  },
-  {
-    crop: 'मक्का (Maize)',
-    rate: '₹2,225',
-    mktRate: '₹2,090',
-    type: 'बस्तर / जगदलपुर मंडी',
-    badge: 'मजबूत मांग',
-    color: '#f57f17'
-  },
-  {
-    crop: 'सोयाबीन (पीला)',
-    rate: '₹4,892',
-    mktRate: '₹4,650',
-    type: 'बेमेतरा / दुर्ग मंडी',
-    badge: 'MSP स्थिर',
-    color: '#2e7d32'
-  }
-];
+import { getMandiRates, getCachedModuleData } from '../services/apiService';
 
 const LIFECYCLE_STEPS = [
   {
@@ -218,76 +184,128 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     speakText(step.voice);
   };
 
-  // 1. Mandi Rates Pulse Card
-  const renderMandiPulseCard = () => (
-    <Card
-      sx={{
-        borderRadius: 3.5,
-        bgcolor: '#ffffff',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-        overflow: 'hidden'
-      }}
-    >
-      <Box sx={{ p: 1.5, px: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TrendingUpIcon sx={{ color: '#1565c0', fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-            आज के प्रमुख मंडी भाव (Mandi Pulse)
-          </Typography>
-        </Box>
-        <Button
-          size="small"
-          endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
-          onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-          sx={{ color: '#1565c0', fontWeight: 800, fontSize: '0.72rem', p: 0 }}
-        >
-          सभी 30+ मंडियां
-        </Button>
-      </Box>
+  const [liveMandiRates, setLiveMandiRates] = useState(() => {
+    const cached = getCachedModuleData('mandi_rates');
+    if (cached && cached.data && Array.isArray(cached.data.rates)) {
+      return cached.data.rates.slice(0, 3);
+    }
+    return [];
+  });
 
-      <Box sx={{ p: 1.5 }}>
-        <Grid container spacing={1}>
-          {FEATURED_MANDI_RATES.map((item, idx) => (
-            <Grid item xs={6} sm={3} md={6} key={idx}>
-              <Box
-                onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-                sx={{
-                  p: 1.2,
-                  borderRadius: 2.5,
-                  bgcolor: '#fafafa',
-                  border: '1px solid #f1f5f9',
-                  cursor: 'pointer',
-                  transition: 'all 0.18s ease',
-                  '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
-                    {item.crop.split(' ')[0]}
+  // Fetch Mandi Rates (Zero Static Fallback)
+  useEffect(() => {
+    let isMounted = true;
+    const loadMandi = async () => {
+      try {
+        const res = await getMandiRates();
+        if (isMounted && res && res.rates && res.rates.length > 0) {
+          setLiveMandiRates(res.rates.slice(0, 3));
+        }
+      } catch (e) {
+        // quiet
+      }
+    };
+    loadMandi();
+    return () => { isMounted = false; };
+  }, []);
+
+  // 1. Mandi Rates Pulse Card
+  const renderMandiPulseCard = () => {
+    const paddyCard = {
+      crop: 'धान (सरना/मोटा)',
+      rate: `₹${appConfig.paddyScheme.totalRate}`,
+      type: 'सरकारी उपार्जन (MSP + बोनस)',
+      badge: `₹${appConfig.paddyScheme.totalRate} गारंटी`,
+      color: '#1b5e20'
+    };
+
+    const liveCards = liveMandiRates.map((item, idx) => ({
+      crop: item.crop || 'जिंस',
+      rate: `₹${Number(item.modalRate || item.maxRate || 0).toLocaleString('en-IN')}`,
+      type: `${item.market || selectedDistrict} मंडी`,
+      badge: item.variety ? item.variety : 'APMC लाइव',
+      color: idx === 0 ? '#e65100' : idx === 1 ? '#0288d1' : '#2e7d32'
+    }));
+
+    const displayRates = [paddyCard, ...liveCards];
+
+    return (
+      <Card
+        sx={{
+          borderRadius: 3.5,
+          bgcolor: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+          overflow: 'hidden'
+        }}
+      >
+        <Box sx={{ p: 1.5, px: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TrendingUpIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+              आज के प्रमुख मंडी भाव (Mandi Pulse)
+            </Typography>
+          </Box>
+          <Button
+            size="small"
+            endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
+            onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+            sx={{ color: '#1565c0', fontWeight: 800, fontSize: '0.72rem', p: 0 }}
+          >
+            सभी 30+ मंडियां
+          </Button>
+        </Box>
+
+        <Box sx={{ p: 1.5 }}>
+          <Grid container spacing={1}>
+            {displayRates.map((item, idx) => (
+              <Grid item xs={6} sm={displayRates.length === 1 ? 12 : 3} md={displayRates.length === 1 ? 12 : 6} key={idx}>
+                <Box
+                  onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+                  sx={{
+                    p: 1.2,
+                    borderRadius: 2.5,
+                    bgcolor: '#fafafa',
+                    border: '1px solid #f1f5f9',
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
+                      {item.crop.split(' ')[0]}
+                    </Typography>
+                    <Chip
+                      label={item.badge}
+                      size="small"
+                      sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
+                    />
+                  </Box>
+                  <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
+                    {item.rate}
+                    <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
+                      /क्विं.
+                    </Typography>
                   </Typography>
-                  <Chip
-                    label={item.badge}
-                    size="small"
-                    sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
-                  />
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
+                    {item.type.split(' ')[0]}
+                  </Typography>
                 </Box>
-                <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
-                  {item.rate}
-                  <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
-                    /क्विं.
-                  </Typography>
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
-                  {item.type.split(' ')[0]}
-                </Typography>
-              </Box>
-            </Grid>
-          ))}
-        </Grid>
-      </Box>
-    </Card>
-  );
+              </Grid>
+            ))}
+          </Grid>
+          {liveMandiRates.length === 0 && (
+            <Box sx={{ mt: 1, p: 0.8, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px dashed #cbd5e1' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                🛡️ शून्य गलत डेटा नीति: आज के सत्यापित APMC मंडी भाव देखने हेतु मंडी टैब खोलें।
+              </Typography>
+            </Box>
+          )}
+        </Box>
+      </Card>
+    );
+  };
 
   // 2. Platform-Aware Native APK & Share Footer
   const renderApkFooterCard = () => (

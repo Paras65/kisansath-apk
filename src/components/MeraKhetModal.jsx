@@ -53,7 +53,7 @@ import {
   CROP_LIFECYCLE_RULES,
   analyzePlotLifecycle
 } from '../utils/cropLifecycleEngine';
-import { FERTILIZER_DOSES } from '../data/kisanData';
+import { getFertilizers, getCachedModuleData } from '../services/apiService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { fetchLiveWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
@@ -68,6 +68,18 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
   const [openAddPlotDialog, setOpenAddPlotDialog] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
+  const [fertData, setFertData] = useState(() => {
+    const cached = getCachedModuleData('fertilizers');
+    return cached && cached.data ? cached.data : null;
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    getFertilizers().then((data) => {
+      if (isMounted && data && Object.keys(data).length > 0) setFertData(data);
+    });
+    return () => { isMounted = false; };
+  }, []);
   const [openMotorModal, setOpenMotorModal] = useState(false);
   const [liveWeather, setLiveWeather] = useState(weatherContext || null);
 
@@ -687,7 +699,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                     {/* PLOT FERTILIZER REQUIREMENT */}
                     {(() => {
                       const area = parseFloat(activePlot.areaAcres) || 1.0;
-                      const fert = FERTILIZER_DOSES[activePlot.cropId] || FERTILIZER_DOSES.paddy;
+                      const fert = fertData ? (fertData[activePlot.cropId] || fertData.paddy || Object.values(fertData)[0]) : null;
                       if (!fert) return null;
                       const uBags = ((fert.ureaTotal * area) / 45).toFixed(1);
                       const dBags = ((fert.dapTotal * area) / 50).toFixed(1);
