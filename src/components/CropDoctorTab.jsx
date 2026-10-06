@@ -634,17 +634,17 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         <Card
           ref={prescriptionRef}
           sx={{
-            borderRadius: 3.5,
+            borderRadius: '18px',
             border: '2px solid #ef9a9a',
             boxShadow: '0 6px 20px rgba(198, 40, 40, 0.09)',
             bgcolor: '#fff',
             overflow: 'hidden'
           }}
         >
-          {/* Card Prescription Header */}
+          {/* Card Prescription Header (Authentic Rx Letterhead Motif) */}
           <Box
             sx={{
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               bgcolor: '#fff5f5',
               borderBottom: '1.5px solid #ffcdd2',
               display: 'flex',
@@ -657,9 +657,14 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             <Box sx={{ flex: 1, minWidth: 220 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5, flexWrap: 'wrap' }}>
                 <Chip
+                  label="Rx कृषि पर्ची"
+                  size="small"
+                  sx={{ bgcolor: '#c62828', color: '#fff', fontWeight: 900, fontSize: '0.72rem', height: 22, borderRadius: '6px' }}
+                />
+                <Chip
                   label={activeDisease.cropName}
                   size="small"
-                  sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem' }}
+                  sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem', borderRadius: '6px' }}
                 />
                 {(() => {
                   const sevStyle = getSeverityStyle(activeDisease.severity);

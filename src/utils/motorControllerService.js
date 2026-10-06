@@ -34,11 +34,14 @@ export const saveMotorConfig = (config) => {
  * OFF: 'STOP' या '0'
  * STATUS: 'STATUS' या 'CHECK'
  */
-export const getGsmActionUri = (phone, action = 'ON') => {
+export const getGsmActionUri = (phone, action = 'ON', pin = '') => {
   const cleanPhone = (phone || '').replace(/[^0-9+]/g, '');
-  const body = action === 'ON' ? 'START' : action === 'OFF' ? 'STOP' : 'STATUS';
-  // SMS URI scheme
-  return `sms:${cleanPhone}?body=${encodeURIComponent(body)}`;
+  const prefix = pin ? `${pin} ` : '';
+  const body = action === 'ON' ? `${prefix}START` : action === 'OFF' ? `${prefix}STOP` : `${prefix}STATUS`;
+  // Check for iOS / Safari which uses '&' instead of '?'
+  const isIOS = typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const delimiter = isIOS ? '&' : '?';
+  return `sms:${cleanPhone}${delimiter}body=${encodeURIComponent(body)}`;
 };
 
 /**

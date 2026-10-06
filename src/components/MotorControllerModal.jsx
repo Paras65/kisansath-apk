@@ -38,6 +38,7 @@ import {
   getGsmActionUri,
   getMotorTelemetry
 } from '../utils/motorControllerService';
+import { validateIndianPhone, updateDevice } from '../services/deviceManagerService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 
@@ -70,8 +71,11 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
     const updatedConfig = { ...config, lastState: nextState ? 'ON' : 'OFF' };
     setConfig(updatedConfig);
     saveMotorConfig(updatedConfig);
+    updateDevice('motor', { status: nextState ? 'ON' : 'OFF' });
 
-    if ('vibrate' in navigator) navigator.vibrate(nextState ? [100, 50, 100] : [200]);
+    if ('vibrate' in navigator) {
+      try { navigator.vibrate(nextState ? [100, 50, 100] : [200]); } catch (e) {}
+    }
 
     if (nextState) {
       const msg = `बोरवेल मोटर चालू कर दी गई है। 3-फेज 415 वोल्ट बिजली सक्रिय है। टाइमर ${timerSelected} मिनट सेट है।`;
@@ -96,17 +100,23 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
       notify.warning(text);
       return;
     }
-    const uri = getGsmActionUri(config.starterPhone, action);
+    const uri = getGsmActionUri(config.starterPhone, action, config.pin || '1234');
     window.location.href = uri;
     handleToggleMotor(action === 'ON');
   };
 
   const handleSavePhone = () => {
-    const updated = { ...config, starterPhone: starterPhoneInput };
+    const phoneCheck = validateIndianPhone(starterPhoneInput);
+    if (!phoneCheck.isValid) {
+      notify.warning(phoneCheck.message);
+      return;
+    }
+    const updated = { ...config, starterPhone: phoneCheck.cleanPhone };
     setConfig(updated);
     saveMotorConfig(updated);
+    updateDevice('motor', { phone: phoneCheck.cleanPhone, configured: true });
     setShowConfigEdit(false);
-    const text = 'स्टार्टर सिम नंबर सुरक्षित कर लिया गया है!';
+    const text = `स्टार्टर सिम नंबर ${phoneCheck.cleanPhone} सुरक्षित कर लिया गया है!`;
     setNoticeMsg(text);
     notify.success(text);
   };

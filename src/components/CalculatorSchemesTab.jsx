@@ -23,7 +23,7 @@ import LaunchIcon from '@mui/icons-material/Launch';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ScienceIcon from '@mui/icons-material/Science';
-import { FERTILIZER_DOSES, SCHEMES, CROPS } from '../data/kisanData';
+import { FERTILIZER_DOSES, SCHEMES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes } from '../services/apiService';
@@ -267,105 +267,205 @@ export const CalculatorSchemesTab = () => {
               </Paper>
             )}
 
-            {/* Total Bags Display Cards */}
-            <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.8rem' }}>
-              कुल आवश्यक खाद की मात्रा ({acresNum} एकड़ हेतु):
+            {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
+            <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
+              📦 कुल आवश्यक खाद की बोरी व मात्रा ({acresNum} एकड़ हेतु):
             </Typography>
 
             <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-              <Grid item xs={6} sm={3}>
+              {/* Urea */}
+              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
                 <Paper
                   elevation={0}
                   className="touch-card"
                   sx={{
                     p: 1.5,
-                    textAlign: 'center',
-                    bgcolor: '#e8f5e9',
-                    border: '1.2px solid #a5d6a7',
-                    borderRadius: 3
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    bgcolor: '#ffffff',
+                    border: '1.5px solid #a5d6a7',
+                    borderTop: '4px solid #2e7d32',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 8px rgba(46, 125, 50, 0.06)'
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 800, display: 'block', fontSize: '0.78rem' }}>
-                    यूरिया (Urea)
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.2rem', lineHeight: 1.1, my: 0.3 }}>
-                    {totalUreaKg} <span style={{ fontSize: '0.7rem' }}>kg</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#388e3c', fontSize: '0.74rem', fontWeight: 700 }}>
-                    ~{ureaBags} बोरी (45kg)
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                    <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.82rem' }}>
+                      यूरिया (Urea)
+                    </Typography>
+                    <Chip
+                      label="46% N"
+                      size="small"
+                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                    />
+                  </Box>
+                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                        {ureaBags}
+                      </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.86rem' }}>
+                        बोरी
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                      कुल: <strong>{totalUreaKg} kg</strong> (45kg/बोरी)
+                    </Typography>
+                  </Box>
+                  <Box sx={{ bgcolor: '#f1f8e9', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.66rem', fontWeight: 700 }}>
+                      नाइट्रोजन पोषण
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
 
-              <Grid item xs={6} sm={3}>
+              {/* DAP */}
+              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
                 <Paper
                   elevation={0}
                   className="touch-card"
                   sx={{
                     p: 1.5,
-                    textAlign: 'center',
-                    bgcolor: '#e3f2fd',
-                    border: '1.2px solid #90caf9',
-                    borderRadius: 3
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    bgcolor: '#ffffff',
+                    border: '1.5px solid #90caf9',
+                    borderTop: '4px solid #1565c0',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 8px rgba(21, 101, 192, 0.06)'
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#1565c0', fontWeight: 800, display: 'block', fontSize: '0.78rem' }}>
-                    DAP
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: '1.2rem', lineHeight: 1.1, my: 0.3 }}>
-                    {totalDapKg} <span style={{ fontSize: '0.7rem' }}>kg</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#1976d2', fontSize: '0.74rem', fontWeight: 700 }}>
-                    ~{dapBags} बोरी (50kg)
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                    <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 800, fontSize: '0.82rem' }}>
+                      डीएपी (DAP)
+                    </Typography>
+                    <Chip
+                      label="18:46:0"
+                      size="small"
+                      sx={{ bgcolor: '#e3f2fd', color: '#0d47a1', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                    />
+                  </Box>
+                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                        {dapBags}
+                      </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.86rem' }}>
+                        बोरी
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                      कुल: <strong>{totalDapKg} kg</strong> (50kg/बोरी)
+                    </Typography>
+                  </Box>
+                  <Box sx={{ bgcolor: '#e3f2fd', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#0d47a1', fontSize: '0.66rem', fontWeight: 700 }}>
+                      फास्फोरस व जड़ विकास
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
 
-              <Grid item xs={6} sm={3}>
+              {/* MOP (Potash) */}
+              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
                 <Paper
                   elevation={0}
                   className="touch-card"
                   sx={{
                     p: 1.5,
-                    textAlign: 'center',
-                    bgcolor: '#fff3e0',
-                    border: '1.2px solid #ffcc80',
-                    borderRadius: 3
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    bgcolor: '#ffffff',
+                    border: '1.5px solid #ffcc80',
+                    borderTop: '4px solid #e65100',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 8px rgba(230, 81, 0, 0.06)'
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#e65100', fontWeight: 800, display: 'block', fontSize: '0.78rem' }}>
-                    पोटाश (MOP)
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#bf360c', fontSize: '1.2rem', lineHeight: 1.1, my: 0.3 }}>
-                    {totalMopKg} <span style={{ fontSize: '0.7rem' }}>kg</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#e65100', fontSize: '0.74rem', fontWeight: 700 }}>
-                    ~{mopBags} बोरी (50kg)
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                    <Typography variant="caption" sx={{ color: '#bf360c', fontWeight: 800, fontSize: '0.82rem' }}>
+                      पोटाश (MOP)
+                    </Typography>
+                    <Chip
+                      label="60% K"
+                      size="small"
+                      sx={{ bgcolor: '#fff3e0', color: '#bf360c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                    />
+                  </Box>
+                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                        {mopBags}
+                      </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
+                        बोरी
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                      कुल: <strong>{totalMopKg} kg</strong> (50kg/बोरी)
+                    </Typography>
+                  </Box>
+                  <Box sx={{ bgcolor: '#fff3e0', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#bf360c', fontSize: '0.66rem', fontWeight: 700 }}>
+                      दाने चमक व रोग प्रतिरोध
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
 
-              <Grid item xs={6} sm={3}>
+              {/* Zinc Sulfate */}
+              <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
                 <Paper
                   elevation={0}
                   className="touch-card"
                   sx={{
                     p: 1.5,
-                    textAlign: 'center',
-                    bgcolor: '#f3e5f5',
-                    border: '1.2px solid #ce93d8',
-                    borderRadius: 3
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    bgcolor: '#ffffff',
+                    border: '1.5px solid #ce93d8',
+                    borderTop: '4px solid #7b1fa2',
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 8px rgba(123, 31, 162, 0.06)'
                   }}
                 >
-                  <Typography variant="caption" sx={{ color: '#6a1b9a', fontWeight: 800, display: 'block', fontSize: '0.78rem' }}>
-                    जिंक सल्फेट
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: '#4a148c', fontSize: '1.2rem', lineHeight: 1.1, my: 0.3 }}>
-                    {totalZincKg} <span style={{ fontSize: '0.7rem' }}>kg</span>
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#7b1fa2', fontSize: '0.74rem', fontWeight: 700 }}>
-                    21% Zinc
-                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                    <Typography variant="caption" sx={{ color: '#4a148c', fontWeight: 800, fontSize: '0.82rem' }}>
+                      जिंक सल्फेट
+                    </Typography>
+                    <Chip
+                      label="21% Zn"
+                      size="small"
+                      sx={{ bgcolor: '#f3e5f5', color: '#4a148c', fontWeight: 800, height: 18, fontSize: '0.62rem', borderRadius: '6px' }}
+                    />
+                  </Box>
+                  <Box sx={{ my: 0.5, textAlign: 'center' }}>
+                    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
+                      <Typography variant="h5" sx={{ fontWeight: 900, color: '#4a148c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                        {totalZincKg}
+                      </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#7b1fa2', fontSize: '0.86rem' }}>
+                        kg
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
+                      प्रति एकड़ 10 kg मानक
+                    </Typography>
+                  </Box>
+                  <Box sx={{ bgcolor: '#f3e5f5', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#4a148c', fontSize: '0.66rem', fontWeight: 700 }}>
+                      खैरा रोग से बचाव
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
             </Grid>
@@ -419,25 +519,26 @@ export const CalculatorSchemesTab = () => {
         </Box>
       )}
 
-      {/* TAB 1: PADDY ₹3100 KHARIDI CALCULATOR */}
+      {/* TAB 1: PADDY ₹3100 KHARIDI CALCULATOR (Official Procurement Receipt Slip UI) */}
       {subTab === 1 && (
         <Box>
           <Card
             sx={{
-              p: 2,
+              p: { xs: 1.8, sm: 2.2 },
               mb: 2.5,
-              borderRadius: 3.5,
-              border: '2px solid #81c784',
-              background: 'linear-gradient(180deg, #ffffff 0%, #f1f8e9 100%)'
+              borderRadius: '18px',
+              border: '1.5px solid #a5d6a7',
+              bgcolor: '#ffffff',
+              boxShadow: '0 4px 16px rgba(27, 94, 32, 0.06)'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Box>
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                  💰 {appConfig.stateName} कृषक उन्नति धान कैलकुलेटर
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
+                  🌾 {appConfig.stateName} कृषक उन्नति धान उपार्जन कैलकुलेटर
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.75rem' }}>
-                  {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल प्रति एकड़ सीमा • ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल सुनिश्चित मूल्य
+                <Typography variant="caption" sx={{ color: '#556958', fontSize: '0.74rem' }}>
+                  {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल प्रति एकड़ सीमा • ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य
                 </Typography>
               </Box>
               <Button
@@ -445,7 +546,7 @@ export const CalculatorSchemesTab = () => {
                 variant="outlined"
                 startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
                 onClick={handleReadPaddyMath}
-                sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: 2 }}
+                sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
               >
                 सुनें
               </Button>
@@ -461,75 +562,118 @@ export const CalculatorSchemesTab = () => {
                 value={paddyAcres}
                 onChange={(e) => setPaddyAcres(e.target.value)}
                 helperText="उदाहरण: 1 एकड़, 2.5 एकड़, 5 एकड़"
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
             </Box>
 
-            {/* Total Revenue Highlight Card */}
+            {/* Official Passbook / Procurement Receipt Card */}
             <Paper
               elevation={0}
               sx={{
-                p: 2,
-                mb: 2,
-                borderRadius: 3,
-                bgcolor: '#1b5e20',
-                color: '#fff',
-                textAlign: 'center'
+                borderRadius: '16px',
+                overflow: 'hidden',
+                border: '1.5px solid #c8e6c9',
+                bgcolor: '#fafdf9',
+                mb: 2
               }}
             >
-              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: 1 }}>
-                अनुमानित कुल प्राप्त होने वाली राशि
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 900, color: '#fff176', my: 0.5, fontSize: { xs: '1.8rem', sm: '2.2rem' } }}>
-                ₹ {totalPaddyAmount.toLocaleString('en-IN')}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#e8f5e9', fontSize: '0.78rem' }}>
-                कुल धान उपार्जन क्षमता: <strong>{maxQuintals} क्विंटल</strong> ({pAcresNum} एकड़ × {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)
-              </Typography>
-            </Paper>
-
-            {/* Breakup Grid */}
-            <Grid container spacing={1.5} sx={{ mb: 2 }}>
-              <Grid item xs={6}>
-                <Paper elevation={0} sx={{ p: 1.3, bgcolor: '#ffffff', border: '1px solid #c8e6c9', borderRadius: 2.5 }}>
-                  <Typography variant="caption" sx={{ color: '#666', display: 'block', fontSize: '0.72rem' }}>
-                    न्यूनतम समर्थन मूल्य (MSP हिस्सा @ ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')})
+              {/* Receipt Header Bar */}
+              <Box
+                sx={{
+                  bgcolor: '#1b5e20',
+                  color: '#ffffff',
+                  p: { xs: 1.5, sm: 2 },
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}
+              >
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700 }}>
+                    सरकारी उपार्जन रसीद अनुमान
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '1rem' }}>
+                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#ffeb3b', lineHeight: 1.1, mt: 0.2 }}>
+                    ₹ {totalPaddyAmount.toLocaleString('en-IN')}
+                  </Typography>
+                </Box>
+                <Chip
+                  label={`₹${appConfig.paddyScheme.totalRate}/क्विंटल`}
+                  sx={{ bgcolor: '#ffb300', color: '#000', fontWeight: 900, fontSize: '0.78rem', height: 26, borderRadius: '8px' }}
+                />
+              </Box>
+
+              {/* Receipt Body Table */}
+              <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+                    कुल दर्ज रकबा:
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
+                    {pAcresNum} एकड़
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+                    अधिकतम खरीदी धान ({appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
+                    {maxQuintals} क्विंटल
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+                    1. समिति तौल भुगतान (MSP @ ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.85rem' }}>
                     ₹ {mspPart.toLocaleString('en-IN')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#888', fontSize: '0.68rem' }}>
-                    समिति में तौल के तुरंत बाद
-                  </Typography>
-                </Paper>
-              </Grid>
+                </Box>
 
-              <Grid item xs={6}>
-                <Paper elevation={0} sx={{ p: 1.3, bgcolor: '#ffffff', border: '1px solid #ffe082', borderRadius: 2.5 }}>
-                  <Typography variant="caption" sx={{ color: '#666', display: 'block', fontSize: '0.72rem' }}>
-                    कृषक उन्नति अंतर राशि (बोनस @ ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')})
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px dashed #81c784' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+                    2. अंतर राशि / बोनस DBT (@ ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#f57f17', fontSize: '1rem' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.85rem' }}>
                     ₹ {bonusPart.toLocaleString('en-IN')}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#888', fontSize: '0.68rem' }}>
-                    डीबीटी द्वारा सीधे खाते में
-                  </Typography>
-                </Paper>
-              </Grid>
-            </Grid>
+                </Box>
 
-            {/* Quick Rules */}
-            <Box sx={{ p: 1.2, bgcolor: 'rgba(255,255,255,0.8)', borderRadius: 2, border: '1px dashed #a5d6a7' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                <InfoOutlinedIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#1b5e20', fontSize: '0.75rem' }}>
-                  महत्वपूर्ण धान खरीदी नियम:
+                {/* Total Row */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, alignItems: 'center' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
+                    कुल बैंक खाता भुगतान:
+                  </Typography>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.1rem' }}>
+                    ₹ {totalPaddyAmount.toLocaleString('en-IN')}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Receipt Footer Notice */}
+              <Box sx={{ bgcolor: '#f1f8e9', px: 2, py: 1, borderTop: '1px solid #dcedc8', display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
+                <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.72rem', fontWeight: 700 }}>
+                  समिति में धान तौल उपरांत MSP राशि तुरंत व अंतर राशि सीधे बैंक खाते में जमा होती है।
                 </Typography>
               </Box>
-              <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.72rem', lineHeight: 1.35 }}>
-                1. प्रति एकड़ अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान ही लिया जाएगा।<br />
-                2. धान में नमी की मात्रा 17% से कम होनी चाहिए।<br />
-                3. टोकन तुंहर हाथ मोबाइल ऐप से टोकन काटना अनिवार्य है।
+            </Paper>
+
+            {/* Quick Rules */}
+            <Box sx={{ p: 1.2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
+                <InfoOutlinedIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
+                  धान खरीदी आवश्यक दिशा-निर्देश:
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.4 }}>
+                1. प्रति एकड़ अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान उपार्जन मान्य है।<br />
+                2. धान में नमी 17% से कम होनी चाहिए (सूखा व साफ धान लाएं)।<br />
+                3. टोकन तुंहर हाथ मोबाइल ऐप से घर बैठे टोकन काटना अनिवार्य है।
               </Typography>
             </Box>
           </Card>

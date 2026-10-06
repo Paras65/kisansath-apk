@@ -181,18 +181,22 @@ export const ChaupalTab = () => {
 
           <Grid container spacing={2}>
             {machineryList.map((item) => (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
+              <Grid item xs={12} sm={6} md={4} key={item.id} sx={{ display: 'flex' }}>
                 <Card
                   className="touch-card"
                   sx={{
-                    borderRadius: 3.5,
+                    borderRadius: '16px',
                     border: '1.2px solid #c8e6c9',
-                    height: '100%',
+                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     boxShadow: '0 2px 10px rgba(46, 125, 50, 0.05)',
-                    '&:hover': { boxShadow: '0 6px 18px rgba(46, 125, 50, 0.12)' }
+                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                    '&:hover': {
+                      boxShadow: '0 8px 20px rgba(46, 125, 50, 0.12)',
+                      borderColor: '#81c784'
+                    }
                   }}
                 >
                   <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
@@ -202,9 +206,9 @@ export const ChaupalTab = () => {
                           <Chip
                             label={item.category}
                             size="small"
-                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5 }}
+                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5, borderRadius: '6px' }}
                           />
-                          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.96rem', lineHeight: 1.25 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem', lineHeight: 1.25 }}>
                             {item.title}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
@@ -212,9 +216,14 @@ export const ChaupalTab = () => {
                           </Typography>
                         </Box>
 
-                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b7a2d', fontSize: '1rem', whiteSpace: 'nowrap' }}>
-                          {item.rate}
-                        </Typography>
+                        <Box sx={{ textAlign: 'right' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.05rem', whiteSpace: 'nowrap', lineHeight: 1.1 }}>
+                            {item.rate}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', fontWeight: 600 }}>
+                            किराया दर
+                          </Typography>
+                        </Box>
                       </Box>
 
                       {/* Feature chips */}
@@ -225,7 +234,7 @@ export const ChaupalTab = () => {
                             icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#2e7d32' }} />}
                             label={feat}
                             size="small"
-                            sx={{ bgcolor: '#f8fafc', fontSize: '0.72rem', height: 24, border: '1px solid #e2e8f0' }}
+                            sx={{ bgcolor: '#f8fafc', fontSize: '0.72rem', height: 24, border: '1px solid #e2e8f0', borderRadius: '8px' }}
                           />
                         ))}
                       </Box>
@@ -234,19 +243,22 @@ export const ChaupalTab = () => {
                     <Box>
                       <Divider sx={{ my: 1 }} />
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                          {item.operatorIncluded ? '✅ ड्राइवर सहित' : 'केवल मशीन'}
-                        </Typography>
+                        <Chip
+                          label={item.operatorIncluded ? '✅ चालक (Driver) सहित' : 'केवल मशीन'}
+                          size="small"
+                          sx={{ bgcolor: '#f1f8e9', color: '#2e7d32', fontWeight: 700, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
+                        />
                         <Button
                           variant="contained"
                           size="small"
                           startIcon={<CallIcon />}
                           onClick={() => { window.location.href = `tel:${item.phone}`; }}
                           sx={{
-                            bgcolor: '#1b7a2d',
+                            bgcolor: '#1b5e20',
+                            color: '#ffffff',
                             fontSize: '0.75rem',
                             fontWeight: 800,
-                            borderRadius: 2.5,
+                            borderRadius: '8px',
                             py: 0.5,
                             px: 1.5,
                             '&:hover': { bgcolor: '#125420' }
@@ -264,7 +276,7 @@ export const ChaupalTab = () => {
         </Box>
       )}
 
-      {/* SUB-TAB 1: COMMUNITY Q&A */}
+      {/* SUB-TAB 1: COMMUNITY FORUM Q&A */}
       {subTab === 1 && (
         <Box>
           <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -282,12 +294,13 @@ export const ChaupalTab = () => {
               startIcon={<AddCircleIcon />}
               onClick={() => setOpenAskModal(true)}
               sx={{
-                bgcolor: '#2e7d32',
+                bgcolor: '#1b5e20',
+                color: '#ffffff',
                 fontSize: '0.75rem',
-                fontWeight: 700,
-                borderRadius: 2,
+                fontWeight: 800,
+                borderRadius: '8px',
                 whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#1b5e20' }
+                '&:hover': { bgcolor: '#125420' }
               }}
             >
               सवाल पूछें
@@ -296,45 +309,48 @@ export const ChaupalTab = () => {
 
           <Grid container spacing={2}>
             {questions.map((q) => (
-              <Grid item xs={12} md={6} key={q.id}>
+              <Grid item xs={12} md={6} key={q.id} sx={{ display: 'flex' }}>
                 <Card
                   className="touch-card"
                   sx={{
-                    borderRadius: 3.5,
+                    borderRadius: '16px',
                     border: '1.2px solid #e2e8f0',
-                    height: '100%',
+                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                     '&:hover': { boxShadow: '0 6px 16px rgba(0,0,0,0.06)' }
                   }}
                 >
-                  <CardContent sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                        <Chip
-                          label={q.crop}
+                  <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <Chip
+                            label={q.crop}
+                            size="small"
+                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 20, borderRadius: '6px' }}
+                          />
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+                            {q.author} • {q.time}
+                          </Typography>
+                        </Box>
+                        <Button
                           size="small"
-                          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
-                        />
-                        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                          {q.author} • {q.time}
-                        </Typography>
+                          startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
+                          onClick={() => speakText(`${q.question}. समाधान: ${q.bestAnswer}`)}
+                          sx={{ color: '#1b5e20', fontSize: '0.7rem', p: 0.4, borderRadius: '6px' }}
+                        >
+                          सुनें
+                        </Button>
                       </Box>
-                      <Button
-                        size="small"
-                        startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
-                        onClick={() => speakText(`${q.question}. समाधान: ${q.bestAnswer}`)}
-                        sx={{ color: '#1b7a2d', fontSize: '0.7rem', p: 0.4 }}
-                      >
-                        सुनें
-                      </Button>
-                    </Box>
 
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.92rem', mb: 1.2, lineHeight: 1.35 }}>
-                      ❓ {q.question}
-                    </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem', mb: 1.2, lineHeight: 1.35 }}>
+                        ❓ {q.question}
+                      </Typography>
+                    </Box>
 
                     <Paper
                       elevation={0}
@@ -342,13 +358,13 @@ export const ChaupalTab = () => {
                         p: 1.5,
                         bgcolor: '#f1f8e9',
                         border: '1px solid #c8e6c9',
-                        borderRadius: 2.5
+                        borderRadius: '12px'
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.4 }}>
-                        <QuestionAnswerIcon sx={{ color: '#1b7a2d', fontSize: 15 }} />
+                        <QuestionAnswerIcon sx={{ color: '#1b5e20', fontSize: 15 }} />
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                          सर्वश्रेष्ठ समाधान (Expert Answer):
+                          विशेषज्ञ समाधान (Expert Solution):
                         </Typography>
                       </Box>
                       <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: '0.82rem', lineHeight: 1.45 }}>

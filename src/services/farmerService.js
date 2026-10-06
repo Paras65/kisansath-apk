@@ -38,6 +38,9 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
       const farmer = await res.json();
       localStorage.setItem(ACTIVE_FARMER_KEY, JSON.stringify(farmer));
       localStorage.setItem(`kisan_farmer_plots_${cleanPhone}`, JSON.stringify(farmer.plots || []));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('kisan_farmer_session_changed', { detail: farmer }));
+      }
       return { success: true, farmer };
     } else {
       const err = await res.json();
@@ -61,12 +64,18 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
   };
 
   localStorage.setItem(ACTIVE_FARMER_KEY, JSON.stringify(fallbackFarmer));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('kisan_farmer_session_changed', { detail: fallbackFarmer }));
+  }
   return { success: true, farmer: fallbackFarmer };
 };
 
 // 3. Logout Farmer & Actively Purge Active Session Memory (Rule 13)
 export const logoutFarmer = () => {
   localStorage.removeItem(ACTIVE_FARMER_KEY);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('kisan_farmer_session_changed', { detail: null }));
+  }
 };
 
 // 4. Fetch Farmer Plots with Offline Cache Fallback

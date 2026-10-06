@@ -30,6 +30,7 @@ import { notify } from './services/notificationService';
 import { appConfig } from './config/appConfig';
 import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
+import { DeviceHubModal } from './components/DeviceHubModal';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -80,6 +81,7 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
+  const [openDeviceHub, setOpenDeviceHub] = useState(false);
 
   // Synchronize global speech state
   useEffect(() => {
@@ -174,6 +176,7 @@ function App() {
           isInstallable={Boolean(deferredPrompt)}
           currentTab={currentTab}
           onNavigate={handleTabChange}
+          onOpenDeviceHub={() => setOpenDeviceHub(true)}
         />
 
         {/* PWA Install Banner */}
@@ -240,11 +243,28 @@ function App() {
                 color: '#64748b',
                 minWidth: 0,
                 px: 0.5,
+                py: 0.6,
                 transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                '& .MuiSvgIcon-root': {
+                  fontSize: 22,
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  borderRadius: '14px',
+                  px: 1,
+                  py: 0.2
+                },
                 '&.Mui-selected': {
                   color: '#1b7a2d',
                   fontWeight: 800,
-                  transform: 'translateY(-1px)'
+                  '& .MuiSvgIcon-root': {
+                    bgcolor: '#e8f5e9',
+                    color: '#1b5e20',
+                    transform: 'scale(1.06)'
+                  },
+                  '& .MuiBottomNavigationAction-label': {
+                    fontWeight: 900,
+                    fontSize: '0.76rem',
+                    color: '#1b5e20'
+                  }
                 }
               }
             }}
@@ -304,6 +324,11 @@ function App() {
             🛑 बोलना बंद करें (Stop Voice)
           </Fab>
         )}
+        {/* Centralized Smart Device & Hardware Hub */}
+        <DeviceHubModal
+          open={openDeviceHub}
+          onClose={() => setOpenDeviceHub(false)}
+        />
       </Box>
     </ThemeProvider>
   );

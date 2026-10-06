@@ -1,7 +1,11 @@
 // किसान साथी - स्मार्ट मिट्टी जांच ब्लूटूथ (BLE) व IoT सेंसर सर्विस (Web Bluetooth API)
 
 export const isWebBluetoothSupported = () => {
-  return typeof navigator !== 'undefined' && 'bluetooth' in navigator;
+  return (
+    typeof navigator !== 'undefined' &&
+    'bluetooth' in navigator &&
+    typeof navigator.bluetooth?.requestDevice === 'function'
+  );
 };
 
 // मानक मृदा मापदंड विश्लेषण व निदान

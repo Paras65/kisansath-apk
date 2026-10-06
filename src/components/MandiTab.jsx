@@ -13,8 +13,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Paper,
-  Divider
+  Paper
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StorefrontIcon from '@mui/icons-material/Storefront';
@@ -24,7 +23,6 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CallIcon from '@mui/icons-material/Call';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import VerifiedIcon from '@mui/icons-material/Verified';
 import { MANDI_RATES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
@@ -255,19 +253,25 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       <Grid container spacing={2} sx={{ mb: 4 }}>
         {filteredRates.map((rate, idx) => {
           const isPositive = rate.trend.startsWith('+');
+          const isNegative = rate.trend.startsWith('-');
           return (
-            <Grid item xs={12} sm={6} md={4} key={idx}>
+            <Grid item xs={12} sm={6} md={4} key={idx} sx={{ display: 'flex' }}>
               <Card
                 className="touch-card"
                 sx={{
-                  borderRadius: 3.5,
+                  width: '100%',
+                  borderRadius: '16px',
                   border: '1px solid #bbdefb',
-                  height: '100%',
+                  bgcolor: '#ffffff',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   boxShadow: '0 2px 10px rgba(25, 118, 210, 0.05)',
-                  '&:hover': { boxShadow: '0 6px 18px rgba(25, 118, 210, 0.12)' }
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  '&:hover': {
+                    boxShadow: '0 8px 20px rgba(25, 118, 210, 0.12)',
+                    borderColor: '#64b5f6'
+                  }
                 }}
               >
                 <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
@@ -276,17 +280,17 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                       <Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
                           <LocationOnIcon sx={{ color: '#1565c0', fontSize: 16 }} />
-                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.88rem' }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.9rem' }}>
                             {rate.mandi}
                           </Typography>
                           <Chip
                             label={rate.date}
                             size="small"
-                            sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', height: 20, fontSize: '0.68rem', fontWeight: 700, borderRadius: '6px' }}
                           />
                         </Box>
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#222', fontSize: '1rem', lineHeight: 1.2 }}>
-                          {rate.crop} <span style={{ fontSize: '0.78rem', color: '#666', fontWeight: 500 }}>({rate.variety})</span>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.2 }}>
+                          {rate.crop} <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>({rate.variety})</span>
                         </Typography>
                       </Box>
 
@@ -294,7 +298,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         size="small"
                         startIcon={<VolumeUpIcon sx={{ fontSize: 15 }} />}
                         onClick={() => handleReadMandiRates(rate)}
-                        sx={{ color: '#1565c0', fontSize: '0.72rem', p: 0.5 }}
+                        sx={{ color: '#1565c0', fontSize: '0.72rem', p: 0.5, borderRadius: '8px' }}
                       >
                         सुनें
                       </Button>
@@ -302,7 +306,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
                     <Grid container spacing={1} sx={{ mt: 0.5, mb: 1.5 }}>
                       <Grid item xs={4}>
-                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                           <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>
                             न्यूनतम भाव
                           </Typography>
@@ -313,18 +317,21 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                       </Grid>
 
                       <Grid item xs={4}>
-                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '1px solid #c8e6c9', borderRadius: 2, textAlign: 'center' }}>
-                          <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 700, display: 'block', fontSize: '0.68rem' }}>
-                            मॉडल भाव (औसत)
+                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '1.5px solid #a5d6a7', borderRadius: '10px', textAlign: 'center', boxShadow: '0 1px 4px rgba(46,125,50,0.08)' }}>
+                          <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, display: 'block', fontSize: '0.68rem' }}>
+                            मॉडल भाव (आज)
                           </Typography>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1rem' }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
                             ₹{rate.modalRate}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.62rem', fontWeight: 700 }}>
+                            /क्विंटल
                           </Typography>
                         </Paper>
                       </Grid>
 
                       <Grid item xs={4}>
-                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px solid #e2e8f0' }}>
+                        <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
                           <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>
                             अधिकतम भाव
                           </Typography>
@@ -339,19 +346,29 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       {isPositive ? (
-                        <TrendingUpIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
+                        <Chip
+                          icon={<TrendingUpIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
+                          label={`तेजी ${rate.trend} ${rate.unit}`}
+                          size="small"
+                          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
+                        />
+                      ) : isNegative ? (
+                        <Chip
+                          icon={<TrendingDownIcon sx={{ fontSize: '13px !important', color: '#c62828' }} />}
+                          label={`मंदी ${rate.trend} ${rate.unit}`}
+                          size="small"
+                          sx={{ bgcolor: '#ffebee', color: '#c62828', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
+                        />
                       ) : (
-                        <TrendingDownIcon sx={{ color: '#c62828', fontSize: 16 }} />
+                        <Chip
+                          label={`स्थिर ${rate.trend}`}
+                          size="small"
+                          sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
+                        />
                       )}
-                      <Typography
-                        variant="caption"
-                        sx={{ fontWeight: 700, color: isPositive ? '#2e7d32' : '#c62828', fontSize: '0.72rem' }}
-                      >
-                        {rate.trend} {rate.unit} (पिछले दिन से)
-                      </Typography>
                     </Box>
 
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', fontWeight: 600 }}>
                       आवक: {rate.arrival}
                     </Typography>
                   </Box>
@@ -371,31 +388,36 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {myListings.map((listing) => (
-          <Grid item xs={12} sm={6} md={4} key={listing.id}>
+          <Grid item xs={12} sm={6} md={4} key={listing.id} sx={{ display: 'flex' }}>
             <Paper
               elevation={0}
               className="touch-card"
               sx={{
                 p: 2,
-                borderRadius: 3.5,
+                borderRadius: '16px',
                 border: '1.5px solid #c8e6c9',
                 bgcolor: '#ffffff',
-                height: '100%',
+                width: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                boxShadow: '0 2px 8px rgba(46, 125, 50, 0.05)'
+                boxShadow: '0 2px 8px rgba(46, 125, 50, 0.05)',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                '&:hover': {
+                  boxShadow: '0 6px 18px rgba(46, 125, 50, 0.1)',
+                  borderColor: '#81c784'
+                }
               }}
             >
               <Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
                   <Box>
                     <Chip
-                      label="विक्रेता (Farmer Listing)"
+                      label="विक्रेता (किसान)"
                       size="small"
-                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5 }}
+                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5, borderRadius: '6px' }}
                     />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.96rem' }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem', lineHeight: 1.25 }}>
                       {listing.crop} - {listing.quantity}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
@@ -403,7 +425,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     </Typography>
                   </Box>
 
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#2e7d32', fontSize: '1.05rem' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.08rem' }}>
                     {listing.expectedPrice}
                   </Typography>
                 </Box>
@@ -414,20 +436,22 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                   {listing.date}
                 </Typography>
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   size="small"
                   startIcon={<CallIcon />}
                   onClick={() => { window.location.href = `tel:${listing.phone}`; }}
                   sx={{
-                    color: '#2e7d32',
-                    borderColor: '#81c784',
-                    fontWeight: 700,
+                    bgcolor: '#1b5e20',
+                    color: '#ffffff',
+                    fontWeight: 800,
                     fontSize: '0.75rem',
-                    borderRadius: 2.5,
-                    py: 0.4
+                    borderRadius: '8px',
+                    py: 0.5,
+                    px: 1.4,
+                    '&:hover': { bgcolor: '#125420' }
                   }}
                 >
-                  संपर्क करें: {listing.phone}
+                  कॉल करें: {listing.phone}
                 </Button>
               </Box>
             </Paper>

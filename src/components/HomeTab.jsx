@@ -43,10 +43,12 @@ import { getActiveFarmer } from '../services/farmerService';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { shareOnWhatsApp } from '../utils/shareUtils';
 import { checkForAppUpdate } from '../services/updateService';
+import SensorsIcon from '@mui/icons-material/Sensors';
 import { MeraKhetModal } from './MeraKhetModal';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { MotorControllerModal } from './MotorControllerModal';
+import { DeviceHubModal } from './DeviceHubModal';
 import { ShareModal } from './ShareModal';
 
 const FEATURED_MANDI_RATES = [
@@ -147,6 +149,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [openMotorModal, setOpenMotorModal] = useState(false);
+  const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [weather, setWeather] = useState(null);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
@@ -534,154 +537,203 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         </Box>
       </Card>
 
-      {/* 5. Unified 8-Tile App Launcher Grid (No More Clunky Duplicate Sections) */}
+      {/* 5. Unified 8-Tile Modern App Launcher Grid (PhonePe/GPay Style 4x2 Matrix) */}
       <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 0.8 }}>
           ⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स
         </Typography>
-        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-          8 ऑल-इन-वन समाधान
-        </Typography>
+        <Chip
+          icon={<SensorsIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
+          label="📡 डिवाइस हब"
+          clickable
+          size="small"
+          onClick={() => {
+            stopSpeech();
+            setOpenDeviceHub(true);
+          }}
+          sx={{
+            bgcolor: '#e8f5e9',
+            color: '#1b5e20',
+            fontWeight: 800,
+            fontSize: '0.7rem',
+            height: 24,
+            borderRadius: '6px',
+            border: '1px solid #c8e6c9',
+            transition: 'all 0.18s ease',
+            '&:hover': { bgcolor: '#c8e6c9' }
+          }}
+        />
       </Box>
 
-      <Grid container spacing={{ xs: 1.2, sm: 1.5 }} sx={{ mb: 3 }}>
-        {[
-          {
-            title: 'एआई फसल डॉक्टर',
-            sub: 'कैमरा जांच व 15L पंप खुराक',
-            icon: <MedicalServicesIcon sx={{ color: '#d32f2f', fontSize: 24 }} />,
-            bg: '#ffebee',
-            border: '#ffcdd2',
-            badge: 'AI कैमरा',
-            badgeColor: '#c62828',
-            action: () => onNavigate('doctor')
-          },
-          {
-            title: 'खाद कैलकुलेटर',
-            sub: 'यूरिया, DAP, पोटाश एकड़ नाप',
-            icon: <CalculateIcon sx={{ color: '#2e7d32', fontSize: 24 }} />,
-            bg: '#e8f5e9',
-            border: '#c8e6c9',
-            badge: 'NPK नाप',
-            badgeColor: '#1b5e20',
-            action: () => onNavigate('schemes')
-          },
-          {
-            title: 'लाइव मंडी भाव',
-            sub: '30+ मंडियों के आज के ताजा रेट',
-            icon: <StorefrontIcon sx={{ color: '#1976d2', fontSize: 24 }} />,
-            bg: '#e3f2fd',
-            border: '#bbdefb',
-            badge: 'लाइव भाव',
-            badgeColor: '#0d47a1',
-            action: () => onNavigate('mandi')
-          },
-          {
-            title: '₹3,100 धान योजना',
-            sub: '21 क्विंटल उपार्जन व टोकन गाइड',
-            icon: <MonetizationOnIcon sx={{ color: '#f57f17', fontSize: 24 }} />,
-            bg: '#fff8e1',
-            border: '#ffe082',
-            badge: '₹3,100',
-            badgeColor: '#e65100',
-            action: () => onNavigate('schemes')
-          },
-          {
-            title: 'खेत सीमा GPS मापक',
-            sub: 'मेड़ पर चलकर एकड़ व डिसमिल नापें',
-            icon: <DirectionsWalkIcon sx={{ color: '#00897b', fontSize: 24 }} />,
-            bg: '#e0f2f1',
-            border: '#b2dfdb',
-            badge: 'GPS नाप',
-            badgeColor: '#004d40',
-            action: () => setOpenGpsTracker(true)
-          },
-          {
-            title: 'स्मार्ट ट्यूबवेल कंट्रोलर',
-            sub: 'घर बैठे कॉल/SMS से मोटर ऑन-ऑफ',
-            icon: <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 24 }} />,
-            bg: '#e1f5fe',
-            border: '#b3e5fc',
-            badge: 'IoT/GSM',
-            badgeColor: '#01579b',
-            action: () => setOpenMotorModal(true)
-          },
-          {
-            title: 'स्मार्ट मिट्टी IoT सेंसर',
-            sub: 'ब्लूटूथ प्रोब से NPK व pH जांचें',
-            icon: <ScienceIcon sx={{ color: '#2e7d32', fontSize: 24 }} />,
-            bg: '#e8f5e9',
-            border: '#c8e6c9',
-            badge: 'Bluetooth',
-            badgeColor: '#1b5e20',
-            action: () => setOpenSoilIot(true)
-          },
-          {
-            title: 'डिजिटल किसान डायरी',
-            sub: 'लागत, खाद-बीज खर्च व आमदनी खाता',
-            icon: <MenuBookIcon sx={{ color: '#7b1fa2', fontSize: 24 }} />,
-            bg: '#f3e5f5',
-            border: '#e1bee7',
-            badge: 'बहीखाता',
-            badgeColor: '#4a148c',
-            action: () => setOpenMeraKhet(true)
-          }
-        ].map((tool, idx) => (
-          <Grid item xs={6} sm={6} md={3} key={idx}>
-            <Card
-              className="touch-card"
-              onClick={() => { stopSpeech(); tool.action(); }}
-              sx={{
-                p: { xs: 1.4, sm: 1.8 },
-                height: '100%',
-                cursor: 'pointer',
-                bgcolor: '#ffffff',
-                border: '1px solid #e2e8f0',
-                borderRadius: 3.5,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                '&:hover': {
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
-                  borderColor: tool.border
-                }
-              }}
-            >
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+      <Card
+        sx={{
+          p: { xs: 1.2, sm: 1.8 },
+          mb: 3,
+          borderRadius: '16px',
+          bgcolor: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
+        }}
+      >
+        <Grid container spacing={{ xs: 1, sm: 1.5 }}>
+          {[
+            {
+              title: 'फसल डॉक्टर',
+              icon: <MedicalServicesIcon sx={{ color: '#d32f2f', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#ffebee',
+              border: '#ffcdd2',
+              badge: 'AI',
+              badgeBg: '#d32f2f',
+              action: () => onNavigate('doctor')
+            },
+            {
+              title: 'खाद कैलकु.',
+              icon: <CalculateIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#e8f5e9',
+              border: '#c8e6c9',
+              badge: 'NPK',
+              badgeBg: '#2e7d32',
+              action: () => onNavigate('schemes')
+            },
+            {
+              title: 'मंडी भाव',
+              icon: <StorefrontIcon sx={{ color: '#1976d2', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#e3f2fd',
+              border: '#bbdefb',
+              badge: 'लाइव',
+              badgeBg: '#1976d2',
+              action: () => onNavigate('mandi')
+            },
+            {
+              title: 'धान योजना',
+              icon: <MonetizationOnIcon sx={{ color: '#f57f17', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#fff8e1',
+              border: '#ffe082',
+              badge: '₹3,100',
+              badgeBg: '#e65100',
+              action: () => onNavigate('schemes')
+            },
+            {
+              title: 'खेत GPS',
+              icon: <DirectionsWalkIcon sx={{ color: '#00897b', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#e0f2f1',
+              border: '#b2dfdb',
+              badge: 'GPS',
+              badgeBg: '#00897b',
+              action: () => setOpenGpsTracker(true)
+            },
+            {
+              title: 'ट्यूबवेल मोटर',
+              icon: <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#e1f5fe',
+              border: '#b3e5fc',
+              badge: 'IoT',
+              badgeBg: '#0288d1',
+              action: () => setOpenMotorModal(true)
+            },
+            {
+              title: 'मिट्टी सेंसर',
+              icon: <ScienceIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#e8f5e9',
+              border: '#c8e6c9',
+              badge: 'सेंसर',
+              badgeBg: '#1b5e20',
+              action: () => setOpenSoilIot(true)
+            },
+            {
+              title: 'किसान डायरी',
+              icon: <MenuBookIcon sx={{ color: '#7b1fa2', fontSize: { xs: 24, sm: 26 } }} />,
+              bg: '#f3e5f5',
+              border: '#e1bee7',
+              badge: 'खाता',
+              badgeBg: '#7b1fa2',
+              action: () => setOpenMeraKhet(true)
+            }
+          ].map((tool, idx) => (
+            <Grid item xs={3} sm={3} md={1.5} key={idx}>
+              <Box
+                className="touch-card"
+                onClick={() => { stopSpeech(); tool.action(); }}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  py: { xs: 0.6, sm: 1 },
+                  px: 0.3,
+                  borderRadius: '12px',
+                  transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                  '&:hover': {
+                    bgcolor: '#f8fafc',
+                    transform: 'translateY(-2px)'
+                  },
+                  '&:active': {
+                    transform: 'scale(0.94)'
+                  }
+                }}
+              >
+                <Box sx={{ position: 'relative', mb: 0.8 }}>
                   <Box
                     sx={{
                       bgcolor: tool.bg,
-                      width: 40,
-                      height: 40,
-                      borderRadius: 2.5,
+                      width: { xs: 46, sm: 52 },
+                      height: { xs: 46, sm: 52 },
+                      borderRadius: '14px',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      border: `1px solid ${tool.border}`,
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
                     }}
                   >
                     {tool.icon}
                   </Box>
-                  <Chip
-                    label={tool.badge}
-                    size="small"
-                    sx={{ bgcolor: tool.bg, color: tool.badgeColor, fontWeight: 800, height: 18, fontSize: '0.62rem' }}
-                  />
+                  {tool.badge && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: -5,
+                        right: -5,
+                        bgcolor: tool.badgeBg,
+                        color: '#ffffff',
+                        fontSize: { xs: '0.54rem', sm: '0.6rem' },
+                        fontWeight: 800,
+                        px: 0.6,
+                        py: 0.1,
+                        borderRadius: '6px',
+                        border: '1.5px solid #ffffff',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                        lineHeight: 1.15,
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {tool.badge}
+                    </Box>
+                  )}
                 </Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: { xs: '0.86rem', sm: '0.92rem' }, color: '#0f172a', lineHeight: 1.25 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: { xs: '0.74rem', sm: '0.8rem' },
+                    color: '#0f172a',
+                    lineHeight: 1.25,
+                    textAlign: 'center',
+                    minHeight: { xs: 28, sm: 30 },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    wordBreak: 'break-word'
+                  }}
+                >
                   {tool.title}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.35, mt: 0.3 }}>
-                  {tool.sub}
-                </Typography>
               </Box>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+            </Grid>
+          ))}
+        </Grid>
+      </Card>
 
       {/* 6. Interactive 6-Stage Agricultural Lifecycle Stepper */}
       <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -941,6 +993,15 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         open={openMotorModal}
         onClose={() => setOpenMotorModal(false)}
         weatherContext={weather}
+      />
+
+      <DeviceHubModal
+        open={openDeviceHub}
+        onClose={() => setOpenDeviceHub(false)}
+        onOpenGpsTracker={() => setOpenGpsTracker(true)}
+        onOpenSoilIot={() => setOpenSoilIot(true)}
+        onOpenMotorModal={() => setOpenMotorModal(true)}
+        onApplySoilToCalc={() => onNavigate('schemes')}
       />
 
       <ShareModal

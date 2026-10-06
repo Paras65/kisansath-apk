@@ -26,6 +26,7 @@ import ForumIcon from '@mui/icons-material/Forum';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import SensorsIcon from '@mui/icons-material/Sensors';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
@@ -46,7 +47,8 @@ export const Header = ({
   onInstallClick,
   isInstallable,
   currentTab = 'home',
-  onNavigate = () => {}
+  onNavigate = () => {},
+  onOpenDeviceHub = () => {}
 }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
@@ -283,6 +285,24 @@ export const Header = ({
               <MenuItem value="जगदलपुर">जगदलपुर (Bastar)</MenuItem>
             </Select>
           </FormControl>
+
+          {/* Smart Centralized Device Hub Button */}
+          <Tooltip title="स्मार्ट डिवाइस व ब्लूटूथ हब">
+            <IconButton
+              onClick={onOpenDeviceHub}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.14)',
+                color: '#fff',
+                width: 36,
+                height: 36,
+                borderRadius: 2.5,
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+              }}
+            >
+              <SensorsIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Tooltip>
 
           {/* Voice Assistance Button */}
           <Tooltip title={speaking ? 'आवाज बंद करें' : 'हिंदी में आवाज में सुनें'}>
