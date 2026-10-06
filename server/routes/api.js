@@ -77,14 +77,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.4';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.8';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'संतुलित 4+4 टूल्स ग्रिड, 3-दिवसीय मौसम पूर्वानुमान, सुपर एडमिन कंट्रोल रूम और लाइव मंडी पल्स।',
+    releaseNotes: 'लाइव एपीआई कनेक्टिविटी मॉनिटर, data.gov.in (OGD India) Agmarknet मंडी स्ट्रीम, GODL-India 100% वैधानिक अनुपालन और शून्य-गलत डेटा गारंटी।',
     updatedAt: new Date().toISOString()
   });
 });
