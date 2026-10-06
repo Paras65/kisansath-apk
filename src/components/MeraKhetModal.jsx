@@ -19,7 +19,9 @@ import {
   Alert,
   MenuItem,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import { notify } from '../services/notificationService';
 import CloseIcon from '@mui/icons-material/Close';
@@ -27,7 +29,9 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PinDropIcon from '@mui/icons-material/PinDrop';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import { fetchVillagesByPincode } from '../services/pincodeService';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
@@ -103,8 +107,51 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
     phone: '',
     name: '',
     pin: '1234',
+    pincode: '',
     village: '',
+    district: '',
+    block: ''
   });
+  const [pincodeLoading, setPincodeLoading] = useState(false);
+  const [pincodeVillages, setPincodeVillages] = useState([]);
+  const [pincodeInfo, setPincodeInfo] = useState(null);
+  const [customVillageMode, setCustomVillageMode] = useState(false);
+
+  const handlePincodeChange = async (val) => {
+    const clean = val.replace(/\D/g, '').slice(0, 6);
+    setLoginForm((prev) => ({ ...prev, pincode: clean }));
+
+    if (clean.length === 6) {
+      setPincodeLoading(true);
+      try {
+        const res = await fetchVillagesByPincode(clean);
+        if (res && res.success) {
+          const vList = res.villages || [];
+          setPincodeVillages(vList);
+          setPincodeInfo({ district: res.district, block: res.block, state: res.state });
+          setCustomVillageMode(false);
+          setLoginForm((prev) => ({
+            ...prev,
+            village: vList.length > 0 ? vList[0] : prev.village,
+            district: res.district || prev.district,
+            block: res.block || prev.block
+          }));
+          notify.success(`📍 ${res.block ? res.block + ', ' : ''}${res.district || ''}: ${vList.length} गांव मिले!`);
+        } else {
+          setPincodeVillages([]);
+          setPincodeInfo(null);
+          setCustomVillageMode(true);
+        }
+      } catch {
+        setCustomVillageMode(true);
+      } finally {
+        setPincodeLoading(false);
+      }
+    } else if (clean.length < 6) {
+      setPincodeVillages([]);
+      setPincodeInfo(null);
+    }
+  };
 
   // New Plot Form State
   const [newPlot, setNewPlot] = useState({
@@ -142,9 +189,11 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
       return;
     }
     const res = await loginFarmer({
-      ...loginForm,
+      phone: loginForm.phone,
+      name: loginForm.name,
       pin: loginForm.pin || '1234',
-      district: selectedDistrict,
+      village: loginForm.village,
+      district: loginForm.district || selectedDistrict,
     });
     if (res.success) {
       setFarmer(res.farmer);
@@ -308,14 +357,24 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                 🔒 <strong>पूर्णतः सुरक्षित:</strong> किसी खसरा, बी-1 या कुल जमीन के खुलासे की आवश्यकता नहीं। केवल मोबाइल नंबर से तुरंत शुरू करें।
               </Alert>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.8 }}>
                 <TextField
-                  label="मोबाइल नंबर (10 अंक)"
-                  placeholder="उदा. 9876543210"
+                  label="मोबाइल नंबर (10 अंक) *"
+                  placeholder="98765 43210"
                   fullWidth
                   size="small"
                   value={loginForm.phone}
                   onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+                  inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Box sx={{ bgcolor: '#f1f5f9', px: 0.8, py: 0.2, borderRadius: 1, fontWeight: 800, fontSize: '0.78rem', color: '#334155' }}>
+                          🇮🇳 +91
+                        </Box>
+                      </InputAdornment>
+                    )
+                  }}
                   helperText="यह आपकी सुरक्षित किसान पहचान है"
                 />
                 <TextField
@@ -327,13 +386,95 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                   onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
                 />
                 <TextField
-                  label="गांव / ब्लॉक (वैकल्पिक)"
-                  placeholder="उदा. आरंग"
+                  label="डाक पिन कोड (6 अंक)"
+                  placeholder="उदा. 493441 या 492001"
                   fullWidth
                   size="small"
-                  value={loginForm.village}
-                  onChange={(e) => setLoginForm({ ...loginForm, village: e.target.value })}
+                  value={loginForm.pincode}
+                  onChange={(e) => handlePincodeChange(e.target.value)}
+                  inputProps={{ inputMode: 'numeric', maxLength: 6 }}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {pincodeLoading ? (
+                          <CircularProgress size={18} sx={{ color: '#2e7d32' }} />
+                        ) : pincodeInfo ? (
+                          <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 20 }} />
+                        ) : (
+                          <PinDropIcon sx={{ color: '#64748b', fontSize: 20 }} />
+                        )}
+                      </InputAdornment>
+                    )
+                  }}
+                  helperText={
+                    pincodeLoading
+                      ? '🔍 डाक विभाग से गांव खोज रहे हैं...'
+                      : pincodeInfo
+                      ? `✓ ${pincodeInfo.block ? pincodeInfo.block + ', ' : ''}${pincodeInfo.district || ''} (${pincodeVillages.length} गांव उपलब्ध)`
+                      : 'पिन कोड डालते ही गांव सूची स्वतः खुलेगी'
+                  }
                 />
+                {pincodeVillages.length > 0 && !customVillageMode ? (
+                  <TextField
+                    select
+                    label="अपना गांव चुनें *"
+                    fullWidth
+                    size="small"
+                    value={loginForm.village || (pincodeVillages[0] || '')}
+                    onChange={(e) => {
+                      if (e.target.value === '__CUSTOM__') {
+                        setCustomVillageMode(true);
+                        setLoginForm({ ...loginForm, village: '' });
+                      } else {
+                        setLoginForm({ ...loginForm, village: e.target.value });
+                      }
+                    }}
+                    helperText={
+                      <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>📍 पिन कोड से खोजे गए गांव</span>
+                        <Button
+                          size="small"
+                          onClick={() => { setCustomVillageMode(true); setLoginForm({ ...loginForm, village: '' }); }}
+                          sx={{ p: 0, minWidth: 'auto', fontSize: '0.7rem', textTransform: 'none', color: '#1565c0', fontWeight: 700 }}
+                        >
+                          ✏️ दूसरा गांव लिखें
+                        </Button>
+                      </Box>
+                    }
+                  >
+                    {pincodeVillages.map((v) => (
+                      <MenuItem key={v} value={v} sx={{ fontSize: '0.85rem' }}>
+                        🏡 {v}
+                      </MenuItem>
+                    ))}
+                    <MenuItem value="__CUSTOM__" sx={{ fontSize: '0.82rem', color: '#1565c0', fontWeight: 700 }}>
+                      ✏️ सूची में नहीं है? नया नाम लिखें...
+                    </MenuItem>
+                  </TextField>
+                ) : (
+                  <TextField
+                    label="गांव / ब्लॉक का नाम"
+                    placeholder="उदा. आरंग"
+                    fullWidth
+                    size="small"
+                    value={loginForm.village}
+                    onChange={(e) => setLoginForm({ ...loginForm, village: e.target.value })}
+                    helperText={
+                      pincodeVillages.length > 0 ? (
+                        <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>हाथ से नाम दर्ज करें</span>
+                          <Button
+                            size="small"
+                            onClick={() => setCustomVillageMode(false)}
+                            sx={{ p: 0, minWidth: 'auto', fontSize: '0.7rem', textTransform: 'none', color: '#1b5e20', fontWeight: 700 }}
+                          >
+                            📋 पिन कोड सूची देखें ({pincodeVillages.length})
+                          </Button>
+                        </Box>
+                      ) : 'पिन कोड डालें या हाथ से नाम लिखें'
+                    }
+                  />
+                )}
                 <TextField
                   label="सुरक्षा पिन (4 अंक, डिफ़ॉल्ट: 1234)"
                   placeholder="1234"
@@ -343,12 +484,14 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                   value={loginForm.pin}
                   onChange={(e) => setLoginForm({ ...loginForm, pin: e.target.value.slice(0, 6) })}
                   helperText="साझा फोन पर आपके अलावा कोई दूसरा फसल रिकॉर्ड न बदल सके"
+                  inputProps={{ inputMode: 'numeric', maxLength: 6 }}
                 />
 
                 <Button
                   variant="contained"
                   fullWidth
                   size="large"
+                  disabled={loginForm.phone.length < 10}
                   onClick={handleLogin}
                   sx={{
                     bgcolor: '#2e7d32',
@@ -356,6 +499,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                     fontWeight: 800,
                     py: 1.2,
                     borderRadius: 2.5,
+                    boxShadow: '0 4px 14px rgba(46,125,50,0.3)',
                     '&:hover': { bgcolor: '#1b5e20' },
                   }}
                 >

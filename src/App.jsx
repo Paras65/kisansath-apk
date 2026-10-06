@@ -254,8 +254,8 @@ function App() {
             maxWidth: '1280px',
             mx: 'auto',
             px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
-            py: { xs: 1.5, sm: 2.5, md: 3.5 },
-            pb: { xs: 11, md: 10 } // generous padding so bottom bar never obscures content on mobile or desktop
+            py: { xs: 1.5, sm: 2.5, md: 3 },
+            pb: { xs: 11, md: 4 }
           }}
         >
           <ErrorBoundary key={currentTab} onReset={() => handleTabChange('home')}>
@@ -367,9 +367,10 @@ function App() {
           </Box>
         </Box>
 
-        {/* Universal Sticky Bottom Navigation Bar (Always Visible Across All Mobile & Desktop Screens) */}
+        {/* Mobile-Only Sticky Bottom Navigation Bar (Hidden on Desktop md and above) */}
         <Paper
           sx={{
+            display: { xs: 'block', md: 'none' },
             position: 'fixed',
             bottom: 0,
             left: 0,
