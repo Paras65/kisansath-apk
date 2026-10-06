@@ -3,7 +3,13 @@
 
 import { verifyJwt } from '../utils/jwt.js';
 
-const getJwtSecret = () => process.env.JWT_SECRET || 'kisan_saathi_default_fallback_jwt_key_2026';
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('[CRITICAL SECURITY ERROR] JWT_SECRET is not configured in .env!');
+  }
+  return secret;
+};
 
 export const requireFarmerAuth = (req, res, next) => {
   const authHeader = req.headers.authorization;

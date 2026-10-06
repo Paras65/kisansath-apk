@@ -47,7 +47,14 @@ export const appConfig = {
   },
 
   // 5. Host & API Endpoints
-  host: env.VITE_APP_HOST || 'https://kisan-saathi.web.app',
+  host: env.VITE_APP_HOST || 'https://kisan.init65.co.in',
+  apiBaseUrl: (() => {
+    let url = (env.VITE_API_BASE_URL || '/api').trim().replace(/\/+$/, '');
+    if (!url.endsWith('/api') && !url.includes('/api/')) {
+      url = `${url}/api`;
+    }
+    return url;
+  })(),
   apis: {
     weatherUrl: env.VITE_WEATHER_API_URL || '',
     mandiUrl: env.VITE_MANDI_API_URL || '',

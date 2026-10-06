@@ -390,10 +390,6 @@ export const SuperAdminModal = ({ open, onClose }) => {
                 HMAC-SHA256 टोकन आधारित सुरक्षित पहुंच
               </Typography>
             </Box>
-
-            <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', mt: 1.5 }}>
-              (परीक्षण पासकी: <code>kisanAdmin2026</code>)
-            </Typography>
           </Box>
         ) : (
           /* ==========================================

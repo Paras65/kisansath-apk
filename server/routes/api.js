@@ -15,7 +15,13 @@ import crypto from 'node:crypto';
 
 const router = express.Router();
 
-const getJwtSecret = () => process.env.JWT_SECRET || 'kisan_saathi_default_fallback_jwt_key_2026';
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('[CRITICAL SECURITY ERROR] JWT_SECRET is not configured in .env!');
+  }
+  return secret;
+};
 
 // Enterprise Security Helper: Constant-Time String Comparison (Mitigates side-channel timing attacks)
 const timingSafeStringEqual = (a, b) => {
@@ -68,12 +74,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.4';
+  const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
-    version: process.env.APP_VERSION || '1.0.0',
+    version,
     minSupportedVersion: '1.0.0',
-    apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || 'https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk',
-    releaseName: 'किसान साथी v1.0.0',
-    releaseNotes: 'संतुलित 4+4 टूल्स ग्रिड, 3-दिवसीय मौसम पूर्वानुमान, और लाइव मंडी पल्स।',
+    apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
+    releaseName: `${appName} v${version}`,
+    releaseNotes: 'संतुलित 4+4 टूल्स ग्रिड, 3-दिवसीय मौसम पूर्वानुमान, सुपर एडमिन कंट्रोल रूम और लाइव मंडी पल्स।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -405,7 +413,13 @@ router.post('/farmer/tasks/:phone', requireFarmerAuth, async (req, res) => {
 // 🛡️ कृषि प्रशासक व सुपर एडमिन (SUPER ADMIN APIs)
 // ==========================================
 
-const getAdminSecret = () => process.env.ADMIN_SECRET || process.env.ADMIN_PIN || 'kisanAdmin2026';
+const getAdminSecret = () => {
+  const secret = process.env.ADMIN_SECRET || process.env.ADMIN_PIN;
+  if (!secret) {
+    console.error('[CRITICAL SECURITY ERROR] ADMIN_SECRET / ADMIN_PIN is not configured in .env!');
+  }
+  return secret;
+};
 
 // 14. Public Broadcast Advisories (Active departmental alerts for farmers)
 router.get('/broadcasts', async (req, res) => {
@@ -441,6 +455,10 @@ router.post('/admin/login', (req, res) => {
 
     const { passkey, username } = req.body;
     const configuredSecret = getAdminSecret();
+
+    if (!configuredSecret) {
+      return res.status(500).json({ error: 'सर्वर सुरक्षा विफलता: एडमिन पासकी पर्यावरण (.env) में कॉन्फ़िगर नहीं है।' });
+    }
 
     if (!passkey || !timingSafeStringEqual(passkey.trim(), configuredSecret)) {
       return res.status(401).json({ error: 'अमान्य एडमिन पासकी। कृपया सही क्रेडेंशियल दर्ज करें।' });

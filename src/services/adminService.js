@@ -1,16 +1,8 @@
 // किसान साथी - Super Admin & Extension Worker Service
 // Manages Admin authentication, platform telemetry, emergency broadcast advisories, and content moderation
+import { appConfig } from '../config/appConfig';
 
-const getNormalizedApiBaseUrl = () => {
-  let url = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').trim();
-  url = url.replace(/\/+$/, '');
-  if (!url.endsWith('/api')) {
-    url = `${url}/api`;
-  }
-  return url;
-};
-
-const API_BASE_URL = getNormalizedApiBaseUrl();
+const API_BASE_URL = appConfig.apiBaseUrl;
 const ADMIN_JWT_KEY = 'kisan_admin_jwt_token';
 const ADMIN_SESSION_KEY = 'kisan_admin_session';
 
@@ -76,17 +68,7 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
       return { success: false, error: err.error || 'अमान्य एडमिन पासकी।' };
     }
   } catch (err) {
-    // Offline / Local fallback: allow admin if passkey matches default
-    if (passkey === 'kisanAdmin2026') {
-      const fallbackToken = 'local_admin_session_token_' + Date.now();
-      sessionStorage.setItem(ADMIN_JWT_KEY, fallbackToken);
-      sessionStorage.setItem(
-        ADMIN_SESSION_KEY,
-        JSON.stringify({ username, loginTime: Date.now(), offline: true })
-      );
-      return { success: true, message: 'ऑफलाइन सत्र में एडमिन प्रमाणीकरण सफल।' };
-    }
-    return { success: false, error: 'सर्वर से संपर्क नहीं हो सका। पासकी जांचें।' };
+    return { success: false, error: 'सर्वर से संपर्क नहीं हो सका। कृपया नेटवर्क और सर्वर स्थिति जांचें।' };
   }
 };
 

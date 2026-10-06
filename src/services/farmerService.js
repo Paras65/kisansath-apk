@@ -1,7 +1,8 @@
 // किसान साथी - Multi-Farmer Isolated Farmer Service
 // Handles authentication, multi-tenant plot synchronization, and zero-PII purge on logout.
+import { appConfig } from '../config/appConfig';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+const API_BASE_URL = appConfig.apiBaseUrl;
 
 const ACTIVE_FARMER_KEY = 'kisan_active_farmer';
 const JWT_TOKEN_KEY = 'kisan_auth_jwt_token';

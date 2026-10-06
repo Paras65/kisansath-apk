@@ -1,16 +1,7 @@
 import { FERTILIZER_DOSES, SCHEMES, CROPS, MANDI_RATES, MACHINERY_RENTALS } from '../data/kisanData';
+import { appConfig } from '../config/appConfig';
 
-// Ensure API_BASE_URL properly handles whether host environment supplies with or without /api or trailing slash
-const getNormalizedApiBaseUrl = () => {
-  let url = (import.meta.env.VITE_API_BASE_URL || 'https://kisan-saathi-api-4sdo.onrender.com/api').trim();
-  url = url.replace(/\/+$/, ''); // Strip trailing slash
-  if (!url.endsWith('/api')) {
-    url = `${url}/api`;
-  }
-  return url;
-};
-
-const API_BASE_URL = getNormalizedApiBaseUrl();
+const API_BASE_URL = appConfig.apiBaseUrl;
 
 // Helper for caching and network requests
 const fetchWithCache = async (endpoint, cacheKey, fallbackDefault = []) => {
