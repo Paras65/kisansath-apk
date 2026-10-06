@@ -55,13 +55,13 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
       setConfig(stored);
       setIsMotorOn(stored.lastState === 'ON');
       setStarterPhoneInput(stored.starterPhone || '');
-    } else {
-      stopSpeech();
     }
-    return () => {
-      stopSpeech();
-    };
   }, [open]);
+
+  const handleModalClose = () => {
+    stopSpeech();
+    if (onClose) onClose();
+  };
 
   const telemetry = getMotorTelemetry(isMotorOn);
 
@@ -118,7 +118,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden' } }}>
+    <Dialog open={open} onClose={handleModalClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden' } }}>
       <DialogTitle sx={{ bgcolor: '#01579b', color: '#fff', py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PowerSettingsNewIcon sx={{ color: '#81d4fa', fontSize: 28 }} />
@@ -131,7 +131,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }}>
+        <IconButton size="small" onClick={handleModalClose} sx={{ color: '#fff' }}>
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>

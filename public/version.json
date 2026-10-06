@@ -1,8 +1,8 @@
 {
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.1",
-  "releaseNotes": "एकीकृत फ्लोटिंग नोटिफिकेशन सिस्टम, आधुनिक होम डैशबोर्ड, और सुरक्षित डबल-टैप एग्जिट।",
+  "releaseName": "किसान साथी v1.0.2",
+  "releaseNotes": "Android APK में हाइब्रिड हाई-फ़िडेलिटी हिंदी वॉयस (Google Hindi Audio Stream + Offline TTS) सपोर्ट।",
   "updatedAt": "2026-10-06"
 }

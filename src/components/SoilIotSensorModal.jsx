@@ -49,14 +49,10 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
     setBluetoothSupported(isWebBluetoothSupported());
   }, []);
 
-  useEffect(() => {
-    if (!open) {
-      stopSpeech();
-    }
-    return () => {
-      stopSpeech();
-    };
-  }, [open]);
+  const handleModalClose = () => {
+    stopSpeech();
+    if (onClose) onClose();
+  };
 
   const handleConnectBleDevice = async () => {
     setBleError('');
@@ -136,7 +132,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden' } }}>
+    <Dialog open={open} onClose={handleModalClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden' } }}>
       <DialogTitle sx={{ bgcolor: '#004d40', color: '#fff', py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <ScienceIcon sx={{ color: '#80cbc4', fontSize: 26 }} />

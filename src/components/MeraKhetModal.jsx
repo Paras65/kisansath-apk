@@ -76,13 +76,13 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
       } else {
         fetchLiveWeather(selectedDistrict).then((w) => setLiveWeather(w));
       }
-    } else {
-      stopSpeech();
     }
-    return () => {
-      stopSpeech();
-    };
   }, [open, selectedDistrict, weatherContext]);
+
+  const handleModalClose = () => {
+    stopSpeech();
+    if (onClose) onClose();
+  };
 
   // Login Form State (सरल व बिना किसी जमीन की बाध्यता के)
   const [loginForm, setLoginForm] = useState({
@@ -239,7 +239,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
     <>
       <Dialog
         open={open}
-        onClose={onClose}
+        onClose={handleModalClose}
         fullWidth
         maxWidth="lg"
         PaperProps={{
