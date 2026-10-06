@@ -230,6 +230,85 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
   return defaultWeather;
 };
 
+/**
+ * Fetch Live GPS Field Weather from Open-Meteo by Latitude/Longitude
+ */
+export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेरा खेत (GPS)') => {
+  const cacheKey = `kisan_weather_gps_${Number(lat).toFixed(2)}_${Number(lon).toFixed(2)}`;
+
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata`;
+
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      const current = data.current || {};
+      const daily = data.daily || {};
+
+      const weatherCode = current.weather_code ?? 0;
+      const wmoInfo = WMO_CODE_MAP[weatherCode] || WMO_CODE_MAP[0];
+      const rainProbability = daily.precipitation_probability_max?.[0] ?? Math.round((current.precipitation || 0) * 40);
+      const tempMax = daily.temperature_2m_max?.[0] ? Math.round(daily.temperature_2m_max[0]) : Math.round(current.temperature_2m || 30);
+      const tempMin = daily.temperature_2m_min?.[0] ? Math.round(daily.temperature_2m_min[0]) : Math.round((current.temperature_2m || 30) - 6);
+
+      const parsedWeather = {
+        district: label,
+        isGpsLocation: true,
+        lat,
+        lon,
+        temp: Math.round(current.temperature_2m || 30),
+        tempMax,
+        tempMin,
+        humidity: Math.round(current.relative_humidity_2m || 60),
+        windSpeed: Math.round(current.wind_speed_10m || 10),
+        precipitation: current.precipitation || 0,
+        rainProbability,
+        isRaining: (current.precipitation || 0) > 0.1 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode),
+        conditionText: wmoInfo.text,
+        conditionIcon: wmoInfo.icon,
+        conditionName: wmoInfo.condition,
+        updatedAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }),
+        isLive: true,
+      };
+
+      parsedWeather.forecast3Days = [
+        {
+          day: 'आज (Today)',
+          tempMax: tempMax,
+          tempMin: tempMin,
+          rainProb: rainProbability,
+          icon: wmoInfo.icon,
+          condition: wmoInfo.text,
+        },
+        {
+          day: 'कल (Tomorrow)',
+          tempMax: daily.temperature_2m_max?.[1] ? Math.round(daily.temperature_2m_max[1]) : tempMax + 1,
+          tempMin: daily.temperature_2m_min?.[1] ? Math.round(daily.temperature_2m_min[1]) : tempMin,
+          rainProb: daily.precipitation_probability_max?.[1] ?? Math.max(0, rainProbability - 5),
+          icon: WMO_CODE_MAP[daily.weather_code?.[1]]?.icon || '⛅',
+          condition: WMO_CODE_MAP[daily.weather_code?.[1]]?.text || 'धूप व बादल',
+        },
+        {
+          day: 'परसों (Day 3)',
+          tempMax: daily.temperature_2m_max?.[2] ? Math.round(daily.temperature_2m_max[2]) : tempMax,
+          tempMin: daily.temperature_2m_min?.[2] ? Math.round(daily.temperature_2m_min[2]) : tempMin - 1,
+          rainProb: daily.precipitation_probability_max?.[2] ?? Math.max(0, rainProbability - 10),
+          icon: WMO_CODE_MAP[daily.weather_code?.[2]]?.icon || '🌤️',
+          condition: WMO_CODE_MAP[daily.weather_code?.[2]]?.text || 'मुख्यतः साफ',
+        }
+      ];
+
+      parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
+      localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
+      return parsedWeather;
+    }
+  } catch (err) {
+    console.warn('[GPS Weather Offline]', err.message);
+  }
+
+  return await fetchLiveWeather('रायपुर');
+};
+
 // Regional Chhattisgarh Soil Characteristics
 export const CG_SOIL_PROFILES = {
   'मटासी': {

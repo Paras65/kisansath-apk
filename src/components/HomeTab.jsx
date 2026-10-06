@@ -569,67 +569,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     </Card>
   );
 
-  // 5. Desktop Helpline & App Download Card
-  const renderDesktopHelplineApkCard = () => (
-    <Card
-      sx={{
-        borderRadius: 3.5,
-        background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
-        color: '#ffffff',
-        boxShadow: '0 4px 16px rgba(27,94,32,0.15)',
-        border: '1px solid #81c784',
-        p: 2
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.2 }}>
-        <AndroidIcon sx={{ fontSize: 28, color: '#ffeb3b' }} />
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.9rem', lineHeight: 1.2 }}>
-            किसान साथी Android App (APK)
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem' }}>
-            v{appConfig.appVersion} • बिना इंटरनेट ऑफ़लाइन सक्षम
-          </Typography>
-        </Box>
-      </Box>
-
-      <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
-        {appConfig.apkDownloadUrl && (
-          <Button
-            fullWidth
-            variant="contained"
-            size="small"
-            startIcon={<GetAppIcon />}
-            href={appConfig.apkDownloadUrl}
-            target="_blank"
-            download
-            sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, fontSize: '0.74rem', py: 0.6, '&:hover': { bgcolor: '#fff' } }}
-          >
-            APK डाउनलोड
-          </Button>
-        )}
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
-          onClick={() => shareOnWhatsApp()}
-          sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, fontSize: '0.74rem', whiteSpace: 'nowrap' }}
-        >
-          शेयर
-        </Button>
-      </Box>
-
-      <Box sx={{ pt: 1, borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#e8f5e9', fontSize: '0.72rem' }}>
-          📞 किसान कॉल सेंटर (टोल-फ्री):
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#ffeb3b', fontWeight: 900, fontSize: '0.78rem' }}>
-          {appConfig.helpline.phone}
-        </Typography>
-      </Box>
-    </Card>
-  );
-
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* 1. Modern Hero Greeting & Profile Card */}
@@ -1341,9 +1280,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
 
             {/* 3. Smart Hardware & IoT Hub Quick Card */}
             {renderSmartHardwareHubCard()}
-
-            {/* 4. Desktop Helpline & App Download Card */}
-            {renderDesktopHelplineApkCard()}
           </Box>
         </Grid>
       </Grid>

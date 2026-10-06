@@ -28,11 +28,13 @@ import ShareIcon from '@mui/icons-material/Share';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
 import { notify } from '../services/notificationService';
+import { CG_DISTRICT_COORDS } from '../services/weatherService';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'होम', icon: HomeIcon },
@@ -55,6 +57,38 @@ export const Header = ({
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [detectingGps, setDetectingGps] = useState(false);
+
+  const handleGpsLocation = () => {
+    if (!navigator.geolocation) {
+      notify.warning('आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
+      return;
+    }
+    setDetectingGps(true);
+    notify.info('📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setDetectingGps(false);
+        const { latitude, longitude } = pos.coords;
+        let closestDistrict = 'रायपुर';
+        let minDistance = Infinity;
+        Object.entries(CG_DISTRICT_COORDS).forEach(([dist, coords]) => {
+          const d = Math.hypot(coords.lat - latitude, coords.lon - longitude);
+          if (d < minDistance) {
+            minDistance = d;
+            closestDistrict = dist;
+          }
+        });
+        onDistrictChange(closestDistrict);
+        notify.success(`📍 GPS स्थान प्राप्त: ${closestDistrict} (लाइव मौसम सक्रिय)`);
+      },
+      (err) => {
+        setDetectingGps(false);
+        notify.info('GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     const handleOnline = () => {
@@ -269,8 +303,26 @@ export const Header = ({
 
         {/* Action Controls */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-          {/* District selector */}
-          <FormControl size="small" sx={{ minWidth: { xs: 100, sm: 120 } }}>
+          {/* District selector & GPS locator */}
+          <Tooltip title="📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)">
+            <IconButton
+              onClick={handleGpsLocation}
+              disabled={detectingGps}
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.14)',
+                color: detectingGps ? '#4ade80' : '#fff',
+                width: 36,
+                height: 36,
+                borderRadius: 2.5,
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+              }}
+            >
+              <MyLocationIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </Tooltip>
+
+          <FormControl size="small" sx={{ minWidth: { xs: 110, sm: 135 } }}>
             <Select
               value={selectedDistrict}
               onChange={(e) => onDistrictChange(e.target.value)}
@@ -289,11 +341,21 @@ export const Header = ({
               <MenuItem value="रायपुर">रायपुर (Raipur)</MenuItem>
               <MenuItem value="बिलासपुर">बिलासपुर (Bilaspur)</MenuItem>
               <MenuItem value="दुर्ग">दुर्ग (Durg)</MenuItem>
-              <MenuItem value="राजनांदगांव">राजनांदगांव</MenuItem>
+              <MenuItem value="राजनांदगांव">राजनांदगांव (Rajnandgaon)</MenuItem>
               <MenuItem value="धमतरी">धमतरी (Dhamtari)</MenuItem>
-              <MenuItem value="कवर्धा">कवर्धा (Kawardha)</MenuItem>
+              <MenuItem value="कवर्धा">कबीरधाम / कवर्धा</MenuItem>
               <MenuItem value="बलौदाबाजार">बलौदाबाजार</MenuItem>
-              <MenuItem value="जगदलपुर">जगदलपुर (Bastar)</MenuItem>
+              <MenuItem value="जगदलपुर">बस्तर / जगदलपुर</MenuItem>
+              <MenuItem value="महासमुंद">महासमुंद (Mahasamund)</MenuItem>
+              <MenuItem value="जांजगीर-चांपा">जांजगीर-चांपा</MenuItem>
+              <MenuItem value="रायगढ़">रायगढ़ (Raigarh)</MenuItem>
+              <MenuItem value="कोरबा">कोरबा (Korba)</MenuItem>
+              <MenuItem value="अंबिकापुर">सरगुजा / अंबिकापुर</MenuItem>
+              <MenuItem value="कांकेर">उत्तर बस्तर कांकेर</MenuItem>
+              <MenuItem value="बेमेतरा">बेमेतरा (Bemetara)</MenuItem>
+              <MenuItem value="बालोद">बालोद (Balod)</MenuItem>
+              <MenuItem value="गरियाबंद">गरियाबंद (Gariaband)</MenuItem>
+              <MenuItem value="मुंगेली">मुंगेली (Mungeli)</MenuItem>
             </Select>
           </FormControl>
 
@@ -375,30 +437,32 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* APK Download Button */}
+          {/* Compact APK Download Icon */}
           {appConfig.apkDownloadUrl && (
-            <Tooltip title="Android APK डाउनलोड करें">
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<AndroidIcon sx={{ fontSize: 16 }} />}
+            <Tooltip title={`Android APK डाउनलोड करें (v${appConfig.appVersion})`}>
+              <IconButton
+                component="a"
                 href={appConfig.apkDownloadUrl}
                 target="_blank"
                 download
+                aria-label="Android APK डाउनलोड"
                 sx={{
+                  bgcolor: 'rgba(255,235,59,0.18)',
                   color: '#ffeb3b',
-                  borderColor: 'rgba(255,235,59,0.5)',
-                  fontWeight: 800,
-                  fontSize: '0.74rem',
-                  py: 0.5,
-                  px: 1.2,
+                  width: 36,
+                  height: 36,
                   borderRadius: 2.5,
-                  display: { xs: 'none', sm: 'inline-flex' },
-                  '&:hover': { bgcolor: 'rgba(255,235,59,0.15)', borderColor: '#ffeb3b' }
+                  border: '1px solid rgba(255,235,59,0.38)',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    bgcolor: 'rgba(255,235,59,0.32)',
+                    color: '#ffffff',
+                    borderColor: '#ffeb3b'
+                  }
                 }}
               >
-                APK डाउनलोड
-              </Button>
+                <AndroidIcon sx={{ fontSize: 20 }} />
+              </IconButton>
             </Tooltip>
           )}
 

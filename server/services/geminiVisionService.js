@@ -1,6 +1,8 @@
 // किसान साथी - Google Gemini Multimodal Vision AI Plant Doctor Service
 // Zero-False-Data Policy: Only returns real, analyzed diagnoses. Never generates guessed, dummy or false data.
 
+import { externalApisConfig } from '../config/externalApis.js';
+
 /**
  * Clean and extract base64 data and MIME type from data URL or raw string
  */
@@ -27,20 +29,16 @@ export const extractBase64Data = (imageString) => {
 /**
  * Analyze plant photo with Google Gemini Vision API.
  * Strict Integrity Guarantee: If AI analysis fails, returns explicit error without hallucinating dummy diseases.
+ * Zero-Code Environment Driven: Base URL, Model Cascades, Timeout, Temperature read dynamically from externalApisConfig.
  */
 export const diagnoseWithGeminiVision = async ({ imageString, cropId = '', district = 'रायपुर' }) => {
-  const apiKey =
-    process.env.GEMINI_API_KEY ||
-    process.env.VITE_GEMINI_API_KEY ||
-    process.env.VITE_AI_VISION_API_URL ||
-    process.env.GOOGLE_API_KEY ||
-    process.env.GEMINI_KEY;
+  const { apiKey, baseUrl, models, timeoutMs, temperature } = externalApisConfig.gemini;
 
   if (!apiKey) {
-    console.warn('[GeminiVision] GEMINI_API_KEY is not configured in .env. Refusing to serve false/guessed diagnosis.');
+    console.warn('[GeminiVision Diagnostic] GEMINI_API_KEY is not configured in .env. Refusing to serve false/guessed diagnosis.');
     return {
       success: false,
-      error: 'AI विज़न सेवा की कुंजी सक्रिय नहीं है। गलत या नकली सलाह से बचने के लिए कोई अनुमानित डेटा नहीं दिखाया जा रहा है। कृपया नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर प्रमाणित इलाज देखें।'
+      error: 'AI विज़न सेवा की कुंजी (.env) में सक्रिय नहीं है। गलत या नकली सलाह से बचने के लिए कोई अनुमानित डेटा नहीं दिखाया जा रहा है। कृपया नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर प्रमाणित इलाज देखें।'
     };
   }
 
@@ -94,18 +92,15 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 }`;
 
   // Multi-model fallback cascade
-  const modelsToTry = [
-    'gemini-2.5-flash',
-    'gemini-2.5-flash-lite',
-    'gemini-1.5-flash'
-  ];
+  // Multi-model fallback cascade read dynamically from externalApisConfig (.env GEMINI_MODELS)
+  const modelsToTry = models.length > 0 ? models : ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash'];
 
   for (const model of modelsToTry) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const url = `${baseUrl}/${model}:generateContent?key=${apiKey}`;
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 16000); // 16s timeout
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       const res = await fetch(url, {
         method: 'POST',
@@ -126,7 +121,7 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
             }
           ],
           generationConfig: {
-            temperature: 0.15,
+            temperature,
             responseMimeType: 'application/json'
           }
         })
@@ -136,7 +131,13 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 
       if (!res.ok) {
         const errorText = await res.text();
-        console.warn(`[GeminiVision] Model ${model} returned HTTP ${res.status}:`, errorText.slice(0, 150));
+        if (res.status === 429) {
+          console.warn(`[GeminiVision Diagnostic] Model ${model} rate-limited / quota exhausted (HTTP 429). Auto-cascading to next model in GEMINI_MODELS...`);
+        } else if (res.status === 404) {
+          console.warn(`[GeminiVision Diagnostic] Model ${model} not found (HTTP 404). Check GEMINI_MODELS in .env.`);
+        } else {
+          console.warn(`[GeminiVision Diagnostic] Model ${model} returned HTTP ${res.status}:`, errorText.slice(0, 150));
+        }
         continue;
       }
 

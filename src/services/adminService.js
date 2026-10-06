@@ -98,31 +98,12 @@ export const getAdminStats = async () => {
     console.warn('[Admin Stats Fetch Offline]', err);
   }
 
-  // Graceful fallback for offline demo / disconnected state
+  // Zero-False-Data Policy: Strict offline indicator without fabricating false farmer metrics
   return {
-    metrics: {
-      totalFarmers: 1842,
-      totalPlots: 3120,
-      totalPlotAcres: 7850.5,
-      totalMarketListings: 24,
-      totalCommunityQAs: 48,
-      totalMandiRates: 86,
-      activeBroadcasts: 2,
-    },
-    districtStats: [
-      { district: 'रायपुर', farmersCount: 620, totalAcreage: 2750 },
-      { district: 'बिलासपुर', farmersCount: 410, totalAcreage: 1820 },
-      { district: 'दुर्ग', farmersCount: 350, totalAcreage: 1490 },
-      { district: 'राजनांदगांव', farmersCount: 260, totalAcreage: 1120 },
-      { district: 'धमतरी', farmersCount: 202, totalAcreage: 670.5 },
-    ],
-    systemHealth: {
-      uptimeSeconds: 86400,
-      memoryRssMb: 48,
-      nodeVersion: 'v20.x',
-      environment: 'production',
-      timestamp: new Date().toISOString(),
-    },
+    metrics: null,
+    districtStats: [],
+    systemHealth: null,
+    isOffline: true,
   };
 };
 
@@ -144,36 +125,8 @@ export const getAdminFarmers = async ({ district = '', search = '', limit = 30 }
     console.warn('[Admin Farmers Fetch Offline]', err);
   }
 
-  // Default demo data
-  return [
-    {
-      phoneMasked: '98••••••12',
-      name: 'रामकुमार वर्मा',
-      district: 'रायपुर',
-      village: 'आरंग',
-      plotsCount: 3,
-      totalLandAcres: 7.5,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      phoneMasked: '91••••••44',
-      name: 'दिनेश साहू',
-      district: 'दुर्ग',
-      village: 'पाटन',
-      plotsCount: 2,
-      totalLandAcres: 4.0,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-    {
-      phoneMasked: '70••••••89',
-      name: 'संतोष यादव',
-      district: 'बिलासपुर',
-      village: 'तखतपुर',
-      plotsCount: 4,
-      totalLandAcres: 9.2,
-      createdAt: new Date(Date.now() - 172800000).toISOString(),
-    },
-  ];
+  // Zero-False-Data Guarantee: Never inject fabricated farmer records
+  return [];
 };
 
 // 6. Fetch Broadcast Advisories
@@ -183,13 +136,15 @@ export const getAdminBroadcasts = async () => {
       headers: getAdminHeaders(),
     });
     if (res.ok) {
-      return await res.json();
+      const data = await res.json();
+      localStorage.setItem('kisan_admin_broadcasts_cache', JSON.stringify(data));
+      return data;
     }
   } catch (err) {
     console.warn('[Admin Broadcasts Fetch Offline]', err);
   }
 
-  // Fallback broadcasts
+  // Fallback ONLY to last known fetched broadcasts
   const cached = localStorage.getItem('kisan_admin_broadcasts_cache');
   if (cached) {
     try {
@@ -198,32 +153,7 @@ export const getAdminBroadcasts = async () => {
       console.warn(e);
     }
   }
-  return [
-    {
-      id: 'adv-sample-1',
-      title: 'माहो व भूरा फुदका कीट चेतावनी',
-      category: 'pest',
-      severity: 'urgent',
-      message: 'खरीफ धान में माहो कीट के लक्षण दिखने पर नीम तेल 1500 PPM या पाइमेट्रोज़िन 50 WG (120 ग्रा/एकड़) का 200 लीटर पानी में घोल बनाकर छिड़काव करें।',
-      targetDistrict: 'all',
-      author: 'डॉ. पी. के. शर्मा (कृषि वैज्ञानिक)',
-      validTill: '15 अक्टूबर 2026',
-      active: true,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 'adv-sample-2',
-      title: 'कृषक उन्नति योजना: ₹3,100/क्विंटल धान उपार्जन टोकन',
-      category: 'scheme',
-      severity: 'info',
-      message: 'समितियों में धान उपार्जन हेतु टोकन व्यवस्था प्रारंभ। किसान भाई अपने नजदीकी उपार्जन केंद्र में स्लॉट बुक करें।',
-      targetDistrict: 'all',
-      author: 'कृषि विभाग छत्तीसगढ़',
-      validTill: '31 जनवरी 2027',
-      active: true,
-      createdAt: new Date(Date.now() - 86400000).toISOString(),
-    },
-  ];
+  return [];
 };
 
 // 7. Post New Emergency Broadcast Advisory
@@ -437,5 +367,134 @@ export const checkAllApisHealth = async () => {
       offline: offlineCount,
     },
     services: fallbackServices,
+  };
+};
+
+// 13. Super Admin External APIs Configuration & Live Debugging Inspector
+export const getAdminExternalConfig = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/external-config`, {
+      headers: getAdminHeaders(),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+  } catch (err) {
+    console.warn('[Admin External Config Offline]', err);
+  }
+
+  // Graceful fallback config if backend is offline or unreachable
+  return {
+    success: false,
+    timestamp: new Date().toISOString(),
+    config: {
+      mandi: {
+        name: 'data.gov.in (OGD Agmarknet Mandi Rates)',
+        baseUrl: 'https://api.data.gov.in/resource/',
+        resourceId: '9ef84268-d588-465a-a308-a864a43d0070',
+        apiKeyMasked: 'बैकएंड से प्राप्त नहीं',
+        isKeyConfigured: false,
+        limit: 60,
+        timeoutMs: 8000,
+        backupMirrorUrl: 'https://mandi-api.onrender.com/api/mandis?state=Chhattisgarh',
+        stateVariants: ['Chattisgarh', 'Chhattisgarh'],
+        envKeys: {
+          baseUrl: 'MANDI_API_BASE_URL',
+          resourceId: 'DATA_GOV_IN_RESOURCE_ID',
+          apiKey: 'DATA_GOV_IN_API_KEY',
+          limit: 'MANDI_API_LIMIT',
+          timeoutMs: 'MANDI_API_TIMEOUT_MS',
+        },
+        troubleshooting: [
+          {
+            issue: 'HTTP 401 / 403 (Invalid API Key)',
+            cause: 'data.gov.in API key अमान्य या समाप्त हो गई है',
+            action: '.env में DATA_GOV_IN_API_KEY अपडेट करें',
+          },
+          {
+            issue: 'HTTP 404 (Resource Not Found)',
+            cause: 'OGD India ने Agmarknet कैटलॉग का रिसोर्स ID बदल दिया है',
+            action: 'data.gov.in से नया ID लेकर .env में DATA_GOV_IN_RESOURCE_ID अपडेट करें',
+          },
+          {
+            issue: 'Request Timeout (>8s)',
+            cause: 'सरकारी OGD सर्वर पर अत्यधिक लोड या स्लो रिस्पांस',
+            action: '.env में MANDI_API_TIMEOUT_MS बढ़ाएं या स्वतः बैकअप मिरर सक्रिय रहेगा',
+          },
+        ],
+      },
+      gemini: {
+        name: 'Google Gemini Multimodal AI (Crop Doctor)',
+        baseUrl: 'https://generativelanguage.googleapis.com/v1beta/models',
+        apiKeyMasked: 'बैकएंड से प्राप्त नहीं',
+        isKeyConfigured: false,
+        models: ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash'],
+        timeoutMs: 16000,
+        temperature: 0.15,
+        envKeys: {
+          baseUrl: 'GEMINI_API_BASE_URL',
+          apiKey: 'GEMINI_API_KEY',
+          models: 'GEMINI_MODELS',
+          timeoutMs: 'GEMINI_API_TIMEOUT_MS',
+          temperature: 'GEMINI_TEMPERATURE',
+        },
+        troubleshooting: [
+          {
+            issue: 'HTTP 429 (Resource Exhausted / Rate Limit)',
+            cause: 'दैनिक या प्रति मिनट API कोटा समाप्त हो गया है',
+            action: 'सिस्टम स्वतः अगले मॉडल पर स्विच करेगा। आवश्यकतानुसार नई GEMINI_API_KEY डालें',
+          },
+          {
+            issue: 'HTTP 404 (Model Not Found / Retired)',
+            cause: 'गूगल ने मॉडल संस्करण रिटायर कर दिया है (उदा. 1.5 -> 2.5)',
+            action: '.env में GEMINI_MODELS बदलें (उदा. gemini-2.5-flash,gemini-2.5-flash-lite)',
+          },
+          {
+            issue: 'Cold Start / Timeout (>16s)',
+            cause: 'धीमे मोबाइल नेटवर्क पर हाई-रेज़ोल्यूशन फोटो अपलोड',
+            action: '.env में GEMINI_API_TIMEOUT_MS को 20000ms तक बढ़ा सकते हैं',
+          },
+        ],
+      },
+      weather: {
+        name: 'Open-Meteo Satellite Weather API',
+        baseUrl: 'https://api.open-meteo.com/v1/forecast',
+        timeoutMs: 5000,
+        envKeys: {
+          baseUrl: 'WEATHER_API_BASE_URL',
+          timeoutMs: 'WEATHER_API_TIMEOUT_MS',
+        },
+        troubleshooting: [
+          {
+            issue: 'HTTP 429 / Blocked',
+            cause: 'Open-Meteo फ्री टियर कॉल लिमिट (10,000 कॉल/दिन)',
+            action: 'क्लाइंट-साइड 15-मिनट कैशे लागू है, सर्वर पर WEATHER_API_TIMEOUT_MS जांचें',
+          },
+        ],
+      },
+      portals: {
+        name: 'External Government Portals',
+        agristack: 'https://cgfr.agristack.gov.in/',
+        bhuiyan: 'https://bhuiyan.cg.nic.in/',
+        khadya: 'http://khadya.cg.nic.in/',
+        pmkisan: 'https://pmkisan.gov.in/',
+        creda: 'https://creda.cgstate.gov.in/',
+        envKeys: {
+          agristack: 'VITE_PORTAL_AGRISTACK_URL',
+          bhuiyan: 'VITE_PORTAL_BHUIYAN_URL',
+          khadya: 'VITE_PORTAL_TOKEN_URL',
+          pmkisan: 'VITE_PORTAL_PMKISAN_URL',
+          creda: 'VITE_PORTAL_CREDA_URL',
+        },
+        troubleshooting: [
+          {
+            issue: 'सरकारी पोर्टल लिंक बदल गया या डोमेन अपडेट हुआ',
+            cause: 'विभाग द्वारा नया URL या सुरक्षा रीडायरेक्ट लागू किया गया',
+            action: '.env में संबंधित VITE_PORTAL_* चर को अपडेट करें (कोड में कोई बदलाव नहीं चाहिए)',
+          },
+        ],
+      },
+    },
   };
 };

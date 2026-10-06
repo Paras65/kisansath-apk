@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Divider
+  Divider,
+  IconButton
 } from '@mui/material';
 import { notify } from '../services/notificationService';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
@@ -28,10 +29,29 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import PrintIcon from '@mui/icons-material/Print';
+import CloudDoneIcon from '@mui/icons-material/CloudDone';
+import CloudOffIcon from '@mui/icons-material/CloudOff';
+import ReplyIcon from '@mui/icons-material/Reply';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import MenuItem from '@mui/material/MenuItem';
 import { speakText } from '../utils/speech';
-import { getMachinery, getCommunityQA, postCommunityQuestion, getCachedModuleData } from '../services/apiService';
+import {
+  getMachinery,
+  postMachinery,
+  getCommunityQA,
+  postCommunityQuestion,
+  postCommunityReply,
+  getCachedModuleData
+} from '../services/apiService';
 import { generateAndPrintKccReport } from '../utils/printReportHelper';
-import { getActiveFarmer } from '../services/farmerService';
+import {
+  getActiveFarmer,
+  getFarmerDiary,
+  saveFarmerDiaryEntry,
+  deleteFarmerDiaryEntry
+} from '../services/farmerService';
 import { MeraKhetModal } from './MeraKhetModal';
 import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
@@ -40,6 +60,30 @@ export const ChaupalTab = () => {
   const [openAskModal, setOpenAskModal] = useState(false);
   const [openDiaryModal, setOpenDiaryModal] = useState(false);
   const [openMeraKhetModal, setOpenMeraKhetModal] = useState(false);
+  const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
+  const [isDiaryCloudSynced, setIsDiaryCloudSynced] = useState(false);
+
+  // Machinery Add Modal state
+  const [openAddMachineryModal, setOpenAddMachineryModal] = useState(false);
+  const [newMachine, setNewMachine] = useState({
+    title: '',
+    category: 'जुताई एवं खेत तैयारी',
+    rate: '',
+    operatorIncluded: true,
+    contactName: activeFarmer?.name || '',
+    phone: activeFarmer?.phone || '',
+    location: activeFarmer?.village ? `${activeFarmer.village}, ${activeFarmer.district || 'छत्तीसगढ़'}` : 'रायपुर',
+    features: ''
+  });
+
+  // Reply Modal state
+  const [openReplyModal, setOpenReplyModal] = useState(false);
+  const [selectedQuestionForReply, setSelectedQuestionForReply] = useState(null);
+  const [replyForm, setReplyForm] = useState({
+    author: activeFarmer?.name || '',
+    role: 'किसान भाई',
+    text: ''
+  });
 
   // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
   const [machineryList, setMachineryList] = useState(() => {
@@ -53,39 +97,41 @@ export const ChaupalTab = () => {
     return cached && Array.isArray(cached.data) ? cached.data : [];
   });
 
+  // Farm diary state - strictly live from cache or empty (Zero Static Dummy)
+  const [farmDiary, setFarmDiary] = useState(() => {
+    const saved = localStorage.getItem('kisan_farm_diary');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { return []; }
+    }
+    return [];
+  });
+
   // Load from MongoDB
   const loadFromMongo = async () => {
     const liveMachinery = await getMachinery();
     if (liveMachinery && Array.isArray(liveMachinery)) setMachineryList(liveMachinery);
     const liveQA = await getCommunityQA();
     if (liveQA && Array.isArray(liveQA)) setQuestions(liveQA);
+
+    // Dynamic Cloud Farm Diary Load
+    const currentFarmer = getActiveFarmer();
+    setActiveFarmer(currentFarmer);
+    if (currentFarmer && currentFarmer.phone) {
+      const diaryResult = await getFarmerDiary(currentFarmer.phone);
+      if (diaryResult && Array.isArray(diaryResult.data)) {
+        setFarmDiary(diaryResult.data);
+        setIsDiaryCloudSynced(diaryResult.isCloudSynced);
+      }
+    }
   };
 
   useEffect(() => {
     loadFromMongo();
   }, []);
 
-  // Farm diary state
-  const [farmDiary, setFarmDiary] = useState(() => {
-    const saved = localStorage.getItem('kisan_farm_diary');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { return []; }
-    }
-    return [
-      {
-        id: 'diary-1',
-        cropName: 'धान (सरना)',
-        areaAcres: '3.0',
-        sowDate: '2026-07-15',
-        stage: 'गाभा / बालियां बनते समय',
-        nextAction: '10 कि.ग्रा. पोटाश व 30 कि.ग्रा. यूरिया की दूसरी टॉप ड्रेसिंग'
-      }
-    ];
-  });
-
   // Question Form
   const [newQuestion, setNewQuestion] = useState({
-    author: '',
+    author: activeFarmer?.name || '',
     crop: '',
     questionText: ''
   });
@@ -104,12 +150,21 @@ export const ChaupalTab = () => {
     }
     const item = {
       id: `qa-${Date.now()}`,
-      author: newQuestion.author || 'किसान भाई',
+      author: newQuestion.author || activeFarmer?.name || 'किसान भाई',
       crop: newQuestion.crop || 'सामान्य',
       time: 'अभी-अभी',
       question: newQuestion.questionText,
       answersCount: 1,
-      bestAnswer: 'आपका प्रश्न चौपाल में पोस्ट हो गया है। कृषि विशेषज्ञ और साथी किसान जल्द ही इसका समाधान देंगे।'
+      bestAnswer: 'आपका प्रश्न चौपाल में दर्ज हो चुका है। कृषि वैज्ञानिक व साथी किसान जल्द समाधान देंगे।',
+      replies: [
+        {
+          id: `rep-${Date.now()}`,
+          author: 'किसान साथी सिस्टम',
+          role: 'कृषि सलाहकार',
+          text: 'आपका प्रश्न चौपाल में दर्ज हो चुका है। कृषि वैज्ञानिक व साथी किसान जल्द समाधान देंगे।',
+          createdAt: new Date()
+        }
+      ]
     };
     // Post to MongoDB
     await postCommunityQuestion({
@@ -120,11 +175,79 @@ export const ChaupalTab = () => {
     const updated = [item, ...questions];
     setQuestions(updated);
     setOpenAskModal(false);
-    setNewQuestion({ author: '', crop: '', questionText: '' });
+    setNewQuestion({ author: activeFarmer?.name || '', crop: '', questionText: '' });
     notify.success('आपका सवाल किसान चौपाल में साझा कर दिया गया है!');
   };
 
-  const handleSaveDiary = () => {
+  const handlePostReply = async () => {
+    if (!selectedQuestionForReply) return;
+    if (!replyForm.text || replyForm.text.trim().length < 3) {
+      notify.warning('कृपया कम से कम 3 अक्षरों का समाधान लिखें');
+      return;
+    }
+
+    const payload = {
+      author: replyForm.author || activeFarmer?.name || 'किसान साथी',
+      role: replyForm.role || 'किसान भाई',
+      text: replyForm.text.trim()
+    };
+
+    const updatedQA = await postCommunityReply(selectedQuestionForReply.id, payload);
+    if (updatedQA) {
+      setQuestions(questions.map(q => q.id === updatedQA.id ? updatedQA : q));
+      setOpenReplyModal(false);
+      setReplyForm({ author: activeFarmer?.name || '', role: 'किसान भाई', text: '' });
+      notify.success('आपका समाधान चौपाल में दर्ज हो गया है!');
+    } else {
+      notify.error('समाधान दर्ज करने में समस्या आई।');
+    }
+  };
+
+  const handlePostMachinery = async () => {
+    if (!newMachine.title || !newMachine.rate) {
+      notify.warning('कृपया मशीन का नाम और किराया दर दर्ज करें');
+      return;
+    }
+    const cleanPhone = (newMachine.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      notify.warning('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें');
+      return;
+    }
+
+    const payload = {
+      title: newMachine.title.trim(),
+      category: newMachine.category,
+      rate: newMachine.rate.trim(),
+      operatorIncluded: Boolean(newMachine.operatorIncluded),
+      contactName: newMachine.contactName.trim() || 'मशीन संचालक',
+      phone: cleanPhone,
+      location: newMachine.location.trim() || 'छत्तीसगढ़',
+      features: newMachine.features
+        ? newMachine.features.split(',').map(f => f.trim()).filter(Boolean)
+        : ['कुशल ऑपरेटर', 'समय पर सेवा']
+    };
+
+    const saved = await postMachinery(payload);
+    if (saved) {
+      setMachineryList([saved, ...machineryList]);
+      setOpenAddMachineryModal(false);
+      setNewMachine({
+        title: '',
+        category: 'जुताई एवं खेत तैयारी',
+        rate: '',
+        operatorIncluded: true,
+        contactName: activeFarmer?.name || '',
+        phone: activeFarmer?.phone || '',
+        location: activeFarmer?.village ? `${activeFarmer.village}, ${activeFarmer.district || 'छत्तीसगढ़'}` : 'रायपुर',
+        features: ''
+      });
+      notify.success('आपकी मशीन किराए हेतु सफलतापूर्वक लिस्ट हो गई है!');
+    } else {
+      notify.error('मशीनरी लिस्टिंग सहेजने में समस्या आई।');
+    }
+  };
+
+  const handleSaveDiary = async () => {
     if (!newCropEntry.cropName || !newCropEntry.areaAcres) {
       notify.warning('कृपया फसल का नाम और रकबा दर्ज करें');
       return;
@@ -137,11 +260,23 @@ export const ChaupalTab = () => {
       stage: 'नर्सरी / प्रारंभिक वृद्धि',
       nextAction: '20 दिन बाद: प्रथम यूरिया टॉप ड्रेसिंग (45 कि.ग्रा./एकड़)'
     };
-    const updated = [entry, ...farmDiary];
-    setFarmDiary(updated);
-    localStorage.setItem('kisan_farm_diary', JSON.stringify(updated));
+
+    const currentFarmer = getActiveFarmer();
+    const result = await saveFarmerDiaryEntry(currentFarmer?.phone, entry);
+    setFarmDiary(result.data);
+    setIsDiaryCloudSynced(result.isCloudSynced);
     setOpenDiaryModal(false);
-    notify.success('आपकी फसल डायरी में सुरक्षित हो गई है!');
+    notify.success(result.isCloudSynced
+      ? 'फसल डायरी क्लाउड में सुरक्षित हो गई है!'
+      : 'फसल डायरी ऑफ़लाइन सुरक्षित हो गई है!');
+  };
+
+  const handleDeleteDiaryEntry = async (entryId) => {
+    const currentFarmer = getActiveFarmer();
+    const result = await deleteFarmerDiaryEntry(currentFarmer?.phone, entryId);
+    setFarmDiary(result.data);
+    setIsDiaryCloudSynced(result.isCloudSynced);
+    notify.info('डायरी प्रविष्टि हटा दी गई।');
   };
 
   return (
@@ -182,7 +317,7 @@ export const ChaupalTab = () => {
       {/* SUB-TAB 0: MACHINERY & DRONE RENTAL */}
       {subTab === 0 && (
         <Box>
-          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
                 🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल
@@ -191,6 +326,15 @@ export const ChaupalTab = () => {
                 ट्रैक्टर, कंबाइन हार्वेस्टर और कृषि ड्रोन उचित दरों पर
               </Typography>
             </Box>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddCircleIcon />}
+              onClick={() => setOpenAddMachineryModal(true)}
+              sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.75rem', borderRadius: 2, '&:hover': { bgcolor: '#125420' } }}
+            >
+              + मशीन किराए पर जोड़ें
+            </Button>
           </Box>
           {/* Zero-False-Data Benchmark Notice */}
           <Paper
@@ -485,25 +629,68 @@ export const ChaupalTab = () => {
                       </Typography>
                     </Box>
 
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        p: 1.5,
-                        bgcolor: '#f1f8e9',
-                        border: '1px solid #c8e6c9',
-                        borderRadius: '12px'
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.4 }}>
-                        <QuestionAnswerIcon sx={{ color: '#1b5e20', fontSize: 15 }} />
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                          विशेषज्ञ समाधान (Expert Solution):
+                    <Box sx={{ mt: 1 }}>
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 1.5,
+                          bgcolor: '#f1f8e9',
+                          border: '1px solid #c8e6c9',
+                          borderRadius: '12px',
+                          mb: 1
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.4 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                            <QuestionAnswerIcon sx={{ color: '#1b5e20', fontSize: 15 }} />
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
+                              ताजा समाधान ({q.answersCount || (q.replies?.length ?? 1)} उत्तर):
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: '0.82rem', lineHeight: 1.45 }}>
+                          {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || 'समाधान प्रक्रियाधीन है।'}
                         </Typography>
-                      </Box>
-                      <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: '0.82rem', lineHeight: 1.45 }}>
-                        {q.bestAnswer}
-                      </Typography>
-                    </Paper>
+
+                        {/* Recent Replies Thread */}
+                        {q.replies && q.replies.length > 1 && (
+                          <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #a5d6a7' }}>
+                            {q.replies.slice(-2).map((rep) => (
+                              <Box key={rep.id || rep._id} sx={{ mb: 0.6, fontSize: '0.74rem', color: '#1b5e20' }}>
+                                <strong>{rep.author}</strong> ({rep.role || 'किसान भाई'}): {rep.text}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                      </Paper>
+
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        startIcon={<ReplyIcon sx={{ fontSize: 16 }} />}
+                        onClick={() => {
+                          setSelectedQuestionForReply(q);
+                          setReplyForm({
+                            author: activeFarmer?.name || '',
+                            role: 'किसान भाई',
+                            text: ''
+                          });
+                          setOpenReplyModal(true);
+                        }}
+                        sx={{
+                          color: '#1b5e20',
+                          borderColor: '#a5d6a7',
+                          fontSize: '0.74rem',
+                          fontWeight: 800,
+                          borderRadius: 2,
+                          py: 0.3,
+                          textTransform: 'none',
+                          '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
+                        }}
+                      >
+                        💬 अपना समाधान / उत्तर लिखें
+                      </Button>
+                    </Box>
                   </CardContent>
                 </Card>
               </Grid>
@@ -518,9 +705,26 @@ export const ChaupalTab = () => {
         <Box>
           <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                📖 मेरी फसल डायरी (My Farm Diary)
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3 }}>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
+                  📖 मेरी फसल डायरी (My Farm Diary)
+                </Typography>
+                {isDiaryCloudSynced ? (
+                  <Chip
+                    icon={<CloudDoneIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
+                    label="क्लाउड सुरक्षित"
+                    size="small"
+                    sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+                  />
+                ) : (
+                  <Chip
+                    icon={<CloudOffIcon sx={{ fontSize: '13px !important', color: '#64748b' }} />}
+                    label="लोकल ऑफ़लाइन"
+                    size="small"
+                    sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+                  />
+                )}
+              </Box>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
                 अपनी फसलें दर्ज करें और सिंचाई व खाद का रिमाइंडर पाएं
               </Typography>
@@ -652,6 +856,14 @@ export const ChaupalTab = () => {
                             बुआई तिथि: <strong>{item.sowDate}</strong> • वर्तमान अवस्था: {item.stage}
                           </Typography>
                         </Box>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleDeleteDiaryEntry(item.id)}
+                          sx={{ color: '#94a3b8', '&:hover': { color: '#ef4444', bgcolor: '#fef2f2' } }}
+                          aria-label="हटाएं"
+                        >
+                          <DeleteIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
                       </Box>
 
                       <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#fffde7', border: '1px solid #fff59d', borderRadius: 2, mt: 'auto' }}>
@@ -744,6 +956,144 @@ export const ChaupalTab = () => {
           <Button onClick={() => setOpenDiaryModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
           <Button variant="contained" onClick={handleSaveDiary} sx={{ bgcolor: '#2e7d32', borderRadius: 2 }}>
             डायरी में जोड़ें
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Add Machinery Listing Dialog */}
+      <Dialog open={openAddMachineryModal} onClose={() => setOpenAddMachineryModal(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
+          🚜 अपनी मशीन किराए पर जोड़ें
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            label="मशीन / यंत्र का नाम *"
+            placeholder="उदा. स्वराज 744 FE + रोटावेटर या कृषि ड्रोन"
+            value={newMachine.title}
+            onChange={(e) => setNewMachine({ ...newMachine, title: e.target.value })}
+          />
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="यंत्र की श्रेणी *"
+            value={newMachine.category}
+            onChange={(e) => setNewMachine({ ...newMachine, category: e.target.value })}
+          >
+            <MenuItem value="जुताई एवं खेत तैयारी">जुताई एवं खेत तैयारी</MenuItem>
+            <MenuItem value="कटाई व थ्रेशिंग">कटाई व थ्रेशिंग</MenuItem>
+            <MenuItem value="आधुनिक छिड़काव तकनीक">आधुनिक छिड़काव तकनीक (ड्रोन)</MenuItem>
+            <MenuItem value="जल संरक्षण एवं लेवलिंग">जल संरक्षण एवं लेवलिंग</MenuItem>
+            <MenuItem value="सामान्य मशीनरी">सामान्य मशीनरी</MenuItem>
+          </TextField>
+          <TextField
+            fullWidth
+            size="small"
+            label="किराया दर *"
+            placeholder="उदा. ₹900 - ₹1,100 / घंटा या ₹350 / एकड़"
+            value={newMachine.rate}
+            onChange={(e) => setNewMachine({ ...newMachine, rate: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            size="small"
+            label="संचालक / मालिक का नाम"
+            value={newMachine.contactName}
+            onChange={(e) => setNewMachine({ ...newMachine, contactName: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            size="small"
+            label="मोबाइल नंबर (10 अंक) *"
+            type="tel"
+            value={newMachine.phone}
+            onChange={(e) => setNewMachine({ ...newMachine, phone: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            size="small"
+            label="स्थान / ब्लॉक / तहसील"
+            value={newMachine.location}
+            onChange={(e) => setNewMachine({ ...newMachine, location: e.target.value })}
+          />
+          <TextField
+            fullWidth
+            size="small"
+            label="विशेषताएं (कॉमा से अलग करें)"
+            placeholder="उदा. गहरी जुताई, 10 मिनट में छिड़काव, स्ट्रॉ रीपर"
+            value={newMachine.features}
+            onChange={(e) => setNewMachine({ ...newMachine, features: e.target.value })}
+          />
+          <FormControlLabel
+            control={
+              <Switch
+                checked={newMachine.operatorIncluded}
+                onChange={(e) => setNewMachine({ ...newMachine, operatorIncluded: e.target.checked })}
+                color="success"
+              />
+            }
+            label={newMachine.operatorIncluded ? '✅ चालक (ऑपरेटर) सहित' : 'केवल मशीन (स्वयं चलाएं)'}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenAddMachineryModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
+          <Button variant="contained" onClick={handlePostMachinery} sx={{ bgcolor: '#1b5e20', borderRadius: 2 }}>
+            मशीन जोड़ें
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Reply to Community Question Dialog */}
+      <Dialog open={openReplyModal} onClose={() => setOpenReplyModal(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
+          💬 चौपाल में समाधान / उत्तर लिखें
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+          {selectedQuestionForReply && (
+            <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 2 }}>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
+                सवाल ({selectedQuestionForReply.crop}):
+              </Typography>
+              <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
+                {selectedQuestionForReply.question}
+              </Typography>
+            </Paper>
+          )}
+          <TextField
+            fullWidth
+            size="small"
+            label="आपका नाम"
+            value={replyForm.author}
+            onChange={(e) => setReplyForm({ ...replyForm, author: e.target.value })}
+          />
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="आपकी भूमिका (Role)"
+            value={replyForm.role}
+            onChange={(e) => setReplyForm({ ...replyForm, role: e.target.value })}
+          >
+            <MenuItem value="किसान भाई">किसान भाई (Farmer)</MenuItem>
+            <MenuItem value="कृषि वैज्ञानिक / विशेषज्ञ">कृषि वैज्ञानिक / विशेषज्ञ (Scientist)</MenuItem>
+            <MenuItem value="समिति प्रबंधक / RAEO">समिति प्रबंधक / RAEO</MenuItem>
+          </TextField>
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            label="आपका अनुभव व वैज्ञानिक समाधान *"
+            placeholder="विस्तार से उपाय, दवा का नाम, मात्रा व सावधानी लिखें..."
+            value={replyForm.text}
+            onChange={(e) => setReplyForm({ ...replyForm, text: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setOpenReplyModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
+          <Button variant="contained" onClick={handlePostReply} sx={{ bgcolor: '#1b5e20', borderRadius: 2 }}>
+            उत्तर भेजें
           </Button>
         </DialogActions>
       </Dialog>

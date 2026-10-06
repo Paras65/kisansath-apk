@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.8',
+  appVersion: env.VITE_APP_VERSION || '1.0.9',
   defaultLang: env.VITE_DEFAULT_LANG || 'hi',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -17,6 +17,10 @@ export const appConfig = {
   apkDownloadUrl:
     env.VITE_APK_DOWNLOAD_URL ||
     'https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk',
+  webPortalUrl:
+    env.VITE_WEB_PORTAL_URL ||
+    env.VITE_APP_HOST ||
+    'https://kisan.init65.co.in',
   twaPackageId: env.VITE_TWA_PACKAGE_ID || 'in.co.init65.kisan',
 
   // 2. Helpline & Contacts

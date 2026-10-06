@@ -257,6 +257,22 @@ export const getMachinery = async () => {
   return await fetchModuleWithCache('/machinery', 'machinery');
 };
 
+export const postMachinery = async (payload) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/machinery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[Machinery Post Offline]', err);
+  }
+  return null;
+};
+
 // 7. Community Q&A
 export const getCommunityQA = async () => {
   return await fetchModuleWithCache('/community-qa', 'community_qa');
@@ -274,6 +290,22 @@ export const postCommunityQuestion = async (payload) => {
     }
   } catch (err) {
     console.warn('[Community QA Post Offline]', err);
+  }
+  return null;
+};
+
+export const postCommunityReply = async (questionId, payload) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/community-qa/${questionId}/reply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[Community QA Reply Offline]', err);
   }
   return null;
 };

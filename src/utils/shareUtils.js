@@ -3,16 +3,47 @@
 import { appConfig } from '../config/appConfig';
 
 /**
+ * Resolves the canonical, publicly accessible Web Portal URL.
+ * Strictly prevents internal/development schemes (localhost, 127.0.0.1, capacitor://,
+ * local dev ports, file://, or Android WebView origins) from leaking into shared messages.
+ */
+export const getCanonicalWebUrl = () => {
+  const fallbackUrl = appConfig.webPortalUrl || appConfig.host || 'https://kisan.init65.co.in';
+  if (typeof window === 'undefined') return fallbackUrl;
+
+  try {
+    const origin = (window.location.origin || '').trim();
+    if (!origin) return fallbackUrl;
+
+    const lower = origin.toLowerCase();
+    const isInternal =
+      lower.includes('localhost') ||
+      lower.includes('127.0.0.1') ||
+      lower.includes('0.0.0.0') ||
+      lower.includes('capacitor://') ||
+      lower.startsWith('file:') ||
+      lower.includes(':5173') ||
+      lower.includes(':3000') ||
+      lower.includes(':8080') ||
+      lower.includes(':4173') ||
+      lower.includes('192.168.') ||
+      lower.includes('10.0.') ||
+      lower.includes('172.16.');
+
+    return isInternal ? fallbackUrl : origin;
+  } catch {
+    return fallbackUrl;
+  }
+};
+
+/**
  * ऐप के सम्पूर्ण समाधान और लेबल्ड लिंक्स के साथ सुव्यवस्थित संदेश तैयार करता है
  */
 export const getShareDetails = () => {
   const apkUrl =
     appConfig.apkDownloadUrl ||
     'https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk';
-  const webUrl =
-    typeof window !== 'undefined' && window.location.origin
-      ? window.location.origin
-      : 'https://kisan.init65.co.in';
+  const webUrl = getCanonicalWebUrl();
 
   const solutions = [
     '🧪 सटीक खाद कैलकुलेटर (यूरिया, DAP, पोटाश की सही मात्रा व खर्च बचत)',

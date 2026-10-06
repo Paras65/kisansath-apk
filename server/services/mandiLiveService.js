@@ -4,6 +4,7 @@
 // Automatically pulls live Agmarknet / APMC market rates for Chhattisgarh and caches in MongoDB.
 
 import MandiRate from '../models/MandiRate.js';
+import { externalApisConfig } from '../config/externalApis.js';
 
 // Cache validity window: 6 hours (Mandi rates are published once or twice daily during trading hours)
 const MANDI_CACHE_WINDOW_MS = 6 * 60 * 60 * 1000;
@@ -100,24 +101,26 @@ const sanitizeMandiRate = (item) => {
  * 100% legal under Government Open Data License (GODL) - India (Gazette Notified 13 Feb 2017).
  * Handles State Spelling Variations ('Chattisgarh' & 'Chhattisgarh').
  */
+/**
+ * Tier 0: Direct Official data.gov.in (OGD Platform India) Agmarknet Live Mandi API
+ * 100% legal under Government Open Data License (GODL) - India (Gazette Notified 13 Feb 2017).
+ * Zero-Code Environment Driven: Base URL, Resource ID, Limit, Timeout read from externalApisConfig.
+ */
 const fetchFromDataGovIn = async () => {
-  const apiKey =
-    process.env.DATA_GOV_IN_API_KEY ||
-    process.env.OGD_API_KEY ||
-    process.env.VITE_DATA_GOV_IN_API_KEY;
+  const { baseUrl, resourceId, apiKey, limit, timeoutMs, stateVariants } = externalApisConfig.mandi;
 
-  if (!apiKey) return null;
-
-  // Dual spelling check: OGD India datasets vary between Chattisgarh and Chhattisgarh
-  const stateVariants = ['Chattisgarh', 'Chhattisgarh'];
+  if (!apiKey) {
+    console.warn('[MandiLiveService Diagnostic] DATA_GOV_IN_API_KEY is not configured in .env. Skipping Tier 0.');
+    return null;
+  }
 
   for (const stateName of stateVariants) {
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 6000);
-      const resourceId = process.env.DATA_GOV_IN_RESOURCE_ID || '9ef84268-d588-465a-a308-a864a43d0070';
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
       const stateFilter = encodeURIComponent(stateName);
-      const url = `https://api.data.gov.in/resource/${resourceId}?api-key=${apiKey}&format=json&filters%5Bstate%5D=${stateFilter}&limit=60`;
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+      const url = `${cleanBase}${resourceId}?api-key=${apiKey}&format=json&filters%5Bstate%5D=${stateFilter}&limit=${limit}`;
 
       const res = await fetch(url, {
         signal: controller.signal,
@@ -149,9 +152,21 @@ const fetchFromDataGovIn = async () => {
             return cleaned;
           }
         }
+      } else {
+        if (res.status === 401 || res.status === 403) {
+          console.warn(`[MandiLiveService Diagnostic] HTTP ${res.status} on data.gov.in. Solution: Update DATA_GOV_IN_API_KEY in .env.`);
+        } else if (res.status === 404) {
+          console.warn(`[MandiLiveService Diagnostic] HTTP 404 Resource Not Found. Solution: Update DATA_GOV_IN_RESOURCE_ID in .env.`);
+        } else {
+          console.warn(`[MandiLiveService Diagnostic] HTTP ${res.status} received from data.gov.in.`);
+        }
       }
     } catch (err) {
-      console.warn(`[MandiLiveService] data.gov.in live fetch error for state ${stateName}:`, err.message);
+      if (err.name === 'AbortError') {
+        console.warn(`[MandiLiveService Diagnostic] Timeout after ${timeoutMs}ms on data.gov.in for state ${stateName}. Solution: Increase MANDI_API_TIMEOUT_MS in .env.`);
+      } else {
+        console.warn(`[MandiLiveService] data.gov.in live fetch error for state ${stateName}:`, err.message);
+      }
     }
   }
 
@@ -162,11 +177,14 @@ const fetchFromDataGovIn = async () => {
  * Tier 1: Attempt to query public open community mandi feeds
  */
 const fetchFromPublicMandiFeed = async () => {
+  const { backupMirrorUrl, timeoutMs } = externalApisConfig.mandi;
+  if (!backupMirrorUrl) return null;
+
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 4000);
+    const timeout = setTimeout(() => controller.abort(), Math.min(timeoutMs, 5000));
 
-    const res = await fetch('https://mandi-api.onrender.com/api/mandis?state=Chhattisgarh', {
+    const res = await fetch(backupMirrorUrl, {
       signal: controller.signal,
       headers: { 'Accept': 'application/json' }
     });

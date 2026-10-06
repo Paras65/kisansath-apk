@@ -254,3 +254,106 @@ export const togglePlotTask = async (phone, plotId, taskId) => {
 
   return updated;
 };
+
+// 8. Farm Diary Cloud Sync Functions
+export const getFarmerDiary = async (phone) => {
+  const cleanPhone = (phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+  const cacheKey = cleanPhone ? `kisan_farm_diary_${cleanPhone}` : 'kisan_farm_diary';
+
+  // Network First
+  if (cleanPhone) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/farmer/diary/${cleanPhone}`, {
+        headers: { ...getAuthHeaders() },
+      });
+      if (res.ok) {
+        const diary = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(diary));
+        localStorage.setItem('kisan_farm_diary', JSON.stringify(diary));
+        return { data: diary, isCloudSynced: true };
+      }
+    } catch (err) {
+      console.warn('[Get Diary Offline]', err.message);
+    }
+  }
+
+  // Offline Local Cache
+  try {
+    const raw = localStorage.getItem(cacheKey) || localStorage.getItem('kisan_farm_diary');
+    if (raw) {
+      return { data: JSON.parse(raw), isCloudSynced: false };
+    }
+  } catch {}
+
+  return { data: [], isCloudSynced: false };
+};
+
+export const saveFarmerDiaryEntry = async (phone, entry) => {
+  const cleanPhone = (phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+  const cacheKey = cleanPhone ? `kisan_farm_diary_${cleanPhone}` : 'kisan_farm_diary';
+
+  // Optimistic local update
+  let localEntries = [];
+  try {
+    const raw = localStorage.getItem(cacheKey) || localStorage.getItem('kisan_farm_diary');
+    if (raw) localEntries = JSON.parse(raw);
+  } catch {}
+
+  const updatedLocally = [entry, ...localEntries.filter((e) => e.id !== entry.id)];
+  localStorage.setItem(cacheKey, JSON.stringify(updatedLocally));
+  localStorage.setItem('kisan_farm_diary', JSON.stringify(updatedLocally));
+
+  if (cleanPhone) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/farmer/diary/${cleanPhone}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify(entry),
+      });
+      if (res.ok) {
+        const serverDiary = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(serverDiary));
+        localStorage.setItem('kisan_farm_diary', JSON.stringify(serverDiary));
+        return { data: serverDiary, isCloudSynced: true };
+      }
+    } catch (err) {
+      console.warn('[Save Diary Offline]', err.message);
+    }
+  }
+
+  return { data: updatedLocally, isCloudSynced: false };
+};
+
+export const deleteFarmerDiaryEntry = async (phone, entryId) => {
+  const cleanPhone = (phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+  const cacheKey = cleanPhone ? `kisan_farm_diary_${cleanPhone}` : 'kisan_farm_diary';
+
+  let localEntries = [];
+  try {
+    const raw = localStorage.getItem(cacheKey) || localStorage.getItem('kisan_farm_diary');
+    if (raw) localEntries = JSON.parse(raw);
+  } catch {}
+
+  const filtered = localEntries.filter((e) => e.id !== entryId);
+  localStorage.setItem(cacheKey, JSON.stringify(filtered));
+  localStorage.setItem('kisan_farm_diary', JSON.stringify(filtered));
+
+  if (cleanPhone) {
+    try {
+      const res = await fetch(`${API_BASE_URL}/farmer/diary/${cleanPhone}/${entryId}`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeaders() },
+      });
+      if (res.ok) {
+        const serverDiary = await res.json();
+        localStorage.setItem(cacheKey, JSON.stringify(serverDiary));
+        localStorage.setItem('kisan_farm_diary', JSON.stringify(serverDiary));
+        return { data: serverDiary, isCloudSynced: true };
+      }
+    } catch (err) {
+      console.warn('[Delete Diary Offline]', err.message);
+    }
+  }
+
+  return { data: filtered, isCloudSynced: false };
+};

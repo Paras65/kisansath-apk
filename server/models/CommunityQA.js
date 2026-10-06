@@ -9,6 +9,15 @@ const communityQASchema = new mongoose.Schema(
     question: { type: String, required: true },
     answersCount: { type: Number, default: 0 },
     bestAnswer: { type: String },
+    replies: [
+      {
+        id: { type: String, required: true },
+        author: { type: String, required: true },
+        role: { type: String, default: 'किसान भाई' },
+        text: { type: String, required: true },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );

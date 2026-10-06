@@ -13,6 +13,7 @@ import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
 import { diagnoseWithGeminiVision } from '../services/geminiVisionService.js';
 import { getOrFetchLiveMandiRates } from '../services/mandiLiveService.js';
+import { externalApisConfig } from '../config/externalApis.js';
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 
@@ -77,7 +78,7 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.8';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.9';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
@@ -251,10 +252,59 @@ router.get('/schemes', async (req, res) => {
 // 6. Machinery Rentals
 router.get('/machinery', async (req, res) => {
   try {
-    const machinery = await MachineryRental.find().select('-__v').limit(50).lean();
+    const machinery = await MachineryRental.find().select('-__v').sort({ createdAt: -1 }).limit(50).lean();
     res.json(machinery);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch machinery listings' });
+  }
+});
+
+router.post('/machinery', async (req, res) => {
+  try {
+    const { title, category, rate, operatorIncluded, contactName, phone, location, features } = req.body;
+    const cleanTitle = sanitize(title, 100);
+    const cleanCategory = sanitize(category || 'सामान्य मशीनरी', 60);
+    const cleanRate = sanitize(rate, 60);
+    const cleanContact = sanitize(contactName || 'मशीन मालिक', 80);
+    const cleanLocation = sanitize(location || 'छत्तीसगढ़', 100);
+    const cleanPhone = (phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+
+    if (!cleanTitle || !cleanRate) {
+      return res.status(400).json({ error: 'मशीन का नाम और किराया दर अनिवार्य हैं।' });
+    }
+
+    if (!isValidIndianPhone(cleanPhone)) {
+      return res.status(400).json({ error: 'कृपया 10 अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें।' });
+    }
+
+    // Rate limiting: 10 per minute per IP
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`machinery-post:${clientIp}`, 10, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({ error: 'कृपया थोड़ा रुकें। प्रति मिनट अधिकतम 10 मशीनरी लिस्टिंग जोड़ी जा सकती हैं।' });
+    }
+
+    const cleanFeatures = Array.isArray(features)
+      ? features.map(f => sanitize(String(f), 80)).filter(Boolean).slice(0, 5)
+      : ['कुशल ऑपरेटर', 'समय पर सेवा'];
+
+    const newMachinery = new MachineryRental({
+      id: `mach-${Date.now()}`,
+      title: cleanTitle,
+      category: cleanCategory,
+      rate: cleanRate,
+      operatorIncluded: Boolean(operatorIncluded),
+      contactName: cleanContact,
+      phone: cleanPhone,
+      location: cleanLocation,
+      features: cleanFeatures.length > 0 ? cleanFeatures : ['सत्यापित सेवा']
+    });
+
+    const saved = await newMachinery.save();
+    res.status(201).json(saved);
+  } catch (err) {
+    console.error('[Machinery Post Error]', err);
+    res.status(500).json({ error: 'मशीनरी लिस्टिंग सहेजने में समस्या आई।' });
   }
 });
 
@@ -288,12 +338,60 @@ router.post('/community-qa', async (req, res) => {
       question: cleanQuestion,
       answersCount: 1,
       bestAnswer: 'आपका प्रश्न चौपाल में दर्ज हो चुका है। कृषि वैज्ञानिक व साथी किसान जल्द समाधान देंगे।',
+      replies: [
+        {
+          id: `rep-${Date.now()}`,
+          author: 'किसान साथी सिस्टम',
+          role: 'कृषि सलाहकार',
+          text: 'आपका प्रश्न चौपाल में दर्ज हो चुका है। कृषि वैज्ञानिक व साथी किसान जल्द समाधान देंगे।',
+          createdAt: new Date()
+        }
+      ]
     });
 
     const saved = await newQA.save();
     res.status(201).json(saved);
   } catch (err) {
     res.status(500).json({ error: 'Failed to save question' });
+  }
+});
+
+// 7b. Reply to Community Question
+router.post('/community-qa/:id/reply', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { author, role, text } = req.body;
+    const cleanText = sanitize(text, 500);
+
+    if (!cleanText || cleanText.length < 3) {
+      return res.status(400).json({ error: 'कृपया कम से कम 3 अक्षरों का उत्तर / समाधान लिखें।' });
+    }
+
+    const cleanAuthor = sanitize(author || 'किसान साथी', 60);
+    const cleanRole = sanitize(role || 'किसान भाई', 40);
+
+    const qa = await CommunityQA.findOne({ id });
+    if (!qa) {
+      return res.status(404).json({ error: 'प्रश्न नहीं मिला।' });
+    }
+
+    if (!qa.replies) qa.replies = [];
+    const newReply = {
+      id: `rep-${Date.now()}`,
+      author: cleanAuthor,
+      role: cleanRole,
+      text: cleanText,
+      createdAt: new Date()
+    };
+    qa.replies.push(newReply);
+    qa.answersCount = qa.replies.length;
+    qa.bestAnswer = `${cleanText} — ${cleanAuthor} (${cleanRole})`;
+
+    await qa.save();
+    res.json(qa);
+  } catch (err) {
+    console.error('[Community Reply Error]', err);
+    res.status(500).json({ error: 'उत्तर सहेजने में समस्या आई।' });
   }
 });
 
@@ -512,6 +610,76 @@ router.post('/farmer/tasks/:phone', requireFarmerAuth, async (req, res) => {
     res.json({ plotId, completedTasks: plot.completedTasks });
   } catch (err) {
     res.status(500).json({ error: 'कार्य स्थिति अपडेट करने में असमर्थ।' });
+  }
+});
+
+// 13b. Farmer Farm Diary Cloud Sync APIs (Multi-tenant, cloud-persisted)
+router.get('/farmer/diary/:phone', requireFarmerAuth, async (req, res) => {
+  try {
+    const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+    const farmer = await FarmerProfile.findOne({ phone: cleanPhone }).select('farmDiary').lean();
+    if (!farmer) {
+      return res.status(404).json({ error: 'किसान खाता नहीं मिला।' });
+    }
+    res.json(farmer.farmDiary || []);
+  } catch (err) {
+    res.status(500).json({ error: 'डायरी डेटा लोड करने में असमर्थ।' });
+  }
+});
+
+router.post('/farmer/diary/:phone', requireFarmerAuth, async (req, res) => {
+  try {
+    const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+    const { cropName, areaAcres, sowDate, stage, nextAction } = req.body;
+
+    const farmer = await FarmerProfile.findOne({ phone: cleanPhone });
+    if (!farmer) {
+      return res.status(404).json({ error: 'किसान खाता नहीं मिला।' });
+    }
+
+    if (!farmer.farmDiary) farmer.farmDiary = [];
+    if (farmer.farmDiary.length >= 50) {
+      return res.status(400).json({ error: 'अधिकतम 50 फसल डायरी प्रविष्टियों की सीमा पूर्ण हो चुकी है।' });
+    }
+
+    const cleanCrop = sanitize(cropName || 'धान', 80);
+    const cleanArea = sanitize(String(areaAcres || '1'), 20);
+    const cleanDate = sowDate || new Date().toISOString().split('T')[0];
+
+    const newEntry = {
+      id: `diary-${Date.now()}`,
+      cropName: cleanCrop,
+      areaAcres: cleanArea,
+      sowDate: cleanDate,
+      stage: sanitize(stage || 'नर्सरी / प्रारंभिक वृद्धि', 100),
+      nextAction: sanitize(nextAction || 'समय पर सिंचाई व पोषण प्रबंधन', 200),
+      createdAt: new Date(),
+    };
+
+    farmer.farmDiary.unshift(newEntry);
+    await farmer.save();
+    res.status(201).json(farmer.farmDiary);
+  } catch (err) {
+    console.error('[Farmer Diary Save Error]', err);
+    res.status(500).json({ error: 'फसल डायरी प्रविष्टि सहेजने में असमर्थ।' });
+  }
+});
+
+router.delete('/farmer/diary/:phone/:entryId', requireFarmerAuth, async (req, res) => {
+  try {
+    const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
+    const { entryId } = req.params;
+
+    const farmer = await FarmerProfile.findOne({ phone: cleanPhone });
+    if (!farmer) {
+      return res.status(404).json({ error: 'किसान खाता नहीं मिला।' });
+    }
+
+    farmer.farmDiary = (farmer.farmDiary || []).filter((e) => e.id !== entryId);
+    await farmer.save();
+    res.json(farmer.farmDiary);
+  } catch (err) {
+    res.status(500).json({ error: 'डायरी प्रविष्टि हटाने में असमर्थ।' });
   }
 });
 
@@ -826,17 +994,18 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
     // 2. data.gov.in (OGD India / Agmarknet Mandi API)
     const checkDataGovIn = async () => {
       const t0 = Date.now();
-      const apiKey =
-        process.env.DATA_GOV_IN_API_KEY ||
-        process.env.OGD_API_KEY ||
-        process.env.VITE_DATA_GOV_IN_API_KEY;
+      const apiKey = externalApisConfig.mandi.apiKey;
+      let mandiHost = 'api.data.gov.in';
+      try {
+        mandiHost = new URL(externalApisConfig.mandi.baseUrl).hostname;
+      } catch {}
 
       if (!apiKey) {
         return {
           id: 'data_gov_in',
           name: 'data.gov.in (OGD India / Agmarknet)',
           category: 'मंडी दर API (Live Mandi Rates)',
-          target: 'api.data.gov.in',
+          target: mandiHost,
           status: 'not_configured',
           statusLabel: 'कुंजी अनुपलब्ध',
           latencyMs: 0,
@@ -847,9 +1016,12 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
 
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const resourceId = process.env.DATA_GOV_IN_RESOURCE_ID || '9ef84268-d588-465a-a308-a864a43d0070';
-        const url = `https://api.data.gov.in/resource/${resourceId}?api-key=${apiKey}&format=json&limit=1`;
+        const timeout = setTimeout(() => controller.abort(), Math.min(externalApisConfig.mandi.timeoutMs, 5000));
+        const resourceId = externalApisConfig.mandi.resourceId;
+        const base = externalApisConfig.mandi.baseUrl.endsWith('/')
+          ? externalApisConfig.mandi.baseUrl
+          : `${externalApisConfig.mandi.baseUrl}/`;
+        const url = `${base}${resourceId}?api-key=${apiKey}&format=json&limit=1`;
         const r = await fetch(url, {
           signal: controller.signal,
           headers: { Accept: 'application/json' },
@@ -862,7 +1034,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'data_gov_in',
             name: 'data.gov.in (OGD India / Agmarknet)',
             category: 'मंडी दर API (Live Mandi Rates)',
-            target: 'api.data.gov.in',
+            target: mandiHost,
             status: 'connected',
             statusLabel: 'सक्रिय (Live Mandi Stream)',
             latencyMs: lat,
@@ -875,7 +1047,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'data_gov_in',
             name: 'data.gov.in (OGD India / Agmarknet)',
             category: 'मंडी दर API (Live Mandi Rates)',
-            target: 'api.data.gov.in',
+            target: mandiHost,
             status: r.status === 401 || r.status === 403 ? 'degraded' : 'offline',
             statusLabel: r.status === 401 || r.status === 403 ? 'अमान्य कुंजी / कोटा' : `HTTP ${r.status}`,
             latencyMs: lat,
@@ -888,11 +1060,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           id: 'data_gov_in',
           name: 'data.gov.in (OGD India / Agmarknet)',
           category: 'मंडी दर API (Live Mandi Rates)',
-          target: 'api.data.gov.in',
+          target: mandiHost,
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -901,18 +1073,18 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
     // 3. Google Gemini Multimodal Vision AI
     const checkGeminiAi = async () => {
       const t0 = Date.now();
-      const apiKey =
-        process.env.GEMINI_API_KEY ||
-        process.env.VITE_GEMINI_API_KEY ||
-        process.env.VITE_AI_VISION_API_URL ||
-        process.env.GOOGLE_API_KEY;
+      const apiKey = externalApisConfig.gemini.apiKey;
+      let geminiHost = 'generativelanguage.googleapis.com';
+      try {
+        geminiHost = new URL(externalApisConfig.gemini.baseUrl).hostname;
+      } catch {}
 
       if (!apiKey) {
         return {
           id: 'gemini_ai',
           name: 'Google Gemini Multimodal AI',
           category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
-          target: 'generativelanguage.googleapis.com',
+          target: geminiHost,
           status: 'not_configured',
           statusLabel: 'कुंजी अनुपलब्ध',
           latencyMs: 0,
@@ -923,8 +1095,8 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
 
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}&pageSize=1`;
+        const timeout = setTimeout(() => controller.abort(), Math.min(externalApisConfig.gemini.timeoutMs, 5000));
+        const url = `${externalApisConfig.gemini.baseUrl}?key=${apiKey}&pageSize=1`;
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
         const lat = Date.now() - t0;
@@ -934,11 +1106,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'gemini_ai',
             name: 'Google Gemini Multimodal AI',
             category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
-            target: 'generativelanguage.googleapis.com',
+            target: geminiHost,
             status: 'connected',
             statusLabel: 'सक्रिय (Gemini Ready)',
             latencyMs: lat,
-            message: 'AI विज़न पादप रोग निदान मॉडल सुचारु रूप से कनेक्टेड है',
+            message: `AI विज़न पादप रोग निदान मॉडल सुचारु रूप से कनेक्टेड है (मॉडल श्रृंखला: ${externalApisConfig.gemini.models.slice(0, 2).join(', ')})`,
             lastChecked: new Date().toISOString(),
           };
         } else {
@@ -946,7 +1118,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'gemini_ai',
             name: 'Google Gemini Multimodal AI',
             category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
-            target: 'generativelanguage.googleapis.com',
+            target: geminiHost,
             status: r.status === 400 || r.status === 403 ? 'degraded' : 'offline',
             statusLabel: `HTTP ${r.status}`,
             latencyMs: lat,
@@ -959,11 +1131,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           id: 'gemini_ai',
           name: 'Google Gemini Multimodal AI',
           category: 'फसल डॉक्टर विज़न AI (Crop Doctor)',
-          target: 'generativelanguage.googleapis.com',
+          target: geminiHost,
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -972,10 +1144,15 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
     // 4. Open-Meteo Weather API
     const checkWeather = async () => {
       const t0 = Date.now();
+      let weatherHost = 'api.open-meteo.com';
+      try {
+        weatherHost = new URL(externalApisConfig.weather.baseUrl).hostname;
+      } catch {}
+
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-        const url = 'https://api.open-meteo.com/v1/forecast?latitude=21.25&longitude=81.63&current_weather=true';
+        const timeout = setTimeout(() => controller.abort(), Math.min(externalApisConfig.weather.timeoutMs, 5000));
+        const url = `${externalApisConfig.weather.baseUrl}?latitude=21.25&longitude=81.63&current_weather=true`;
         const r = await fetch(url, { signal: controller.signal });
         clearTimeout(timeout);
         const lat = Date.now() - t0;
@@ -985,7 +1162,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'open_meteo',
             name: 'Open-Meteo Weather API',
             category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
-            target: 'api.open-meteo.com',
+            target: weatherHost,
             status: 'connected',
             statusLabel: 'सक्रिय (Live Satellite)',
             latencyMs: lat,
@@ -997,7 +1174,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'open_meteo',
             name: 'Open-Meteo Weather API',
             category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
-            target: 'api.open-meteo.com',
+            target: weatherHost,
             status: 'degraded',
             statusLabel: `HTTP ${r.status}`,
             latencyMs: lat,
@@ -1010,11 +1187,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           id: 'open_meteo',
           name: 'Open-Meteo Weather API',
           category: 'मौसम व वर्षा पूर्वानुमान (Weather Service)',
-          target: 'api.open-meteo.com',
+          target: weatherHost,
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'समय समाप्त (>4s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -1068,11 +1245,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
       }
     };
 
-    const agristackUrl = process.env.VITE_PORTAL_AGRISTACK_URL || 'https://cgfr.agristack.gov.in/';
-    const bhuiyanUrl = process.env.VITE_PORTAL_BHUIYAN_URL || 'https://bhuiyan.cg.nic.in/';
-    const khadyaUrl = process.env.VITE_PORTAL_TOKEN_URL || 'http://khadya.cg.nic.in/';
-    const pmkisanUrl = process.env.VITE_PORTAL_PMKISAN_URL || 'https://pmkisan.gov.in/';
-    const credaUrl = process.env.VITE_PORTAL_CREDA_URL || 'https://creda.cgstate.gov.in/';
+    const agristackUrl = externalApisConfig.portals.agristack;
+    const bhuiyanUrl = externalApisConfig.portals.bhuiyan;
+    const khadyaUrl = externalApisConfig.portals.khadya;
+    const pmkisanUrl = externalApisConfig.portals.pmkisan;
+    const credaUrl = externalApisConfig.portals.creda;
 
     const checkPromises = [
       checkMongo(),
@@ -1122,6 +1299,134 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ error: 'एपीआई स्वास्थ्य जांच निष्पादित करने में विफल।' });
+  }
+});
+
+// 13. Super Admin External APIs Configuration & Live Debugging Inspector
+router.get('/admin/external-config', requireAdminAuth, async (req, res) => {
+  try {
+    const maskKey = (key) => {
+      if (!key) return 'अनुपलब्ध (Not Configured)';
+      if (key.length <= 8) return '****';
+      return `${key.slice(0, 4)}...${key.slice(-4)}`;
+    };
+
+    res.json({
+      success: true,
+      timestamp: new Date().toISOString(),
+      config: {
+        mandi: {
+          name: 'data.gov.in (OGD Agmarknet Mandi Rates)',
+          baseUrl: externalApisConfig.mandi.baseUrl,
+          resourceId: externalApisConfig.mandi.resourceId,
+          apiKeyMasked: maskKey(externalApisConfig.mandi.apiKey),
+          isKeyConfigured: !!externalApisConfig.mandi.apiKey,
+          limit: externalApisConfig.mandi.limit,
+          timeoutMs: externalApisConfig.mandi.timeoutMs,
+          backupMirrorUrl: externalApisConfig.mandi.backupMirrorUrl,
+          stateVariants: externalApisConfig.mandi.stateVariants,
+          envKeys: {
+            baseUrl: 'MANDI_API_BASE_URL',
+            resourceId: 'DATA_GOV_IN_RESOURCE_ID',
+            apiKey: 'DATA_GOV_IN_API_KEY',
+            limit: 'MANDI_API_LIMIT',
+            timeoutMs: 'MANDI_API_TIMEOUT_MS',
+            stateVariants: 'MANDI_STATE_VARIANTS',
+            backupMirrorUrl: 'MANDI_BACKUP_MIRROR_URL',
+          },
+          troubleshooting: [
+            {
+              issue: 'HTTP 401 / 403 (Invalid API Key)',
+              cause: 'data.gov.in API key अमान्य या समाप्त हो गई है',
+              action: '.env में DATA_GOV_IN_API_KEY अपडेट करें',
+            },
+            {
+              issue: 'HTTP 404 (Resource Not Found)',
+              cause: 'OGD India ने Agmarknet कैटलॉग का रिसोर्स ID बदल दिया है',
+              action: 'data.gov.in से नया ID लेकर .env में DATA_GOV_IN_RESOURCE_ID अपडेट करें',
+            },
+            {
+              issue: 'Request Timeout (>8s)',
+              cause: 'सरकारी OGD सर्वर पर अत्यधिक लोड या स्लो रिस्पांस',
+              action: '.env में MANDI_API_TIMEOUT_MS बढ़ाएं या स्वतः बैकअप मिरर सक्रिय रहेगा',
+            },
+          ],
+        },
+        gemini: {
+          name: 'Google Gemini Multimodal AI (Crop Doctor)',
+          baseUrl: externalApisConfig.gemini.baseUrl,
+          apiKeyMasked: maskKey(externalApisConfig.gemini.apiKey),
+          isKeyConfigured: !!externalApisConfig.gemini.apiKey,
+          models: externalApisConfig.gemini.models,
+          timeoutMs: externalApisConfig.gemini.timeoutMs,
+          temperature: externalApisConfig.gemini.temperature,
+          envKeys: {
+            baseUrl: 'GEMINI_API_BASE_URL',
+            apiKey: 'GEMINI_API_KEY',
+            models: 'GEMINI_MODELS',
+            timeoutMs: 'GEMINI_API_TIMEOUT_MS',
+            temperature: 'GEMINI_TEMPERATURE',
+          },
+          troubleshooting: [
+            {
+              issue: 'HTTP 429 (Resource Exhausted / Rate Limit)',
+              cause: 'दैनिक या प्रति मिनट API कोटा समाप्त हो गया है',
+              action: 'सिस्टम स्वतः अगले मॉडल पर स्विच करेगा। आवश्यकतानुसार नई GEMINI_API_KEY डालें',
+            },
+            {
+              issue: 'HTTP 404 (Model Not Found / Retired)',
+              cause: 'गूगल ने मॉडल संस्करण रिटायर कर दिया है (उदा. 1.5 -> 2.5)',
+              action: '.env में GEMINI_MODELS बदलें (उदा. gemini-2.5-flash,gemini-2.5-flash-lite)',
+            },
+            {
+              issue: 'Cold Start / Timeout (>16s)',
+              cause: 'धीमे मोबाइल नेटवर्क पर हाई-रेज़ोल्यूशन फोटो अपलोड',
+              action: '.env में GEMINI_API_TIMEOUT_MS को 20000ms तक बढ़ा सकते हैं',
+            },
+          ],
+        },
+        weather: {
+          name: 'Open-Meteo Satellite Weather API',
+          baseUrl: externalApisConfig.weather.baseUrl,
+          timeoutMs: externalApisConfig.weather.timeoutMs,
+          envKeys: {
+            baseUrl: 'WEATHER_API_BASE_URL',
+            timeoutMs: 'WEATHER_API_TIMEOUT_MS',
+          },
+          troubleshooting: [
+            {
+              issue: 'HTTP 429 / Blocked',
+              cause: 'Open-Meteo फ्री टियर कॉल लिमिट (10,000 कॉल/दिन)',
+              action: 'क्लाइंट-साइड 15-मिनट कैशे लागू है, सर्वर पर WEATHER_API_TIMEOUT_MS जांचें',
+            },
+          ],
+        },
+        portals: {
+          name: 'External Government Portals',
+          agristack: externalApisConfig.portals.agristack,
+          bhuiyan: externalApisConfig.portals.bhuiyan,
+          khadya: externalApisConfig.portals.khadya,
+          pmkisan: externalApisConfig.portals.pmkisan,
+          creda: externalApisConfig.portals.creda,
+          envKeys: {
+            agristack: 'VITE_PORTAL_AGRISTACK_URL',
+            bhuiyan: 'VITE_PORTAL_BHUIYAN_URL',
+            khadya: 'VITE_PORTAL_TOKEN_URL',
+            pmkisan: 'VITE_PORTAL_PMKISAN_URL',
+            creda: 'VITE_PORTAL_CREDA_URL',
+          },
+          troubleshooting: [
+            {
+              issue: 'सरकारी पोर्टल लिंक बदल गया या डोमेन अपडेट हुआ',
+              cause: 'विभाग द्वारा नया URL या सुरक्षा रीडायरेक्ट लागू किया गया',
+              action: '.env में संबंधित VITE_PORTAL_* चर को अपडेट करें (कोड में कोई बदलाव नहीं चाहिए)',
+            },
+          ],
+        },
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'बाह्य एपीआई कॉन्फ़िगरेशन प्राप्त करने में विफल।' });
   }
 });
 

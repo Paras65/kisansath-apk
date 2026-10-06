@@ -30,6 +30,9 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -50,8 +53,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import MenuIcon from '@mui/icons-material/Menu';
-import CloseIcon from '@mui/icons-material/Close';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import ShieldIcon from '@mui/icons-material/Shield';
 import SpeedIcon from '@mui/icons-material/Speed';
 import DnsIcon from '@mui/icons-material/Dns';
@@ -59,6 +60,9 @@ import PublicIcon from '@mui/icons-material/Public';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ErrorOutlineIcon from '@mui/icons-material/Error';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import TuneIcon from '@mui/icons-material/Tune';
+import BuildCircleIcon from '@mui/icons-material/BuildCircle';
 
 import {
   isAdminLoggedIn,
@@ -73,6 +77,7 @@ import {
   deleteCommunityQA,
   resetAdminInactivityTimer,
   checkAllApisHealth,
+  getAdminExternalConfig,
 } from '../services/adminService';
 import { getMarketplaceListings, getCommunityQA } from '../services/apiService';
 import { notify } from '../services/notificationService';
@@ -111,6 +116,7 @@ export const AdminPortal = ({ onExit }) => {
   const [apiHealth, setApiHealth] = useState(null);
   const [checkingApis, setCheckingApis] = useState(false);
   const [apiFilter, setApiFilter] = useState('all');
+  const [externalConfig, setExternalConfig] = useState(null);
 
   // New broadcast form state
   const [newBroadcast, setNewBroadcast] = useState({
@@ -266,8 +272,14 @@ export const AdminPortal = ({ onExit }) => {
   const handleCheckApiHealth = useCallback(async () => {
     setCheckingApis(true);
     try {
-      const data = await checkAllApisHealth();
+      const [data, configData] = await Promise.all([
+        checkAllApisHealth(),
+        getAdminExternalConfig(),
+      ]);
       setApiHealth(data);
+      if (configData?.config) {
+        setExternalConfig(configData.config);
+      }
       if (data?.overallStatus === 'optimal') {
         notify.success('सभी एक्सटर्नल एपीआई एवं सेवाएं पूर्णतः सक्रिय हैं!');
       } else if (data?.overallStatus === 'degraded' || (data?.summary?.offline || 0) > 0) {
@@ -677,10 +689,10 @@ export const AdminPortal = ({ onExit }) => {
                         कुल पंजीकृत किसान
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e3a8a', mt: 0.5 }}>
-                        {stats?.totalFarmers || '1,248'}
+                        {stats?.totalFarmers !== undefined && stats?.totalFarmers !== null ? stats.totalFarmers : (stats?.isOffline ? '—' : 0)}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#3b82f6' }}>
-                        +14 आज नए
+                        {stats?.isOffline ? 'सर्वर ऑफ़लाइन' : 'सत्यापित खाते'}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -693,10 +705,10 @@ export const AdminPortal = ({ onExit }) => {
                         कुल दर्ज रकबा (एकड़)
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 900, color: '#14532d', mt: 0.5 }}>
-                        {stats?.totalAcres || '4,820'}
+                        {stats?.totalAcres !== undefined && stats?.totalAcres !== null ? stats.totalAcres : (stats?.isOffline ? '—' : 0)}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#22c55e' }}>
-                        94% धान/खरीफ
+                        {stats?.isOffline ? 'डेटाबेस डिस्कनेक्टेड' : 'लाइव पंजीकृत खेत'}
                       </Typography>
                     </CardContent>
                   </Card>
@@ -709,7 +721,7 @@ export const AdminPortal = ({ onExit }) => {
                         सक्रिय मंडी लिस्टिंग
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 900, color: '#78350f', mt: 0.5 }}>
-                        {listings.length || '38'}
+                        {listings ? listings.length : 0}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#f59e0b' }}>
                         सीधी खेत बिक्री
@@ -725,7 +737,7 @@ export const AdminPortal = ({ onExit }) => {
                         सक्रिय आपातकालीन अलर्ट
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 900, color: '#7f1d1d', mt: 0.5 }}>
-                        {broadcasts.length || '3'}
+                        {broadcasts ? broadcasts.length : 0}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#ef4444' }}>
                         कीट व मौसम चेतावनी
@@ -741,7 +753,7 @@ export const AdminPortal = ({ onExit }) => {
                         चौपाल चर्चा व रेंटल
                       </Typography>
                       <Typography variant="h4" sx={{ fontWeight: 900, color: '#581c87', mt: 0.5 }}>
-                        {qaList.length || '82'}
+                        {qaList ? qaList.length : 0}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#a855f7' }}>
                         सक्रिय संवाद
@@ -1560,6 +1572,365 @@ export const AdminPortal = ({ onExit }) => {
                       </TableBody>
                     </Table>
                   </TableContainer>
+                </Paper>
+              </Grid>
+
+              {/* ========================================================
+                  EXTERNAL API CONFIGURATION & HOT-PATCHING GUIDE
+                  ======================================================== */}
+              <Grid item xs={12}>
+                <Paper
+                  sx={{
+                    p: 3,
+                    borderRadius: 3.5,
+                    border: '1px solid #cbd5e1',
+                    bgcolor: '#ffffff',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: 2,
+                          bgcolor: '#f0fdf4',
+                          border: '1px solid #bbf7d0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <TuneIcon sx={{ color: '#16a34a', fontSize: 22 }} />
+                      </Box>
+                      <Box>
+                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                          ⚡ बाह्य API डायनामिक कॉन्फ़िगरेशन व लाइव समस्या निवारण (Zero-Hardcoding Guide)
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#64748b' }}>
+                          मंडी, जेमिनी विज़न AI, मौसम व सरकारी पोर्टल्स के एंडपॉइंट, मॉडल कैस्केड व टाइमआउट बिना कोड बदले सीधे .env से प्रबंधित होते हैं।
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Chip
+                      icon={<BuildCircleIcon sx={{ fontSize: '15px !important' }} />}
+                      label="ज़ीरो-हार्डकोडिंग आर्किटेक्चर सक्रिय"
+                      size="small"
+                      sx={{ bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 800, fontSize: '0.72rem' }}
+                    />
+                  </Box>
+
+                  <Grid container spacing={2}>
+                    {/* Mandi API Card */}
+                    <Grid item xs={12} md={6}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2.2,
+                          borderRadius: 2.5,
+                          borderColor: '#e2e8f0',
+                          bgcolor: '#f8fafc',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                              🌾 Agmarknet मंडी दर API (data.gov.in)
+                            </Typography>
+                            <Chip
+                              label={externalConfig?.mandi?.isKeyConfigured ? '🟢 कुंजी सक्रिय' : '🟡 मानक संदर्भ मोड'}
+                              size="small"
+                              sx={{
+                                fontWeight: 800,
+                                fontSize: '0.68rem',
+                                bgcolor: externalConfig?.mandi?.isKeyConfigured ? '#dcfce7' : '#fef3c7',
+                                color: externalConfig?.mandi?.isKeyConfigured ? '#15803d' : '#b45309',
+                              }}
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>API कुंजी स्थिति:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                                {externalConfig?.mandi?.apiKeyMasked || '****'}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>Resource ID:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0369a1' }}>
+                                {externalConfig?.mandi?.resourceId || '9ef84268...0070'}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>टाइमआउट / लिमिट:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155' }}>
+                                {externalConfig?.mandi?.timeoutMs || 8000} ms / {externalConfig?.mandi?.limit || 60} रिकॉर्ड्स
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>बैकअप मिरर:</Typography>
+                              <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700 }}>
+                                Render Cloud Mirror (स्वतः सक्रिय)
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        <Accordion disableGutters elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '8px !important', '&:before': { display: 'none' } }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 36, py: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369a1' }}>
+                              🛠️ त्रुटि समाधान व डिबगिंग निर्देश (.env)
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 0, pb: 1.5 }}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155', mb: 0.5 }}>
+                              • <strong>HTTP 401/403:</strong> <code>DATA_GOV_IN_API_KEY</code> को <code>.env</code> में बदलें।
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155', mb: 0.5 }}>
+                              • <strong>HTTP 404 (कैटलॉग बदला):</strong> <code>DATA_GOV_IN_RESOURCE_ID</code> में नया ID डालें।
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155' }}>
+                              • <strong>धीमा सर्वर:</strong> <code>MANDI_API_TIMEOUT_MS=12000</code> करें, विफल होने पर बैकअप मिरर दरें देगा।
+                            </Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Paper>
+                    </Grid>
+
+                    {/* Gemini AI Card */}
+                    <Grid item xs={12} md={6}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2.2,
+                          borderRadius: 2.5,
+                          borderColor: '#e2e8f0',
+                          bgcolor: '#f8fafc',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                              🤖 Google Gemini विज़न AI (फसल डॉक्टर)
+                            </Typography>
+                            <Chip
+                              label={externalConfig?.gemini?.isKeyConfigured ? '🟢 विज़न AI सक्रिय' : '🟡 लक्षण गाइड मोड'}
+                              size="small"
+                              sx={{
+                                fontWeight: 800,
+                                fontSize: '0.68rem',
+                                bgcolor: externalConfig?.gemini?.isKeyConfigured ? '#f3e8ff' : '#fef3c7',
+                                color: externalConfig?.gemini?.isKeyConfigured ? '#7e22ce' : '#b45309',
+                              }}
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>मॉडल कैस्केड (Fallback):</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#7c3aed' }}>
+                                {(externalConfig?.gemini?.models || ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash']).join(' ➔ ')}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>API कुंजी स्थिति:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                                {externalConfig?.gemini?.apiKeyMasked || '****'}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>टाइमआउट / टेम्परेचर:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155' }}>
+                                {externalConfig?.gemini?.timeoutMs || 16000} ms / {externalConfig?.gemini?.temperature ?? 0.15}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>ऑटो-रिकवरी:</Typography>
+                              <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700 }}>
+                                429/404 पर अगले मॉडल पर स्वतः स्विच
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        <Accordion disableGutters elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '8px !important', '&:before': { display: 'none' } }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 36, py: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#7c3aed' }}>
+                              🛠️ त्रुटि समाधान व डिबगिंग निर्देश (.env)
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 0, pb: 1.5 }}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155', mb: 0.5 }}>
+                              • <strong>HTTP 429 (कोटा समाप्त):</strong> <code>GEMINI_API_KEY</code> में नई कुंजी डालें; प्रणाली स्वतः बैकअप मॉडल आज़माती है।
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155', mb: 0.5 }}>
+                              • <strong>HTTP 404 (मॉडल रिटायर):</strong> <code>GEMINI_MODELS=gemini-2.5-flash,gemini-2.5-flash-lite</code> अपडेट करें।
+                            </Typography>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155' }}>
+                              • <strong>धीमा फोटो अपलोड:</strong> <code>GEMINI_API_TIMEOUT_MS=20000</code> तक बढ़ा सकते हैं।
+                            </Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Paper>
+                    </Grid>
+
+                    {/* Weather & Portals Card */}
+                    <Grid item xs={12} md={6}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2.2,
+                          borderRadius: 2.5,
+                          borderColor: '#e2e8f0',
+                          bgcolor: '#f8fafc',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                              🌦️ Open-Meteo मौसम व वर्षा पूर्वानुमान
+                            </Typography>
+                            <Chip
+                              label="🟢 लाइव सैटेलाइट"
+                              size="small"
+                              sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: '#e0f2fe', color: '#0369a1' }}
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>एंडपॉइंट Base:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                                api.open-meteo.com
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>टाइमआउट / कैशे नीति:</Typography>
+                              <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155' }}>
+                                {externalConfig?.weather?.timeoutMs || 5000} ms / 15-मिनट ब्राउज़र कैशे
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>पर्यावरण चर (.env):</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0284c7' }}>
+                                WEATHER_API_BASE_URL
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        <Accordion disableGutters elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '8px !important', '&:before': { display: 'none' } }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 36, py: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#0284c7' }}>
+                              🛠️ त्रुटि समाधान व डिबगिंग निर्देश (.env)
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 0, pb: 1.5 }}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155' }}>
+                              • <strong>रेट लिमिट / ब्लॉक:</strong> ओपन-मीटियो में प्रति दिन 10,000 फ्री कॉल की सीमा है। यदि दर सीमित हो, तो <code>WEATHER_API_BASE_URL</code> में वैकल्पिक मौसम प्रदाता URL दर्ज करें।
+                            </Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Paper>
+                    </Grid>
+
+                    {/* Government Portals Gateway Card */}
+                    <Grid item xs={12} md={6}>
+                      <Paper
+                        variant="outlined"
+                        sx={{
+                          p: 2.2,
+                          borderRadius: 2.5,
+                          borderColor: '#e2e8f0',
+                          bgcolor: '#f8fafc',
+                          height: '100%',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                              🏛️ सरकारी कृषि पोर्टल्स गेटवे (Gov Portals)
+                            </Typography>
+                            <Chip
+                              label="🟢 5/5 पोर्टल्स लिंक"
+                              size="small"
+                              sx={{ fontWeight: 800, fontSize: '0.68rem', bgcolor: '#f0fdf4', color: '#166534' }}
+                            />
+                          </Box>
+
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.6, mb: 1.5 }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>एग्री-स्टैक / भुइयां:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                                cgfr.agristack.gov.in / bhuiyan.cg.nic.in
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>खाद्य / पीएम-किसान / क्रेडा:</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#0f172a' }}>
+                                khadya.cg.nic.in / pmkisan / creda
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600 }}>पर्यावरण चर (.env):</Typography>
+                              <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: '#166534' }}>
+                                VITE_PORTAL_*_URL
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+
+                        <Accordion disableGutters elevation={0} sx={{ border: '1px solid #e2e8f0', borderRadius: '8px !important', '&:before': { display: 'none' } }}>
+                          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />} sx={{ minHeight: 36, py: 0.5 }}>
+                            <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534' }}>
+                              🛠️ त्रुटि समाधान व डिबगिंग निर्देश (.env)
+                            </Typography>
+                          </AccordionSummary>
+                          <AccordionDetails sx={{ pt: 0, pb: 1.5 }}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#334155' }}>
+                              • <strong>पोर्टल डोमेन परिवर्तन:</strong> यदि विभाग नया URL जारी करता है, तो बिना कोड बदले केवल <code>.env</code> में <code>VITE_PORTAL_AGRISTACK_URL</code> या संबंधित चर अपडेट करें।
+                            </Typography>
+                          </AccordionDetails>
+                        </Accordion>
+                      </Paper>
+                    </Grid>
+                  </Grid>
+
+                  {/* Hot-Patching Summary Banner */}
+                  <Box
+                    sx={{
+                      mt: 2.5,
+                      p: 1.8,
+                      borderRadius: 2.5,
+                      bgcolor: '#f0fdf4',
+                      border: '1px solid #bbf7d0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                    }}
+                  >
+                    <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 24, flexShrink: 0 }} />
+                    <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, lineHeight: 1.5 }}>
+                      <strong>हॉट-पैचिंग नियम (Zero Code Change):</strong> किसी भी बाह्य API में एंडपॉइंट, मॉडल या कुंजी बदलने के लिए कोड में कोई संपादन न करें। सीधे <code>.env</code> फ़ाइल में मान अपडेट करें और सर्वर पुनः लोड करें — किसान ऐप निर्बाध गति से कार्य करता रहेगा।
+                    </Typography>
+                  </Box>
                 </Paper>
               </Grid>
 

@@ -102,6 +102,24 @@ const FarmerProfileSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    farmDiary: {
+      type: [
+        new mongoose.Schema({
+          id: { type: String, required: true },
+          cropName: { type: String, required: true, trim: true },
+          areaAcres: { type: String, required: true },
+          sowDate: { type: String, required: true },
+          stage: { type: String, default: 'नर्सरी / प्रारंभिक वृद्धि' },
+          nextAction: { type: String, default: '' },
+          createdAt: { type: Date, default: Date.now },
+        })
+      ],
+      validate: [
+        (val) => val.length <= 50,
+        'अधिकतम 50 फसल डायरी प्रविष्टियां ही रखी जा सकती हैं',
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,
