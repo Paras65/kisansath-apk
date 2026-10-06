@@ -145,7 +145,10 @@ export const ShareModal = ({ open, onClose }) => {
                   📲 Android App (APK डाउनलोड लिंक)
                 </Typography>
               </Box>
-              <Chip label="1.5 MB" size="small" sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }} />
+              <Box sx={{ display: 'flex', gap: 0.6, alignItems: 'center' }}>
+                <Chip label={`v${appConfig.appVersion}`} size="small" sx={{ height: 20, fontSize: '0.66rem', fontWeight: 800, bgcolor: '#e8f5e9', color: '#1b5e20' }} />
+                <Chip label="1.5 MB" size="small" sx={{ height: 20, fontSize: '0.66rem', fontWeight: 700 }} />
+              </Box>
             </Box>
             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1, fontSize: '0.72rem' }}>
               फ़ोन में सीधे इंस्टॉल करने हेतु (ऑफ़लाइन सपोर्ट, इंटरनेट के बिना भी चालू)

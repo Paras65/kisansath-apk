@@ -154,6 +154,34 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
         isLive: true,
       };
 
+      // 3-Day Micro-Forecast for Farmers
+      parsedWeather.forecast3Days = [
+        {
+          day: 'आज (Today)',
+          tempMax: tempMax,
+          tempMin: tempMin,
+          rainProb: rainProbability,
+          icon: wmoInfo.icon,
+          condition: wmoInfo.text,
+        },
+        {
+          day: 'कल (Tomorrow)',
+          tempMax: daily.temperature_2m_max?.[1] ? Math.round(daily.temperature_2m_max[1]) : tempMax + 1,
+          tempMin: daily.temperature_2m_min?.[1] ? Math.round(daily.temperature_2m_min[1]) : tempMin,
+          rainProb: daily.precipitation_probability_max?.[1] ?? Math.max(0, rainProbability - 5),
+          icon: WMO_CODE_MAP[daily.weather_code?.[1]]?.icon || '⛅',
+          condition: WMO_CODE_MAP[daily.weather_code?.[1]]?.text || 'धूप व बादल',
+        },
+        {
+          day: 'परसों (Day 3)',
+          tempMax: daily.temperature_2m_max?.[2] ? Math.round(daily.temperature_2m_max[2]) : tempMax,
+          tempMin: daily.temperature_2m_min?.[2] ? Math.round(daily.temperature_2m_min[2]) : tempMin - 1,
+          rainProb: daily.precipitation_probability_max?.[2] ?? Math.max(0, rainProbability - 10),
+          icon: WMO_CODE_MAP[daily.weather_code?.[2]]?.icon || '🌤️',
+          condition: WMO_CODE_MAP[daily.weather_code?.[2]]?.text || 'मुख्यतः साफ',
+        }
+      ];
+
       // Attach advisory
       parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
 
@@ -192,6 +220,11 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     conditionName: 'Sunny',
     updatedAt: 'ऑफ़लाइन सुरक्षित डेटा',
     isLive: false,
+    forecast3Days: [
+      { day: 'आज (Today)', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप' },
+      { day: 'कल (Tomorrow)', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल' },
+      { day: 'परसों (Day 3)', tempMax: 33, tempMin: 23, rainProb: 20, icon: '🌤️', condition: 'मुख्यतः साफ' }
+    ]
   };
   defaultWeather.sprayAdvisory = getSprayAdvisory(defaultWeather);
   return defaultWeather;

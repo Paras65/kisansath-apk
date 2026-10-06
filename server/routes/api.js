@@ -26,6 +26,18 @@ const isValidIndianPhone = (phone) => {
   return /^[6-9]\d{9}$/.test(cleanPhone);
 };
 
+// 0. App Version Check (Rate-limit free In-App Update Engine)
+router.get('/version', (req, res) => {
+  res.json({
+    version: process.env.APP_VERSION || '1.0.0',
+    minSupportedVersion: '1.0.0',
+    apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || 'https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk',
+    releaseName: 'किसान साथी v1.0.0',
+    releaseNotes: 'संतुलित 4+4 टूल्स ग्रिड, 3-दिवसीय मौसम पूर्वानुमान, और लाइव मंडी पल्स।',
+    updatedAt: new Date().toISOString()
+  });
+});
+
 // 1. Crops (Scalable lean query with projection)
 router.get('/crops', async (req, res) => {
   try {
