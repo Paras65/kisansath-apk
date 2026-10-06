@@ -43,6 +43,7 @@ import { isWebBluetoothSupported, generateSimulatedSoilData } from '../utils/blu
 import { getGsmActionUri, getMotorTelemetry } from '../utils/motorControllerService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
+import { openNativeDialer, openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
 
 export const DeviceHubModal = ({
   open,
@@ -120,11 +121,7 @@ export const DeviceHubModal = ({
     });
     setRegistry(updated);
 
-    try {
-      if ('vibrate' in navigator) navigator.vibrate(nextState ? [100, 50, 100] : [200]);
-    } catch {
-      // ignore
-    }
+    vibrateDevice(nextState ? 100 : 200);
 
     if (nextState) {
       speakText('बोरवेल मोटर चालू कर दी गई है। 3-फेज बिजली सक्रिय है।');
@@ -475,7 +472,7 @@ export const DeviceHubModal = ({
                   <Button
                     variant="contained"
                     startIcon={<PhoneInTalkIcon />}
-                    onClick={() => { window.location.href = `tel:${starterPhoneInput}`; }}
+                    onClick={() => { openNativeDialer(starterPhoneInput); }}
                     sx={{ bgcolor: '#1b5e20', fontSize: '0.76rem', fontWeight: 800, borderRadius: '8px' }}
                   >
                     📞 कॉल करके चालू/बंद करें
@@ -483,7 +480,11 @@ export const DeviceHubModal = ({
                   <Button
                     variant="outlined"
                     startIcon={<SmsIcon />}
-                    onClick={() => { window.location.href = getGsmActionUri(starterPhoneInput, isMotorOn ? 'OFF' : 'ON', starterPinInput); }}
+                    onClick={() => {
+                      const prefix = starterPinInput ? `${starterPinInput} ` : '';
+                      const body = isMotorOn ? `${prefix}STOP` : `${prefix}START`;
+                      openNativeSms(starterPhoneInput, body);
+                    }}
                     sx={{ borderColor: '#0288d1', color: '#0288d1', fontSize: '0.76rem', fontWeight: 800, borderRadius: '8px' }}
                   >
                     💬 सुरक्षित SMS भेजें ({starterPinInput ? `${starterPinInput} ` : ''}{isMotorOn ? 'STOP' : 'START'})

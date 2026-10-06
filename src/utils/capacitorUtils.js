@@ -20,6 +20,14 @@ export const isNativePlatform = () => {
 export const openNativeDialer = (phone) => {
   if (!phone) return;
   const clean = phone.replace(/[^0-9+]/g, '');
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.openDialer === 'function') {
+    try {
+      window.AndroidBridge.openDialer(clean);
+      return;
+    } catch (e) {
+      console.warn('[Dialer] AndroidBridge fallback:', e);
+    }
+  }
   window.location.href = `tel:${clean}`;
 };
 
@@ -28,9 +36,70 @@ export const openNativeDialer = (phone) => {
  */
 export const openNativeSms = (phone, body = '') => {
   const clean = (phone || '').replace(/[^0-9+]/g, '');
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.openSms === 'function') {
+    try {
+      window.AndroidBridge.openSms(clean, body);
+      return;
+    } catch (e) {
+      console.warn('[SMS] AndroidBridge fallback:', e);
+    }
+  }
   const encoded = encodeURIComponent(body);
   const uri = clean ? `sms:${clean}?body=${encoded}` : `sms:?body=${encoded}`;
   window.location.href = uri;
+};
+
+/**
+ * Safely open WhatsApp with phone and pre-filled message
+ */
+export const openNativeWhatsApp = (phone, message = '') => {
+  const clean = (phone || '').replace(/[^0-9]/g, '');
+  const cleanPhone = clean.length === 10 ? `91${clean}` : clean;
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.openWhatsApp === 'function') {
+    try {
+      window.AndroidBridge.openWhatsApp(cleanPhone, message);
+      return;
+    } catch (e) {
+      console.warn('[WhatsApp] AndroidBridge fallback:', e);
+    }
+  }
+  const encoded = encodeURIComponent(message);
+  const url = cleanPhone ? `https://wa.me/${cleanPhone}?text=${encoded}` : `https://wa.me/?text=${encoded}`;
+  window.open(url, '_blank');
+};
+
+/**
+ * Native hardware vibration / haptic feedback
+ */
+export const vibrateDevice = (ms = 100) => {
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.vibrate === 'function') {
+    try {
+      window.AndroidBridge.vibrate(ms);
+      return;
+    } catch (e) {
+      // fallback
+    }
+  }
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try {
+      navigator.vibrate(ms);
+    } catch (e) {
+      // ignore
+    }
+  }
+};
+
+/**
+ * Keep screen on during field walk tracking
+ */
+export const setNativeKeepScreenOn = (keepOn = true) => {
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.setKeepScreenOn === 'function') {
+    try {
+      window.AndroidBridge.setKeepScreenOn(keepOn);
+    } catch (e) {
+      // ignore
+    }
+  }
 };
 
 /**

@@ -41,6 +41,7 @@ import {
 import { validateIndianPhone, updateDevice } from '../services/deviceManagerService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
+import { openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
 
 export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   const [config, setConfig] = useState(getStoredMotorConfig());
@@ -73,9 +74,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
     saveMotorConfig(updatedConfig);
     updateDevice('motor', { status: nextState ? 'ON' : 'OFF' });
 
-    if ('vibrate' in navigator) {
-      try { navigator.vibrate(nextState ? [100, 50, 100] : [200]); } catch (e) {}
-    }
+    vibrateDevice(nextState ? 100 : 200);
 
     if (nextState) {
       const msg = `बोरवेल मोटर चालू कर दी गई है। 3-फेज 415 वोल्ट बिजली सक्रिय है। टाइमर ${timerSelected} मिनट सेट है।`;
@@ -100,8 +99,9 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
       notify.warning(text);
       return;
     }
-    const uri = getGsmActionUri(config.starterPhone, action, config.pin || '1234');
-    window.location.href = uri;
+    const prefix = config.pin ? `${config.pin} ` : '';
+    const body = action === 'ON' ? `${prefix}START` : action === 'OFF' ? `${prefix}STOP` : `${prefix}STATUS`;
+    openNativeSms(config.starterPhone, body);
     handleToggleMotor(action === 'ON');
   };
 

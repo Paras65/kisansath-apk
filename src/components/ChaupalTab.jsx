@@ -34,6 +34,7 @@ import { getMachinery, getCommunityQA, postCommunityQuestion } from '../services
 import { generateAndPrintKccReport } from '../utils/printReportHelper';
 import { getActiveFarmer } from '../services/farmerService';
 import { MeraKhetModal } from './MeraKhetModal';
+import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
 export const ChaupalTab = () => {
   const [subTab, setSubTab] = useState(0);
@@ -259,8 +260,8 @@ export const ChaupalTab = () => {
                             size="small"
                             startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
                             onClick={() => {
-                              const msg = encodeURIComponent(`नमस्ते ${item.contactName} जी, मुझे आपकी मशीनरी (${item.title} - ${item.rate}) किराए पर चाहिए। क्या यह उपलब्ध है?`);
-                              window.open(`https://wa.me/91${item.phone}?text=${msg}`, '_blank');
+                              const msg = `नमस्ते ${item.contactName} जी, मुझे आपकी मशीनरी (${item.title} - ${item.rate}) किराए पर चाहिए। क्या यह उपलब्ध है?`;
+                              openNativeWhatsApp(item.phone, msg);
                             }}
                             sx={{
                               borderColor: '#25D366',
@@ -279,7 +280,7 @@ export const ChaupalTab = () => {
                             variant="contained"
                             size="small"
                             startIcon={<CallIcon />}
-                            onClick={() => { window.location.href = `tel:${item.phone}`; }}
+                            onClick={() => { openNativeDialer(item.phone); }}
                             sx={{
                               bgcolor: '#1b5e20',
                               color: '#ffffff',

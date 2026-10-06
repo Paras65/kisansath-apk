@@ -36,6 +36,7 @@ import {
   calculateDistanceMeters
 } from '../utils/geoUtils';
 import { speakText, stopSpeech } from '../utils/speech';
+import { vibrateDevice, setNativeKeepScreenOn } from '../utils/capacitorUtils';
 
 export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'खेत' }) => {
   const [trackingState, setTrackingState] = useState('idle'); // 'idle' | 'tracking' | 'paused' | 'completed'
@@ -51,23 +52,27 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
 
   // Screen Wake Lock API ताकि किसान जब खेत की मेड़ पर चले तो स्क्रीन बंद न हो
   const requestWakeLock = async () => {
+    setNativeKeepScreenOn(true);
     try {
       if ('wakeLock' in navigator) {
         wakeLockRef.current = await navigator.wakeLock.request('screen');
         setWakeLockActive(true);
+      } else {
+        setWakeLockActive(true);
       }
     } catch (err) {
       console.warn('Wake Lock not supported or rejected:', err);
-      setWakeLockActive(false);
+      setWakeLockActive(true);
     }
   };
 
   const releaseWakeLock = () => {
+    setNativeKeepScreenOn(false);
     if (wakeLockRef.current) {
       wakeLockRef.current.release().catch(() => {});
       wakeLockRef.current = null;
-      setWakeLockActive(false);
     }
+    setWakeLockActive(false);
   };
 
   // Cleanup on unmount or close
@@ -114,20 +119,27 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
           const dist = calculateDistanceMeters(lastPoint.lat, lastPoint.lng, latitude, longitude);
           // Only record if moved at least 2 meters to avoid duplicate noise
           if (dist >= 2.0) {
-            if ('vibrate' in navigator) navigator.vibrate(60);
+            vibrateDevice(60);
             return [...prev, { lat: latitude, lng: longitude, time: Date.now() }];
           }
           return prev;
         });
       },
       (err) => {
-        console.error('[GPS Error]', err);
-        setGpsError('GPS सिग्नल प्राप्त करने में समस्या: ' + (err.message || 'स्थान अनुमति की जांच करें'));
+        console.warn('[GPS Error]', err);
+        if (err.code === 3) {
+          // Timeout: satellite lock in progress
+          setGpsError('उपग्रह सिग्नल खोज रहे हैं... कृपया खुले आसमान के नीचे रहें।');
+        } else if (err.code === 1) {
+          setGpsError('स्थान (Location) अनुमति बंद है। कृपया फोन सेटिंग्स में लोकेशन ऑन करें।');
+        } else {
+          setGpsError('GPS सिग्नल प्राप्त करने में समस्या: ' + (err.message || 'स्थान अनुमति की जांच करें'));
+        }
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
+        timeout: 25000,
+        maximumAge: 3000
       }
     );
   };
@@ -161,6 +173,11 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
   const finishTracking = () => {
     stopTracking();
     setTrackingState('completed');
+    if (points.length < 3) {
+      setGpsError('रकबा निकालने के लिए कम से कम 3 कोनों (मेड़ों) पर चलना आवश्यक है। कृपया चारों मेड़ों पर चक्कर पूरा करें।');
+      speakText('रकबा नापने के लिए कम से कम 3 कोनों की आवश्यकता है। कृपया चारों मेड़ों पर चलकर दोबारा प्रयास करें।');
+      return;
+    }
     const area = calculatePolygonArea(points);
     const voiceMsg = `खेत सीमा मापन पूर्ण हुआ। आपके खेत का कुल रकबा ${area.acres} एकड़ यानि ${area.dismil} डिसमिल है। कुल मेड़ की लंबाई ${calculatePerimeter(points).meters} मीटर है।`;
     speakText(voiceMsg);

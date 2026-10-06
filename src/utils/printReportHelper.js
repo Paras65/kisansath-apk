@@ -116,6 +116,17 @@ export const generateAndPrintKccReport = ({
     </html>
   `;
 
+  // Tier 0: Direct Native Android PrintManager via AndroidBridge
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.printDocument === 'function') {
+    try {
+      window.AndroidBridge.printDocument(`Kisan_Saathi_KCC_${farmerName}`, htmlContent);
+      return;
+    } catch (e) {
+      console.warn('[Print] AndroidBridge printDocument fallback:', e);
+    }
+  }
+
+  // Tier 1: Web Browser Popup Print
   const printWindow = window.open('', '_blank');
   if (printWindow) {
     printWindow.document.open();

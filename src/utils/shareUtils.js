@@ -96,6 +96,17 @@ export const copyShareText = async (customText = null) => {
 export const shareApp = async () => {
   const { title, text, apkUrl } = getShareDetails();
 
+  // Tier 0: Direct Native Android OS Share Sheet via AndroidBridge
+  if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.shareText === 'function') {
+    try {
+      window.AndroidBridge.shareText(title, text);
+      return true;
+    } catch (e) {
+      console.warn('[Share] AndroidBridge shareText fallback:', e);
+    }
+  }
+
+  // Tier 1: Modern Web Share API
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({
@@ -113,7 +124,7 @@ export const shareApp = async () => {
     }
   }
 
-  // Fallback to WhatsApp
+  // Tier 2: Direct WhatsApp Share
   shareOnWhatsApp();
   return true;
 };

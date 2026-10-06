@@ -142,8 +142,40 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        setUploadedImage(reader.result);
+      reader.onload = (loadEvent) => {
+        const rawDataUrl = loadEvent.target?.result;
+        if (!rawDataUrl) return;
+
+        // Downsample large camera photos client-side to prevent OutOfMemory crashes on budget Android phones
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1200;
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            setUploadedImage(canvas.toDataURL('image/jpeg', 0.82));
+          } else {
+            setUploadedImage(rawDataUrl);
+          }
+        };
+        img.onerror = () => {
+          setUploadedImage(rawDataUrl);
+        };
+        img.src = rawDataUrl;
+
         setAnalyzing(true);
         setAiReport(null);
 
@@ -172,6 +204,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       };
       reader.readAsDataURL(file);
     }
+    // Reset file input value so user can re-trigger capture with same or new photo
+    if (e.target) e.target.value = '';
   };
 
   const handleResetScan = () => {

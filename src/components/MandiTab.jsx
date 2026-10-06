@@ -30,6 +30,7 @@ import { appConfig } from '../config/appConfig';
 import { getMandiRates, getMarketplaceListings, postMarketplaceListing } from '../services/apiService';
 import { notify } from '../services/notificationService';
 import { validateIndianPhone } from '../services/deviceManagerService';
+import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
 export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -527,8 +528,8 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     size="small"
                     startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
                     onClick={() => {
-                      const msg = encodeURIComponent(`नमस्ते ${listing.farmerName} भाई, मैंने किसान साथी ऐप पर आपकी फसल (${listing.crop} - ${listing.quantity}) का विज्ञापन देखा। क्या यह उपलब्ध है?`);
-                      window.open(`https://wa.me/91${listing.phone}?text=${msg}`, '_blank');
+                      const msg = `नमस्ते ${listing.farmerName} भाई, मैंने किसान साथी ऐप पर आपकी फसल (${listing.crop} - ${listing.quantity}) का विज्ञापन देखा। क्या यह उपलब्ध है?`;
+                      openNativeWhatsApp(listing.phone, msg);
                     }}
                     sx={{
                       borderColor: '#25D366',
@@ -547,7 +548,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     variant="contained"
                     size="small"
                     startIcon={<CallIcon />}
-                    onClick={() => { window.location.href = `tel:${listing.phone}`; }}
+                    onClick={() => { openNativeDialer(listing.phone); }}
                     sx={{
                       bgcolor: '#1b5e20',
                       color: '#ffffff',

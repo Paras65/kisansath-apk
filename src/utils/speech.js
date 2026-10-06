@@ -119,6 +119,13 @@ const stopWatchdog = () => {
  * Immediately stop speech across all engines (Audio stream & Web Speech)
  */
 export const stopSpeech = () => {
+  // 0. Stop Native Android APK TTS
+  if (typeof window !== 'undefined' && window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
+    try {
+      window.AndroidTTS.stop();
+    } catch (e) {}
+  }
+
   // 1. Stop Audio Stream Queue
   isAudioQueueActive = false;
   audioQueue = [];
@@ -292,7 +299,31 @@ export const speakText = (text, onEndCallback) => {
 
   currentText = text;
 
-  // 1. If online: Use crystal-clear Google Hindi TTS Audio Stream (100% works in Android APK WebView)
+  // TIER 0: NATIVE ANDROID HARDWARE TTS (100% Native OS Engine for Android APK)
+  if (typeof window !== 'undefined' && window.AndroidTTS && typeof window.AndroidTTS.speak === 'function') {
+    try {
+      window.AndroidTTS.speak(clean);
+      speakingState = true;
+      notifyListeners();
+
+      // Estimated duration for UI voice animation
+      const durationMs = Math.max(2500, Math.min(30000, (clean.length / 13) * 1000));
+      setTimeout(() => {
+        if (speakingState && (currentText === text || currentText === clean)) {
+          speakingState = false;
+          currentText = null;
+          notifyListeners();
+          if (onEndCallback) onEndCallback();
+        }
+      }, durationMs);
+
+      return true;
+    } catch (err) {
+      console.warn('[Speech] AndroidTTS bridge failed, falling back to audio stream:', err);
+    }
+  }
+
+  // 1. If online: Use crystal-clear Google Hindi TTS Audio Stream (PWA & Web)
   const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
   if (isOnline) {
     const chunks = splitTextIntoChunks(clean);
@@ -313,7 +344,10 @@ export const speakText = (text, onEndCallback) => {
       const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(nextChunk)}&tl=hi&client=tw-ob`;
 
       try {
-        const audio = new Audio(url);
+        const audio = new Audio();
+        audio.referrerPolicy = 'no-referrer';
+        audio.crossOrigin = 'anonymous';
+        audio.src = url;
         currentAudio = audio;
         audio.playbackRate = 1.0;
 
