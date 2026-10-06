@@ -1,8 +1,8 @@
 {
-  "version": "1.0.5",
+  "version": "1.0.11",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.5",
-  "releaseNotes": "Android Native कंपाइलेशन सुधार, Dual Sticky नेविगेशन (शीर्ष व निचला मेनू) एवं शून्य हॉरिजॉन्टल स्क्रॉल ड्रॉपडाउन आर्किटेक्चर।",
+  "releaseName": "किसान साथी v1.0.11",
+  "releaseNotes": "2-टैब प्रीमियम किसान पंजीयन व सीधा लॉगिन, 6-अंक डाक पिन कोड से लाइव इंडिया पोस्ट API द्वारा गांव की स्वतः खोज और आधुनिक कृषि सेवा इंटरफ़ेस।",
   "updatedAt": "2026-10-06"
 }
