@@ -255,7 +255,7 @@ function App() {
             mx: 'auto',
             px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
             py: { xs: 1.5, sm: 2.5, md: 3.5 },
-            pb: { xs: 11, md: 5 } // generous padding on mobile so bottom bar never obscures content
+            pb: { xs: 11, md: 10 } // generous padding so bottom bar never obscures content on mobile or desktop
           }}
         >
           <ErrorBoundary key={currentTab} onReset={() => handleTabChange('home')}>
@@ -367,24 +367,24 @@ function App() {
           </Box>
         </Box>
 
-        {/* Mobile-Only Android/iOS Native Bottom Navigation Bar (Hidden on desktop md and up) */}
+        {/* Universal Sticky Bottom Navigation Bar (Always Visible Across All Mobile & Desktop Screens) */}
         <Paper
           sx={{
-            display: { xs: 'block', md: 'none' },
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
             width: '100%',
             zIndex: 1200,
-            bgcolor: 'rgba(255, 255, 255, 0.94)',
+            bgcolor: 'rgba(255, 255, 255, 0.96)',
             backdropFilter: 'blur(16px)',
             borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.1)',
             pb: 'env(safe-area-inset-bottom, 0px)'
           }}
           elevation={4}
         >
+          <Box sx={{ maxWidth: { xs: '100%', md: 680 }, mx: 'auto', width: '100%' }}>
           <BottomNavigation
             value={currentTab}
             onChange={(e, newTab) => handleTabChange(newTab)}
@@ -448,6 +448,7 @@ function App() {
               icon={<ForumIcon sx={{ fontSize: 24 }} />}
             />
           </BottomNavigation>
+          </Box>
         </Paper>
 
         {/* Floating Global Stop Voice Button (बोलना बंद करें) */}
@@ -457,7 +458,7 @@ function App() {
             onClick={stopSpeech}
             sx={{
               position: 'fixed',
-              bottom: { xs: 74, md: 24 },
+              bottom: 74,
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 3000,

@@ -101,6 +101,7 @@ export const Header = ({
       position="sticky"
       elevation={0}
       sx={{
+        top: 0,
         bgcolor: 'rgba(19, 78, 25, 0.98)',
         backdropFilter: 'blur(14px)',
         borderBottom: '1px solid rgba(255,255,255,0.12)',

@@ -13,7 +13,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Paper
+  Paper,
+  MenuItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StorefrontIcon from '@mui/icons-material/Storefront';
@@ -257,59 +258,61 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </Button>
       </Paper>
 
-      {/* Filter Chips with District Priority */}
-      <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 1, mb: 1.5, scrollbarWidth: 'none' }}>
-        <Chip
-          label={`📍 केवल ${selectedDistrict}`}
-          clickable
-          color={districtFilterOnly ? 'success' : 'default'}
-          variant={districtFilterOnly ? 'filled' : 'outlined'}
-          onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
-          sx={{ fontWeight: 800, fontSize: '0.75rem', borderColor: '#2e7d32' }}
-        />
-        <Chip
-          label="सभी जिंसें"
-          clickable
-          color={selectedCropFilter === 'all' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('all')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-        <Chip
-          label="धान (Paddy)"
-          clickable
-          color={selectedCropFilter === 'धान' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('धान')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-        <Chip
-          label="चना (Gram)"
-          clickable
-          color={selectedCropFilter === 'चना' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('चना')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-        <Chip
-          label="सोयाबीन"
-          clickable
-          color={selectedCropFilter === 'सोयाबीन' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('सोयाबीन')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-        <Chip
-          label="मक्का"
-          clickable
-          color={selectedCropFilter === 'मक्का' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('मक्का')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-        <Chip
-          label="मिलेट्स / कोदो"
-          clickable
-          color={selectedCropFilter === 'कोदो' ? 'primary' : 'default'}
-          onClick={() => setSelectedCropFilter('कोदो')}
-          sx={{ fontWeight: 700, fontSize: '0.75rem' }}
-        />
-      </Box>
+      {/* Zero Horizontal Scroll Commodity Dropdown & District Filter */}
+      <Grid container spacing={1.5} sx={{ mb: 1.5 }} alignItems="center">
+        <Grid item xs={12} sm={6}>
+          <TextField
+            select
+            fullWidth
+            size="small"
+            label="🌾 फसल / जिंस चुनें (Commodity Filter)"
+            value={selectedCropFilter}
+            onChange={(e) => setSelectedCropFilter(e.target.value)}
+            sx={{
+              bgcolor: '#fff',
+              borderRadius: 2,
+              '& .MuiOutlinedInput-root': { borderRadius: 2 }
+            }}
+          >
+            <MenuItem value="all">🌾 सभी जिंसें (All Commodities)</MenuItem>
+            <MenuItem value="धान">🌾 धान (Paddy - ₹3,100 उपार्जन)</MenuItem>
+            <MenuItem value="चना">🟤 चना (Gram / Chickpea)</MenuItem>
+            <MenuItem value="सोयाबीन">🟡 सोयाबीन (Soybean)</MenuItem>
+            <MenuItem value="मक्का">🌽 मक्का (Maize)</MenuItem>
+            <MenuItem value="कोदो">🌾 मिलेट्स / कोदो-कुटकी</MenuItem>
+            <MenuItem value="गेहूं">🌾 गेहूं (Wheat)</MenuItem>
+            <MenuItem value="सरसों">🌻 सरसों / तिलहन</MenuItem>
+          </TextField>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Button
+            fullWidth
+            size="small"
+            variant={districtFilterOnly ? 'contained' : 'outlined'}
+            color={districtFilterOnly ? 'success' : 'inherit'}
+            onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
+            startIcon={<LocationOnIcon sx={{ fontSize: 18 }} />}
+            sx={{
+              py: 0.9,
+              borderRadius: 2,
+              fontWeight: 800,
+              fontSize: '0.78rem',
+              borderColor: districtFilterOnly ? '#2e7d32' : '#cbd5e1',
+              bgcolor: districtFilterOnly ? '#2e7d32' : '#fff',
+              color: districtFilterOnly ? '#fff' : '#334155',
+              textTransform: 'none',
+              '&:hover': {
+                bgcolor: districtFilterOnly ? '#1b5e20' : '#f8fafc',
+                borderColor: '#2e7d32'
+              }
+            }}
+          >
+            {districtFilterOnly
+              ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)`
+              : `📍 केवल ${selectedDistrict} की दरें देखें`}
+          </Button>
+        </Grid>
+      </Grid>
 
       {/* Search Input */}
       <TextField

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.4",
+  "version": "1.0.5",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.4",
-  "releaseNotes": "समर्पित कृषि प्रशासन पोर्टल, 2-कॉलम डेस्कटॉप रिस्पॉन्सिव कमांड सेंटर एवं बेहतर ऑफलाइन कैशिंग।",
+  "releaseName": "किसान साथी v1.0.5",
+  "releaseNotes": "Android Native कंपाइलेशन सुधार, Dual Sticky नेविगेशन (शीर्ष व निचला मेनू) एवं शून्य हॉरिजॉन्टल स्क्रॉल ड्रॉपडाउन आर्किटेक्चर।",
   "updatedAt": "2026-10-06"
 }

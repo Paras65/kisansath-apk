@@ -13,7 +13,8 @@ import {
   Alert,
   CircularProgress,
   IconButton,
-  Tooltip
+  Tooltip,
+  MenuItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -517,72 +518,53 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         )}
       </Card>
 
-      {/* 4. Visual Symptoms Fast Filter Bar */}
+      {/* 4. Crop & Visual Symptoms Fast Dropdown Selectors (Zero Horizontal Scroll Architecture) */}
       <Box sx={{ mb: 2 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 0.8, fontSize: '0.84rem' }}>
-          👁️ लक्षण देखकर रोग पहचानें (Visual Symptoms):
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 0.8, scrollbarWidth: 'none' }}>
-          {VISUAL_SYMPTOMS.map((sym) => {
-            const isSelected = selectedSymptom === sym.id;
-            return (
-              <Chip
-                key={sym.id}
-                label={`${sym.icon} ${sym.label}`}
-                clickable
-                onClick={() => setSelectedSymptom(sym.id)}
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.74rem',
-                  whiteSpace: 'nowrap',
-                  bgcolor: isSelected ? '#b71c1c' : '#f5f5f5',
-                  color: isSelected ? '#fff' : '#444',
-                  border: isSelected ? '1px solid #b71c1c' : '1px solid #e0e0e0',
-                  '&:hover': { bgcolor: isSelected ? '#8e0000' : '#eee' }
-                }}
-              />
-            );
-          })}
-        </Box>
-      </Box>
-
-      {/* 5. Crop Selector Chips */}
-      <Box sx={{ mb: 1.5 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 0.8, fontSize: '0.84rem' }}>
-          🌾 अपनी फसल चुनें:
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 0.8, scrollbarWidth: 'none' }}>
-          <Chip
-            label="सभी फसलें"
-            clickable
-            color={selectedCrop === 'all' ? 'primary' : 'default'}
-            onClick={() => setSelectedCrop('all')}
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.76rem',
-              bgcolor: selectedCrop === 'all' ? '#1b5e20' : '#f0f4ec',
-              color: selectedCrop === 'all' ? '#fff' : '#1b5e20'
-            }}
-          />
-          {cropsList.map((crop) => {
-            const isSelected = selectedCrop === crop.id;
-            return (
-              <Chip
-                key={crop.id}
-                label={crop.name.split(' ')[0]}
-                clickable
-                onClick={() => setSelectedCrop(crop.id)}
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.76rem',
-                  bgcolor: isSelected ? '#1b5e20' : '#f0f4ec',
-                  color: isSelected ? '#fff' : '#1b5e20',
-                  border: isSelected ? '1px solid #1b5e20' : '1px solid #dcedc8'
-                }}
-              />
-            );
-          })}
-        </Box>
+        <Grid container spacing={1.5}>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="🌾 फसल चुनें (Select Crop)"
+              value={selectedCrop}
+              onChange={(e) => setSelectedCrop(e.target.value)}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': { borderRadius: 2 }
+              }}
+            >
+              <MenuItem value="all">🌾 सभी फसलें (All Crops)</MenuItem>
+              {cropsList.map((crop) => (
+                <MenuItem key={crop.id} value={crop.id}>
+                  {crop.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="👁️ लक्षण देखकर रोग पहचानें (Visual Symptom)"
+              value={selectedSymptom}
+              onChange={(e) => setSelectedSymptom(e.target.value)}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': { borderRadius: 2 }
+              }}
+            >
+              {VISUAL_SYMPTOMS.map((sym) => (
+                <MenuItem key={sym.id} value={sym.id}>
+                  {sym.icon} {sym.label}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+        </Grid>
       </Box>
 
       {/* 6. Search Bar */}

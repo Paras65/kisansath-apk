@@ -12,7 +12,9 @@ import {
   DialogContent,
   DialogActions,
   CircularProgress,
-  IconButton
+  IconButton,
+  TextField,
+  MenuItem
 } from '@mui/material';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
@@ -1138,35 +1140,63 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         </Typography>
       </Box>
 
-      {/* Horizontal Stepper Chips */}
-      <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 1, mb: 1.2, scrollbarWidth: 'none' }}>
-        {LIFECYCLE_STEPS.map((item) => {
-          const isActive = expandedStep === item.step;
-          return (
-            <Chip
-              key={item.step}
-              clickable
-              onClick={() => {
-                stopSpeech();
-                setExpandedStep(item.step);
-              }}
-              label={`${item.step}. ${item.tag}`}
-              sx={{
-                bgcolor: isActive ? item.color : '#f8fafc',
-                color: isActive ? '#fff' : '#475569',
-                border: isActive ? `1.5px solid ${item.color}` : '1px solid #e2e8f0',
-                fontWeight: 800,
-                fontSize: '0.76rem',
-                borderRadius: 2.5,
-                py: 1.8,
-                px: 0.8,
-                whiteSpace: 'nowrap',
-                boxShadow: isActive ? `0 2px 8px ${item.color}35` : 'none',
-                transition: 'all 0.18s ease'
-              }}
-            />
-          );
-        })}
+      {/* Zero Horizontal Scroll Lifecycle Stage Dropdown Selector */}
+      <Box sx={{ mb: 1.5 }}>
+        <TextField
+          select
+          fullWidth
+          size="small"
+          label="🌱 कृषि यात्रा चरण चुनें (Select Lifecycle Stage)"
+          value={expandedStep}
+          onChange={(e) => {
+            stopSpeech();
+            setExpandedStep(Number(e.target.value));
+          }}
+          sx={{
+            bgcolor: '#ffffff',
+            borderRadius: 2.5,
+            '& .MuiOutlinedInput-root': { borderRadius: 2.5 }
+          }}
+        >
+          {LIFECYCLE_STEPS.map((item) => (
+            <MenuItem key={item.step} value={item.step}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
+                <Box
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: '50%',
+                    bgcolor: item.color,
+                    color: '#fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.72rem',
+                    fontWeight: 800,
+                    flexShrink: 0
+                  }}
+                >
+                  {item.step}
+                </Box>
+                <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.84rem', color: '#1e293b' }}>
+                  {item.title}
+                </Typography>
+                <Chip
+                  label={item.tag}
+                  size="small"
+                  sx={{
+                    ml: 'auto',
+                    height: 20,
+                    fontSize: '0.66rem',
+                    fontWeight: 800,
+                    bgcolor: `${item.color}15`,
+                    color: item.color
+                  }}
+                />
+              </Box>
+            </MenuItem>
+          ))}
+        </TextField>
       </Box>
 
       {/* Focused Active Stage Card */}

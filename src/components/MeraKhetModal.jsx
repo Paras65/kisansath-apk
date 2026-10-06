@@ -441,44 +441,56 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                 </Box>
               </Paper>
 
-              {/* Multi-Plot Selector Tabs */}
-              <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, overflowX: 'auto', pb: 0.5 }}>
-                {plots.map((plot, idx) => (
-                  <Chip
-                    key={plot.plotId}
-                    label={`${plot.plotName} (${plot.areaAcres} एकड़ - ${plot.cropName.split(' ')[0]})`}
-                    color={activePlotIndex === idx ? 'success' : 'default'}
-                    variant={activePlotIndex === idx ? 'filled' : 'outlined'}
-                    onClick={() => setActivePlotIndex(idx)}
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '0.82rem',
-                      py: 2,
-                      cursor: 'pointer',
-                      borderWidth: activePlotIndex === idx ? 2 : 1,
-                    }}
-                  />
-                ))}
+              {/* Multi-Plot Dropdown Selector & Add Button (Zero Horizontal Scroll Architecture) */}
+              <Grid container spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                <Grid item xs={12} sm={plots.length > 0 ? 8 : 12}>
+                  {plots.length > 0 ? (
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label="🌾 सक्रिय खेत / फसल चुनें (Select Active Plot)"
+                      value={activePlotIndex < plots.length ? activePlotIndex : 0}
+                      onChange={(e) => setActivePlotIndex(Number(e.target.value))}
+                      sx={{ bgcolor: '#ffffff', borderRadius: 2 }}
+                    >
+                      {plots.map((plot, idx) => (
+                        <MenuItem key={plot.plotId} value={idx}>
+                          🌱 {plot.plotName} — {plot.areaAcres} एकड़ ({plot.cropName})
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  ) : (
+                    <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
+                      अभी कोई खेत दर्ज नहीं है। नीचे से पहला खेत जोड़ें।
+                    </Typography>
+                  )}
+                </Grid>
 
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddCircleIcon />}
-                  onClick={() => setOpenAddPlotDialog(true)}
-                  sx={{
-                    bgcolor: '#2e7d32',
-                    color: '#fff',
-                    whiteSpace: 'nowrap',
-                    fontWeight: 700,
-                    borderRadius: 3,
-                    py: 0.7,
-                    fontSize: '0.78rem',
-                    '&:hover': { bgcolor: '#1b5e20' },
-                  }}
-                >
-                  + नया खेत / फसल जोड़ें
-                </Button>
-              </Box>
+                <Grid item xs={12} sm={plots.length > 0 ? 4 : 12}>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    size="small"
+                    startIcon={<AddCircleIcon />}
+                    onClick={() => setOpenAddPlotDialog(true)}
+                    sx={{
+                      bgcolor: '#2e7d32',
+                      color: '#fff',
+                      fontWeight: 800,
+                      borderRadius: 2,
+                      py: 0.8,
+                      fontSize: '0.8rem',
+                      textTransform: 'none',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(46,125,50,0.2)',
+                      '&:hover': { bgcolor: '#1b5e20' },
+                    }}
+                  >
+                    + नया खेत / फसल जोड़ें
+                  </Button>
+                </Grid>
+              </Grid>
 
               {/* NO PLOTS ADDED STATE */}
               {plots.length === 0 ? (
