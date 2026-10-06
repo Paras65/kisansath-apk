@@ -1,0 +1,22 @@
+# Cloudflare Pages Headers Configuration
+# Prevents CDN Edge & Browser HTTP cache from trapping users on stale Service Worker or HTML bundles
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/javascript; charset=utf-8
+
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: application/json; charset=utf-8
+
+/manifest.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

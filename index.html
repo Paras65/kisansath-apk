@@ -28,17 +28,41 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Service Worker Registration -->
+    <!-- Service Worker Registration with Instant Cache Eviction & Auto-Update -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
             .then((reg) => {
-              console.log('[PWA] Service Worker registered successfully:', reg.scope);
+              console.log('[PWA] Service Worker active:', reg.scope);
+              // Proactively check for newer SW release on every visit
+              reg.update();
+
+              // When a new SW is found & installed, prepare reload
+              reg.addEventListener('updatefound', () => {
+                const installingWorker = reg.installing;
+                if (installingWorker) {
+                  installingWorker.addEventListener('statechange', () => {
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      console.log('[PWA] New version ready. Applying update...');
+                    }
+                  });
+                }
+              });
             })
             .catch((err) => {
-              console.log('[PWA] Service Worker registration failed:', err);
+              console.warn('[PWA] Service Worker registration failed:', err);
             });
+
+          // Smoothly reload once the new Service Worker activates and claims clients
+          let isRefreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!isRefreshing) {
+              isRefreshing = true;
+              console.log('[PWA] Controller changed, reloading to display latest version.');
+              window.location.reload();
+            }
+          });
         });
       }
     </script>
