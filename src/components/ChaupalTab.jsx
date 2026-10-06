@@ -138,7 +138,7 @@ export const ChaupalTab = () => {
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* Modern Capsule Tab Switcher */}
-      <Box sx={{ mb: 2, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px' }}>
+      <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
         {[
           { label: 'मशीनरी रेंटल', icon: <PrecisionManufacturingIcon sx={{ fontSize: 18 }} /> },
           { label: 'किसान चौपाल', icon: <ForumIcon sx={{ fontSize: 18 }} /> },
@@ -516,45 +516,51 @@ export const ChaupalTab = () => {
               </Typography>
             </Paper>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Grid container spacing={2}>
               {farmDiary.map((item) => (
-                <Card
-                  key={item.id}
-                  sx={{
-                    borderRadius: 3,
-                    border: '1.5px solid #a5d6a7',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-                  }}
-                >
-                  <CardContent sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Box>
-                        <Chip
-                          label={`${item.areaAcres} एकड़`}
-                          size="small"
-                          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.7rem', mb: 0.5 }}
-                        />
-                        <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
-                          {item.cropName}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#666', fontSize: '0.74rem' }}>
-                          बुआई तिथि: <strong>{item.sowDate}</strong> • वर्तमान अवस्था: {item.stage}
-                        </Typography>
+                <Grid item xs={12} sm={6} md={6} key={item.id} sx={{ display: 'flex' }}>
+                  <Card
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      borderRadius: 3,
+                      border: '1.5px solid #a5d6a7',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': { boxShadow: '0 6px 16px rgba(27,94,32,0.1)' }
+                    }}
+                  >
+                    <CardContent sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                        <Box>
+                          <Chip
+                            label={`${item.areaAcres} एकड़`}
+                            size="small"
+                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.7rem', mb: 0.5 }}
+                          />
+                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
+                            {item.cropName}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#666', fontSize: '0.74rem' }}>
+                            बुआई तिथि: <strong>{item.sowDate}</strong> • वर्तमान अवस्था: {item.stage}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
 
-                    <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#fffde7', border: '1px solid #fff59d', borderRadius: 2, mt: 1 }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#f57f17', display: 'block', fontSize: '0.74rem' }}>
-                        🔔 आगामी कार्य व सिफारिश (Next Step):
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#795548', fontSize: '0.8rem', lineHeight: 1.35 }}>
-                        {item.nextAction}
-                      </Typography>
-                    </Paper>
-                  </CardContent>
-                </Card>
+                      <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#fffde7', border: '1px solid #fff59d', borderRadius: 2, mt: 'auto' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#f57f17', display: 'block', fontSize: '0.74rem' }}>
+                          🔔 आगामी कार्य व सिफारिश (Next Step):
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: '#795548', fontSize: '0.8rem', lineHeight: 1.35 }}>
+                          {item.nextAction}
+                        </Typography>
+                      </Paper>
+                    </CardContent>
+                  </Card>
+                </Grid>
               ))}
-            </Box>
+            </Grid>
           )}
         </Box>
       )}

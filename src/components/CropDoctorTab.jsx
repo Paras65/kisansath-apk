@@ -488,7 +488,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 0.8, fontSize: '0.84rem' }}>
           👁️ लक्षण देखकर रोग पहचानें (Visual Symptoms):
         </Typography>
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 0.8, scrollbarWidth: 'none' }}>
+        <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 0.8, scrollbarWidth: 'none' }}>
           {VISUAL_SYMPTOMS.map((sym) => {
             const isSelected = selectedSymptom === sym.id;
             return (
@@ -517,7 +517,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 0.8, fontSize: '0.84rem' }}>
           🌾 अपनी फसल चुनें:
         </Typography>
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 0.8, scrollbarWidth: 'none' }}>
+        <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 0.8, scrollbarWidth: 'none' }}>
           <Chip
             label="सभी फसलें"
             clickable

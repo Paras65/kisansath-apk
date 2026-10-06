@@ -106,7 +106,7 @@ export const CalculatorSchemesTab = () => {
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* Sub Header Tabs */}
       {/* Modern Capsule Tab Switcher */}
-      <Box sx={{ mb: 2, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px' }}>
+      <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
         {[
           { label: 'खाद कैलकुलेटर', icon: <CalculateIcon sx={{ fontSize: 18 }} /> },
           { label: `धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}`, icon: <MonetizationOnIcon sx={{ fontSize: 18 }} /> },
@@ -478,45 +478,52 @@ export const CalculatorSchemesTab = () => {
               ⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Grid container spacing={1.5}>
               {activeFert.schedule.map((step, idx) => (
-                <Paper
-                  key={idx}
-                  elevation={0}
-                  sx={{
-                    p: 1.3,
-                    bgcolor: '#fafafa',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: 2
-                  }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                    <Chip
-                      label={`चरण ${idx + 1}`}
-                      size="small"
-                      sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
-                    />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem' }}>
-                      {step.stage}
-                    </Typography>
-                  </Box>
-                  <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
-                    समय: {step.time}
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
-                    {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                    {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                    {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                    {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                  </Box>
-                  {step.note && (
-                    <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>
-                      ⚠️ सावधानी: {step.note}
-                    </Typography>
-                  )}
-                </Paper>
+                <Grid item xs={12} md={6} key={idx} sx={{ display: 'flex' }}>
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 1.3,
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      bgcolor: '#fafafa',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: 2
+                    }}
+                  >
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <Chip
+                          label={`चरण ${idx + 1}`}
+                          size="small"
+                          sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                        />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                          {step.stage}
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
+                        समय: {step.time}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
+                        {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                        {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                        {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                        {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                      </Box>
+                    </Box>
+                    {step.note && (
+                      <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
+                        ⚠️ सावधानी: {step.note}
+                      </Typography>
+                    )}
+                  </Paper>
+                </Grid>
               ))}
-            </Box>
+            </Grid>
           </Card>
         </Box>
       )}
@@ -531,7 +538,9 @@ export const CalculatorSchemesTab = () => {
               borderRadius: '18px',
               border: '1.5px solid #a5d6a7',
               bgcolor: '#ffffff',
-              boxShadow: '0 4px 16px rgba(27, 94, 32, 0.06)'
+              boxShadow: '0 4px 16px rgba(27, 94, 32, 0.06)',
+              maxWidth: { xs: '100%', md: 760 },
+              mx: 'auto'
             }}
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>

@@ -257,7 +257,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       </Paper>
 
       {/* Filter Chips with District Priority */}
-      <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 1, mb: 1.5, scrollbarWidth: 'none' }}>
+      <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 1, mb: 1.5, scrollbarWidth: 'none' }}>
         <Chip
           label={`📍 केवल ${selectedDistrict}`}
           clickable

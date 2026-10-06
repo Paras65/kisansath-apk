@@ -112,47 +112,55 @@ export const Header = ({
       <Box
         sx={{
           bgcolor: '#0e3814',
-          px: { xs: 1.5, sm: 3 },
-          py: 0.6,
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '0.75rem',
-          color: '#dcedc8'
+          borderBottom: '1px solid rgba(255,255,255,0.08)'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AgricultureIcon sx={{ fontSize: 16, color: '#fbc02d' }} />
-          <Typography variant="caption" sx={{ fontWeight: 600, color: '#e2f5d5', fontSize: '0.74rem' }}>
-            {appConfig.stateName} किसान कल्याण एवं कृषि विकास मंच
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {!isOnline && (
-            <Chip
-              icon={<WifiOffIcon sx={{ fontSize: '13px !important', color: '#ffcc80' }} />}
-              label="ऑफ़लाइन"
+        <Box
+          sx={{
+            maxWidth: '1280px',
+            mx: 'auto',
+            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
+            py: 0.6,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            fontSize: '0.75rem',
+            color: '#dcedc8'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AgricultureIcon sx={{ fontSize: 16, color: '#fbc02d' }} />
+            <Typography variant="caption" sx={{ fontWeight: 600, color: '#e2f5d5', fontSize: '0.74rem' }}>
+              {appConfig.stateName} किसान कल्याण एवं कृषि विकास मंच
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {!isOnline && (
+              <Chip
+                icon={<WifiOffIcon sx={{ fontSize: '13px !important', color: '#ffcc80' }} />}
+                label="ऑफ़लाइन"
+                size="small"
+                sx={{ bgcolor: '#d84315', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+              />
+            )}
+            <Button
               size="small"
-              sx={{ bgcolor: '#d84315', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
-            />
-          )}
-          <Button
-            size="small"
-            startIcon={<PhoneInTalkIcon sx={{ fontSize: 13 }} />}
-            onClick={handleCallHelpline}
-            sx={{
-              color: '#fff',
-              bgcolor: 'rgba(255,255,255,0.12)',
-              py: 0.2,
-              px: 1.2,
-              fontSize: '0.7rem',
-              borderRadius: 4,
-              fontWeight: 700,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
-            }}
-          >
-            हेल्पलाइन: {appConfig.helpline.label}
-          </Button>
+              startIcon={<PhoneInTalkIcon sx={{ fontSize: 13 }} />}
+              onClick={handleCallHelpline}
+              sx={{
+                color: '#fff',
+                bgcolor: 'rgba(255,255,255,0.12)',
+                py: 0.2,
+                px: 1.2,
+                fontSize: '0.7rem',
+                borderRadius: 4,
+                fontWeight: 700,
+                '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
+              }}
+            >
+              हेल्पलाइन: {appConfig.helpline.label}
+            </Button>
+          </Box>
         </Box>
       </Box>
 
@@ -163,9 +171,9 @@ export const Header = ({
           mx: 'auto',
           width: '100%',
           justifyContent: 'space-between',
-          px: { xs: 1.5, sm: 2.5, md: 3 },
-          minHeight: { xs: 60, md: 66 },
-          gap: 1.5
+          px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
+          minHeight: { xs: 60, md: 68 },
+          gap: { xs: 1, md: 1.5 }
         }}
       >
         {/* App Logo, Name & Universal Back Button */}
@@ -215,10 +223,10 @@ export const Header = ({
               }}
             />
             <Box>
-              <Typography variant="h6" sx={{ fontSize: { xs: '1.15rem', sm: '1.28rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1.15rem', sm: '1.25rem', lg: '1.32rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
                 {appConfig.appName}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: { xs: 'none', sm: 'block' } }}>
                 {appConfig.appTagline}
               </Typography>
             </Box>
@@ -226,7 +234,7 @@ export const Header = ({
         </Box>
 
         {/* Desktop Navigation Links (Visible on md and above) */}
-        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 0.8 }}>
+        <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: { md: 0.5, lg: 0.8 } }}>
           {NAV_ITEMS.map((item) => {
             const IconComponent = item.icon;
             const isActive = currentTab === item.id;
@@ -234,20 +242,20 @@ export const Header = ({
               <Button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                startIcon={<IconComponent sx={{ fontSize: 18 }} />}
+                startIcon={<IconComponent sx={{ fontSize: { md: 17, lg: 19 } }} />}
                 sx={{
-                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.82)',
+                  color: isActive ? '#ffffff' : 'rgba(255,255,255,0.84)',
                   bgcolor: isActive ? 'rgba(255,255,255,0.2)' : 'transparent',
                   backdropFilter: isActive ? 'blur(8px)' : 'none',
                   border: isActive ? '1px solid rgba(255,255,255,0.28)' : '1px solid transparent',
                   fontWeight: isActive ? 800 : 600,
-                  fontSize: '0.86rem',
-                  px: 1.6,
-                  py: 0.8,
+                  fontSize: { md: '0.8rem', lg: '0.86rem' },
+                  px: { md: 1.2, lg: 1.6 },
+                  py: { md: 0.6, lg: 0.8 },
                   borderRadius: 2.5,
                   transition: 'all 0.18s ease',
                   '&:hover': {
-                    bgcolor: isActive ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.12)',
+                    bgcolor: isActive ? 'rgba(255,255,255,0.26)' : 'rgba(255,255,255,0.12)',
                     color: '#ffffff'
                   }
                 }}
@@ -306,8 +314,30 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* Super Admin Oversight Button */}
-          <Tooltip title="सुपर एडमिन कंट्रोल रूम (प्रशासकीय)">
+          {/* Dedicated Admin Portal Button */}
+          <Tooltip title="समर्पित कृषि प्रशासन पोर्टल (Admin Portal)">
+            <Button
+              onClick={onOpenAdmin}
+              startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 17 }} />}
+              sx={{
+                bgcolor: 'rgba(56,189,248,0.15)',
+                color: '#38bdf8',
+                border: '1px solid rgba(56,189,248,0.3)',
+                fontSize: '0.74rem',
+                fontWeight: 800,
+                py: 0.4,
+                px: 1.2,
+                borderRadius: 2.5,
+                display: { xs: 'none', lg: 'inline-flex' },
+                transition: 'all 0.2s',
+                '&:hover': { bgcolor: 'rgba(56,189,248,0.28)', color: '#ffffff', borderColor: '#38bdf8' }
+              }}
+            >
+              एडमिन पोर्टल
+            </Button>
+          </Tooltip>
+
+          <Tooltip title="समर्पित कृषि प्रशासन पोर्टल (Admin Portal)">
             <IconButton
               onClick={onOpenAdmin}
               sx={{
@@ -316,6 +346,7 @@ export const Header = ({
                 width: 36,
                 height: 36,
                 borderRadius: 2.5,
+                display: { xs: 'inline-flex', lg: 'none' },
                 transition: 'all 0.2s',
                 '&:hover': { bgcolor: 'rgba(56,189,248,0.25)', color: '#ffffff' }
               }}

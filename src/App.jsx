@@ -32,6 +32,8 @@ import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
+import { AdminPortal } from './components/AdminPortal';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -84,6 +86,49 @@ function App() {
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
+  const [portalMode, setPortalMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('portal') === 'admin' || window.location.hash === '#admin') {
+        return 'admin';
+      }
+    }
+    return 'farmer';
+  });
+
+  // Synchronize hash / URL changes for dedicated Admin Portal routing
+  useEffect(() => {
+    const handleHashOrPopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (window.location.hash === '#admin' || params.get('portal') === 'admin') {
+        setPortalMode('admin');
+      } else {
+        setPortalMode('farmer');
+      }
+    };
+    window.addEventListener('hashchange', handleHashOrPopState);
+    window.addEventListener('popstate', handleHashOrPopState);
+    return () => {
+      window.removeEventListener('hashchange', handleHashOrPopState);
+      window.removeEventListener('popstate', handleHashOrPopState);
+    };
+  }, []);
+
+  const handleOpenAdminPortal = () => {
+    window.location.hash = 'admin';
+    setPortalMode('admin');
+  };
+
+  const handleExitAdminPortal = () => {
+    if (window.location.hash === '#admin') {
+      try {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+      } catch {
+        window.location.hash = '';
+      }
+    }
+    setPortalMode('farmer');
+  };
 
   // Synchronize global speech state
   useEffect(() => {
@@ -165,6 +210,16 @@ function App() {
     }
   };
 
+  if (portalMode === 'admin') {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AdminPortal onExit={handleExitAdminPortal} />
+        <GlobalNotification />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -179,7 +234,7 @@ function App() {
           currentTab={currentTab}
           onNavigate={handleTabChange}
           onOpenDeviceHub={() => setOpenDeviceHub(true)}
-          onOpenAdmin={() => setOpenAdminModal(true)}
+          onOpenAdmin={handleOpenAdminPortal}
         />
 
         {/* PWA Install Banner */}
@@ -198,9 +253,9 @@ function App() {
             width: '100%',
             maxWidth: '1280px',
             mx: 'auto',
-            px: { xs: 1.5, sm: 2.5, md: 3 },
-            py: { xs: 1.5, sm: 2.5, md: 3 },
-            pb: { xs: 11, md: 4 } // generous padding on mobile so bottom bar never obscures content
+            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
+            py: { xs: 1.5, sm: 2.5, md: 3.5 },
+            pb: { xs: 11, md: 5 } // generous padding on mobile so bottom bar never obscures content
           }}
         >
           <ErrorBoundary key={currentTab} onReset={() => handleTabChange('home')}>
@@ -215,6 +270,101 @@ function App() {
             {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}
           </ErrorBoundary>
+        </Box>
+
+        {/* Desktop Agricultural Portal Footer (Visible on md and above) */}
+        <Box
+          component="footer"
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            bgcolor: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
+            mt: 'auto',
+            py: 3,
+            px: { md: 3, lg: 4 }
+          }}
+        >
+          <Box
+            sx={{
+              maxWidth: '1280px',
+              mx: 'auto',
+              display: 'flex',
+              flexDirection: { md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 2
+            }}
+          >
+            {/* Branding and Tagline */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box
+                component="img"
+                src="/icons/kisan-icon-512.png"
+                onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
+                alt={appConfig.appName}
+                sx={{ width: 36, height: 36, borderRadius: 2 }}
+              />
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.92rem' }}>
+                  {appConfig.appName} • {appConfig.appTagline}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block' }}>
+                  {appConfig.stateName} के किसान भाइयों का विश्वसनीय डिजिटल मंच • संस्करण v{appConfig.appVersion}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Quick Links / Helplines */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
+              <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.78rem' }}>
+                📞 किसान कॉल सेंटर (टोल-फ्री): <strong>{appConfig.helpline.phone}</strong>
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
+                🔒 100% सुरक्षित • OWASP / Zero-PII Offline
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 16 }} />}
+                onClick={handleOpenAdminPortal}
+                sx={{
+                  color: '#0284c7',
+                  borderColor: '#bae6fd',
+                  bgcolor: '#f0f9ff',
+                  fontWeight: 800,
+                  fontSize: '0.74rem',
+                  py: 0.3,
+                  px: 1.2,
+                  borderRadius: 2,
+                  '&:hover': { bgcolor: '#e0f2fe', borderColor: '#0284c7' }
+                }}
+              >
+                🏛️ कृषि प्रशासन पोर्टल
+              </Button>
+              {appConfig.apkDownloadUrl && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href={appConfig.apkDownloadUrl}
+                  target="_blank"
+                  download
+                  sx={{
+                    color: '#1b5e20',
+                    borderColor: '#a5d6a7',
+                    fontWeight: 800,
+                    fontSize: '0.74rem',
+                    py: 0.3,
+                    px: 1.2,
+                    borderRadius: 2,
+                    '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
+                  }}
+                >
+                  Android APK डाउनलोड
+                </Button>
+              )}
+            </Box>
+          </Box>
         </Box>
 
         {/* Mobile-Only Android/iOS Native Bottom Navigation Bar (Hidden on desktop md and up) */}

@@ -216,6 +216,400 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     speakText(step.voice);
   };
 
+  // 1. Mandi Rates Pulse Card
+  const renderMandiPulseCard = () => (
+    <Card
+      sx={{
+        borderRadius: 3.5,
+        bgcolor: '#ffffff',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ p: 1.5, px: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TrendingUpIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+            आज के प्रमुख मंडी भाव (Mandi Pulse)
+          </Typography>
+        </Box>
+        <Button
+          size="small"
+          endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
+          onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+          sx={{ color: '#1565c0', fontWeight: 800, fontSize: '0.72rem', p: 0 }}
+        >
+          सभी 30+ मंडियां
+        </Button>
+      </Box>
+
+      <Box sx={{ p: 1.5 }}>
+        <Grid container spacing={1}>
+          {FEATURED_MANDI_RATES.map((item, idx) => (
+            <Grid item xs={6} sm={3} md={6} key={idx}>
+              <Box
+                onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+                sx={{
+                  p: 1.2,
+                  borderRadius: 2.5,
+                  bgcolor: '#fafafa',
+                  border: '1px solid #f1f5f9',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                  '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
+                    {item.crop.split(' ')[0]}
+                  </Typography>
+                  <Chip
+                    label={item.badge}
+                    size="small"
+                    sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
+                  />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
+                  {item.rate}
+                  <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
+                    /क्विं.
+                  </Typography>
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
+                  {item.type.split(' ')[0]}
+                </Typography>
+              </Box>
+            </Grid>
+          ))}
+        </Grid>
+      </Box>
+    </Card>
+  );
+
+  // 2. Platform-Aware Native APK & Share Footer
+  const renderApkFooterCard = () => (
+    <Card
+      sx={{
+        p: { xs: 1.8, sm: 2 },
+        borderRadius: 3.5,
+        background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
+        color: '#ffffff',
+        boxShadow: '0 4px 16px rgba(27,94,32,0.2)',
+        border: '1px solid #81c784'
+      }}
+    >
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AndroidIcon sx={{ fontSize: 28, color: '#ffeb3b' }} />
+          </Box>
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.92rem' }}>
+                {isNativePlatform() ? 'किसान साथी Android App' : 'किसान साथी Android App (APK)'}
+              </Typography>
+              <Chip
+                label={`v${appConfig.appVersion}`}
+                size="small"
+                sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.65rem' }}
+              />
+            </Box>
+            <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
+              {isNativePlatform() ? 'नवीनतम संस्करण फोन में सक्रिय है' : '1.5 MB लाइटवेट • बिना इंटरनेट चलेगा'}
+            </Typography>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+          {isNativePlatform() ? (
+            <>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<WhatsAppIcon />}
+                onClick={() => shareOnWhatsApp()}
+                sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#128C7E' } }}
+              >
+                व्हाट्सएप
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
+                disabled={checkingUpdate}
+                onClick={handleManualCheckUpdate}
+                sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
+              >
+                {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<GetAppIcon />}
+                href={appConfig.apkDownloadUrl}
+                target="_blank"
+                download
+                sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#fff' } }}
+              >
+                APK डाउनलोड
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
+                disabled={checkingUpdate}
+                onClick={handleManualCheckUpdate}
+                sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
+              >
+                {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
+              </Button>
+            </>
+          )}
+        </Box>
+      </Box>
+    </Card>
+  );
+
+  // 3. Farmer Profile & Mera Khet Quick Card
+  const renderFarmerMeraKhetCard = () => (
+    <Card
+      sx={{
+        borderRadius: 3.5,
+        bgcolor: '#ffffff',
+        border: '1.2px solid #c8e6c9',
+        boxShadow: '0 4px 16px rgba(46, 125, 50, 0.05)',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ p: 1.5, px: 2, bgcolor: '#f1f8e9', borderBottom: '1px solid #dcedc8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <AgricultureIcon sx={{ color: '#1b5e20', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
+            🌾 मेरा खेत: किसान डायरी व रकबा
+          </Typography>
+        </Box>
+        <Chip
+          label={selectedDistrict}
+          size="small"
+          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
+        />
+      </Box>
+      <Box sx={{ p: 1.8 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
+              {activeFarmer?.name || 'सम्मानित किसान भाई'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+              ग्राम: {activeFarmer?.village || 'आरंग'} • खसरा: {activeFarmer?.khasraNumber || '142/1'}
+            </Typography>
+          </Box>
+          <Chip
+            label="सक्रिय खाता"
+            size="small"
+            color="success"
+            sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+          />
+        </Box>
+
+        <Grid container spacing={1} sx={{ mb: 1.5 }}>
+          <Grid item xs={6}>
+            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                कुल पंजीकृत रकबा
+              </Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.95rem' }}>
+                {activeFarmer?.totalAcres || '3.0'} एकड़
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={6}>
+            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                धान उपार्जन सीमा
+              </Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.95rem' }}>
+                {Math.round((parseFloat(activeFarmer?.totalAcres || 3.0)) * appConfig.paddyScheme.maxQuintalsPerAcre)} क्विं.
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            size="small"
+            startIcon={<MenuBookIcon sx={{ fontSize: 16 }} />}
+            onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
+            sx={{ bgcolor: '#1b5e20', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, '&:hover': { bgcolor: '#125420' } }}
+          >
+            फसल डायरी खोलें
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<DirectionsWalkIcon sx={{ fontSize: 16 }} />}
+            onClick={() => { stopSpeech(); setOpenGpsTracker(true); }}
+            sx={{ borderColor: '#00897b', color: '#00897b', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#e0f2f1' } }}
+          >
+            खेत GPS
+          </Button>
+        </Box>
+      </Box>
+    </Card>
+  );
+
+  // 4. Smart Hardware & IoT Hub Quick Card
+  const renderSmartHardwareHubCard = () => (
+    <Card
+      sx={{
+        borderRadius: 3.5,
+        bgcolor: '#ffffff',
+        border: '1.2px solid #80cbc4',
+        boxShadow: '0 4px 16px rgba(0, 137, 123, 0.05)',
+        overflow: 'hidden'
+      }}
+    >
+      <Box sx={{ p: 1.5, px: 2, bgcolor: '#e0f2f1', borderBottom: '1px solid #b2dfdb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <SensorsIcon sx={{ color: '#00796b', fontSize: 20 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#004d40', fontSize: '0.88rem' }}>
+            📡 स्मार्ट हार्डवेयर व IoT हब
+          </Typography>
+        </Box>
+        <Chip
+          label="ब्लूटूथ / GSM"
+          size="small"
+          sx={{ bgcolor: '#b2dfdb', color: '#004d40', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
+        />
+      </Box>
+      <Box sx={{ p: 1.8 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ScienceIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block' }}>
+                  मिट्टी pH व NPK सेंसर
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
+                  लाइव प्रोब ब्लूटूथ कनेक्टिविटी
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => { stopSpeech(); setOpenSoilIot(true); }}
+              sx={{ fontSize: '0.7rem', fontWeight: 700, py: 0.2, px: 1, borderRadius: 1.5 }}
+            >
+              जांचें
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 18 }} />
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block' }}>
+                  ट्यूबवेल मोटर कंट्रोलर
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
+                  GSM स्टार्टर ऑन/ऑफ व टाइमर
+                </Typography>
+              </Box>
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => { stopSpeech(); setOpenMotorModal(true); }}
+              sx={{ fontSize: '0.7rem', fontWeight: 700, py: 0.2, px: 1, borderRadius: 1.5, color: '#0288d1', borderColor: '#b3e5fc' }}
+            >
+              कंट्रोल
+            </Button>
+          </Box>
+        </Box>
+
+        <Button
+          fullWidth
+          variant="contained"
+          size="small"
+          startIcon={<SensorsIcon sx={{ fontSize: 16 }} />}
+          onClick={() => { stopSpeech(); setOpenDeviceHub(true); }}
+          sx={{ bgcolor: '#00796b', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, '&:hover': { bgcolor: '#004d40' } }}
+        >
+          कमांड सेंटर खोलें
+        </Button>
+      </Box>
+    </Card>
+  );
+
+  // 5. Desktop Helpline & App Download Card
+  const renderDesktopHelplineApkCard = () => (
+    <Card
+      sx={{
+        borderRadius: 3.5,
+        background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
+        color: '#ffffff',
+        boxShadow: '0 4px 16px rgba(27,94,32,0.15)',
+        border: '1px solid #81c784',
+        p: 2
+      }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 1.2 }}>
+        <AndroidIcon sx={{ fontSize: 28, color: '#ffeb3b' }} />
+        <Box>
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.9rem', lineHeight: 1.2 }}>
+            किसान साथी Android App (APK)
+          </Typography>
+          <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem' }}>
+            v{appConfig.appVersion} • बिना इंटरनेट ऑफ़लाइन सक्षम
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+        {appConfig.apkDownloadUrl && (
+          <Button
+            fullWidth
+            variant="contained"
+            size="small"
+            startIcon={<GetAppIcon />}
+            href={appConfig.apkDownloadUrl}
+            target="_blank"
+            download
+            sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, fontSize: '0.74rem', py: 0.6, '&:hover': { bgcolor: '#fff' } }}
+          >
+            APK डाउनलोड
+          </Button>
+        )}
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
+          onClick={() => shareOnWhatsApp()}
+          sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, fontSize: '0.74rem', whiteSpace: 'nowrap' }}
+        >
+          शेयर
+        </Button>
+      </Box>
+
+      <Box sx={{ pt: 1, borderTop: '1px solid rgba(255,255,255,0.15)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="caption" sx={{ color: '#e8f5e9', fontSize: '0.72rem' }}>
+          📞 किसान कॉल सेंटर (टोल-फ्री):
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#ffeb3b', fontWeight: 900, fontSize: '0.78rem' }}>
+          {appConfig.helpline.phone}
+        </Typography>
+      </Box>
+    </Card>
+  );
+
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* 1. Modern Hero Greeting & Profile Card */}
@@ -352,250 +746,189 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         </Paper>
       )}
 
-      {/* 2.5 Official Department Emergency Broadcast Banner */}
-      {activeBroadcasts && activeBroadcasts.length > 0 && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.5,
-            px: 2,
-            mb: 2,
-            borderRadius: 3,
-            bgcolor: activeBroadcasts[0].severity === 'urgent' ? '#fff1f2' : activeBroadcasts[0].severity === 'warning' ? '#fffbeb' : '#eff6ff',
-            border: `1.5px solid ${activeBroadcasts[0].severity === 'urgent' ? '#fda4af' : activeBroadcasts[0].severity === 'warning' ? '#fde68a' : '#bfdbfe'}`,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.8
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CampaignIcon sx={{ color: activeBroadcasts[0].severity === 'urgent' ? '#e11d48' : activeBroadcasts[0].severity === 'warning' ? '#d97706' : '#2563eb', fontSize: 24 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                📢 {activeBroadcasts[0].title}
-              </Typography>
-              <Chip
-                label={activeBroadcasts[0].severity === 'urgent' ? 'अति गंभीर चेतावनी' : activeBroadcasts[0].severity === 'warning' ? 'विभागीय चेतावनी' : 'कृषि परामर्श'}
-                size="small"
-                color={activeBroadcasts[0].severity === 'urgent' ? 'error' : activeBroadcasts[0].severity === 'warning' ? 'warning' : 'primary'}
-                sx={{ fontWeight: 800, fontSize: '0.68rem', height: 20 }}
-              />
-            </Box>
-            <IconButton
-              size="small"
-              onClick={() => speakText(`${activeBroadcasts[0].title}। ${activeBroadcasts[0].message}`)}
-              sx={{ bgcolor: 'rgba(0,0,0,0.05)', color: '#0f172a' }}
-            >
-              <VolumeUpIcon fontSize="small" />
-            </IconButton>
-          </Box>
-          <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.4 }}>
-            {activeBroadcasts[0].message}
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b' }}>
-            <span>जारीकर्ता: {activeBroadcasts[0].author || 'कृषि विशेषज्ञ'}</span>
-            <span>वैधता: {activeBroadcasts[0].validTill || 'सक्रिय'}</span>
-          </Box>
-        </Paper>
-      )}
-
-      {/* 3. Modern Floating Weather & Spray Card */}
-      <Card
-        sx={{
-          mb: 2.2,
-          p: 2,
-          borderRadius: 3.5,
-          bgcolor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
-        }}
-      >
-        {/* Top Row: Temp, Condition, Spray Badge */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '2.2rem', lineHeight: 1 }}>
-              {weather?.conditionIcon || '🌤️'}
-            </Typography>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.8 }}>
-                <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1 }}>
-                  {weather ? `${weather.temp}°` : '29°'}
-                </Typography>
-                <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.9rem' }}>
-                  {weather ? weather.conditionText : 'साफ मौसम'}
-                </Typography>
-              </Box>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                📍 {selectedDistrict} {weather?.isLive ? '• लाइव मौसम' : '• सुरक्षित डेटा'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Spray Safety Badge & Voice button */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-            <Chip
-              label={weather?.sprayAdvisory?.badge || 'छिड़काव अनुकूल'}
-              size="small"
+      {/* Responsive 2-Column Agritech Command Center Layout on Desktop */}
+      <Grid container spacing={{ xs: 2, md: 2.5, lg: 3 }}>
+        {/* Left / Main Column (xs=12, md=7.5, lg=8) */}
+        <Grid item xs={12} md={7.5} lg={8}>
+          {/* 2.5 Official Department Emergency Broadcast Banner */}
+          {activeBroadcasts && activeBroadcasts.length > 0 && (
+            <Paper
+              elevation={0}
               sx={{
-                bgcolor: weather?.sprayAdvisory?.canSpray ? '#e8f5e9' : '#fff3e0',
-                color: weather?.sprayAdvisory?.canSpray ? '#1b5e20' : '#e65100',
-                border: weather?.sprayAdvisory?.canSpray ? '1px solid #a5d6a7' : '1px solid #ffcc80',
-                fontWeight: 800,
-                fontSize: '0.72rem',
-                height: 26
+                p: 1.5,
+                px: 2,
+                mb: 2,
+                borderRadius: 3,
+                bgcolor: activeBroadcasts[0].severity === 'urgent' ? '#fff1f2' : activeBroadcasts[0].severity === 'warning' ? '#fffbeb' : '#eff6ff',
+                border: `1.5px solid ${activeBroadcasts[0].severity === 'urgent' ? '#fda4af' : activeBroadcasts[0].severity === 'warning' ? '#fde68a' : '#bfdbfe'}`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0.8
               }}
-            />
-            <IconButton
-              size="small"
-              onClick={handleReadAdvisory}
-              sx={{ bgcolor: '#f1f5f9', color: '#1b5e20', p: 0.6 }}
             >
-              <VolumeUpIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Box>
-        </Box>
-
-        {/* Metrics Strip */}
-        <Grid container spacing={1} sx={{ mb: 1.5 }}>
-          <Grid item xs={4}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> वर्षा
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                {weather ? `${weather.rainProbability}%` : '10%'}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> हवा
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                💧 आर्द्रता
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                {weather ? `${weather.humidity}%` : '62%'}
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-
-        {/* Advisory line */}
-        <Box sx={{ p: 1.2, bgcolor: '#f1f8e9', borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 1.5, border: '1px solid #dcedc8' }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
-          <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.76rem', lineHeight: 1.35, fontWeight: 600 }}>
-            {weather?.sprayAdvisory?.advisory || 'धान में कल्ले और बालियां आते समय खेत में 2-3 सेमी जलस्तर रखें। शांत मौसम में कीटनाशक छिड़काव करें।'}
-          </Typography>
-        </Box>
-
-        {/* Compact 3-Day Forecast Strip */}
-        {weather?.forecast3Days && (
-          <Box sx={{ pt: 1, borderTop: '1px solid #f1f5f9' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CalendarMonthIcon sx={{ fontSize: 14, color: '#2e7d32' }} /> 3-दिवसीय मौसम अनुमान:
-              </Typography>
-            </Box>
-            <Grid container spacing={1}>
-              {weather.forecast3Days.map((f, idx) => (
-                <Grid item xs={4} key={idx}>
-                  <Box sx={{ p: 0.8, bgcolor: idx === 0 ? '#e8f5e9' : '#fafafa', borderRadius: 2, textAlign: 'center', border: idx === 0 ? '1px solid #c8e6c9' : '1px solid #f1f5f9' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: idx === 0 ? '#1b5e20' : '#64748b', fontSize: '0.7rem', display: 'block' }}>
-                      {f.day.split(' ')[0]}
-                    </Typography>
-                    <Typography sx={{ fontSize: '1.1rem', my: 0.2 }}>{f.icon}</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.75rem', display: 'block' }}>
-                      {f.tempMax}° / {f.tempMin}°
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: f.rainProb > 40 ? '#d32f2f' : '#0288d1', fontSize: '0.64rem', fontWeight: 700 }}>
-                      वर्षा {f.rainProb}%
-                    </Typography>
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        )}
-      </Card>
-
-      {/* 4. Mandi Rates Pulse (Financial Style Agritech Cards) */}
-      <Card
-        sx={{
-          mb: 2.5,
-          borderRadius: 3.5,
-          bgcolor: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-          overflow: 'hidden'
-        }}
-      >
-        <Box sx={{ p: 1.5, px: 2, bgcolor: '#f8fafc', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <TrendingUpIcon sx={{ color: '#1565c0', fontSize: 20 }} />
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-              आज के प्रमुख मंडी भाव (Mandi Pulse)
-            </Typography>
-          </Box>
-          <Button
-            size="small"
-            endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
-            onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-            sx={{ color: '#1565c0', fontWeight: 800, fontSize: '0.72rem', p: 0 }}
-          >
-            सभी 30+ मंडियां
-          </Button>
-        </Box>
-
-        <Box sx={{ p: 1.5 }}>
-          <Grid container spacing={1}>
-            {FEATURED_MANDI_RATES.map((item, idx) => (
-              <Grid item xs={6} sm={3} key={idx}>
-                <Box
-                  onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-                  sx={{
-                    p: 1.2,
-                    borderRadius: 2.5,
-                    bgcolor: '#fafafa',
-                    border: '1px solid #f1f5f9',
-                    cursor: 'pointer',
-                    transition: 'all 0.18s ease',
-                    '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
-                      {item.crop.split(' ')[0]}
-                    </Typography>
-                    <Chip
-                      label={item.badge}
-                      size="small"
-                      sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
-                    />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
-                    {item.rate}
-                    <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
-                      /क्विं.
-                    </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CampaignIcon sx={{ color: activeBroadcasts[0].severity === 'urgent' ? '#e11d48' : activeBroadcasts[0].severity === 'warning' ? '#d97706' : '#2563eb', fontSize: 24 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
+                    📢 {activeBroadcasts[0].title}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
-                    {item.type.split(' ')[0]}
+                  <Chip
+                    label={activeBroadcasts[0].severity === 'urgent' ? 'अति गंभीर चेतावनी' : activeBroadcasts[0].severity === 'warning' ? 'विभागीय चेतावनी' : 'कृषि परामर्श'}
+                    size="small"
+                    color={activeBroadcasts[0].severity === 'urgent' ? 'error' : activeBroadcasts[0].severity === 'warning' ? 'warning' : 'primary'}
+                    sx={{ fontWeight: 800, fontSize: '0.68rem', height: 20 }}
+                  />
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => speakText(`${activeBroadcasts[0].title}। ${activeBroadcasts[0].message}`)}
+                  sx={{ bgcolor: 'rgba(0,0,0,0.05)', color: '#0f172a' }}
+                >
+                  <VolumeUpIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.4 }}>
+                {activeBroadcasts[0].message}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b' }}>
+                <span>जारीकर्ता: {activeBroadcasts[0].author || 'कृषि विशेषज्ञ'}</span>
+                <span>वैधता: {activeBroadcasts[0].validTill || 'सक्रिय'}</span>
+              </Box>
+            </Paper>
+          )}
+
+          {/* 3. Modern Floating Weather & Spray Card */}
+          <Card
+            sx={{
+              mb: 2.2,
+              p: 2,
+              borderRadius: 3.5,
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+            }}
+          >
+            {/* Top Row: Temp, Condition, Spray Badge */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                <Typography sx={{ fontSize: '2.2rem', lineHeight: 1 }}>
+                  {weather?.conditionIcon || '🌤️'}
+                </Typography>
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.8 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1 }}>
+                      {weather ? `${weather.temp}°` : '29°'}
+                    </Typography>
+                    <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.9rem' }}>
+                      {weather ? weather.conditionText : 'साफ मौसम'}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                    📍 {selectedDistrict} {weather?.isLive ? '• लाइव मौसम' : '• सुरक्षित डेटा'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Spray Safety Badge & Voice button */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <Chip
+                  label={weather?.sprayAdvisory?.badge || 'छिड़काव अनुकूल'}
+                  size="small"
+                  sx={{
+                    bgcolor: weather?.sprayAdvisory?.canSpray ? '#e8f5e9' : '#fff3e0',
+                    color: weather?.sprayAdvisory?.canSpray ? '#1b5e20' : '#e65100',
+                    border: weather?.sprayAdvisory?.canSpray ? '1px solid #a5d6a7' : '1px solid #ffcc80',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    height: 26
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={handleReadAdvisory}
+                  sx={{ bgcolor: '#f1f5f9', color: '#1b5e20', p: 0.6 }}
+                >
+                  <VolumeUpIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Box>
+            </Box>
+
+            {/* Metrics Strip */}
+            <Grid container spacing={1} sx={{ mb: 1.5 }}>
+              <Grid item xs={4}>
+                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                    <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> वर्षा
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                    {weather ? `${weather.rainProbability}%` : '10%'}
                   </Typography>
                 </Box>
               </Grid>
-            ))}
-          </Grid>
-        </Box>
-      </Card>
+              <Grid item xs={4}>
+                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                    <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> हवा
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                    {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
+                  </Typography>
+                </Box>
+              </Grid>
+              <Grid item xs={4}>
+                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                    💧 आर्द्रता
+                  </Typography>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                    {weather ? `${weather.humidity}%` : '62%'}
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+
+            {/* Advisory line */}
+            <Box sx={{ p: 1.2, bgcolor: '#f1f8e9', borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 1.5, border: '1px solid #dcedc8' }}>
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
+              <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.76rem', lineHeight: 1.35, fontWeight: 600 }}>
+                {weather?.sprayAdvisory?.advisory || 'धान में कल्ले और बालियां आते समय खेत में 2-3 सेमी जलस्तर रखें। शांत मौसम में कीटनाशक छिड़काव करें।'}
+              </Typography>
+            </Box>
+
+            {/* Compact 3-Day Forecast Strip */}
+            {weather?.forecast3Days && (
+              <Box sx={{ pt: 1, borderTop: '1px solid #f1f5f9' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <CalendarMonthIcon sx={{ fontSize: 14, color: '#2e7d32' }} /> 3-दिवसीय मौसम अनुमान:
+                  </Typography>
+                </Box>
+                <Grid container spacing={1}>
+                  {weather.forecast3Days.map((f, idx) => (
+                    <Grid item xs={4} key={idx}>
+                      <Box sx={{ p: 0.8, bgcolor: idx === 0 ? '#e8f5e9' : '#fafafa', borderRadius: 2, textAlign: 'center', border: idx === 0 ? '1px solid #c8e6c9' : '1px solid #f1f5f9' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: idx === 0 ? '#1b5e20' : '#64748b', fontSize: '0.7rem', display: 'block' }}>
+                          {f.day.split(' ')[0]}
+                        </Typography>
+                        <Typography sx={{ fontSize: '1.1rem', my: 0.2 }}>{f.icon}</Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.75rem', display: 'block' }}>
+                          {f.tempMax}° / {f.tempMin}°
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: f.rainProb > 40 ? '#d32f2f' : '#0288d1', fontSize: '0.64rem', fontWeight: 700 }}>
+                          वर्षा {f.rainProb}%
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Box>
+            )}
+          </Card>
+
+          {/* 4. Mandi Rates Pulse (Mobile Only: xs & sm) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.5 }}>
+            {renderMandiPulseCard()}
+          </Box>
 
       {/* 5. Unified 8-Tile Modern App Launcher Grid (PhonePe/GPay Style 4x2 Matrix) */}
       <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -710,7 +1043,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               action: () => setOpenMeraKhet(true)
             }
           ].map((tool, idx) => (
-            <Grid item xs={3} sm={3} md={1.5} key={idx}>
+            <Grid item xs={3} sm={3} md={3} lg={1.5} key={idx}>
               <Box
                 className="touch-card"
                 onClick={() => { stopSpeech(); tool.action(); }}
@@ -806,7 +1139,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
       </Box>
 
       {/* Horizontal Stepper Chips */}
-      <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 1, mb: 1.2, scrollbarWidth: 'none' }}>
+      <Box sx={{ display: 'flex', gap: 0.8, overflowX: { xs: 'auto', md: 'visible' }, flexWrap: { xs: 'nowrap', md: 'wrap' }, pb: 1, mb: 1.2, scrollbarWidth: 'none' }}>
         {LIFECYCLE_STEPS.map((item) => {
           const isActive = expandedStep === item.step;
           return (
@@ -943,91 +1276,29 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         );
       })()}
 
-      {/* 7. Platform-Aware Native APK & Share Footer */}
-      <Card
-        sx={{
-          mt: 2,
-          p: { xs: 1.8, sm: 2 },
-          borderRadius: 3.5,
-          background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
-          color: '#ffffff',
-          boxShadow: '0 4px 16px rgba(27,94,32,0.2)',
-          border: '1px solid #81c784'
-        }}
-      >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-            <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AndroidIcon sx={{ fontSize: 28, color: '#ffeb3b' }} />
-            </Box>
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.92rem' }}>
-                  {isNativePlatform() ? 'किसान साथी Android App' : 'किसान साथी Android App (APK)'}
-                </Typography>
-                <Chip
-                  label={`v${appConfig.appVersion}`}
-                  size="small"
-                  sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.65rem' }}
-                />
-              </Box>
-              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
-                {isNativePlatform() ? 'नवीनतम संस्करण फोन में सक्रिय है' : '1.5 MB लाइटवेट • बिना इंटरनेट चलेगा'}
-              </Typography>
-            </Box>
+          {/* 7. Platform-Aware Native APK & Share Footer (Mobile Only: xs & sm) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
+            {renderApkFooterCard()}
           </Box>
+        </Grid>
 
-          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
-            {isNativePlatform() ? (
-              <>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<WhatsAppIcon />}
-                  onClick={() => shareOnWhatsApp()}
-                  sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#128C7E' } }}
-                >
-                  व्हाट्सएप
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
-                  disabled={checkingUpdate}
-                  onClick={handleManualCheckUpdate}
-                  sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
-                >
-                  {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<GetAppIcon />}
-                  href={appConfig.apkDownloadUrl}
-                  target="_blank"
-                  download
-                  sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#fff' } }}
-                >
-                  APK डाउनलोड
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
-                  disabled={checkingUpdate}
-                  onClick={handleManualCheckUpdate}
-                  sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
-                >
-                  {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
-                </Button>
-              </>
-            )}
+        {/* Right / Sidebar Column (Desktop Command Center: md and up) */}
+        <Grid item xs={12} md={4.5} lg={4} sx={{ display: { xs: 'none', md: 'block' } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* 1. Mandi Rates Pulse Widget */}
+            {renderMandiPulseCard()}
+
+            {/* 2. Farmer Profile & Mera Khet Quick Card */}
+            {renderFarmerMeraKhetCard()}
+
+            {/* 3. Smart Hardware & IoT Hub Quick Card */}
+            {renderSmartHardwareHubCard()}
+
+            {/* 4. Desktop Helpline & App Download Card */}
+            {renderDesktopHelplineApkCard()}
           </Box>
-        </Box>
-      </Card>
+        </Grid>
+      </Grid>
 
       {/* Modals & Dialogs */}
       <MeraKhetModal
