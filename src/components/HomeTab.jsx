@@ -14,7 +14,8 @@ import {
   CircularProgress,
   IconButton,
   TextField,
-  MenuItem
+  MenuItem,
+  Alert
 } from '@mui/material';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
@@ -38,10 +39,20 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 import SyncIcon from '@mui/icons-material/Sync';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
-import { getActiveFarmer } from '../services/farmerService';
+import {
+  getActiveFarmer,
+  loginFarmer,
+  logoutFarmer,
+  getFarmerPlots
+} from '../services/farmerService';
+import { notify } from '../services/notificationService';
+import { CROP_LIFECYCLE_RULES } from '../utils/cropLifecycleEngine';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { shareOnWhatsApp } from '../utils/shareUtils';
 import { checkForAppUpdate } from '../services/updateService';
@@ -135,10 +146,98 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     return () => { isMounted = false; };
   }, [selectedDistrict]);
 
-  // Refresh active farmer session when Mera Khet modal is closed
+  // Refresh active farmer session when Mera Khet modal is closed or session event fires
+  useEffect(() => {
+    const handleSessionChanged = (e) => {
+      setActiveFarmer(e.detail || getActiveFarmer());
+    };
+    window.addEventListener('kisan_farmer_session_changed', handleSessionChanged);
+    return () => {
+      window.removeEventListener('kisan_farmer_session_changed', handleSessionChanged);
+    };
+  }, []);
+
   useEffect(() => {
     setActiveFarmer(getActiveFarmer());
   }, [openMeraKhet]);
+
+  // Load registered plots for active farmer
+  const [farmerPlots, setFarmerPlots] = useState([]);
+  useEffect(() => {
+    if (activeFarmer && activeFarmer.phone) {
+      getFarmerPlots(activeFarmer.phone).then((list) => {
+        setFarmerPlots(list || []);
+      });
+    } else {
+      setFarmerPlots([]);
+    }
+  }, [activeFarmer]);
+
+  // 1-Click Quick Login Modal & Pending Tool Action State
+  const [openQuickLogin, setOpenQuickLogin] = useState(false);
+  const [pendingToolAction, setPendingToolAction] = useState(null);
+  const [loginForm, setLoginForm] = useState({
+    phone: '',
+    name: '',
+    pin: '1234',
+    village: '',
+  });
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Require Login Gatekeeper for personalized tools
+  const handleRequireLogin = (toolAction) => {
+    if (activeFarmer) {
+      if (toolAction === 'motor') setOpenMotorModal(true);
+      else if (toolAction === 'khet') setOpenMeraKhet(true);
+      else if (toolAction === 'soil') setOpenSoilIot(true);
+      else if (toolAction === 'hub') setOpenDeviceHub(true);
+    } else {
+      setPendingToolAction(toolAction);
+      setOpenQuickLogin(true);
+    }
+  };
+
+  const handleQuickLoginSubmit = async () => {
+    if (!loginForm.phone || loginForm.phone.length < 10) {
+      notify.warning('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।');
+      return;
+    }
+    setLoginLoading(true);
+    try {
+      const res = await loginFarmer({
+        ...loginForm,
+        pin: loginForm.pin || '1234',
+        district: selectedDistrict,
+      });
+      if (res.success) {
+        setActiveFarmer(res.farmer);
+        setOpenQuickLogin(false);
+        notify.success(`स्वागत है, ${res.farmer.name || 'किसान साथी'}! आपका खाता सक्रिय हो गया।`);
+        if (pendingToolAction === 'motor') setOpenMotorModal(true);
+        else if (pendingToolAction === 'khet') setOpenMeraKhet(true);
+        else if (pendingToolAction === 'soil') setOpenSoilIot(true);
+        else if (pendingToolAction === 'hub') setOpenDeviceHub(true);
+        setPendingToolAction(null);
+      } else {
+        notify.error(res.error || 'लॉगिन विफल रहा।');
+      }
+    } catch {
+      notify.error('लॉगिन में त्रुटि हुई।');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleFarmerLogout = () => {
+    logoutFarmer();
+    setActiveFarmer(null);
+    setFarmerPlots([]);
+    notify.info('सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।');
+  };
+
+  // Public Instant Crop & Quick Acre Advisor State (Zero Login Required)
+  const [selectedCropKey, setSelectedCropKey] = useState('paddy');
+  const [quickAcre, setQuickAcre] = useState(2.0);
 
   const [updateInfo, setUpdateInfo] = useState(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
@@ -394,177 +493,475 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     </Card>
   );
 
-  // 3. Farmer Profile & Mera Khet Quick Card
-  const renderFarmerMeraKhetCard = () => (
-    <Card
-      sx={{
-        borderRadius: 3.5,
-        bgcolor: '#ffffff',
-        border: '1.2px solid #c8e6c9',
-        boxShadow: '0 4px 16px rgba(46, 125, 50, 0.05)',
-        overflow: 'hidden'
-      }}
-    >
-      <Box sx={{ p: 1.5, px: 2, bgcolor: '#f1f8e9', borderBottom: '1px solid #dcedc8', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <AgricultureIcon sx={{ color: '#1b5e20', fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
-            🌾 मेरा खेत: किसान डायरी व रकबा
-          </Typography>
-        </Box>
-        <Chip
-          label={selectedDistrict}
-          size="small"
-          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
-        />
-      </Box>
-      <Box sx={{ p: 1.8 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
-              {activeFarmer?.name || 'सम्मानित किसान भाई'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-              ग्राम: {activeFarmer?.village || 'आरंग'} • खसरा: {activeFarmer?.khasraNumber || '142/1'}
-            </Typography>
+  // 3. Public Crop Advisor & Quick Acre Estimator (100% Free & Open, Zero Login Required)
+  const renderPublicCropAdvisor = () => {
+    const CROP_BENCHMARKS = {
+      paddy: {
+        name: 'धान (Paddy)',
+        rate: appConfig.paddyScheme.totalRate,
+        rateLabel: `₹${appConfig.paddyScheme.totalRate}/क्विं. (समर्थन मूल्य + बोनस)`,
+        yieldPerAcre: 21,
+        dapPerAcre: 50,
+        ureaPerAcre: 90,
+        potashPerAcre: 30,
+        season: 'खरीफ / रबी धान',
+        advisory: 'कल्ले फूटते समय 2-3 सेमी पानी बनाए रखें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं।',
+        voice: `धान हेतु ₹${appConfig.paddyScheme.totalRate} समर्थन मूल्य गारंटी है। 21 क्विंटल प्रति एकड़ तक सरकारी खरीद होती है।`
+      },
+      chana: {
+        name: 'चना (Gram)',
+        rate: 5440,
+        rateLabel: '₹5,440/क्विं. (राष्ट्रीय MSP)',
+        yieldPerAcre: 10,
+        dapPerAcre: 40,
+        ureaPerAcre: 15,
+        potashPerAcre: 20,
+        season: 'रबी दलहन (दलहन विविधीकरण)',
+        advisory: 'चने में अधिक यूरिया न डालें। फूल आते समय कभी सिंचाई न करें, केवल घेंटी बनते समय पानी दें।',
+        voice: 'चना समर्थन मूल्य ₹5,440 प्रति क्विंटल है। दलहन फसल में अतिरिक्त यूरिया डालने से बचें।'
+      },
+      wheat: {
+        name: 'गेहूं (Wheat)',
+        rate: 2425,
+        rateLabel: '₹2,425/क्विं. (राष्ट्रीय MSP)',
+        yieldPerAcre: 20,
+        dapPerAcre: 50,
+        ureaPerAcre: 100,
+        potashPerAcre: 25,
+        season: 'रबी गेहूं',
+        advisory: 'बुआई के 21वें दिन ताज जड़ (CRI) अवस्था में पहली सिंचाई अनिवार्य है। पीला रतुआ पर नजर रखें।',
+        voice: 'गेहूं का समर्थन मूल्य ₹2,425 प्रति क्विंटल है। 21वें दिन पहली सिंचाई अवश्य करें।'
+      },
+      maize: {
+        name: 'मक्का (Maize)',
+        rate: 2225,
+        rateLabel: '₹2,225/क्विं. (राष्ट्रीय MSP)',
+        yieldPerAcre: 26,
+        dapPerAcre: 45,
+        ureaPerAcre: 85,
+        potashPerAcre: 20,
+        season: 'खरीफ / जायद मक्का',
+        advisory: 'फॉल आर्मीवर्म कीट के प्रकोप से बचाव हेतु नीम अर्क या अनुशंसित कीटनाशक का गोभ में छिड़काव करें।',
+        voice: 'मक्का का समर्थन मूल्य ₹2,225 प्रति क्विंटल है। भुट्टे बनते समय खेत में नमी रखें।'
+      },
+      tomato: {
+        name: 'टमाटर / सब्जी (Tomato)',
+        rate: 1500,
+        rateLabel: '₹1,500/क्विं. (मंडी औसत दर)',
+        yieldPerAcre: 180,
+        dapPerAcre: 60,
+        ureaPerAcre: 75,
+        potashPerAcre: 50,
+        season: 'सब्जी नकदी फसल',
+        advisory: 'डैम्पिंग ऑफ व पत्ती मरोड़ रोग से बचाव रखें। नियमित तुड़ाई से 3 दिन पहले रासायनिक कीटनाशक न डालें।',
+        voice: 'टमाटर नकदी फसल है। फलों की चमक व वजन बढ़ाने हेतु पोटाश का संतुलित छिड़काव करें।'
+      }
+    };
+
+    const currentCrop = CROP_BENCHMARKS[selectedCropKey] || CROP_BENCHMARKS.paddy;
+    const estYield = Math.round(currentCrop.yieldPerAcre * quickAcre * 10) / 10;
+    const estIncome = Math.round(estYield * currentCrop.rate);
+    const estDap = Math.round(currentCrop.dapPerAcre * quickAcre);
+    const estUrea = Math.round(currentCrop.ureaPerAcre * quickAcre);
+    const estPotash = Math.round(currentCrop.potashPerAcre * quickAcre);
+
+    return (
+      <Card
+        sx={{
+          p: { xs: 1.8, sm: 2 },
+          borderRadius: 3.5,
+          bgcolor: '#ffffff',
+          border: '1.2px solid #e2e8f0',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+          mb: 2.2
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <CalculateIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
+                🌾 त्वरित फसल, खाद व आय सलाहकार (Open Calculator)
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                शून्य-लॉगिन • केवल फसल व एकड़ चुनें और तुरंत हिसाब पाएं
+              </Typography>
+            </Box>
           </Box>
-          <Chip
-            label="सक्रिय खाता"
+          <IconButton
             size="small"
-            color="success"
-            sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }}
-          />
+            onClick={() => speakText(`${currentCrop.name} का हिसाब: ${quickAcre} एकड़ में अनुमानित पैदावार ${estYield} क्विंटल और आय लगभग ${estIncome} रुपये होगी। ${currentCrop.voice}`)}
+            sx={{ bgcolor: '#f1f8e9', color: '#1b5e20' }}
+          >
+            <VolumeUpIcon fontSize="small" />
+          </IconButton>
         </Box>
 
+        {/* 1. Crop Switcher Pills */}
+        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 1, mb: 1.2, '::-webkit-scrollbar': { display: 'none' } }}>
+          {[
+            { key: 'paddy', label: '🌾 धान (Paddy)' },
+            { key: 'chana', label: '🌱 चना (Gram)' },
+            { key: 'wheat', label: '🌾 गेहूं (Wheat)' },
+            { key: 'maize', label: '🌽 मक्का (Maize)' },
+            { key: 'tomato', label: '🍅 टमाटर / सब्जी' },
+          ].map((c) => (
+            <Chip
+              key={c.key}
+              label={c.label}
+              clickable
+              onClick={() => setSelectedCropKey(c.key)}
+              sx={{
+                fontWeight: 800,
+                fontSize: '0.74rem',
+                bgcolor: selectedCropKey === c.key ? '#1b5e20' : '#f1f5f9',
+                color: selectedCropKey === c.key ? '#ffffff' : '#334155',
+                border: selectedCropKey === c.key ? '1px solid #1b5e20' : '1px solid #e2e8f0',
+                '&:hover': { bgcolor: selectedCropKey === c.key ? '#125420' : '#e2e8f0' }
+              }}
+            />
+          ))}
+        </Box>
+
+        {/* 2. Acre Quick Selector */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#f8fafc', p: 1, px: 1.5, borderRadius: 2.5, mb: 1.5, border: '1px solid #f1f5f9' }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.76rem' }}>
+            रकबा चुनें:
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.6 }}>
+            {[0.5, 1.0, 2.0, 3.0, 5.0].map((ac) => (
+              <Chip
+                key={ac}
+                label={`${ac} एकड़`}
+                size="small"
+                clickable
+                onClick={() => setQuickAcre(ac)}
+                sx={{
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  height: 24,
+                  bgcolor: quickAcre === ac ? '#2e7d32' : '#ffffff',
+                  color: quickAcre === ac ? '#ffffff' : '#475569',
+                  border: quickAcre === ac ? '1px solid #2e7d32' : '1px solid #cbd5e1'
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        {/* 3. Calculations 4-KPI Grid */}
         <Grid container spacing={1} sx={{ mb: 1.5 }}>
-          <Grid item xs={6}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
-                कुल पंजीकृत रकबा
+          <Grid item xs={6} sm={3}>
+            <Box sx={{ p: 1, bgcolor: '#f1f8e9', borderRadius: 2, border: '1px solid #c8e6c9', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+                सरकारी / मंडी दर
               </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.95rem' }}>
-                {activeFarmer?.totalAcres || '3.0'} एकड़
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
+                ₹{currentCrop.rate.toLocaleString('en-IN')}<span style={{ fontSize: '0.66rem', fontWeight: 600 }}>/क्विं.</span>
               </Typography>
             </Box>
           </Grid>
-          <Grid item xs={6}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
-                धान उपार्जन सीमा
+          <Grid item xs={6} sm={3}>
+            <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+                अनुमानित पैदावार
               </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.95rem' }}>
-                {Math.round((parseFloat(activeFarmer?.totalAcres || 3.0)) * appConfig.paddyScheme.maxQuintalsPerAcre)} क्विं.
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#15803d', fontSize: '0.92rem' }}>
+                {estYield} क्विंटल
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Box sx={{ p: 1, bgcolor: '#fffbeb', borderRadius: 2, border: '1px solid #fde68a', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+                अनुमानित आय
+              </Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.92rem' }}>
+                ₹{estIncome.toLocaleString('en-IN')}
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={6} sm={3}>
+            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+                खाद डोज (DAP/यूरिया)
+              </Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.85rem' }}>
+                {estDap}k / {estUrea}k
               </Typography>
             </Box>
           </Grid>
         </Grid>
 
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        {/* 4. Advisory Snippet */}
+        <Box sx={{ p: 1.2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
+          <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.74rem', lineHeight: 1.4 }}>
+            <strong>{currentCrop.season}:</strong> {currentCrop.advisory}
+          </Typography>
+        </Box>
+
+        {/* 5. Deep Navigation CTA Buttons */}
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
           <Button
-            fullWidth
-            variant="contained"
             size="small"
-            startIcon={<MenuBookIcon sx={{ fontSize: 16 }} />}
-            onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
-            sx={{ bgcolor: '#1b5e20', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, '&:hover': { bgcolor: '#125420' } }}
+            variant="contained"
+            onClick={() => onNavigate('schemes')}
+            sx={{ bgcolor: '#2e7d32', color: '#fff', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#1b5e20' } }}
           >
-            फसल डायरी खोलें
+            विस्तृत N:P:K कैलकुलेटर खोलें
           </Button>
           <Button
-            variant="outlined"
             size="small"
-            startIcon={<DirectionsWalkIcon sx={{ fontSize: 16 }} />}
-            onClick={() => { stopSpeech(); setOpenGpsTracker(true); }}
-            sx={{ borderColor: '#00897b', color: '#00897b', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#e0f2f1' } }}
+            variant="outlined"
+            onClick={() => onNavigate('doctor')}
+            sx={{ borderColor: '#d32f2f', color: '#d32f2f', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#ffebee' } }}
           >
-            खेत GPS
+            फसल रोग जांचें (Doctor)
           </Button>
         </Box>
-      </Box>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
-  // 4. Smart Hardware & IoT Hub Quick Card
-  const renderSmartHardwareHubCard = () => (
+  // 4. Smart Tools Hub & Farmer Profile Card (Gatekeeper: Public State vs Logged-In State)
+  const renderSmartToolsAndFarmerCard = () => (
     <Card
       sx={{
         borderRadius: 3.5,
         bgcolor: '#ffffff',
-        border: '1.2px solid #80cbc4',
-        boxShadow: '0 4px 16px rgba(0, 137, 123, 0.05)',
-        overflow: 'hidden'
+        border: activeFarmer ? '1.5px solid #81c784' : '1.5px solid #cbd5e1',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
+        overflow: 'hidden',
+        mb: 2.5
       }}
     >
-      <Box sx={{ p: 1.5, px: 2, bgcolor: '#e0f2f1', borderBottom: '1px solid #b2dfdb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Header */}
+      <Box
+        sx={{
+          p: 1.5,
+          px: 2,
+          bgcolor: activeFarmer ? '#f1f8e9' : '#f8fafc',
+          borderBottom: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SensorsIcon sx={{ color: '#00796b', fontSize: 20 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#004d40', fontSize: '0.88rem' }}>
-            📡 स्मार्ट हार्डवेयर व IoT हब
+          <SensorsIcon sx={{ color: activeFarmer ? '#1b5e20' : '#475569', fontSize: 22 }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: activeFarmer ? '#1b5e20' : '#1e293b', fontSize: '0.9rem' }}>
+            {activeFarmer ? '🌾 मेरा किसान कमांड सेंटर' : '📡 स्मार्ट कृषि उपकरण व किसान खाता'}
           </Typography>
         </Box>
-        <Chip
-          label="ब्लूटूथ / GSM"
-          size="small"
-          sx={{ bgcolor: '#b2dfdb', color: '#004d40', fontWeight: 800, fontSize: '0.68rem', height: 20 }}
-        />
+        {activeFarmer ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <Chip
+              label="सक्रिय खाता"
+              size="small"
+              color="success"
+              sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+            />
+            <Button
+              size="small"
+              startIcon={<LogoutIcon sx={{ fontSize: 13 }} />}
+              onClick={handleFarmerLogout}
+              sx={{ color: '#d32f2f', fontWeight: 800, fontSize: '0.7rem', p: 0.2 }}
+            >
+              लॉगआउट
+            </Button>
+          </Box>
+        ) : (
+          <Button
+            size="small"
+            variant="contained"
+            startIcon={<LockOpenIcon sx={{ fontSize: 14 }} />}
+            onClick={() => setOpenQuickLogin(true)}
+            sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.2, py: 0.3 }}
+          >
+            1-क्लिक लॉगिन
+          </Button>
+        )}
       </Box>
+
+      {/* Body Content */}
       <Box sx={{ p: 1.8 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 1.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ScienceIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
+        {activeFarmer ? (
+          <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
               <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block' }}>
-                  मिट्टी pH व NPK सेंसर
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
+                  {activeFarmer.name || 'किसान साथी'}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                  लाइव प्रोब ब्लूटूथ कनेक्टिविटी
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+                  ग्राम: {activeFarmer.village || 'पंजीकृत'} • {activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ भूमि
                 </Typography>
               </Box>
+              <Chip
+                label={`${farmerPlots.length || 1} खेत सक्रिय`}
+                size="small"
+                sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem' }}
+              />
             </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => { stopSpeech(); setOpenSoilIot(true); }}
-              sx={{ fontSize: '0.7rem', fontWeight: 700, py: 0.2, px: 1, borderRadius: 1.5 }}
-            >
-              जांचें
-            </Button>
           </Box>
+        ) : (
+          <Alert severity="info" sx={{ mb: 1.5, py: 0.5, borderRadius: 2, fontSize: '0.76rem', border: '1px solid #bfdbfe' }}>
+            🔒 <strong>व्यक्तिगत टूल्स:</strong> मोटर कंट्रोल व फसल डायरी के सुरक्षित उपयोग हेतु केवल मोबाइल नंबर से लॉगिन करें।
+          </Alert>
+        )}
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 18 }} />
-              <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block' }}>
-                  ट्यूबवेल मोटर कंट्रोलर
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                  GSM स्टार्टर ऑन/ऑफ व टाइमर
-                </Typography>
+        {/* 4 Smart Hardware & Private Tools Grid */}
+        <Grid container spacing={1}>
+          {/* Tool 1: Motor */}
+          <Grid item xs={6}>
+            <Box
+              onClick={() => handleRequireLogin('motor')}
+              sx={{
+                p: 1.2,
+                borderRadius: 2.5,
+                bgcolor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                '&:hover': { bgcolor: '#e0f2fe', borderColor: '#7dd3fc' }
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 20 }} />
+                <Chip
+                  label={activeFarmer ? 'कंट्रोल' : '🔒 लॉगिन'}
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    bgcolor: activeFarmer ? '#e0f2fe' : '#f1f5f9',
+                    color: activeFarmer ? '#0288d1' : '#64748b'
+                  }}
+                />
               </Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.76rem' }}>
+                ट्यूबवेल मोटर
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
+                GSM स्टार्टर रिमोट
+              </Typography>
             </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={() => { stopSpeech(); setOpenMotorModal(true); }}
-              sx={{ fontSize: '0.7rem', fontWeight: 700, py: 0.2, px: 1, borderRadius: 1.5, color: '#0288d1', borderColor: '#b3e5fc' }}
-            >
-              कंट्रोल
-            </Button>
-          </Box>
-        </Box>
+          </Grid>
 
-        <Button
-          fullWidth
-          variant="contained"
-          size="small"
-          startIcon={<SensorsIcon sx={{ fontSize: 16 }} />}
-          onClick={() => { stopSpeech(); setOpenDeviceHub(true); }}
-          sx={{ bgcolor: '#00796b', fontSize: '0.75rem', fontWeight: 800, borderRadius: 2, py: 0.6, '&:hover': { bgcolor: '#004d40' } }}
-        >
-          कमांड सेंटर खोलें
-        </Button>
+          {/* Tool 2: Mera Khet & Diary */}
+          <Grid item xs={6}>
+            <Box
+              onClick={() => handleRequireLogin('khet')}
+              sx={{
+                p: 1.2,
+                borderRadius: 2.5,
+                bgcolor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                '&:hover': { bgcolor: '#f0fdf4', borderColor: '#86efac' }
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <MenuBookIcon sx={{ color: '#2e7d32', fontSize: 20 }} />
+                <Chip
+                  label={activeFarmer ? 'डायरी' : '🔒 लॉगिन'}
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    bgcolor: activeFarmer ? '#dcfce7' : '#f1f5f9',
+                    color: activeFarmer ? '#15803d' : '#64748b'
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.76rem' }}>
+                मेरा खेत व डायरी
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
+                फसल व खर्च रिकॉर्ड
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Tool 3: Soil IoT */}
+          <Grid item xs={6}>
+            <Box
+              onClick={() => handleRequireLogin('soil')}
+              sx={{
+                p: 1.2,
+                borderRadius: 2.5,
+                bgcolor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                '&:hover': { bgcolor: '#f0fdfa', borderColor: '#99f6e4' }
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <ScienceIcon sx={{ color: '#00796b', fontSize: 20 }} />
+                <Chip
+                  label={activeFarmer ? 'जांचें' : '🔒 लॉगिन'}
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    bgcolor: activeFarmer ? '#ccfbf1' : '#f1f5f9',
+                    color: activeFarmer ? '#0f766e' : '#64748b'
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.76rem' }}>
+                मिट्टी सेंसर (IoT)
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
+                pH व NPK प्रोब
+              </Typography>
+            </Box>
+          </Grid>
+
+          {/* Tool 4: Field GPS (Always Open!) */}
+          <Grid item xs={6}>
+            <Box
+              onClick={() => setOpenGpsTracker(true)}
+              sx={{
+                p: 1.2,
+                borderRadius: 2.5,
+                bgcolor: '#f8fafc',
+                border: '1px solid #e2e8f0',
+                cursor: 'pointer',
+                transition: 'all 0.18s ease',
+                '&:hover': { bgcolor: '#fef3c7', borderColor: '#fde68a' }
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                <DirectionsWalkIcon sx={{ color: '#d97706', fontSize: 20 }} />
+                <Chip
+                  label="⚡ खुला"
+                  size="small"
+                  sx={{
+                    height: 18,
+                    fontSize: '0.62rem',
+                    fontWeight: 800,
+                    bgcolor: '#fef3c7',
+                    color: '#b45309'
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.76rem' }}>
+                खेत GPS मापक
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
+                मेड़ों पर चलकर नापें
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
     </Card>
   );
@@ -609,29 +1006,65 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
                 <span>📍 {activeFarmer?.village ? `${activeFarmer.village}, ` : ''}{selectedDistrict}</span>
                 <span>•</span>
-                <span style={{ color: '#ffeb3b', fontWeight: 700 }}>धान व रबी 2026-27</span>
+                <span style={{ color: '#ffeb3b', fontWeight: 700 }}>
+                  {activeFarmer ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ पंजीकृत` : 'सार्वजनिक कृषि सेवा (खुला पोर्टल)'}
+                </span>
               </Typography>
             </Box>
           </Box>
 
-          <Button
-            variant="contained"
-            size="small"
-            onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
-            sx={{
-              bgcolor: '#ffeb3b',
-              color: '#1b5e20',
-              fontWeight: 800,
-              fontSize: '0.78rem',
-              borderRadius: 3,
-              px: 2,
-              py: 0.7,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-              '&:hover': { bgcolor: '#fff' }
-            }}
-          >
-            🌾 मेरा खेत {activeFarmer?.totalAcres ? `(${activeFarmer.totalAcres} एकड़)` : ''}
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {activeFarmer ? (
+              <>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
+                  sx={{
+                    bgcolor: '#ffeb3b',
+                    color: '#1b5e20',
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    borderRadius: 3,
+                    px: 1.8,
+                    py: 0.6,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    '&:hover': { bgcolor: '#fff' }
+                  }}
+                >
+                  🌾 मेरा खेत
+                </Button>
+                <IconButton
+                  size="small"
+                  title="लॉगआउट"
+                  onClick={handleFarmerLogout}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                >
+                  <LogoutIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<LockOpenIcon sx={{ fontSize: 15 }} />}
+                onClick={() => setOpenQuickLogin(true)}
+                sx={{
+                  bgcolor: '#ffeb3b',
+                  color: '#1b5e20',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  borderRadius: 3,
+                  px: 1.8,
+                  py: 0.6,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  '&:hover': { bgcolor: '#fff' }
+                }}
+              >
+                1-क्लिक किसान लॉगिन
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {/* Ticker Notice Inside Hero */}
@@ -884,9 +1317,17 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             )}
           </Card>
 
+          {/* 3.5 Public Crop Advisor & Quick Acre Estimator (100% Free, Zero Login Required) */}
+          {renderPublicCropAdvisor()}
+
           {/* 4. Mandi Rates Pulse (Mobile Only: xs & sm) */}
           <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.5 }}>
             {renderMandiPulseCard()}
+          </Box>
+
+          {/* 4.5 Smart Hardware & Farmer Hub (Mobile Only: xs & sm) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.5 }}>
+            {renderSmartToolsAndFarmerCard()}
           </Box>
 
       {/* 5. Unified 8-Tile Modern App Launcher Grid (PhonePe/GPay Style 4x2 Matrix) */}
@@ -901,7 +1342,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           size="small"
           onClick={() => {
             stopSpeech();
-            setOpenDeviceHub(true);
+            handleRequireLogin('hub');
           }}
           sx={{
             bgcolor: '#e8f5e9',
@@ -979,27 +1420,27 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               icon: <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: { xs: 24, sm: 26 } }} />,
               bg: '#e1f5fe',
               border: '#b3e5fc',
-              badge: 'IoT',
-              badgeBg: '#0288d1',
-              action: () => setOpenMotorModal(true)
+              badge: activeFarmer ? 'IoT' : '🔒',
+              badgeBg: activeFarmer ? '#0288d1' : '#64748b',
+              action: () => handleRequireLogin('motor')
             },
             {
               title: 'मिट्टी सेंसर',
               icon: <ScienceIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
               bg: '#e8f5e9',
               border: '#c8e6c9',
-              badge: 'सेंसर',
-              badgeBg: '#1b5e20',
-              action: () => setOpenSoilIot(true)
+              badge: activeFarmer ? 'सेंसर' : '🔒',
+              badgeBg: activeFarmer ? '#1b5e20' : '#64748b',
+              action: () => handleRequireLogin('soil')
             },
             {
               title: 'किसान डायरी',
               icon: <MenuBookIcon sx={{ color: '#7b1fa2', fontSize: { xs: 24, sm: 26 } }} />,
               bg: '#f3e5f5',
               border: '#e1bee7',
-              badge: 'खाता',
-              badgeBg: '#7b1fa2',
-              action: () => setOpenMeraKhet(true)
+              badge: activeFarmer ? 'खाता' : '🔒',
+              badgeBg: activeFarmer ? '#7b1fa2' : '#64748b',
+              action: () => handleRequireLogin('khet')
             }
           ].map((tool, idx) => (
             <Grid item xs={3} sm={3} md={3} lg={1.5} key={idx}>
@@ -1275,11 +1716,11 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             {/* 1. Mandi Rates Pulse Widget */}
             {renderMandiPulseCard()}
 
-            {/* 2. Farmer Profile & Mera Khet Quick Card */}
-            {renderFarmerMeraKhetCard()}
+            {/* 2. Smart Tools Hub & Farmer Command Card */}
+            {renderSmartToolsAndFarmerCard()}
 
-            {/* 3. Smart Hardware & IoT Hub Quick Card */}
-            {renderSmartHardwareHubCard()}
+            {/* 3. Platform APK & Share Card */}
+            {renderApkFooterCard()}
           </Box>
         </Grid>
       </Grid>
@@ -1323,6 +1764,82 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
       />
+
+      {/* Quick Farmer Login & Registration Modal (Zero Friction, Public First) */}
+      <Dialog
+        open={openQuickLogin}
+        onClose={() => { if (!loginLoading) setOpenQuickLogin(false); }}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3.5, p: 1 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+          <LockOpenIcon sx={{ color: '#2e7d32' }} />
+          किसान त्वरित लॉगिन / खाता खोलें
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 2 }}>
+          <Alert severity="success" sx={{ mb: 2, borderRadius: 2, fontSize: '0.78rem', py: 0.5 }}>
+            🔒 <strong>100% सुरक्षित व गोपनीय:</strong> किसी खसरा, बी-1 या जमीन के सरकारी कागजात की कोई आवश्यकता नहीं है। केवल मोबाइल नंबर से तुरंत शुरू करें।
+          </Alert>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.8, mt: 0.5 }}>
+            <TextField
+              label="मोबाइल नंबर (10 अंक)"
+              placeholder="उदा. 9876543210"
+              fullWidth
+              size="small"
+              autoFocus
+              value={loginForm.phone}
+              onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
+              helperText="यह आपकी सुरक्षित किसान पहचान है"
+              inputProps={{ inputMode: 'numeric', maxLength: 10 }}
+            />
+            <TextField
+              label="किसान का नाम (वैकल्पिक)"
+              placeholder="उदा. रामेश्वर साहू"
+              fullWidth
+              size="small"
+              value={loginForm.name}
+              onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
+            />
+            <TextField
+              label="गांव / ब्लॉक (वैकल्पिक)"
+              placeholder="उदा. आरंग"
+              fullWidth
+              size="small"
+              value={loginForm.village}
+              onChange={(e) => setLoginForm({ ...loginForm, village: e.target.value })}
+            />
+            <TextField
+              label="सुरक्षा पिन (4 अंक, डिफ़ॉल्ट: 1234)"
+              placeholder="1234"
+              type="password"
+              fullWidth
+              size="small"
+              value={loginForm.pin}
+              onChange={(e) => setLoginForm({ ...loginForm, pin: e.target.value.slice(0, 6) })}
+              helperText="साझा फोन पर परिवार का कोई अन्य सदस्य आपका रिकॉर्ड न बदले"
+              inputProps={{ inputMode: 'numeric', maxLength: 6 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={() => setOpenQuickLogin(false)}
+            disabled={loginLoading}
+            sx={{ color: '#64748b', fontWeight: 700 }}
+          >
+            रद्द करें
+          </Button>
+          <Button
+            variant="contained"
+            disabled={loginLoading || loginForm.phone.length < 10}
+            onClick={handleQuickLoginSubmit}
+            sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, borderRadius: 2, px: 2.5, '&:hover': { bgcolor: '#125420' } }}
+          >
+            {loginLoading ? <CircularProgress size={18} color="inherit" /> : 'खाता खोलें / लॉगिन करें'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog
         open={updateDialogOpen}
