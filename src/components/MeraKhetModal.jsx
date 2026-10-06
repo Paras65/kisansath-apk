@@ -37,6 +37,8 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ScienceIcon from '@mui/icons-material/Science';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
+import PrintIcon from '@mui/icons-material/Print';
+import { generateAndPrintKccReport } from '../utils/printReportHelper';
 
 import {
   getActiveFarmer,
@@ -392,6 +394,39 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                         border: liveWeather.sprayAdvisory?.canSpray ? '1px solid #a5d6a7' : '1px solid #ef9a9a',
                       }}
                     />
+                  )}
+                  {plots.length > 0 && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<PrintIcon />}
+                      onClick={() => {
+                        generateAndPrintKccReport({
+                          farmerName: farmer.name || 'सम्मानित किसान',
+                          phone: farmer.phone || '',
+                          village: farmer.village || 'ग्राम',
+                          district: farmer.district || selectedDistrict,
+                          items: plots.map((p) => ({
+                            cropName: p.cropName,
+                            areaAcres: p.areaAcres,
+                            sowDate: p.sowDate,
+                            stage: p.plotName,
+                            nextAction: `किस्म: ${p.variety || 'उन्नत'} • मिट्टी: ${p.soilType || 'मटासी'}`
+                          }))
+                        });
+                      }}
+                      sx={{
+                        borderColor: '#2e7d32',
+                        color: '#1b5e20',
+                        fontWeight: 800,
+                        fontSize: '0.74rem',
+                        py: 0.4,
+                        whiteSpace: 'nowrap',
+                        '&:hover': { bgcolor: '#e8f5e9' }
+                      }}
+                    >
+                      🖨️ KCC प्रिंट
+                    </Button>
                   )}
                   <Button
                     variant="outlined"

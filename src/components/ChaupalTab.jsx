@@ -5,8 +5,6 @@ import {
   Card,
   CardContent,
   Grid,
-  Tabs,
-  Tab,
   Button,
   Chip,
   Paper,
@@ -28,9 +26,13 @@ import EventNoteIcon from '@mui/icons-material/EventNote';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import PrintIcon from '@mui/icons-material/Print';
 import { MACHINERY_RENTALS, COMMUNITY_QA } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { getMachinery, getCommunityQA, postCommunityQuestion } from '../services/apiService';
+import { generateAndPrintKccReport } from '../utils/printReportHelper';
+import { getActiveFarmer } from '../services/farmerService';
 import { MeraKhetModal } from './MeraKhetModal';
 
 export const ChaupalTab = () => {
@@ -135,35 +137,38 @@ export const ChaupalTab = () => {
 
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
-      {/* Sub Header Tabs */}
-      <Paper elevation={0} sx={{ mb: 2, borderRadius: 3, bgcolor: '#f0f4ec', p: 0.5 }}>
-        <Tabs
-          value={subTab}
-          onChange={(e, val) => setSubTab(val)}
-          variant="fullWidth"
-          sx={{
-            minHeight: 44,
-            '& .MuiTab-root': {
-              minHeight: 44,
+      {/* Modern Capsule Tab Switcher */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px' }}>
+        {[
+          { label: 'मशीनरी रेंटल', icon: <PrecisionManufacturingIcon sx={{ fontSize: 18 }} /> },
+          { label: 'किसान चौपाल', icon: <ForumIcon sx={{ fontSize: 18 }} /> },
+          { label: 'मेरी फसल डायरी', icon: <BookmarksIcon sx={{ fontSize: 18 }} /> },
+        ].map((item, idx) => (
+          <Button
+            key={idx}
+            fullWidth
+            onClick={() => setSubTab(idx)}
+            startIcon={item.icon}
+            sx={{
+              py: 0.9,
+              borderRadius: '10px',
               fontSize: '0.82rem',
-              fontWeight: 700,
-              borderRadius: 2.5,
+              fontWeight: 800,
               textTransform: 'none',
-              py: 0.8
-            },
-            '& .Mui-selected': {
-              bgcolor: '#ffffff',
-              color: '#1b5e20 !important',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-            },
-            '& .MuiTabs-indicator': { display: 'none' }
-          }}
-        >
-          <Tab icon={<PrecisionManufacturingIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="मशीन रेंटल" />
-          <Tab icon={<ForumIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="किसान चौपाल" />
-          <Tab icon={<BookmarksIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="मेरी फसल डायरी" />
-        </Tabs>
-      </Paper>
+              bgcolor: subTab === idx ? '#ffffff' : 'transparent',
+              color: subTab === idx ? '#1b5e20' : '#64748b',
+              boxShadow: subTab === idx ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              '&:hover': {
+                bgcolor: subTab === idx ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                color: '#1b5e20'
+              }
+            }}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </Box>
 
       {/* SUB-TAB 0: MACHINERY & DRONE RENTAL */}
       {subTab === 0 && (
@@ -242,30 +247,53 @@ export const ChaupalTab = () => {
 
                     <Box>
                       <Divider sx={{ my: 1 }} />
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                         <Chip
-                          label={item.operatorIncluded ? '✅ चालक (Driver) सहित' : 'केवल मशीन'}
+                          label={item.operatorIncluded ? '✅ चालक सहित' : 'केवल मशीन'}
                           size="small"
-                          sx={{ bgcolor: '#f1f8e9', color: '#2e7d32', fontWeight: 700, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
+                          sx={{ bgcolor: '#f1f8e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
                         />
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<CallIcon />}
-                          onClick={() => { window.location.href = `tel:${item.phone}`; }}
-                          sx={{
-                            bgcolor: '#1b5e20',
-                            color: '#ffffff',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            borderRadius: '8px',
-                            py: 0.5,
-                            px: 1.5,
-                            '&:hover': { bgcolor: '#125420' }
-                          }}
-                        >
-                          कॉल करें: {item.phone}
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 0.8 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
+                            onClick={() => {
+                              const msg = encodeURIComponent(`नमस्ते ${item.contactName} जी, मुझे आपकी मशीनरी (${item.title} - ${item.rate}) किराए पर चाहिए। क्या यह उपलब्ध है?`);
+                              window.open(`https://wa.me/91${item.phone}?text=${msg}`, '_blank');
+                            }}
+                            sx={{
+                              borderColor: '#25D366',
+                              color: '#128C7E',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              borderRadius: '8px',
+                              py: 0.4,
+                              px: 1,
+                              '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
+                            }}
+                          >
+                            व्हाट्सएप
+                          </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<CallIcon />}
+                            onClick={() => { window.location.href = `tel:${item.phone}`; }}
+                            sx={{
+                              bgcolor: '#1b5e20',
+                              color: '#ffffff',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              borderRadius: '8px',
+                              py: 0.4,
+                              px: 1.2,
+                              '&:hover': { bgcolor: '#125420' }
+                            }}
+                          >
+                            कॉल
+                          </Button>
+                        </Box>
                       </Box>
                     </Box>
                   </CardContent>
@@ -382,31 +410,59 @@ export const ChaupalTab = () => {
       {/* SUB-TAB 2: FARM DIARY */}
       {subTab === 2 && (
         <Box>
-          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
                 📖 मेरी फसल डायरी (My Farm Diary)
               </Typography>
-              <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
                 अपनी फसलें दर्ज करें और सिंचाई व खाद का रिमाइंडर पाएं
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddCircleIcon />}
-              onClick={() => setOpenDiaryModal(true)}
-              sx={{
-                bgcolor: '#2e7d32',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                borderRadius: 2,
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#1b5e20' }
-              }}
-            >
-              फसल जोड़ें
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<PrintIcon />}
+                onClick={() => {
+                  const active = getActiveFarmer();
+                  generateAndPrintKccReport({
+                    farmerName: active?.name || 'सम्मानित कृषक',
+                    phone: active?.phone || '',
+                    village: active?.village || 'ग्राम',
+                    district: active?.district || 'रायपुर',
+                    items: farmDiary
+                  });
+                }}
+                sx={{
+                  borderColor: '#2e7d32',
+                  color: '#1b5e20',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: '#e8f5e9', borderColor: '#1b5e20' }
+                }}
+              >
+                🖨️ KCC प्रिंट / PDF
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddCircleIcon />}
+                onClick={() => setOpenDiaryModal(true)}
+                sx={{
+                  bgcolor: '#2e7d32',
+                  fontSize: '0.74rem',
+                  fontWeight: 800,
+                  borderRadius: '10px',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: '#1b5e20' }
+                }}
+              >
+                फसल जोड़ें
+              </Button>
+            </Box>
           </Box>
 
           {/* Mera Khet Smart Multi-Plot Banner */}

@@ -23,11 +23,13 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CallIcon from '@mui/icons-material/Call';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { MANDI_RATES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getMandiRates, getMarketplaceListings, postMarketplaceListing } from '../services/apiService';
 import { notify } from '../services/notificationService';
+import { validateIndianPhone } from '../services/deviceManagerService';
 
 export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -64,10 +66,16 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       notify.warning('कृपया फसल, मात्रा और 10-अंकीय मोबाइल नंबर दर्ज करें');
       return;
     }
+    const phoneCheck = validateIndianPhone(formData.phone);
+    if (!phoneCheck.isValid) {
+      notify.warning(phoneCheck.message);
+      return;
+    }
     const newEntry = {
       id: `list-${Date.now()}`,
       ...formData,
-      date: 'अभी-अभी'
+      phone: phoneCheck.cleanPhone,
+      date: 'आज'
     };
     // Post to MongoDB
     await postMarketplaceListing(newEntry);
@@ -100,20 +108,34 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     speakText(text);
   };
 
+  const avgModalRate = filteredRates.length > 0
+    ? Math.round(filteredRates.reduce((acc, curr) => acc + (Number(curr.modalRate) || 0), 0) / filteredRates.length)
+    : 0;
+
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* Title & Post button */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Box sx={{ bgcolor: '#e3f2fd', p: 1, borderRadius: 2 }}>
-            <StorefrontIcon sx={{ color: '#1565c0', fontSize: 26 }} />
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
+              p: 1.2,
+              borderRadius: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 14px rgba(21, 101, 192, 0.25)'
+            }}
+          >
+            <StorefrontIcon sx={{ color: '#ffffff', fontSize: 26 }} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: '#0d47a1', fontSize: '1.1rem', lineHeight: 1.2 }}>
-              लाइव मंडी भाव व बिक्री
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: '1.15rem', lineHeight: 1.2 }}>
+              लाइव मंडी भाव व सीधा बाज़ार
             </Typography>
-            <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-              ताजा मंडी दरें एवं खेत से सीधा खरीदार संपर्क
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
+              ताजा मंडी दरें • भाव ट्रेंड विश्लेषण • खेत से सीधा खरीदार संपर्क
             </Typography>
           </Box>
         </Box>
@@ -124,17 +146,81 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           startIcon={<AddCircleIcon />}
           onClick={() => setOpenSellModal(true)}
           sx={{
-            bgcolor: '#1565c0',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            borderRadius: 2.5,
+            background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+            fontSize: '0.78rem',
+            fontWeight: 800,
+            borderRadius: '12px',
+            py: 0.8,
+            px: 1.8,
+            boxShadow: '0 4px 12px rgba(21, 101, 192, 0.25)',
             whiteSpace: 'nowrap',
-            '&:hover': { bgcolor: '#0d47a1' }
+            '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #082d62 100%)' }
           }}
         >
-          फसल बेचें
+          फसल बेचें ➔
         </Button>
       </Box>
+
+      {/* Modern Live Quick Statistics Strip */}
+      <Grid container spacing={1.5} sx={{ mb: 2 }}>
+        <Grid item xs={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.2,
+              borderRadius: '12px',
+              bgcolor: '#f0f9ff',
+              border: '1px solid #bae6fd',
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#0369a1', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
+              सक्रिय मंडियां
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0284c7' }}>
+              {filteredRates.length} मंडियां
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.2,
+              borderRadius: '12px',
+              bgcolor: '#ecfdf5',
+              border: '1px solid #a7f3d0',
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#047857', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
+              औसत मॉडल भाव
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>
+              {avgModalRate ? `₹${avgModalRate.toLocaleString('en-IN')}` : '₹--'}
+            </Typography>
+          </Paper>
+        </Grid>
+        <Grid item xs={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.2,
+              borderRadius: '12px',
+              bgcolor: '#fefce8',
+              border: '1px solid #fde047',
+              textAlign: 'center'
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#a16207', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
+              सरकारी उपार्जन
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309' }}>
+              ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्वि.
+            </Typography>
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Government MSP Highlight Banner */}
       <Paper
@@ -431,28 +517,51 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 </Box>
               </Box>
 
-              <Box sx={{ pt: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ pt: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
                   {listing.date}
                 </Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<CallIcon />}
-                  onClick={() => { window.location.href = `tel:${listing.phone}`; }}
-                  sx={{
-                    bgcolor: '#1b5e20',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.75rem',
-                    borderRadius: '8px',
-                    py: 0.5,
-                    px: 1.4,
-                    '&:hover': { bgcolor: '#125420' }
-                  }}
-                >
-                  कॉल करें: {listing.phone}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
+                    onClick={() => {
+                      const msg = encodeURIComponent(`नमस्ते ${listing.farmerName} भाई, मैंने किसान साथी ऐप पर आपकी फसल (${listing.crop} - ${listing.quantity}) का विज्ञापन देखा। क्या यह उपलब्ध है?`);
+                      window.open(`https://wa.me/91${listing.phone}?text=${msg}`, '_blank');
+                    }}
+                    sx={{
+                      borderColor: '#25D366',
+                      color: '#128C7E',
+                      fontWeight: 800,
+                      fontSize: '0.73rem',
+                      borderRadius: '8px',
+                      py: 0.5,
+                      px: 1.1,
+                      '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
+                    }}
+                  >
+                    व्हाट्सएप
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<CallIcon />}
+                    onClick={() => { window.location.href = `tel:${listing.phone}`; }}
+                    sx={{
+                      bgcolor: '#1b5e20',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: '0.73rem',
+                      borderRadius: '8px',
+                      py: 0.5,
+                      px: 1.3,
+                      '&:hover': { bgcolor: '#125420' }
+                    }}
+                  >
+                    कॉल
+                  </Button>
+                </Box>
               </Box>
             </Paper>
           </Grid>

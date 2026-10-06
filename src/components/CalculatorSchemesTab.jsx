@@ -4,8 +4,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Tabs,
-  Tab,
   TextField,
   MenuItem,
   Grid,
@@ -107,34 +105,38 @@ export const CalculatorSchemesTab = () => {
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
       {/* Sub Header Tabs */}
-      <Paper elevation={0} sx={{ mb: 2, borderRadius: 3, bgcolor: '#f0f4ec', p: 0.5 }}>
-        <Tabs
-          value={subTab}
-          onChange={(e, val) => setSubTab(val)}
-          variant="fullWidth"
-          sx={{
-            minHeight: 44,
-            '& .MuiTab-root': {
-              minHeight: 44,
+      {/* Modern Capsule Tab Switcher */}
+      <Box sx={{ mb: 2, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px' }}>
+        {[
+          { label: 'खाद कैलकुलेटर', icon: <CalculateIcon sx={{ fontSize: 18 }} /> },
+          { label: `धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}`, icon: <MonetizationOnIcon sx={{ fontSize: 18 }} /> },
+          { label: 'सरकारी योजनाएं', icon: <PolicyIcon sx={{ fontSize: 18 }} /> },
+        ].map((item, idx) => (
+          <Button
+            key={idx}
+            fullWidth
+            onClick={() => setSubTab(idx)}
+            startIcon={item.icon}
+            sx={{
+              py: 0.9,
+              borderRadius: '10px',
               fontSize: '0.82rem',
-              fontWeight: 700,
-              borderRadius: 2.5,
+              fontWeight: 800,
               textTransform: 'none',
-              py: 0.8
-            },
-            '& .Mui-selected': {
-              bgcolor: '#ffffff',
-              color: '#1b5e20 !important',
-              boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
-            },
-            '& .MuiTabs-indicator': { display: 'none' }
-          }}
-        >
-          <Tab icon={<CalculateIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="खाद कैलकुलेटर" />
-          <Tab icon={<MonetizationOnIcon sx={{ fontSize: 18 }} />} iconPosition="start" label={`धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}`} />
-          <Tab icon={<PolicyIcon sx={{ fontSize: 18 }} />} iconPosition="start" label="सरकारी योजनाएं" />
-        </Tabs>
-      </Paper>
+              bgcolor: subTab === idx ? '#ffffff' : 'transparent',
+              color: subTab === idx ? '#1b5e20' : '#64748b',
+              boxShadow: subTab === idx ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
+              transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+              '&:hover': {
+                bgcolor: subTab === idx ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                color: '#1b5e20'
+              }
+            }}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </Box>
 
       {/* TAB 0: FERTILIZER CALCULATOR */}
       {subTab === 0 && (
