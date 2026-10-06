@@ -25,21 +25,24 @@ export const resetAdminInactivityTimer = (onTimeout) => {
   }, IDLE_TIMEOUT_MS);
 };
 
+let memoryAdminToken = null;
+let memoryAdminSession = null;
+
 const getAdminHeaders = () => {
   try {
-    const token = sessionStorage.getItem(ADMIN_JWT_KEY);
+    const token = sessionStorage.getItem(ADMIN_JWT_KEY) || memoryAdminToken;
     return token ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } : { 'Content-Type': 'application/json' };
   } catch {
-    return { 'Content-Type': 'application/json' };
+    return memoryAdminToken ? { 'Content-Type': 'application/json', Authorization: `Bearer ${memoryAdminToken}` } : { 'Content-Type': 'application/json' };
   }
 };
 
 // 1. Check if admin is currently authenticated in active session
 export const isAdminLoggedIn = () => {
   try {
-    return !!sessionStorage.getItem(ADMIN_JWT_KEY);
+    return Boolean(sessionStorage.getItem(ADMIN_JWT_KEY) || memoryAdminToken);
   } catch {
-    return false;
+    return Boolean(memoryAdminToken);
   }
 };
 
@@ -55,12 +58,15 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
     if (res.ok) {
       const data = await res.json();
       if (data.token) {
-        // STRICT EPHEMERAL STORAGE: sessionStorage ONLY, never persistent in localStorage
-        sessionStorage.setItem(ADMIN_JWT_KEY, data.token);
-        sessionStorage.setItem(
-          ADMIN_SESSION_KEY,
-          JSON.stringify({ username, loginTime: Date.now() })
-        );
+        memoryAdminToken = data.token;
+        memoryAdminSession = { username, loginTime: Date.now() };
+        try {
+          sessionStorage.setItem(ADMIN_JWT_KEY, data.token);
+          sessionStorage.setItem(
+            ADMIN_SESSION_KEY,
+            JSON.stringify({ username, loginTime: Date.now() })
+          );
+        } catch {}
       }
       return { success: true, message: data.message };
     } else {
@@ -68,12 +74,15 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
       return { success: false, error: err.error || 'अमान्य एडमिन पासकी।' };
     }
   } catch (err) {
-    return { success: false, error: 'सर्वर से संपर्क नहीं हो सका। कृपया नेटवर्क और सर्वर स्थिति जांचें।' };
+    const target = API_BASE_URL || 'सर्वर';
+    return { success: false, error: `सर्वर से संपर्क नहीं हो सका (${target})। कृपया इंटरनेट कनेक्टिविटी जांचें।` };
   }
 };
 
 // 3. Admin Logout: Purge all session memory instantly
 export const adminLogout = () => {
+  memoryAdminToken = null;
+  memoryAdminSession = null;
   try {
     sessionStorage.removeItem(ADMIN_JWT_KEY);
     sessionStorage.removeItem(ADMIN_SESSION_KEY);

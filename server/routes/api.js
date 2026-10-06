@@ -78,7 +78,7 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.9';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.10';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
@@ -728,13 +728,18 @@ router.post('/admin/login', (req, res) => {
     }
 
     const { passkey, username } = req.body;
-    const configuredSecret = getAdminSecret();
+    const configuredSecret = (process.env.ADMIN_SECRET || '').trim();
+    const configuredPin = (process.env.ADMIN_PIN || '').trim();
 
-    if (!configuredSecret) {
+    if (!configuredSecret && !configuredPin) {
       return res.status(500).json({ error: 'सर्वर सुरक्षा विफलता: एडमिन पासकी पर्यावरण (.env) में कॉन्फ़िगर नहीं है।' });
     }
 
-    if (!passkey || !timingSafeStringEqual(passkey.trim(), configuredSecret)) {
+    const cleanPasskey = (passkey || '').trim();
+    const isSecretMatch = configuredSecret && timingSafeStringEqual(cleanPasskey, configuredSecret);
+    const isPinMatch = configuredPin && timingSafeStringEqual(cleanPasskey, configuredPin);
+
+    if (!isSecretMatch && !isPinMatch) {
       return res.status(401).json({ error: 'अमान्य एडमिन पासकी। कृपया सही क्रेडेंशियल दर्ज करें।' });
     }
 

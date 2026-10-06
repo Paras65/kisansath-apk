@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.9',
+  appVersion: env.VITE_APP_VERSION || '1.0.10',
   defaultLang: env.VITE_DEFAULT_LANG || 'hi',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -53,7 +53,23 @@ export const appConfig = {
   // 5. Host & API Endpoints
   host: env.VITE_APP_HOST || 'https://kisan.init65.co.in',
   apiBaseUrl: (() => {
-    let url = (env.VITE_API_BASE_URL || '/api').trim().replace(/\/+$/, '');
+    let rawUrl = (env.VITE_API_BASE_URL || '').trim();
+
+    // Check if running inside mobile APK (Capacitor) or on an origin that cannot resolve relative APIs
+    const isCapacitorOrLocal =
+      typeof window !== 'undefined' &&
+      (window.location.protocol === 'capacitor:' ||
+        window.location.protocol === 'file:' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        Boolean(window.Capacitor?.isNativePlatform?.()));
+
+    // If no URL is provided, or a relative URL (/api) is used inside native Android APK:
+    if (!rawUrl || (rawUrl.startsWith('/') && isCapacitorOrLocal) || rawUrl === '/api') {
+      return 'https://kisan-saathi-api-4sdo.onrender.com/api';
+    }
+
+    let url = rawUrl.replace(/\/+$/, '');
     if (!url.endsWith('/api') && !url.includes('/api/')) {
       url = `${url}/api`;
     }
