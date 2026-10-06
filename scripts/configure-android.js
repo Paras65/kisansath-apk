@@ -75,7 +75,6 @@ function setupManifestPermissions() {
 
   const permissions = `
     <!-- Kisan Saathi Agricultural Modules Hardware & System Permissions -->
-    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
