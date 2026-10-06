@@ -9,8 +9,8 @@ import {
   IconButton
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { subscribeNotifications, hideNotification } from '../services/notificationService';
@@ -21,13 +21,13 @@ function SlideTransition(props) {
 
 const SEVERITY_CONFIG = {
   success: {
-    icon: <CheckCircleOutlineIcon sx={{ color: '#1b5e20', fontSize: 22 }} />,
+    icon: <CheckCircleIcon sx={{ color: '#1b5e20', fontSize: 22 }} />,
     bgcolor: '#e8f5e9',
     borderColor: '#81c784',
     textColor: '#1b5e20'
   },
   error: {
-    icon: <ErrorOutlineIcon sx={{ color: '#c62828', fontSize: 22 }} />,
+    icon: <ErrorIcon sx={{ color: '#c62828', fontSize: 22 }} />,
     bgcolor: '#ffebee',
     borderColor: '#e57373',
     textColor: '#b71c1c'
