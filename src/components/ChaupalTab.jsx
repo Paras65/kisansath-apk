@@ -15,10 +15,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Divider,
-  Snackbar,
-  Alert
+  Divider
 } from '@mui/material';
+import { notify } from '../services/notificationService';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
 import ForumIcon from '@mui/icons-material/Forum';
 import BookmarksIcon from '@mui/icons-material/Bookmarks';
@@ -39,7 +38,6 @@ export const ChaupalTab = () => {
   const [openAskModal, setOpenAskModal] = useState(false);
   const [openDiaryModal, setOpenDiaryModal] = useState(false);
   const [openMeraKhetModal, setOpenMeraKhetModal] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [machineryList, setMachineryList] = useState(MACHINERY_RENTALS);
 
   // Community Questions state from MongoDB
@@ -89,7 +87,10 @@ export const ChaupalTab = () => {
   });
 
   const handlePostQuestion = async () => {
-    if (!newQuestion.questionText) return;
+    if (!newQuestion.questionText) {
+      notify.warning('कृपया अपना सवाल विस्तार से लिखें');
+      return;
+    }
     const item = {
       id: `qa-${Date.now()}`,
       author: newQuestion.author || 'किसान भाई',
@@ -109,11 +110,14 @@ export const ChaupalTab = () => {
     setQuestions(updated);
     setOpenAskModal(false);
     setNewQuestion({ author: '', crop: '', questionText: '' });
-    setSnackbarMessage('आपका सवाल किसान चौपाल में साझा कर दिया गया है!');
+    notify.success('आपका सवाल किसान चौपाल में साझा कर दिया गया है!');
   };
 
   const handleSaveDiary = () => {
-    if (!newCropEntry.cropName || !newCropEntry.areaAcres) return;
+    if (!newCropEntry.cropName || !newCropEntry.areaAcres) {
+      notify.warning('कृपया फसल का नाम और रकबा दर्ज करें');
+      return;
+    }
     const entry = {
       id: `diary-${Date.now()}`,
       cropName: newCropEntry.cropName,
@@ -126,7 +130,7 @@ export const ChaupalTab = () => {
     setFarmDiary(updated);
     localStorage.setItem('kisan_farm_diary', JSON.stringify(updated));
     setOpenDiaryModal(false);
-    setSnackbarMessage('आपकी फसल डायरी में सुरक्षित हो गई है!');
+    notify.success('आपकी फसल डायरी में सुरक्षित हो गई है!');
   };
 
   return (
@@ -559,17 +563,6 @@ export const ChaupalTab = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={Boolean(snackbarMessage)}
-        autoHideDuration={3500}
-        onClose={() => setSnackbarMessage('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity="success" sx={{ width: '100%', borderRadius: 2.5 }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
 
       <MeraKhetModal
         open={openMeraKhetModal}

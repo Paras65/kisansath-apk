@@ -8,6 +8,7 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --border: #e6ede2;
+  --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 

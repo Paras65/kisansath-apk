@@ -39,6 +39,7 @@ import {
   getMotorTelemetry
 } from '../utils/motorControllerService';
 import { speakText, stopSpeech } from '../utils/speech';
+import { notify } from '../services/notificationService';
 
 export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   const [config, setConfig] = useState(getStoredMotorConfig());
@@ -75,18 +76,24 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
     if (nextState) {
       const msg = `बोरवेल मोटर चालू कर दी गई है। 3-फेज 415 वोल्ट बिजली सक्रिय है। टाइमर ${timerSelected} मिनट सेट है।`;
       speakText(msg);
-      setNoticeMsg(`✅ बोरवेल मोटर चालू! टाइमर: ${timerSelected} मिनट बाद स्वतः बंद होगी।`);
+      const text = `✅ बोरवेल मोटर चालू! टाइमर: ${timerSelected} मिनट बाद स्वतः बंद होगी।`;
+      setNoticeMsg(text);
+      notify.success(text);
     } else {
       const msg = 'बोरवेल मोटर बंद कर दी गई है।';
       speakText(msg);
-      setNoticeMsg('🛑 बोरवेल मोटर सुरक्षित रूप से बंद की गई।');
+      const text = '🛑 बोरवेल मोटर सुरक्षित रूप से बंद की गई।';
+      setNoticeMsg(text);
+      notify.info(text);
     }
   };
 
   const handleSendGsmSms = (action) => {
     if (!config.starterPhone) {
       setShowConfigEdit(true);
-      setNoticeMsg('कृपया पहले अपने खेत के GSM स्टार्टर का सिम नंबर दर्ज करें।');
+      const text = 'कृपया पहले अपने खेत के GSM स्टार्टर का सिम नंबर दर्ज करें।';
+      setNoticeMsg(text);
+      notify.warning(text);
       return;
     }
     const uri = getGsmActionUri(config.starterPhone, action);
@@ -99,7 +106,9 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
     setConfig(updated);
     saveMotorConfig(updated);
     setShowConfigEdit(false);
-    setNoticeMsg('स्टार्टर सिम नंबर सुरक्षित कर लिया गया है!');
+    const text = 'स्टार्टर सिम नंबर सुरक्षित कर लिया गया है!';
+    setNoticeMsg(text);
+    notify.success(text);
   };
 
   const handleVoiceReport = () => {

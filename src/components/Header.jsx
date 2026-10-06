@@ -25,10 +25,12 @@ import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
+import { notify } from '../services/notificationService';
 
 const NAV_ITEMS = [
   { id: 'home', label: 'होम', icon: HomeIcon },
@@ -51,8 +53,14 @@ export const Header = ({
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      notify.success('इंटरनेट कनेक्शन पुनः स्थापित हुआ (ऑनलाइन मोड)');
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      notify.warning('इंटरनेट बंद है। ऐप सुरक्षित ऑफलाइन मोड में काम कर रहा है।');
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -89,10 +97,11 @@ export const Header = ({
       position="sticky"
       elevation={0}
       sx={{
-        bgcolor: 'rgba(19, 78, 25, 0.96)',
+        bgcolor: 'rgba(19, 78, 25, 0.98)',
         backdropFilter: 'blur(14px)',
         borderBottom: '1px solid rgba(255,255,255,0.12)',
-        zIndex: 1100
+        zIndex: 1100,
+        pt: 'env(safe-area-inset-top, 0px)'
       }}
     >
       {/* Top Banner / Emergency line */}
@@ -155,30 +164,60 @@ export const Header = ({
           gap: 1.5
         }}
       >
-        {/* App Logo & Name */}
-        <Box
-          onClick={() => onNavigate('home')}
-          sx={{ display: 'flex', alignItems: 'center', gap: 1.2, cursor: 'pointer', flexShrink: 0 }}
-        >
+        {/* App Logo, Name & Universal Back Button */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1.2 }, flexShrink: 0 }}>
+          {currentTab !== 'home' && (
+            <Tooltip title="होम स्क्रीन पर वापस जाएं">
+              <IconButton
+                onClick={() => {
+                  stopSpeech();
+                  onNavigate('home');
+                }}
+                aria-label="वापस होम"
+                sx={{
+                  color: '#fff',
+                  bgcolor: 'rgba(255,255,255,0.18)',
+                  width: { xs: 34, sm: 38 },
+                  height: { xs: 34, sm: 38 },
+                  borderRadius: 2.5,
+                  border: '1px solid rgba(255,255,255,0.25)',
+                  mr: 0.4,
+                  flexShrink: 0,
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                }}
+              >
+                <ArrowBackIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+              </IconButton>
+            </Tooltip>
+          )}
+
           <Box
-            component="img"
-            src="/icons/kisan-icon-512.png"
-            onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
-            alt={appConfig.appName}
-            sx={{
-              width: { xs: 38, sm: 42 },
-              height: { xs: 38, sm: 42 },
-              borderRadius: 2.5,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+            onClick={() => {
+              stopSpeech();
+              onNavigate('home');
             }}
-          />
-          <Box>
-            <Typography variant="h6" sx={{ fontSize: { xs: '1.15rem', sm: '1.28rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
-              {appConfig.appName}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: 'block' }}>
-              {appConfig.appTagline}
-            </Typography>
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.2, cursor: 'pointer', flexShrink: 0 }}
+          >
+            <Box
+              component="img"
+              src="/icons/kisan-icon-512.png"
+              onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
+              alt={appConfig.appName}
+              sx={{
+                width: { xs: 38, sm: 42 },
+                height: { xs: 38, sm: 42 },
+                borderRadius: 2.5,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+              }}
+            />
+            <Box>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1.15rem', sm: '1.28rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
+                {appConfig.appName}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: 'block' }}>
+                {appConfig.appTagline}
+              </Typography>
+            </Box>
           </Box>
         </Box>
 

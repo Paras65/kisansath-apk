@@ -11,8 +11,6 @@ import {
   Card,
   CardContent,
   Divider,
-  Snackbar,
-  Alert,
   Chip
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -28,17 +26,17 @@ import AgricultureIcon from '@mui/icons-material/Agriculture';
 
 import { getShareDetails, shareOnWhatsApp, copyShareText, shareApp } from '../utils/shareUtils';
 import { appConfig } from '../config/appConfig';
+import { notify } from '../services/notificationService';
 
 export const ShareModal = ({ open, onClose }) => {
-  const [toastMessage, setToastMessage] = useState('');
   const { apkUrl, webUrl, solutions } = getShareDetails();
 
   const handleCopy = async (text, label) => {
     const success = await copyShareText(text);
     if (success) {
-      setToastMessage(`${label} कॉपी हो गया!`);
+      notify.success(`${label} कॉपी हो गया!`);
     } else {
-      setToastMessage('कॉपी करने में समस्या आई।');
+      notify.error('कॉपी करने में समस्या आई।');
     }
   };
 
@@ -358,18 +356,6 @@ export const ShareModal = ({ open, onClose }) => {
           📞 किसान हेल्पलाइन: {appConfig.helpline.label} (निःशुल्क)
         </Typography>
       </DialogActions>
-
-      {/* Copy Notification Toast */}
-      <Snackbar
-        open={Boolean(toastMessage)}
-        autoHideDuration={3000}
-        onClose={() => setToastMessage('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity="success" sx={{ borderRadius: 3, fontWeight: 700 }}>
-          {toastMessage}
-        </Alert>
-      </Snackbar>
     </Dialog>
   );
 };

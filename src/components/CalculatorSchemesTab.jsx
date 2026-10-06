@@ -29,6 +29,7 @@ import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
+import { notify } from '../services/notificationService';
 
 export const CalculatorSchemesTab = () => {
   const [subTab, setSubTab] = useState(0);
@@ -627,6 +628,7 @@ export const CalculatorSchemesTab = () => {
         onClose={() => setOpenSoilIot(false)}
         onApplyToCalculator={(data) => {
           setSoilSensorData(data);
+          notify.success('स्मार्ट मिट्टी सेंसर की रीडिंग खाद कैलकुलेटर में लागू की गई!');
         }}
       />
     </Box>

@@ -25,8 +25,10 @@ import { CropDoctorTab } from './components/CropDoctorTab';
 import { CalculatorSchemesTab } from './components/CalculatorSchemesTab';
 import { MandiTab } from './components/MandiTab';
 import { ChaupalTab } from './components/ChaupalTab';
+import { GlobalNotification } from './components/GlobalNotification';
+import { notify } from './services/notificationService';
 import { appConfig } from './config/appConfig';
-import { isNativePlatform } from './utils/capacitorUtils';
+import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
 
 class ErrorBoundary extends React.Component {
@@ -123,9 +125,17 @@ function App() {
       setDeferredPrompt(null);
       setShowInstallBanner(false);
     } else {
-      alert('किसान साथी ऐप को इंस्टॉल करने के लिए अपने ब्राउज़र के तीन बिंदुओं (Menu) पर क्लिक करके "Add to Home screen" या "Install App" चुनें।');
+      notify.info('ऐप इंस्टॉल करने के लिए ब्राउज़र के 3 बिंदुओं (Menu) पर दबाकर "Add to Home screen" चुनें।');
     }
   };
+
+  // Synchronize native Android APK navigation state with Capacitor hardware back button
+  useEffect(() => {
+    setNativeNavContext({
+      currentTab,
+      onNavigateHome: (tab) => handleTabChange(tab)
+    });
+  }, [currentTab]);
 
   // Hardware back button support for Android TWA / PWA
   useEffect(() => {
@@ -142,7 +152,10 @@ function App() {
   const handleTabChange = (newTab) => {
     stopSpeech(); // Stop any active speech when switching tabs
     if (newTab !== currentTab) {
-      window.history.pushState({ tab: newTab }, '');
+      try {
+        // Use replaceState so history stack doesn't endlessly accumulate across tabs
+        window.history.replaceState({ tab: newTab }, '', window.location.pathname + (newTab === 'home' ? '' : `?tab=${newTab}`));
+      } catch (e) {}
       setCurrentTab(newTab);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -151,6 +164,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GlobalNotification />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#f8faf6' }}>
         {/* Top Header (Adaptive Desktop Nav & Mobile Header) */}
         <Header
@@ -190,7 +204,7 @@ function App() {
                 selectedDistrict={selectedDistrict}
               />
             )}
-            {currentTab === 'doctor' && <CropDoctorTab />}
+            {currentTab === 'doctor' && <CropDoctorTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'schemes' && <CalculatorSchemesTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}

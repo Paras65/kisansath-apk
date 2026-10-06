@@ -17,11 +17,11 @@ import {
   Grid,
   Divider,
   Alert,
-  Snackbar,
   MenuItem,
   Checkbox,
   FormControlLabel
 } from '@mui/material';
+import { notify } from '../services/notificationService';
 import CloseIcon from '@mui/icons-material/Close';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -67,7 +67,6 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [openMotorModal, setOpenMotorModal] = useState(false);
-  const [snackbarMsg, setSnackbarMsg] = useState('');
   const [liveWeather, setLiveWeather] = useState(weatherContext || null);
 
   useEffect(() => {
@@ -125,7 +124,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
 
   const handleLogin = async () => {
     if (!loginForm.phone || loginForm.phone.length < 10) {
-      setSnackbarMsg('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।');
+      notify.warning('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।');
       return;
     }
     const res = await loginFarmer({
@@ -136,9 +135,9 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
     if (res.success) {
       setFarmer(res.farmer);
       loadPlots(res.farmer.phone);
-      setSnackbarMsg(`स्वागत है, ${res.farmer.name || 'किसान साथी'}! आपका खेत सुरक्षित लोड हो गया।`);
+      notify.success(`स्वागत है, ${res.farmer.name || 'किसान साथी'}! आपका खेत सुरक्षित लोड हो गया।`);
     } else {
-      setSnackbarMsg(res.error || 'लॉगिन विफल रहा।');
+      notify.error(res.error || 'लॉगिन विफल रहा।');
     }
   };
 
@@ -147,12 +146,12 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
     setFarmer(null);
     setPlots([]);
     setActivePlotIndex(0);
-    setSnackbarMsg('सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।');
+    notify.info('सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।');
   };
 
   const handleAddPlot = async () => {
     if (!newPlot.plotName || !newPlot.areaAcres) {
-      setSnackbarMsg('कृपया खेत का नाम और एकड़ दर्ज करें।');
+      notify.warning('कृपया खेत का नाम और एकड़ दर्ज करें।');
       return;
     }
 
@@ -166,7 +165,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
 
     setPlots(updated || []);
     setOpenAddPlotDialog(false);
-    setSnackbarMsg('नया खेत व फसल सफलतापूर्वक जुड़ गई!');
+    notify.success('नया खेत व फसल सफलतापूर्वक जुड़ गई!');
     setNewPlot({
       plotName: '',
       cropId: 'paddy',
@@ -183,7 +182,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
       const updated = await deleteFarmerPlot(farmer.phone, plotId);
       setPlots(updated || []);
       setActivePlotIndex(0);
-      setSnackbarMsg('खेत सफलतापूर्वक हटाया गया।');
+      notify.info('खेत सफलतापूर्वक हटाया गया।');
     }
   };
 
@@ -937,13 +936,6 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={Boolean(snackbarMsg)}
-        autoHideDuration={4000}
-        onClose={() => setSnackbarMsg('')}
-        message={snackbarMsg}
-      />
-
       {/* Field GPS Tracker Modal */}
       <FieldGpsTrackerModal
         open={openGpsTracker}
@@ -952,12 +944,12 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         onSaveArea={(acres) => {
           if (openAddPlotDialog) {
             setNewPlot((prev) => ({ ...prev, areaAcres: String(acres) }));
-            setSnackbarMsg(`GPS से ${acres} एकड़ रकबा दर्ज किया गया!`);
+            notify.success(`GPS से ${acres} एकड़ रकबा दर्ज किया गया!`);
           } else if (activePlot) {
             const updated = { ...activePlot, areaAcres: Number(acres) };
             saveFarmerPlot(farmer.phone, updated);
             loadPlots(farmer.phone);
-            setSnackbarMsg(`"${activePlot.plotName}" का रकबा अपडेट होकर ${acres} एकड़ हुआ!`);
+            notify.success(`"${activePlot.plotName}" का रकबा अपडेट होकर ${acres} एकड़ हुआ!`);
           }
         }}
       />

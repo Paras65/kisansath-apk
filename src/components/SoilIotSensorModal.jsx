@@ -36,6 +36,7 @@ import {
   generateSimulatedSoilData
 } from '../utils/bluetoothSoilSensor';
 import { speakText, stopSpeech } from '../utils/speech';
+import { notify } from '../services/notificationService';
 
 export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotName = 'खेत' }) => {
   const [deviceConnected, setDeviceConnected] = useState(false);
@@ -80,10 +81,12 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
         const simData = generateSimulatedSoilData('balanced');
         simData.connectedDevice = device.name || 'AgriProbe BLE Sensor';
         setSensorData(simData);
+        notify.success(`सेंसर ${device.name || 'AgriProbe'} सफलतापूर्वक कनेक्ट हो गया!`);
         speakText(`सेंसर ${device.name || 'सफलतापूर्वक'} कनेक्ट हो गया है। लाइव मिट्टी रीडिंग प्राप्त हो रही है।`);
 
         device.addEventListener('gattserverdisconnected', () => {
           setDeviceConnected(false);
+          notify.info('सेंसर डिस्कनेक्ट हो गया है।');
           speakText('सेंसर डिस्कनेक्ट हो गया है।');
         });
       }
@@ -91,13 +94,16 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
       setConnecting(false);
       console.warn('[BLE Connect Error]', err);
       if (err.name !== 'NotFoundError') {
-        setBleError('ब्लूटूथ कनेक्शन विफल: ' + (err.message || 'सेंसर चालू करें और पुनः प्रयास करें'));
+        const errorText = 'ब्लूटूथ कनेक्शन विफल: ' + (err.message || 'सेंसर चालू करें और पुनः प्रयास करें');
+        setBleError(errorText);
+        notify.error(errorText);
       }
     }
   };
 
   const handleDisconnect = () => {
     setDeviceConnected(false);
+    notify.info('सेंसर डिस्कनेक्ट किया गया।');
     speakText('सेंसर डिस्कनेक्ट किया गया।');
   };
 
@@ -106,6 +112,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
     setSensorData(data);
     setDeviceConnected(true);
     const analysis = analyzeSoilTelemetry(data);
+    notify.success('डेमो सेंसर परीक्षण डेटा सफलतापूर्वक लोड हुआ!');
     speakText(`डेमो टेस्ट: मिट्टी का pH ${data.ph} है, जो ${analysis.phStatus} है। नमी ${data.moisture} प्रतिशत है।`);
   };
 
@@ -123,6 +130,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
         soilReading: sensorData,
         analysis
       });
+      notify.success('सेंसर डेटा खाद कैलकुलेटर में भेजा गया!');
       onClose();
     }
   };

@@ -14,9 +14,7 @@ import {
   DialogContent,
   DialogActions,
   Paper,
-  Divider,
-  Snackbar,
-  Alert
+  Divider
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StorefrontIcon from '@mui/icons-material/Storefront';
@@ -31,13 +29,13 @@ import { MANDI_RATES } from '../data/kisanData';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getMandiRates, getMarketplaceListings, postMarketplaceListing } from '../services/apiService';
+import { notify } from '../services/notificationService';
 
 export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCropFilter, setSelectedCropFilter] = useState('all');
   const [districtFilterOnly, setDistrictFilterOnly] = useState(false);
   const [openSellModal, setOpenSellModal] = useState(false);
-  const [successSnackbar, setSuccessSnackbar] = useState(false);
   const [mandiRatesList, setMandiRatesList] = useState(MANDI_RATES);
 
   // Direct buyer listings / farmer listings from MongoDB
@@ -64,7 +62,10 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   });
 
   const handleSaveListing = async () => {
-    if (!formData.crop || !formData.quantity || !formData.phone) return;
+    if (!formData.crop || !formData.quantity || !formData.phone) {
+      notify.warning('कृपया फसल, मात्रा और 10-अंकीय मोबाइल नंबर दर्ज करें');
+      return;
+    }
     const newEntry = {
       id: `list-${Date.now()}`,
       ...formData,
@@ -75,7 +76,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     const updated = [newEntry, ...myListings];
     setMyListings(updated);
     setOpenSellModal(false);
-    setSuccessSnackbar(true);
+    notify.success('आपकी फसल लिस्टिंग सफलतापूर्वक पोस्ट हो गई है! खरीदार आपसे जल्द संपर्क करेंगे।');
     setFormData({ crop: '', quantity: '', expectedPrice: '', farmerName: '', location: '', phone: '' });
   };
 
@@ -498,17 +499,6 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={successSnackbar}
-        autoHideDuration={4000}
-        onClose={() => setSuccessSnackbar(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert severity="success" sx={{ width: '100%', borderRadius: 2.5 }}>
-          आपकी फसल लिस्टिंग सफलतापूर्वक पोस्ट हो गई है! खरीदार आपसे जल्द संपर्क करेंगे।
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
