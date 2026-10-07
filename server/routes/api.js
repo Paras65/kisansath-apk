@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.21';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.22';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'पारंपरिक दोहरी कार्यप्रणाली: अतिथि किसानों हेतु सार्वजनिक किसान सुविधा पोर्टल (100% खुला) एवं पंजीकृत किसानों हेतु डिजिटल किसान पहचान पत्र व पासबुक, लाइव सक्रिय खेत व दैनिक कार्य फीड।',
+    releaseNotes: 'सम्पूर्ण छत्तीसगढ़ी भाषा सक्रियता: 6 चरणीय कृषि यात्रा, 8-टूल लांचर ग्रिड, डिजिटल किसान पासबुक एवं मौसम कार्ड में गतिशील छत्तीसगढ़ी बोली अनुकूलन एवं त्वरित 1-टैप स्विचिंग।',
     updatedAt: new Date().toISOString()
   });
 });

@@ -30,10 +30,10 @@ export const DICTIONARY = {
 
     // Navigation Tabs
     tab_home: 'घर (होम)',
-    tab_doctor: 'फसल डॉक्टर',
-    tab_schemes: 'खाद-धान',
+    tab_doctor: 'रोग निदान',
+    tab_schemes: 'खाद-धान हिसाब',
     tab_mandi: 'मंडी भाव',
-    tab_chaupal: 'चौपाल',
+    tab_chaupal: 'किसान चौपाल',
 
     // Home Screen Actions & Cards
     weather_card_title: 'आज के मौसम अऊ सलाह',
@@ -49,8 +49,29 @@ export const DICTIONARY = {
     voice_mic_title: 'बोलव (माइक)',
     voice_listening: 'सुनत हन... बोलव',
 
+    // Portal Headers & Distinction
+    portal_public_title: '🏛️ सार्वजनिक किसान सुविधा मंच (100% खुला)',
+    portal_public_desc: 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे',
+    portal_login_btn: '🔑 अपन खाता खोलव / लॉगिन (10 सेकंड)',
+    locked_services_title: '🔒 किसान निजी सेवा मन (1-क्लिक लॉगिन ले तुरंत चालू करव)',
+    locked_services_desc: 'सार्वजनिक खुला मंच: मौसम अऊ मंडी भाव बिना लॉगिन खुले हे। अपन खेत के रकबा, रोज के काम, बोर मोटर मोबाइल ले चालू/बंद करे अऊ खर्च डायरी बर मोबाइल नंबर ले लॉगिन करव:',
+    passbook_title: '🏛️ डिजिटल किसान पहचान पत्र अऊ पासबुक',
+    passbook_certified: 'सत्यापित किसान',
+    plots_dashboard_title: '🌱 मोर चालू खेत अऊ आज के किसानी काम',
+    quick_command_title: '🌾 किसान त्वरित कमांड सेंटर',
+    app_launcher_title: '⚡ मुख्य कृषि सेवा अऊ स्मार्ट टूल्स',
+    crop_advisor_title: '⚡ 5 मुख्य फसल व तुरंत रकबा हिसाब',
+    mandi_pulse_title: 'आज के मुख्य मंडी भाव (Mandi Pulse)',
+    lifecycle_journey_title: '🌱 फसल ले लेके खलिहान तक (6 चरणीय किसानी यात्रा)',
+
+    // Weather Metrics
+    weather_rain: 'पानी (वर्षा)',
+    weather_wind: 'हवा',
+    weather_humidity: 'उमस (आर्द्रता)',
+    weather_forecast_3days: '3 दिन के मौसम अनुमान:',
+
     // Fertilizer & Schemes Calculator
-    fert_calc_title: 'खाद कैलकुलेटर',
+    fert_calc_title: 'खाद हिसाब कैलकुलेटर',
     paddy_calc_title: 'धान ₹3,100 योजना',
     gov_schemes_title: 'सरकारी योजना मन',
     unit_acre: 'एकड़',
@@ -68,24 +89,24 @@ export const DICTIONARY = {
     token_small_farmer: '10 एकड़ ले कम रकबा म 2 टोकन, 10 एकड़ ले ज्यादा म 3 टोकन कटवा सकथो।',
 
     // Crop Doctor
-    doctor_title: 'एआई फसल डॉक्टर',
+    doctor_title: 'एआई फसल डॉक्टर (रोग-दवाई)',
     photo_scan_btn: 'पत्ती के फोटो खींचव',
-    symptom_filter_title: 'रोग के लक्षण देखव:',
-    pest_stemborer: 'गाभा कीट / भंवरी / सफेद बाली',
+    symptom_filter_title: 'रोग के चिन्हारी देखव:',
+    pest_stemborer: 'गाभा कीट / भंवरी / मृत गोभ',
     pest_bph: 'लाही / चेंपा / माहू',
     pest_gundhi: 'गांधी कीड़ा / बदबूदार भुनगा',
-    pest_sheath: 'केंचुली रोग (धब्बा)',
+    pest_sheath: 'केंचुली रोग (शीथ ब्लाइट)',
     pest_khaira: 'खैरा रोग (जस्ता/जिंक के कमी)',
     dosage_15l_pump: '15 लीटर टंकी (पंप) डोज हिसाब',
 
     // Mandi Rates
-    mandi_title: 'छत्तीसगढ़ लाइव मंडी भाव',
+    mandi_title: 'छत्तीसगढ़ लाइव मंडी भाव अऊ सीधा बाजार',
     mandi_main_price: '⭐ मुख्य मॉडल भाव',
     mandi_my_district_only: '📍 मोर जिला के मंडी',
     mandi_sell_produce_btn: 'खेत ले सीधा बेचव',
 
     // Chaupal
-    chaupal_title: 'किसान चौपाल अऊ मशीनरी',
+    chaupal_title: 'किसान चौपाल अऊ कृषि मशीनरी',
     machinery_rent_btn: 'मशीन किराया म लेव/देव',
     ask_question_btn: 'अपन सवाल पूछव',
     quick_questions_title: 'तैयार सवाल (छु के पूछव):',
@@ -125,6 +146,27 @@ export const DICTIONARY = {
     search_placeholder: 'फसल, मंडी या समस्या खोजें...',
     voice_mic_title: 'बोलें (माइक)',
     voice_listening: 'सुन रहे हैं... बोलिए',
+
+    // Portal Headers & Distinction
+    portal_public_title: '🏛️ सार्वजनिक किसान सुविधा पोर्टल (100% खुला)',
+    portal_public_desc: 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली',
+    portal_login_btn: '🔑 किसान खाता खोलें / लॉगिन (10 सेकंड)',
+    locked_services_title: '🔒 किसान निजी सेवाएं (1-क्लिक लॉगिन से तुरंत सक्रिय करें)',
+    locked_services_desc: 'सार्वजनिक खुला मंच: मौसम व मंडी भाव बिना लॉगिन खुले हैं। अपने खेत का रकबा, दिन-वार कार्य, ट्यूबवेल मोटर मोबाइल से चालू/बंद करने व खर्च डायरी चलाने हेतु केवल मोबाइल नंबर से लॉगिन करें:',
+    passbook_title: '🏛️ डिजिटल किसान पहचान पत्र व पासबुक (Digital Passbook)',
+    passbook_certified: 'प्रमाणित किसान',
+    plots_dashboard_title: '🌱 मेरे सक्रिय खेत व आज के कृषि कार्य (Live Field Dashboard)',
+    quick_command_title: '🌾 किसान त्वरित कमांड सेंटर (Personal Farm Tools)',
+    app_launcher_title: '⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स',
+    crop_advisor_title: '⚡ 5 मुख्य फसल व त्वरित रकबा हिसाब',
+    mandi_pulse_title: 'आज के प्रमुख मंडी भाव (Mandi Pulse)',
+    lifecycle_journey_title: '🌱 फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)',
+
+    // Weather Metrics
+    weather_rain: 'वर्षा',
+    weather_wind: 'हवा',
+    weather_humidity: 'आर्द्रता',
+    weather_forecast_3days: '3-दिवसीय मौसम अनुमान:',
 
     // Fertilizer & Schemes Calculator
     fert_calc_title: 'खाद कैलकुलेटर',

@@ -76,65 +76,92 @@ import { ShareModal } from './ShareModal';
 import { getMandiRates, getCachedModuleData } from '../services/apiService';
 import { fetchVillagesByPincode } from '../services/pincodeService';
 
-const LIFECYCLE_STEPS = [
+export const getLifecycleSteps = (isChhattisgarhi = false) => [
   {
     step: 1,
-    title: 'खेत तैयारी व मृदा स्वास्थ्य',
-    short: 'मृदा परीक्षण व ग्रीष्मकालीन गहरी जुताई',
-    tag: 'खेत तैयारी',
+    title: isChhattisgarhi ? 'खेत तैयारी अऊ माटी सेहत' : 'खेत तैयारी व मृदा स्वास्थ्य',
+    short: isChhattisgarhi ? 'माटी जांच अऊ घाम म गहिर जुताई' : 'मृदा परीक्षण व ग्रीष्मकालीन गहरी जुताई',
+    tag: isChhattisgarhi ? 'खेत तैयारी' : 'खेत तैयारी',
     color: '#5d4037',
-    desc: 'गर्मियों में गहरी जुताई करें ताकि हानिकारक कीटों के अंडे व खरपतवार नष्ट हो जाएं। गोबर की सड़ी खाद 4-5 टन प्रति एकड़ डालें और नजदीकी कृषि विज्ञान केंद्र से मिट्टी की जांच कराएं (आदर्श pH: 6.0-7.0)।',
-    voice: 'पहला चरण: खेत तैयारी और मृदा स्वास्थ्य। खेत की गहरी जुताई करें। 4 से 5 टन गोबर खाद प्रति एकड़ डालें और मिट्टी का पीएच टेस्ट कराएं।'
+    desc: isChhattisgarhi
+      ? 'घाम के दिन म नागर ले गहिर जुताई करव ताकि कीड़ा-मकोड़ा के अंडा अऊ खरपतवार जल के मर जावय। सड़े गोबर खाद 4-5 ट्राली प्रति एकड़ डारव अऊ नजदीकी केवीके म माटी के जांच जरूर करवाव (आदर्श pH: 6.0-7.0)।'
+      : 'गर्मियों में गहरी जुताई करें ताकि हानिकारक कीटों के अंडे व खरपतवार नष्ट हो जाएं। गोबर की सड़ी खाद 4-5 टन प्रति एकड़ डालें और नजदीकी कृषि विज्ञान केंद्र से मिट्टी की जांच कराएं (आदर्श pH: 6.0-7.0)।',
+    voice: isChhattisgarhi
+      ? 'पहिला चरण: खेत तैयारी अऊ माटी सेहत। खेत के गहिर जुताई करव। 4 ले 5 ट्राली गोबर खाद प्रति एकड़ डारव अऊ माटी के पीएच टेस्ट करवाव।'
+      : 'पहला चरण: खेत तैयारी और मृदा स्वास्थ्य। खेत की गहरी जुताई करें। 4 से 5 टन गोबर खाद प्रति एकड़ डालें और मिट्टी का पीएच टेस्ट कराएं।'
   },
   {
     step: 2,
-    title: 'बीज चयन व बीजोपचार',
-    short: 'प्रमाणित रोगरोधी बीज व फफूंदनाशी उपचार',
-    tag: 'बीजोपचार',
+    title: isChhattisgarhi ? 'बीज चुनाव अऊ बीजोपचार' : 'बीज चयन व बीजोपचार',
+    short: isChhattisgarhi ? 'प्रमाणित बीज अऊ फफूंदनाशक उपचार' : 'प्रमाणित रोगरोधी बीज व फफूंदनाशी उपचार',
+    tag: isChhattisgarhi ? 'बीजोपचार' : 'बीजोपचार',
     color: '#2e7d32',
-    desc: 'प्रमाणित किस्मों (जैसे धान में सरना, महामाया, एचएमटी) का चुनाव करें। बुआई से पूर्व बीजोपचार अवश्य करें: 1 कि.ग्रा. बीज में 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिलाकर 24 घंटे रखें। इससे उकठा व झुलसा रोग नहीं लगता।',
-    voice: 'दूसरा चरण: बीज चयन और बीजोपचार। हमेशा प्रमाणित बीज का उपयोग करें और बुआई से पहले ट्राइकोडर्मा या बाविस्टिन से बीजोपचार जरूर करें।'
+    desc: isChhattisgarhi
+      ? 'प्रमाणित किस्म (जैसे सरना, महामाया, एचएमटी) के बीज चुनव। बोए ले पहिली बीजोपचार जरूर करव: 1 किलो बीज म 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिला के 24 घंटा रखव। एकर ले उकठा अऊ झुलसा रोग नइ लगय।'
+      : 'प्रमाणित किस्मों (जैसे धान में सरना, महामाया, एचएमटी) का चुनाव करें। बुआई से पूर्व बीजोपचार अवश्य करें: 1 कि.ग्रा. बीज में 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिलाकर 24 घंटे रखें। इससे उकठा व झुलसा रोग नहीं लगता।',
+    voice: isChhattisgarhi
+      ? 'दूसरा चरण: बीज चुनाव अऊ बीजोपचार। हमेशा प्रमाणित बीज चुनव अऊ बोए ले पहिली ट्राइकोडर्मा या बाविस्टिन ले बीजोपचार जरूर करव।'
+      : 'दूसरा चरण: बीज चयन और बीजोपचार। हमेशा प्रमाणित बीज का उपयोग करें और बुआई से पहले ट्राइकोडर्मा या बाविस्टिन से बीजोपचार जरूर करें।'
   },
   {
     step: 3,
-    title: 'संतुलित पोषण व खाद प्रबंधन',
-    short: 'यूरिया, डीएपी व पोटाश का सही समय',
-    tag: 'खाद प्रबंधन',
+    title: isChhattisgarhi ? 'संतुलित पोषण अऊ खाद हिसाब' : 'संतुलित पोषण व खाद प्रबंधन',
+    short: isChhattisgarhi ? 'यूरिया, डीएपी अऊ पोटाश के सही बेरा' : 'यूरिया, डीएपी व पोटाश का सही समय',
+    tag: isChhattisgarhi ? 'खाद प्रबंधन' : 'खाद प्रबंधन',
     color: '#00796b',
-    desc: 'बुआई के समय पूरी डीएपी और पोटाश डालें। यूरिया को तीन बराबर भागों में बांटकर दें (बुआई, कल्ले फूटने पर 25 दिन बाद, और बालियां आने से पहले 45 दिन बाद)। जिंक सल्फेट कभी भी डीएपी के साथ मिलाकर न डालें।',
-    voice: 'तीसरा चरण: पोषण और खाद प्रबंधन। डीएपी और पोटाश बुआई के समय डालें। यूरिया को तीन भागों में दें। जिंक और डीएपी को कभी मिलाकर न डालें।'
+    desc: isChhattisgarhi
+      ? 'बोवाई के बेरा पूरा डीएपी अऊ पोटाश डारव। यूरिया ला तीन बराबर भाग म बांट के देवव (बोवाई, कल्ला फूटत 25 दिन म, अऊ बाली निकलत ले पहिली 45 दिन म)। जिंक सल्फेट ला कभू भी डीएपी संग मिला के झन डारव।'
+      : 'बुआई के समय पूरी डीएपी और पोटाश डालें। यूरिया को तीन बराबर भागों में बांटकर दें (बुआई, कल्ले फूटने पर 25 दिन बाद, और बालियां आने से पहले 45 दिन बाद)। जिंक सल्फेट कभी भी डीएपी के साथ मिलाकर न डालें।',
+    voice: isChhattisgarhi
+      ? 'तीसरा चरण: पोषण अऊ खाद हिसाब। डीएपी अऊ पोटाश बोवाई के बेरा डारव। यूरिया ला तीन भाग म देवव। जिंक अऊ डीएपी ला कभू मिला के झन डारव।'
+      : 'तीसरा चरण: पोषण और खाद प्रबंधन। डीएपी और पोटाश बुआई के समय डालें। यूरिया को तीन भागों में दें। जिंक और डीएपी को कभी मिलाकर न डालें।'
   },
   {
     step: 4,
-    title: 'फसल सुरक्षा व रोग निदान',
-    short: 'कीट व बीमारी का समय पर नियंत्रण',
-    tag: 'फसल सुरक्षा',
+    title: isChhattisgarhi ? 'फसल रक्षा अऊ रोग निदान' : 'फसल सुरक्षा व रोग निदान',
+    short: isChhattisgarhi ? 'कीड़ा अऊ बीमारी के सही समय म रोकथाम' : 'कीट व बीमारी का समय पर नियंत्रण',
+    tag: isChhattisgarhi ? 'फसल रक्षा' : 'फसल सुरक्षा',
     color: '#c62828',
-    desc: 'खेत में नियमित निगरानी करें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं। भूरा माहू होने पर खेत का पानी 2 दिन निकालें और नीम तेल या पाइमेट्रोज़िन का छिड़काव तनों पर करें। पत्तियों पर धब्बे दिखने पर ट्राईसाइक्लाजोल का छिड़काव करें।',
-    voice: 'चौथा चरण: फसल सुरक्षा और रोग निदान। पत्तियों और तनों का नियमित निरीक्षण करें। लक्षण दिखते ही फसल डॉक्टर टैब में फोटो या लक्षण जांचकर सही दवा छिड़कें।'
+    desc: isChhattisgarhi
+      ? 'खेत म रोज निगरानी करव। गाभा कीट (तना छेदक) बर फेरोमोन ट्रैप लगाव। भूरा माहू दिखे ले खेत के पानी 2 दिन निकाल देवव अऊ नीम तेल या पाइमेट्रोज़िन के छिड़काव तना म करव। पत्ती म धब्बा दिखे ले ट्राइसाइक्लाजोल छिड़कव।'
+      : 'खेत में नियमित निगरानी करें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं। भूरा माहू होने पर खेत का पानी 2 दिन निकालें और नीम तेल या पाइमेट्रोज़िन का छिड़काव तनों पर करें। पत्तियों पर धब्बे दिखने पर ट्राईसाइक्लाजोल का छिड़काव करें।',
+    voice: isChhattisgarhi
+      ? 'चौथा चरण: फसल रक्षा अऊ रोग निदान। पत्ती अऊ तना के रोज निरिक्षण करव। लक्षण दिखते ही फसल डॉक्टर टैब म फोटो जांच के सही दवाई छिड़कव।'
+      : 'चौथा चरण: फसल सुरक्षा और रोग निदान। पत्तियों और तनों का नियमित निरीक्षण करें। लक्षण दिखते ही फसल डॉक्टर टैब में फोटो या लक्षण जांचकर सही दवा छिड़कें।'
   },
   {
     step: 5,
-    title: 'कटाई, सुखाना व थ्रेशिंग',
-    short: '14-17% नमी पर कटाई व सुरक्षित भंडारण',
-    tag: 'कटाई',
+    title: isChhattisgarhi ? 'कटाई, सुखाई अऊ मिझाई' : 'कटाई, सुखाना व थ्रेशिंग',
+    short: isChhattisgarhi ? '14-17% नमी म कटाई अऊ सुरक्षित रखाई' : '14-17% नमी पर कटाई व सुरक्षित भंडारण',
+    tag: isChhattisgarhi ? 'कटाई' : 'कटाई',
     color: '#f57f17',
-    desc: 'जब बालियों के 85-90% दाने सुनहरे हो जाएं तब कटाई करें। कटाई के बाद फसल को धूप में अच्छी तरह सुखाएं। उपार्जन केंद्र ले जाने से पहले अनाज में नमी 14-17% से अधिक नहीं होनी चाहिए ताकि वजन में कटौती न हो।',
-    voice: 'पांचवां चरण: कटाई और सुखाना। जब 85 से 90 प्रतिशत दाने सुनहरे हो जाएं तब कटाई करें और अनाज को सुखाकर नमी 14 से 17 प्रतिशत तक लाएं।'
+    desc: isChhattisgarhi
+      ? 'जब बाली के 85-90% दाना पियर (सुनहरा) हो जावय तब कटाई करव। कटाई के बाद फसल ला घाम म बने सुखाव। खरीदी केंद्र ले जाए ले पहिली अनाज म नमी 14-17% ले जादा नइ होना चाही ताकि तौल म कटौती झन होवय।'
+      : 'जब बालियों के 85-90% दाने सुनहरे हो जाएं तब कटाई करें। कटाई के बाद फसल को धूप में अच्छी तरह सुखाएं। उपार्जन केंद्र ले जाने से पहले अनाज में नमी 14-17% से अधिक नहीं होनी चाहिए ताकि वजन में कटौती न हो।',
+    voice: isChhattisgarhi
+      ? 'पांचवां चरण: कटाई अऊ सुखाई। जब 85 ले 90 प्रतिशत दाना सुनहरा हो जावय तब कटाई करव अऊ अनाज ला सुखा के नमी 14 ले 17 प्रतिशत तक लाव।'
+      : 'पांचवां चरण: कटाई और सुखाना। जब 85 से 90 प्रतिशत दाने सुनहरे हो जाएं तब कटाई करें और अनाज को सुखाकर नमी 14 से 17 प्रतिशत तक लाएं।'
   },
   {
     step: 6,
-    title: `मंडी भाव व ₹${appConfig.paddyScheme.totalRate} बिक्री`,
-    short: 'टोकन तुंहर हाथ व कृषक उन्नति योजना',
-    tag: 'बिक्री ₹3,100',
+    title: isChhattisgarhi ? `मंडी भाव अऊ ₹${appConfig.paddyScheme.totalRate} धान खरीदी` : `मंडी भाव व ₹${appConfig.paddyScheme.totalRate} बिक्री`,
+    short: isChhattisgarhi ? 'टोकन तुंहर हाथ अऊ कृषक उन्नति योजना' : 'टोकन तुंहर हाथ व कृषक उन्नति योजना',
+    tag: isChhattisgarhi ? 'बिक्री ₹3,100' : 'बिक्री ₹3,100',
     color: '#1565c0',
-    desc: `${appConfig.stateName} कृषक उन्नति योजना के तहत ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल का भुगतान होता है (प्रति एकड़ ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)। टोकन तुंहर हाथ ऐप से घर बैठे टोकन काटें, उपार्जन केंद्र में तौल कराएं और सीधे बैंक खाते में भुगतान प्राप्त करें।`,
-    voice: `छठा चरण: मंडी भाव और सरकारी बिक्री। ${appConfig.stateName} सरकार की कृषक उन्नति योजना में ${appConfig.paddyScheme.totalRate} रुपये प्रति क्विंटल के भाव से टोकन तुंहर हाथ द्वारा आसानी से धान बेचें।`
+    desc: isChhattisgarhi
+      ? `${appConfig.stateName} कृषक उन्नति योजना म ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल के भुगतान होथे (प्रति एकड़ ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)। टोकन तुंहर हाथ ऐप ले घर बैठे टोकन कटाव, उपार्जन केंद्र म तौल कराव अऊ सीधा बैंक खाता म पइसा पाव।`
+      : `${appConfig.stateName} कृषक उन्नति योजना के तहत ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल का भुगतान होता है (प्रति एकड़ ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)। टोकन तुंहर हाथ ऐप से घर बैठे टोकन काटें, उपार्जन केंद्र में तौल कराएं और सीधे बैंक खाते में भुगतान प्राप्त करें।`,
+    voice: isChhattisgarhi
+      ? `छठवां चरण: मंडी भाव अऊ सरकारी खरीदी। ${appConfig.stateName} सरकार के कृषक उन्नति योजना म ${appConfig.paddyScheme.totalRate} रुपया प्रति क्विंटल के भाव ले टोकन तुंहर हाथ द्वारा आसानी ले धान बेचव।`
+      : `छठा चरण: मंडी भाव और सरकारी बिक्री। ${appConfig.stateName} सरकार की कृषक उन्नति योजना में ${appConfig.paddyScheme.totalRate} रुपये प्रति क्विंटल के भाव से टोकन तुंहर हाथ द्वारा आसानी से धान बेचें।`
   }
 ];
 
+export const LIFECYCLE_STEPS = getLifecycleSteps(false);
+
 export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   const { isChhattisgarhi, t } = useLanguage();
+  const lifecycleSteps = getLifecycleSteps(isChhattisgarhi);
   const [expandedStep, setExpandedStep] = useState(1);
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
@@ -338,7 +365,9 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   }, [selectedDistrict]);
 
   const handleReadAdvisory = () => {
-    const text = weather?.sprayAdvisory?.voice || `आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।`;
+    const text = weather?.sprayAdvisory?.voice || (isChhattisgarhi
+      ? `आज के किसानी सलाह: मौसम साफ अऊ बने रहिही। यूरिया खाद अऊ दवाई छिड़काव बर बने समय हे।`
+      : `आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।`);
     speakText(text);
   };
 
@@ -750,18 +779,18 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   // 1. Mandi Rates Pulse Card
   const renderMandiPulseCard = () => {
     const paddyCard = {
-      crop: 'धान (सरना/मोटा)',
+      crop: isChhattisgarhi ? 'धान (सरना/मोटा)' : 'धान (सरना/मोटा)',
       rate: `₹${appConfig.paddyScheme.totalRate}`,
-      type: 'सरकारी उपार्जन (MSP + बोनस)',
-      badge: `₹${appConfig.paddyScheme.totalRate} गारंटी`,
+      type: isChhattisgarhi ? 'सरकारी खरीदी (MSP + बोनस)' : 'सरकारी उपार्जन (MSP + बोनस)',
+      badge: `₹${appConfig.paddyScheme.totalRate} ${isChhattisgarhi ? 'गारंटी' : 'गारंटी'}`,
       color: '#1b5e20'
     };
 
     const liveCards = liveMandiRates.map((item, idx) => ({
-      crop: item.crop || 'जिंस',
+      crop: item.crop || (isChhattisgarhi ? 'जिंस' : 'जिंस'),
       rate: `₹${Number(item.modalRate || item.maxRate || 0).toLocaleString('en-IN')}`,
-      type: `${item.market || selectedDistrict} मंडी`,
-      badge: item.variety ? item.variety : 'APMC लाइव',
+      type: `${item.market || selectedDistrict} ${isChhattisgarhi ? 'मंडी' : 'मंडी'}`,
+      badge: item.variety ? item.variety : (isChhattisgarhi ? 'APMC लाइव' : 'APMC लाइव'),
       color: idx === 0 ? '#e65100' : idx === 1 ? '#0288d1' : '#2e7d32'
     }));
 
@@ -781,7 +810,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <TrendingUpIcon sx={{ color: '#1565c0', fontSize: 20 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-              आज के प्रमुख मंडी भाव (Mandi Pulse)
+              {isChhattisgarhi ? 'आज के मुख्य मंडी भाव (Mandi Pulse)' : 'आज के प्रमुख मंडी भाव (Mandi Pulse)'}
             </Typography>
           </Box>
           <Button
@@ -790,7 +819,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             onClick={() => { stopSpeech(); onNavigate('mandi'); }}
             sx={{ color: '#1565c0', fontWeight: 800, fontSize: '0.72rem', p: 0 }}
           >
-            सभी 30+ मंडियां
+            {isChhattisgarhi ? 'सबो 30+ मंडी' : 'सभी 30+ मंडियां'}
           </Button>
         </Box>
 
@@ -836,7 +865,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           {liveMandiRates.length === 0 && (
             <Box sx={{ mt: 1, p: 0.8, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px dashed #cbd5e1' }}>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
-                🛡️ शून्य गलत डेटा नीति: आज के सत्यापित APMC मंडी भाव देखने हेतु मंडी टैब खोलें।
+                {isChhattisgarhi ? '🛡️ शून्य गलत डेटा नीति: आज के सत्यापित APMC मंडी भाव देखे बर मंडी टैब खोलव।' : '🛡️ शून्य गलत डेटा नीति: आज के सत्यापित APMC मंडी भाव देखने हेतु मंडी टैब खोलें।'}
               </Typography>
             </Box>
           )}
@@ -865,7 +894,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.92rem' }}>
-                {isNativePlatform() ? 'किसान साथी Android App' : 'किसान साथी Android App (APK)'}
+                {isNativePlatform() ? (isChhattisgarhi ? 'किसान साथी Android App' : 'किसान साथी Android App') : (isChhattisgarhi ? 'किसान साथी Android App (APK)' : 'किसान साथी Android App (APK)')}
               </Typography>
               <Chip
                 label={`v${appConfig.appVersion}`}
@@ -874,7 +903,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               />
             </Box>
             <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
-              {isNativePlatform() ? 'नवीनतम संस्करण फोन में सक्रिय है' : '1.5 MB लाइटवेट • बिना इंटरनेट चलेगा'}
+              {isNativePlatform() ? (isChhattisgarhi ? 'नवां संस्करण फोन म चालू हे' : 'नवीनतम संस्करण फोन में सक्रिय है') : (isChhattisgarhi ? '1.5 MB हल्का • बिना इंटरनेट चलही' : '1.5 MB लाइटवेट • बिना इंटरनेट चलेगा')}
             </Typography>
           </Box>
         </Box>
@@ -899,7 +928,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 onClick={handleManualCheckUpdate}
                 sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
               >
-                {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
+                {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
               </Button>
             </>
           ) : (
@@ -913,7 +942,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 download
                 sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#fff' } }}
               >
-                APK डाउनलोड
+                {isChhattisgarhi ? 'APK डाउनलोड करव' : 'APK डाउनलोड'}
               </Button>
               <Button
                 variant="outlined"
@@ -923,7 +952,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 onClick={handleManualCheckUpdate}
                 sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
               >
-                {checkingUpdate ? 'जांच...' : 'अपडेट जांचें'}
+                {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
               </Button>
             </>
           )}
@@ -1020,16 +1049,18 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             <CalculateIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
-                🌾 त्वरित फसल, खाद व आय सलाहकार (Open Calculator)
+                {isChhattisgarhi ? '🌾 तुरंत फसल, खाद अऊ आमदनी हिसाब' : '🌾 त्वरित फसल, खाद व आय सलाहकार (Open Calculator)'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                शून्य-लॉगिन • केवल फसल व एकड़ चुनें और तुरंत हिसाब पाएं
+                {isChhattisgarhi ? 'शून्य-लॉगिन • केवल फसल अऊ एकड़ चुनव अऊ तुरंत हिसाब पाव' : 'शून्य-लॉगिन • केवल फसल व एकड़ चुनें और तुरंत हिसाब पाएं'}
               </Typography>
             </Box>
           </Box>
           <IconButton
             size="small"
-            onClick={() => speakText(`${currentCrop.name} का हिसाब: ${quickAcre} एकड़ में अनुमानित पैदावार ${estYield} क्विंटल और आय लगभग ${estIncome} रुपये होगी। ${currentCrop.voice}`)}
+            onClick={() => speakText(isChhattisgarhi
+              ? `${currentCrop.name} के हिसाब: ${quickAcre} एकड़ म अनुमानित उपज ${estYield} क्विंटल अऊ आमदनी लगभग ₹${estIncome.toLocaleString('en-IN')} होही।`
+              : `${currentCrop.name} का हिसाब: ${quickAcre} एकड़ में अनुमानित पैदावार ${estYield} क्विंटल और आय लगभग ${estIncome} रुपये होगी। ${currentCrop.voice}`)}
             sx={{ bgcolor: '#f1f8e9', color: '#1b5e20' }}
           >
             <VolumeUpIcon fontSize="small" />
@@ -1043,7 +1074,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             { key: 'chana', label: '🌱 चना (Gram)' },
             { key: 'wheat', label: '🌾 गेहूं (Wheat)' },
             { key: 'maize', label: '🌽 मक्का (Maize)' },
-            { key: 'tomato', label: '🍅 टमाटर / सब्जी' },
+            { key: 'tomato', label: isChhattisgarhi ? '🍅 टमाटर / भाजी' : '🍅 टमाटर / सब्जी' },
           ].map((c) => (
             <Chip
               key={c.key}
@@ -1067,10 +1098,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, mb: 1.5, border: '1px solid #e2e8f0' }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
             <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.76rem' }}>
-              🌾 रकबा (Acre): <strong>{quickAcre} एकड़</strong>
+              🌾 {isChhattisgarhi ? 'रकबा' : 'रकबा'} (Acre): <strong>{quickAcre} {isChhattisgarhi ? 'एकड़' : 'एकड़'}</strong>
             </Typography>
             <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '0.72rem' }}>
-              {selectedCropKey === 'paddy' ? `₹${appConfig.paddyScheme.totalRate}/क्विं. समर्थन मूल्य` : 'अनुमानित आय व खाद गणना'}
+              {selectedCropKey === 'paddy' ? `₹${appConfig.paddyScheme.totalRate}/क्विं. ${isChhattisgarhi ? 'समर्थन मूल्य' : 'समर्थन मूल्य'}` : (isChhattisgarhi ? 'अनुमानित आमदनी अऊ खाद हिसाब' : 'अनुमानित आय व खाद गणना')}
             </Typography>
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: { xs: 0.5, sm: 0.8 } }}>
@@ -1096,7 +1127,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   }
                 }}
               >
-                {ac} एकड़
+                {ac} {isChhattisgarhi ? 'एकड़' : 'एकड़'}
               </Button>
             ))}
           </Box>
@@ -1107,7 +1138,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Grid item xs={6} sm={3}>
             <Box sx={{ p: 1, bgcolor: '#f1f8e9', borderRadius: 2, border: '1px solid #c8e6c9', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                सरकारी / मंडी दर
+                {isChhattisgarhi ? 'सरकारी / मंडी भाव' : 'सरकारी / मंडी दर'}
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
                 ₹{currentCrop.rate.toLocaleString('en-IN')}<span style={{ fontSize: '0.66rem', fontWeight: 600 }}>/क्विं.</span>
@@ -1117,17 +1148,17 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Grid item xs={6} sm={3}>
             <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                अनुमानित पैदावार
+                {isChhattisgarhi ? 'अनुमानित उपज' : 'अनुमानित पैदावार'}
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#15803d', fontSize: '0.92rem' }}>
-                {estYield} क्विंटल
+                {estYield} {isChhattisgarhi ? 'क्विंटल' : 'क्विंटल'}
               </Typography>
             </Box>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Box sx={{ p: 1, bgcolor: '#fffbeb', borderRadius: 2, border: '1px solid #fde68a', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                अनुमानित आय
+                {isChhattisgarhi ? 'अनुमानित आमदनी' : 'अनुमानित आय'}
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.92rem' }}>
                 ₹{estIncome.toLocaleString('en-IN')}
@@ -1137,7 +1168,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Grid item xs={6} sm={3}>
             <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
               <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                खाद डोज (DAP/यूरिया)
+                {isChhattisgarhi ? 'खाद जरूरत (DAP/यूरिया)' : 'खाद डोज (DAP/यूरिया)'}
               </Typography>
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.85rem' }}>
                 {estDap}k / {estUrea}k
@@ -1162,7 +1193,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             onClick={() => onNavigate('schemes')}
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#1b5e20' } }}
           >
-            विस्तृत N:P:K कैलकुलेटर खोलें
+            {isChhattisgarhi ? 'पूरा N:P:K कैलकुलेटर खोलव' : 'विस्तृत N:P:K कैलकुलेटर खोलें'}
           </Button>
           <Button
             size="small"
@@ -1170,7 +1201,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             onClick={() => onNavigate('doctor')}
             sx={{ borderColor: '#d32f2f', color: '#d32f2f', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#ffebee' } }}
           >
-            फसल रोग जांचें (Doctor)
+            {isChhattisgarhi ? 'फसल बीमारी जांचव (Doctor)' : 'फसल रोग जांचें (Doctor)'}
           </Button>
         </Box>
       </Card>
@@ -1211,7 +1242,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           </Box>
           <Box>
             <Chip
-              label="🏛️ सार्वजनिक किसान सुविधा पोर्टल (100% खुला)"
+              label={isChhattisgarhi ? '🏛️ सार्वजनिक किसान सुविधा मंच (100% खुला)' : '🏛️ सार्वजनिक किसान सुविधा पोर्टल (100% खुला)'}
               size="small"
               sx={{
                 bgcolor: 'rgba(255,255,255,0.2)',
@@ -1223,10 +1254,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               }}
             />
             <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: '1.1rem', sm: '1.3rem' }, lineHeight: 1.2 }}>
-              {isChhattisgarhi ? 'जय जोहार, किसान संगी' : 'नमस्ते, किसान साथी'}
+              {isChhattisgarhi ? 'जय जोहार, किसान संगवारी' : 'नमस्ते, किसान साथी'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.78rem', display: 'block', mt: 0.3 }}>
-              📍 {selectedDistrict} • मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली
+              📍 {selectedDistrict} • {isChhattisgarhi ? 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे' : 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली'}
             </Typography>
           </Box>
         </Box>
@@ -1248,7 +1279,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             '&:hover': { bgcolor: '#ffffff' }
           }}
         >
-          {isChhattisgarhi ? '🔑 खाता खोलव / लॉगिन (10 सेकंड)' : '🔑 किसान खाता खोलें / लॉगिन (10 सेकंड)'}
+          {isChhattisgarhi ? '🔑 अपन खाता खोलव / लॉगिन (10 सेकंड)' : '🔑 किसान खाता खोलें / लॉगिन (10 सेकंड)'}
         </Button>
       </Box>
 
@@ -1269,10 +1300,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
           <CampaignIcon sx={{ fontSize: 18, color: '#ffeb3b' }} />
-          <span><strong>कृषक उन्नति योजना:</strong> धान ₹3,100 समर्थन मूल्य उपार्जन | टोकन तुंहर हाथ</span>
+          <span><strong>{isChhattisgarhi ? 'कृषक उन्नति योजना:' : 'कृषक उन्नति योजना:'}</strong> {isChhattisgarhi ? 'धान ₹3,100 समर्थन मूल्य खरीदी | टोकन तुंहर हाथ' : 'धान ₹3,100 समर्थन मूल्य उपार्जन | टोकन तुंहर हाथ'}</span>
         </Box>
         <Chip
-          label="योजना देखें"
+          label={isChhattisgarhi ? 'योजना देखव' : 'योजना देखें'}
           size="small"
           onClick={() => onNavigate('schemes')}
           sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, height: 20, fontSize: '0.65rem', cursor: 'pointer' }}
@@ -1309,7 +1340,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <LockIcon sx={{ color: '#059669', fontSize: 22 }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>
-            🔒 किसान निजी सेवाएं (1-क्लिक लॉगिन से तुरंत सक्रिय करें)
+            {isChhattisgarhi ? '🔒 किसान निजी सेवा मन (1-क्लिक लॉगिन ले तुरंत चालू करव)' : '🔒 किसान निजी सेवाएं (1-क्लिक लॉगिन से तुरंत सक्रिय करें)'}
           </Typography>
         </Box>
         <Button
@@ -1319,13 +1350,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           onClick={() => setOpenQuickLogin(true)}
           sx={{ bgcolor: '#166534', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.4, py: 0.4 }}
         >
-          मुफ्त खाता बनाएं
+          {isChhattisgarhi ? 'मुफ्त खाता बनाव' : 'मुफ्त खाता बनाएं'}
         </Button>
       </Box>
 
       <Box sx={{ p: 2 }}>
         <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.76rem', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-          💡 <strong>सार्वजनिक खुला मंच:</strong> मौसम व मंडी भाव बिना लॉगिन खुले हैं। अपने खेत का रकबा, दिन-वार कार्य, ट्यूबवेल मोटर मोबाइल से चालू/बंद करने व खर्च डायरी चलाने हेतु केवल मोबाइल नंबर से लॉगिन करें:
+          💡 <strong>{isChhattisgarhi ? 'सार्वजनिक खुला मंच:' : 'सार्वजनिक खुला मंच:'}</strong> {isChhattisgarhi ? 'मौसम अऊ मंडी भाव बिना लॉगिन खुले हे। अपन खेत के रकबा, रोज के काम, बोर मोटर मोबाइल ले चालू/बंद करे अऊ खर्च डायरी बर मोबाइल नंबर ले लॉगिन करव:' : 'मौसम व मंडी भाव बिना लॉगिन खुले हैं। अपने खेत का रकबा, दिन-वार कार्य, ट्यूबवेल मोटर मोबाइल से चालू/बंद करने व खर्च डायरी चलाने हेतु केवल मोबाइल नंबर से लॉगिन करें:'}
         </Typography>
 
         <Grid container spacing={1.2}>
@@ -1345,13 +1376,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 22 }} />
-                <Chip label="🔒 लॉगिन" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
+                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                ट्यूबवेल मोटर
+                {isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                GSM स्टार्टर रिमोट ऑन/ऑफ
+                {isChhattisgarhi ? 'मोबाइल ले मोटर चालू/बंद' : 'GSM स्टार्टर रिमोट ऑन/ऑफ'}
               </Typography>
             </Box>
           </Grid>
@@ -1372,13 +1403,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <MenuBookIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
-                <Chip label="🔒 लॉगिन" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
+                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                मेरा खेत व डायरी
+                {isChhattisgarhi ? 'मोर खेत अऊ डायरी' : 'मेरा खेत व डायरी'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                फसल चक्र व खर्च बहीखाता
+                {isChhattisgarhi ? 'फसल चक्र अऊ खर्च बहीखाता' : 'फसल चक्र व खर्च बहीखाता'}
               </Typography>
             </Box>
           </Grid>
@@ -1399,13 +1430,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <ScienceIcon sx={{ color: '#00796b', fontSize: 22 }} />
-                <Chip label="🔒 लॉगिन" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
+                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                मिट्टी सेंसर (IoT)
+                {isChhattisgarhi ? 'माटी सेंसर (IoT)' : 'मिट्टी सेंसर (IoT)'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                pH व NPK प्रोब जांच
+                {isChhattisgarhi ? 'माटी pH अऊ NPK जांच' : 'pH व NPK प्रोब जांच'}
               </Typography>
             </Box>
           </Grid>
@@ -1426,13 +1457,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <DirectionsWalkIcon sx={{ color: '#d97706', fontSize: 22 }} />
-                <Chip label="⚡ खुला" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef3c7', color: '#b45309' }} />
+                <Chip label={isChhattisgarhi ? '⚡ खुला' : '⚡ खुला'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef3c7', color: '#b45309' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                खेत GPS मापक
+                {isChhattisgarhi ? 'खेत GPS नाप' : 'खेत GPS मापक'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                मेड़ों पर चलकर नापें
+                {isChhattisgarhi ? 'मेड़ म रेंग के नापव' : 'मेड़ों पर चलकर नापें'}
               </Typography>
             </Box>
           </Grid>
@@ -1470,13 +1501,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AgricultureIcon sx={{ color: '#ffeb3b', fontSize: 24 }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.92rem', letterSpacing: 0.3 }}>
-            🏛️ {isChhattisgarhi ? 'किसान पहचान पत्र व पासबुक' : 'किसान पहचान पत्र व पासबुक (Digital Passbook)'}
+            🏛️ {isChhattisgarhi ? 'किसान पहचान पत्र अऊ पासबुक' : 'किसान पहचान पत्र व पासबुक (Digital Passbook)'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip
             icon={<VerifiedIcon sx={{ fontSize: '14px !important', color: '#1b5e20 !important' }} />}
-            label={isChhattisgarhi ? 'प्रमाणित किसान' : 'प्रमाणित किसान'}
+            label={isChhattisgarhi ? 'सत्यापित किसान' : 'प्रमाणित किसान'}
             size="small"
             sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 900, fontSize: '0.68rem', height: 22 }}
           />
@@ -1517,7 +1548,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 {isChhattisgarhi ? `जय जोहार, ${activeFarmer.name || 'किसान साथी'} जी` : `${activeFarmer.name || 'किसान साथी'}`}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.78rem' }}>
-                पंजीकृत मोबाइल: +91 {activeFarmer.phone}
+                {isChhattisgarhi ? `दर्ज मोबाइल: +91 ${activeFarmer.phone}` : `पंजीकृत मोबाइल: +91 ${activeFarmer.phone}`}
               </Typography>
             </Box>
           </Box>
@@ -1540,7 +1571,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 '&:hover': { bgcolor: '#14532d' }
               }}
             >
-              {isChhattisgarhi ? '🌾 मोर खेत व डायरी' : '🌾 मेरा खेत व डायरी'}
+              {isChhattisgarhi ? '🌾 मोर खेत अऊ डायरी' : '🌾 मेरा खेत व डायरी'}
             </Button>
           </Box>
         </Box>
@@ -1552,28 +1583,28 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               📍 {isChhattisgarhi ? 'गांव / ब्लॉक' : 'ग्राम / ब्लॉक'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem' }}>
-              {activeFarmer.village || 'पंजीकृत'}, {activeFarmer.district || selectedDistrict}
+              {activeFarmer.village || (isChhattisgarhi ? 'दर्ज' : 'पंजीकृत')}, {activeFarmer.district || selectedDistrict}
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
-              🌾 कुल पंजीकृत रकबा
+              🌾 {isChhattisgarhi ? 'कुल दर्ज रकबा' : 'कुल पंजीकृत रकबा'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-              {activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ भूमि
+              {activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} {isChhattisgarhi ? 'एकड़ जमीन' : 'एकड़ भूमि'}
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
-              🌱 पंजीकृत खेत
+              🌱 {isChhattisgarhi ? 'दर्ज खेत' : 'पंजीकृत खेत'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem' }}>
-              {(farmerPlots || []).length} खेत सक्रिय
+              {(farmerPlots || []).length} {isChhattisgarhi ? 'खेत चालू हे' : 'खेत सक्रिय'}
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
-              💰 समर्थन मूल्य दर
+              💰 {isChhattisgarhi ? 'समर्थन मूल्य भाव' : 'समर्थन मूल्य दर'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
               ₹{appConfig.paddyScheme.totalRate}/क्विंटल धान
@@ -1613,12 +1644,12 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <AgricultureIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.92rem' }}>
-            🌱 {isChhattisgarhi ? 'मोर सक्रिय खेत व आज के किसानी काम' : 'मेरे सक्रिय खेत व आज के कृषि कार्य (Live Field Dashboard)'}
+            🌱 {isChhattisgarhi ? 'मोर चालू खेत अऊ आज के किसानी काम' : 'मेरे सक्रिय खेत व आज के कृषि कार्य (Live Field Dashboard)'}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Chip
-            label={`${(farmerPlots || []).length} खेत सक्रिय`}
+            label={`${(farmerPlots || []).length} ${isChhattisgarhi ? 'खेत चालू हे' : 'खेत सक्रिय'}`}
             size="small"
             sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.7rem' }}
           />
@@ -1628,7 +1659,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.4, py: 0.3 }}
           >
-            ➕ नया खेत जोड़ें
+            {isChhattisgarhi ? '➕ नवां खेत जोड़व' : '➕ नया खेत जोड़ें'}
           </Button>
         </Box>
       </Box>
@@ -1656,7 +1687,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.96rem' }}>
-                        🌾 {plot.name || `खेत ${idx + 1}`} ({analysis.cropRule?.name || 'फसल'})
+                        🌾 {plot.name || (isChhattisgarhi ? `खेत ${idx + 1}` : `खेत ${idx + 1}`)} ({analysis.cropRule?.name || (isChhattisgarhi ? 'फसल' : 'फसल')})
                       </Typography>
                       {plot.variety && (
                         <Chip label={plot.variety} size="small" sx={{ height: 20, fontSize: '0.66rem', fontWeight: 700, bgcolor: '#e8f5e9', color: '#1b5e20' }} />
@@ -1664,12 +1695,12 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                       <Chip
-                        label={`⏱️ ${analysis.daysElapsed} दिन हुए`}
+                        label={`⏱️ ${analysis.daysElapsed} ${isChhattisgarhi ? 'दिन होगे' : 'दिन हुए'}`}
                         size="small"
                         sx={{ bgcolor: '#eff6ff', color: '#1d4ed8', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
                       />
                       <Chip
-                        label={analysis.currentStage?.stageName?.split('(')[0] || 'सक्रिय'}
+                        label={analysis.currentStage?.stageName?.split('(')[0] || (isChhattisgarhi ? 'चालू' : 'सक्रिय')}
                         size="small"
                         sx={{
                           bgcolor: `${analysis.currentStage?.statusColor || '#2e7d32'}18`,
@@ -1685,7 +1716,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
 
                   {/* Sowing & Acreage Info */}
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block', mb: 1 }}>
-                    रकबा: <strong>{plot.areaAcres || '1.0'} एकड़</strong> • बुआई तिथि: {plot.sowDate || 'दर्ज नहीं'}
+                    {isChhattisgarhi ? 'रकबा:' : 'रकबा:'} <strong>{plot.areaAcres || '1.0'} {isChhattisgarhi ? 'एकड़' : 'एकड़'}</strong> • {isChhattisgarhi ? 'बोवाई तारीख:' : 'बुआई तिथि:'} {plot.sowDate || (isChhattisgarhi ? 'दर्ज नइ हे' : 'दर्ज नहीं')}
                     {plot.khasraNo ? ` • खसरा नं: ${plot.khasraNo}` : ''}
                   </Typography>
 
@@ -1693,10 +1724,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   <Box sx={{ mb: 1.5 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4 }}>
                       <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.68rem' }}>
-                        फसल चक्र प्रगति ({analysis.cropRule?.totalDays || 120} दिन चक्र)
+                        {isChhattisgarhi ? 'फसल चक्र बढ़वार' : 'फसल चक्र प्रगति'} ({analysis.cropRule?.totalDays || 120} {isChhattisgarhi ? 'दिन चक्र' : 'दिन चक्र'})
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem' }}>
-                        {analysis.progressPercent}% पूर्ण
+                        {analysis.progressPercent}% {isChhattisgarhi ? 'पूरा' : 'पूर्ण'}
                       </Typography>
                     </Box>
                     <LinearProgress
@@ -1727,10 +1758,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
                     <Box>
                       <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.74rem', display: 'block' }}>
-                        आज का आवश्यक कार्य (Today's Advisory):
+                        {isChhattisgarhi ? "आज के जरूरी किसानी काम (Today's Advisory):" : "आज का आवश्यक कार्य (Today's Advisory):"}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#14532d', fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
-                        {analysis.currentStage?.task || 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।'}
+                        {analysis.currentStage?.task || (isChhattisgarhi ? 'खेत के रोज देखरेख करव अऊ उचित नमी बना के रखव।' : 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।')}
                       </Typography>
                     </Box>
                   </Box>
@@ -1763,7 +1794,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
                       sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.74rem', p: 0.3 }}
                     >
-                      खेत का विवरण व खर्च डायरी देखें
+                      {isChhattisgarhi ? 'खेत के ब्योरा अऊ खर्च डायरी देखव' : 'खेत का विवरण व खर्च डायरी देखें'}
                     </Button>
                     <Button
                       size="small"
@@ -1771,7 +1802,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       onClick={() => setOpenMotorModal(true)}
                       sx={{ color: '#0288d1', fontWeight: 800, fontSize: '0.72rem', p: 0.3 }}
                     >
-                      मोटर कंट्रोल
+                      {isChhattisgarhi ? 'मोटर चालू/बंद' : 'मोटर कंट्रोल'}
                     </Button>
                   </Box>
                 </Paper>
@@ -1833,7 +1864,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             🌾 {isChhattisgarhi ? 'किसान त्वरित कमांड सेंटर' : 'किसान त्वरित कमांड सेंटर (Personal Farm Tools)'}
           </Typography>
         </Box>
-        <Chip label="सक्रिय" size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }} />
+        <Chip label={isChhattisgarhi ? 'सक्रिय' : 'सक्रिय'} size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }} />
       </Box>
 
       <Box sx={{ p: 1.8 }}>
@@ -1854,13 +1885,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                 <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 24 }} />
-                <Chip label="रिमोट" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#e0f2fe', color: '#0288d1' }} />
+                <Chip label={isChhattisgarhi ? 'रिमोट' : 'रिमोट'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#e0f2fe', color: '#0288d1' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                ट्यूबवेल मोटर
+                {isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                GSM स्टार्टर ऑन/ऑफ
+                {isChhattisgarhi ? 'GSM स्टार्टर चालू/बंद' : 'GSM स्टार्टर ऑन/ऑफ'}
               </Typography>
             </Box>
           </Grid>
@@ -1881,13 +1912,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                 <MenuBookIcon sx={{ color: '#16a34a', fontSize: 24 }} />
-                <Chip label="डायरी" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#dcfce7', color: '#15803d' }} />
+                <Chip label={isChhattisgarhi ? 'डायरी' : 'डायरी'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#dcfce7', color: '#15803d' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                किसान डायरी
+                {isChhattisgarhi ? 'किसान डायरी' : 'किसान डायरी'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                खर्च व आय बहीखाता
+                {isChhattisgarhi ? 'खर्चा अऊ आमदनी बहीखाता' : 'खर्च व आय बहीखाता'}
               </Typography>
             </Box>
           </Grid>
@@ -1911,10 +1942,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 <Chip label="GPS" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef3c7', color: '#b45309' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                खेत GPS मापक
+                {isChhattisgarhi ? 'खेत GPS नाप-जोख' : 'खेत GPS मापक'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                मेड़ों पर चलकर नापें
+                {isChhattisgarhi ? 'मेड़ म रेंगत नापव' : 'मेड़ों पर चलकर नापें'}
               </Typography>
             </Box>
           </Grid>
@@ -1938,10 +1969,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 <Chip label="IoT" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#ccfbf1', color: '#0f766e' }} />
               </Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                मिट्टी सेंसर (IoT)
+                {isChhattisgarhi ? 'माटी सेंसर (IoT)' : 'मिट्टी सेंसर (IoT)'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                लाइव pH व NPK स्तर
+                {isChhattisgarhi ? 'लाइव pH अऊ NPK स्तर' : 'लाइव pH व NPK स्तर'}
               </Typography>
             </Box>
           </Grid>
@@ -1987,10 +2018,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             <SystemUpdateIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
             <Box>
               <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem' }}>
-                🎉 नया अपडेट उपलब्ध है (v{updateInfo.latestVersion})!
+                {isChhattisgarhi ? `🎉 नवा अपडेट उपलब्ध हे (v${updateInfo.latestVersion})!` : `🎉 नया अपडेट उपलब्ध है (v${updateInfo.latestVersion})!`}
               </Typography>
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.72rem' }}>
-                नया APK इंस्टॉल करें • पुराना डेटा सुरक्षित रहेगा
+                {isChhattisgarhi ? 'नवा APK इंस्टॉल करव • पुरना डेटा सुरक्षित रहिही' : 'नया APK इंस्टॉल करें • पुराना डेटा सुरक्षित रहेगा'}
               </Typography>
             </Box>
           </Box>
@@ -2003,7 +2034,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             download
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, fontSize: '0.74rem', borderRadius: 2, px: 1.5, py: 0.5 }}
           >
-            अभी अपडेट करें
+            {isChhattisgarhi ? 'अभी अपडेट करव' : 'अभी अपडेट करें'}
           </Button>
         </Paper>
       )}
@@ -2035,7 +2066,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     📢 {activeBroadcasts[0].title}
                   </Typography>
                   <Chip
-                    label={activeBroadcasts[0].severity === 'urgent' ? 'अति गंभीर चेतावनी' : activeBroadcasts[0].severity === 'warning' ? 'विभागीय चेतावनी' : 'कृषि परामर्श'}
+                    label={activeBroadcasts[0].severity === 'urgent' ? (isChhattisgarhi ? 'अति गंभीर चेतावनी' : 'अति गंभीर चेतावनी') : activeBroadcasts[0].severity === 'warning' ? (isChhattisgarhi ? 'विभागीय चेतावनी' : 'विभागीय चेतावनी') : (isChhattisgarhi ? 'कृषि सलाह' : 'कृषि परामर्श')}
                     size="small"
                     color={activeBroadcasts[0].severity === 'urgent' ? 'error' : activeBroadcasts[0].severity === 'warning' ? 'warning' : 'primary'}
                     sx={{ fontWeight: 800, fontSize: '0.68rem', height: 20 }}
@@ -2053,8 +2084,8 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 {activeBroadcasts[0].message}
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: '#64748b' }}>
-                <span>जारीकर्ता: {activeBroadcasts[0].author || 'कृषि विशेषज्ञ'}</span>
-                <span>वैधता: {activeBroadcasts[0].validTill || 'सक्रिय'}</span>
+                <span>{isChhattisgarhi ? 'जारीकर्ता:' : 'जारीकर्ता:'} {activeBroadcasts[0].author || (isChhattisgarhi ? 'कृषि विशेषज्ञ' : 'कृषि विशेषज्ञ')}</span>
+                <span>{isChhattisgarhi ? 'वैधता:' : 'वैधता:'} {activeBroadcasts[0].validTill || (isChhattisgarhi ? 'सक्रिय' : 'सक्रिय')}</span>
               </Box>
             </Paper>
           )}
@@ -2092,11 +2123,11 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       {weather ? `${weather.temp}°` : '29°'}
                     </Typography>
                     <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: { xs: '0.82rem', sm: '0.9rem' } }}>
-                      {weather ? weather.conditionText : 'साफ मौसम'}
+                      {weather ? weather.conditionText : (isChhattisgarhi ? 'साफ मौसम' : 'साफ मौसम')}
                     </Typography>
                   </Box>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                    📍 {selectedDistrict} {weather?.isLive ? '• लाइव मौसम' : '• सुरक्षित डेटा'}
+                    📍 {selectedDistrict} {weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? '• सुरक्षित डेटा' : '• सुरक्षित डेटा')}
                   </Typography>
                 </Box>
               </Box>
@@ -2104,7 +2135,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               {/* Spray Safety Badge & Voice button */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <Chip
-                  label={weather?.sprayAdvisory?.badge || 'छिड़काव अनुकूल'}
+                  label={weather?.sprayAdvisory?.badge || (isChhattisgarhi ? 'छिड़काव बर बने हे' : 'छिड़काव अनुकूल')}
                   size="small"
                   sx={{
                     bgcolor: weather?.sprayAdvisory?.canSpray ? '#e8f5e9' : '#fff3e0',
@@ -2130,7 +2161,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               <Grid item xs={4}>
                 <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> वर्षा
+                    <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> {isChhattisgarhi ? 'वर्षा (पानी)' : 'वर्षा'}
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
                     {weather ? `${weather.rainProbability}%` : '10%'}
@@ -2140,7 +2171,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               <Grid item xs={4}>
                 <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> हवा
+                    <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> {isChhattisgarhi ? 'हवा के गति' : 'हवा'}
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
                     {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
@@ -2150,7 +2181,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               <Grid item xs={4}>
                 <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    💧 आर्द्रता
+                    💧 {isChhattisgarhi ? 'उमस (नमी)' : 'आर्द्रता'}
                   </Typography>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
                     {weather ? `${weather.humidity}%` : '62%'}
@@ -2163,7 +2194,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             <Box sx={{ p: 1.2, bgcolor: '#f1f8e9', borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 1.5, border: '1px solid #dcedc8' }}>
               <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.76rem', lineHeight: 1.35, fontWeight: 600 }}>
-                {weather?.sprayAdvisory?.advisory || 'धान में कल्ले और बालियां आते समय खेत में 2-3 सेमी जलस्तर रखें। शांत मौसम में कीटनाशक छिड़काव करें।'}
+                {weather?.sprayAdvisory?.advisory || (isChhattisgarhi ? 'धान म कल्ला अऊ बाली आवत बेरा खेत म 2-3 सेमी पानी राखव। शांत मौसम म कीटनाशक छिड़कव।' : 'धान में कल्ले और बालियां आते समय खेत में 2-3 सेमी जलस्तर रखें। शांत मौसम में कीटनाशक छिड़काव करें।')}
               </Typography>
             </Box>
 
@@ -2172,7 +2203,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               <Box sx={{ pt: 1, borderTop: '1px solid #f1f5f9' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <CalendarMonthIcon sx={{ fontSize: 14, color: '#2e7d32' }} /> 3-दिवसीय मौसम अनुमान:
+                    <CalendarMonthIcon sx={{ fontSize: 14, color: '#2e7d32' }} /> {isChhattisgarhi ? '3 दिन के मौसम अनुमान:' : '3-दिवसीय मौसम अनुमान:'}
                   </Typography>
                 </Box>
                 <Grid container spacing={1}>
@@ -2187,7 +2218,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                           {f.tempMax}° / {f.tempMin}°
                         </Typography>
                         <Typography variant="caption" sx={{ color: f.rainProb > 40 ? '#d32f2f' : '#0288d1', fontSize: '0.64rem', fontWeight: 700 }}>
-                          वर्षा {f.rainProb}%
+                          {isChhattisgarhi ? 'पानी' : 'वर्षा'} {f.rainProb}%
                         </Typography>
                       </Box>
                     </Grid>
@@ -2208,11 +2239,11 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           {/* Unified 8-Tile Modern App Launcher Grid */}
           <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              ⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स
+              {isChhattisgarhi ? '⚡ मुख्य कृषि सेवा अऊ स्मार्ट टूल्स' : '⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स'}
             </Typography>
             <Chip
               icon={<SensorsIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
-              label="📡 डिवाइस हब"
+              label={isChhattisgarhi ? '📡 डिवाइस हब' : '📡 डिवाइस हब'}
               clickable
               size="small"
               onClick={() => {
@@ -2246,7 +2277,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             <Grid container spacing={{ xs: 1, sm: 1.5 }}>
               {[
                 {
-                  title: 'फसल डॉक्टर',
+                  title: isChhattisgarhi ? 'रोग निदान' : 'फसल डॉक्टर',
                   icon: <MedicalServicesIcon sx={{ color: '#d32f2f', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#ffebee',
                   border: '#ffcdd2',
@@ -2255,7 +2286,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => onNavigate('doctor')
                 },
                 {
-                  title: 'खाद NPK',
+                  title: isChhattisgarhi ? 'खाद हिसाब' : 'खाद NPK',
                   icon: <CalculateIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e8f5e9',
                   border: '#c8e6c9',
@@ -2264,34 +2295,34 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => onNavigate('schemes')
                 },
                 {
-                  title: 'मंडी भाव',
+                  title: isChhattisgarhi ? 'मंडी भाव' : 'मंडी भाव',
                   icon: <StorefrontIcon sx={{ color: '#1976d2', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e3f2fd',
                   border: '#bbdefb',
-                  badge: 'लाइव',
+                  badge: isChhattisgarhi ? 'लाइव' : 'लाइव',
                   badgeBg: '#1976d2',
                   action: () => onNavigate('mandi')
                 },
                 {
-                  title: 'धान ₹3,100',
+                  title: isChhattisgarhi ? 'धान ₹3,100' : 'धान ₹3,100',
                   icon: <MonetizationOnIcon sx={{ color: '#f57f17', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#fff8e1',
                   border: '#ffe082',
-                  badge: 'बोनस',
+                  badge: isChhattisgarhi ? 'बोनस' : 'बोनस',
                   badgeBg: '#e65100',
                   action: () => onNavigate('schemes')
                 },
                 {
-                  title: 'खेत GPS',
+                  title: isChhattisgarhi ? 'खेत GPS' : 'खेत GPS',
                   icon: <DirectionsWalkIcon sx={{ color: '#00897b', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e0f2f1',
                   border: '#b2dfdb',
-                  badge: 'मापक',
+                  badge: isChhattisgarhi ? 'नाप-जोख' : 'मापक',
                   badgeBg: '#00897b',
                   action: () => setOpenGpsTracker(true)
                 },
                 {
-                  title: 'ट्यूबवेल मोटर',
+                  title: isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर',
                   icon: <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e1f5fe',
                   border: '#b3e5fc',
@@ -2300,20 +2331,20 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => handleRequireLogin('motor')
                 },
                 {
-                  title: 'मिट्टी सेंसर',
+                  title: isChhattisgarhi ? 'माटी सेंसर' : 'मिट्टी सेंसर',
                   icon: <ScienceIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e8f5e9',
                   border: '#c8e6c9',
-                  badge: activeFarmer ? 'सेंसर' : '🔒',
+                  badge: activeFarmer ? (isChhattisgarhi ? 'सेंसर' : 'सेंसर') : '🔒',
                   badgeBg: activeFarmer ? '#1b5e20' : '#64748b',
                   action: () => handleRequireLogin('soil')
                 },
                 {
-                  title: 'किसान डायरी',
+                  title: isChhattisgarhi ? 'किसान डायरी' : 'किसान डायरी',
                   icon: <MenuBookIcon sx={{ color: '#7b1fa2', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#f3e5f5',
                   border: '#e1bee7',
-                  badge: activeFarmer ? 'खाता' : '🔒',
+                  badge: activeFarmer ? (isChhattisgarhi ? 'खाता' : 'खाता') : '🔒',
                   badgeBg: activeFarmer ? '#7b1fa2' : '#64748b',
                   action: () => handleRequireLogin('khet')
                 }
@@ -2409,10 +2440,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           {/* Interactive 6-Stage Agricultural Lifecycle Stepper */}
           <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
-              🌱 फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)
+              {isChhattisgarhi ? '🌱 फसल ले लेके बिक्री तक (6 चरणीय किसानी यात्रा)' : '🌱 फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-              चरण चुनें व जानें
+              {isChhattisgarhi ? 'चरण चुनव अऊ जानव' : 'चरण चुनें व जानें'}
             </Typography>
           </Box>
 
@@ -2420,7 +2451,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Box sx={{ mb: 1.5 }}>
             {/* Desktop / Tablet Segmented Capsules */}
             <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8, mb: 1 }}>
-              {LIFECYCLE_STEPS.map((item) => {
+              {lifecycleSteps.map((item) => {
                 const isActive = item.step === expandedStep;
                 return (
                   <Box
@@ -2446,7 +2477,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     }}
                   >
                     <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.68rem', display: 'block', opacity: isActive ? 0.9 : 0.7 }}>
-                      चरण {item.step}
+                      {isChhattisgarhi ? 'चरण' : 'चरण'} {item.step}
                     </Typography>
                     <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.74rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {item.tag}
@@ -2458,7 +2489,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
 
             {/* Mobile Numbered Step Pills (1 to 6) */}
             <Box sx={{ display: { xs: 'grid', sm: 'none' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.6, mb: 1.2 }}>
-              {LIFECYCLE_STEPS.map((item) => {
+              {lifecycleSteps.map((item) => {
                 const isActive = item.step === expandedStep;
                 return (
                   <Box
@@ -2491,7 +2522,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               select
               fullWidth
               size="small"
-              label="🌱 कृषि यात्रा चरण (Current Stage)"
+              label={isChhattisgarhi ? '🌱 कृषि यात्रा चरण (Current Stage)' : '🌱 कृषि यात्रा चरण (Current Stage)'}
               value={expandedStep}
               onChange={(e) => {
                 stopSpeech();
@@ -2503,7 +2534,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 '& .MuiOutlinedInput-root': { borderRadius: 2.5 }
               }}
             >
-              {LIFECYCLE_STEPS.map((item) => (
+              {lifecycleSteps.map((item) => (
                 <MenuItem key={item.step} value={item.step}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
                     <Box
@@ -2546,7 +2577,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
 
           {/* Focused Active Stage Card */}
           {(() => {
-            const currentStep = LIFECYCLE_STEPS.find((s) => s.step === expandedStep) || LIFECYCLE_STEPS[0];
+            const currentStep = lifecycleSteps.find((s) => s.step === expandedStep) || lifecycleSteps[0];
             return (
               <Card
                 sx={{
@@ -2619,7 +2650,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                         '&.Mui-disabled': { opacity: 0.4 }
                       }}
                     >
-                      ⬅️ पिछला
+                      {isChhattisgarhi ? '⬅️ पिछला' : '⬅️ पिछला'}
                     </Button>
                     <Button
                       size="small"
@@ -2640,7 +2671,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                         '&.Mui-disabled': { opacity: 0.4 }
                       }}
                     >
-                      अगला ➡️
+                      {isChhattisgarhi ? 'अगला ➡️' : 'अगला ➡️'}
                     </Button>
                     <Button
                       size="small"
@@ -2657,7 +2688,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                         '&:hover': { bgcolor: `${currentStep.color}25` }
                       }}
                     >
-                      सुनें
+                      {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
                     </Button>
                   </Box>
 
@@ -2669,7 +2700,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       onClick={() => { stopSpeech(); onNavigate('schemes'); }}
                       sx={{ color: '#2e7d32', fontSize: '0.75rem', fontWeight: 800 }}
                     >
-                      खाद कैलकुलेटर खोलें
+                      {isChhattisgarhi ? 'खाद हिसाब खोलव' : 'खाद कैलकुलेटर खोलें'}
                     </Button>
                   )}
                   {currentStep.step === 4 && (
@@ -2679,7 +2710,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       onClick={() => { stopSpeech(); onNavigate('doctor'); }}
                       sx={{ color: '#c62828', fontSize: '0.75rem', fontWeight: 800 }}
                     >
-                      फसल डॉक्टर खोलें
+                      {isChhattisgarhi ? 'फसल डॉक्टर खोलव' : 'फसल डॉक्टर खोलें'}
                     </Button>
                   )}
                   {currentStep.step === 6 && (
@@ -2689,7 +2720,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                       onClick={() => { stopSpeech(); onNavigate('mandi'); }}
                       sx={{ color: '#1565c0', fontSize: '0.75rem', fontWeight: 800 }}
                     >
-                      मंडी भाव देखें
+                      {isChhattisgarhi ? 'मंडी भाव देखव' : 'मंडी भाव देखें'}
                     </Button>
                   )}
                 </Box>
@@ -2775,7 +2806,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <LockOpenIcon sx={{ color: '#2e7d32' }} />
-            <span>किसान साथी प्रवेश</span>
+            <span>{isChhattisgarhi ? 'किसान साथी प्रवेश' : 'किसान साथी प्रवेश'}</span>
           </Box>
           <IconButton size="small" onClick={() => setOpenQuickLogin(false)} disabled={loginLoading}>
             <CloseIcon fontSize="small" />
@@ -2795,33 +2826,37 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
       >
         <DialogTitle sx={{ fontWeight: 800, color: updateInfo?.hasUpdate ? '#2e7d32' : '#1565c0', display: 'flex', alignItems: 'center', gap: 1 }}>
           {updateInfo?.hasUpdate ? <SystemUpdateIcon /> : <CheckCircleIcon />}
-          {updateInfo?.hasUpdate ? 'नया अपडेट उपलब्ध है!' : 'ऐप पूरी तरह अपडेटेड है'}
+          {updateInfo?.hasUpdate ? (isChhattisgarhi ? 'नवा अपडेट उपलब्ध हे!' : 'नया अपडेट उपलब्ध है!') : (isChhattisgarhi ? 'ऐप पूरा अपडेट हे' : 'ऐप पूरी तरह अपडेटेड है')}
         </DialogTitle>
         <DialogContent dividers sx={{ py: 2 }}>
           {updateInfo?.hasUpdate ? (
             <Box>
               <Typography variant="body2" sx={{ color: '#263238', fontWeight: 600, mb: 1 }}>
-                किसान साथी का नवीनतम संस्करण <strong>v{updateInfo.latestVersion}</strong> डाउनलोड के लिए तैयार है।
+                {isChhattisgarhi
+                  ? <>किसान साथी के नवीनतम संस्करण <strong>v{updateInfo.latestVersion}</strong> डाउनलोड बर तैयार हे।</>
+                  : <>किसान साथी का नवीनतम संस्करण <strong>v{updateInfo.latestVersion}</strong> डाउनलोड के लिए तैयार है।</>}
               </Typography>
               <Box sx={{ bgcolor: '#f1f8e9', p: 1.5, borderRadius: 2, mb: 1.5, border: '1px solid #c8e6c9' }}>
                 <Typography variant="caption" sx={{ color: '#2e7d32', display: 'block' }}>
-                  • आपका वर्तमान वर्ज़न: v{updateInfo.currentVersion}
+                  • {isChhattisgarhi ? 'तुंहर अभी के वर्ज़न' : 'आपका वर्तमान वर्ज़न'}: v{updateInfo.currentVersion}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 700, display: 'block' }}>
-                  • नया उपलब्ध वर्ज़न: v{updateInfo.latestVersion}
+                  • {isChhattisgarhi ? 'नवा उपलब्ध वर्ज़न' : 'नया उपलब्ध वर्ज़न'}: v{updateInfo.latestVersion}
                 </Typography>
               </Box>
               <Typography variant="caption" sx={{ color: '#546e7a', display: 'block', mb: 1 }}>
-                * नोट: अपडेट करने पर आपका पुराना खाता, खेत व किसान डायरी का रिकॉर्ड बिल्कुल सुरक्षित रहेगा।
+                * {isChhattisgarhi ? 'नोट: अपडेट करे ले तुंहर पुरना खाता, खेत अऊ किसान डायरी के हिसाब सुरक्षित रहिही।' : 'नोट: अपडेट करने पर आपका पुराना खाता, खेत व किसान डायरी का रिकॉर्ड बिल्कुल सुरक्षित रहेगा।'}
               </Typography>
             </Box>
           ) : (
             <Box sx={{ textAlign: 'center', py: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 700, color: '#1b5e20', mb: 0.5 }}>
-                आप पहले से ही नवीनतम संस्करण (v{updateInfo?.currentVersion || appConfig.appVersion}) का उपयोग कर रहे हैं।
+                {isChhattisgarhi
+                  ? `आप पहिली ले ही नवा संस्करण (v${updateInfo?.currentVersion || appConfig.appVersion}) चलावत हव।`
+                  : `आप पहले से ही नवीनतम संस्करण (v${updateInfo?.currentVersion || appConfig.appVersion}) का उपयोग कर रहे हैं।`}
               </Typography>
               <Typography variant="caption" sx={{ color: '#546e7a' }}>
-                सभी कृषि योजनाएं, मौसम अलर्ट और मंडी भाव नवीनतम स्थिति में हैं।
+                {isChhattisgarhi ? 'सबो किसानी योजना, मौसम अलर्ट अऊ मंडी भाव नवा स्थिति म हे।' : 'सभी कृषि योजनाएं, मौसम अलर्ट और मंडी भाव नवीनतम स्थिति में हैं।'}
               </Typography>
             </Box>
           )}
@@ -2830,7 +2865,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           {updateInfo?.hasUpdate ? (
             <>
               <Button onClick={() => setUpdateDialogOpen(false)} sx={{ color: '#64748b', fontWeight: 700 }}>
-                बाद में
+                {isChhattisgarhi ? 'पाछू' : 'बाद में'}
               </Button>
               <Button
                 variant="contained"
@@ -2840,7 +2875,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 download
                 sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, borderRadius: 2 }}
               >
-                अपडेट डाउनलोड करें
+                {isChhattisgarhi ? 'अपडेट डाउनलोड करव' : 'अपडेट डाउनलोड करें'}
               </Button>
             </>
           ) : (
@@ -2849,7 +2884,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               onClick={() => setUpdateDialogOpen(false)}
               sx={{ bgcolor: '#1565c0', color: '#fff', fontWeight: 700, borderRadius: 2, mx: 'auto' }}
             >
-              ठीक है
+              {isChhattisgarhi ? 'बने हे' : 'ठीक है'}
             </Button>
           )}
         </DialogActions>

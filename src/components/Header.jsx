@@ -415,7 +415,7 @@ export const Header = ({
               size="small"
               onClick={() => {
                 setLanguage('cg');
-                notify.info(t('lang_switched_toast'));
+                notify.info('🌾 बोली बदलिस: छत्तीसगढ़ी म सेट हे');
               }}
               sx={{
                 py: 0.2,
@@ -441,7 +441,7 @@ export const Header = ({
               size="small"
               onClick={() => {
                 setLanguage('hi');
-                notify.info(t('lang_switched_toast'));
+                notify.info('🌾 भाषा बदली: हिंदी में सेट है');
               }}
               sx={{
                 py: 0.2,

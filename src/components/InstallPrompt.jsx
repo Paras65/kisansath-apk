@@ -6,8 +6,10 @@ import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import { appConfig } from '../config/appConfig';
 import { ShareModal } from './ShareModal';
+import { useLanguage } from '../utils/i18n';
 
 export const InstallPrompt = ({ onInstall, onDismiss }) => {
+  const { isChhattisgarhi } = useLanguage();
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   return (
@@ -48,7 +50,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
                 lineHeight: 1.2,
               }}
             >
-              किसान साथी ऐप
+              {appConfig.appName}
             </Typography>
             <Typography
               variant="caption"
@@ -61,7 +63,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
                 lineHeight: 1.2,
               }}
             >
-              बिना इंटरनेट खेत में भी चालू
+              {isChhattisgarhi ? 'बिना इंटरनेट खेत म भी चालू' : 'बिना इंटरनेट खेत में भी चालू'}
             </Typography>
           </Box>
         </Box>
@@ -87,7 +89,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
               '&:hover': { bgcolor: '#1b5e20', boxShadow: 'none' }
             }}
           >
-            इंस्टॉल
+            {isChhattisgarhi ? 'इंस्टॉल करव' : 'इंस्टॉल'}
           </Button>
 
           {appConfig.apkDownloadUrl && (
@@ -115,7 +117,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
             </Button>
           )}
 
-          <Tooltip title="शेयर करें">
+          <Tooltip title={isChhattisgarhi ? 'शेयर करव' : 'शेयर करें'}>
             <IconButton
               size="small"
               onClick={() => setShareModalOpen(true)}
@@ -130,7 +132,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
             </IconButton>
           </Tooltip>
 
-          <Tooltip title="हटाएं">
+          <Tooltip title={isChhattisgarhi ? 'हटाव' : 'हटाएं'}>
             <IconButton
               size="small"
               onClick={onDismiss}
