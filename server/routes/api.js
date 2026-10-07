@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.23';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.24';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '100% सम्पूर्ण छत्तीसगढ़ी बोली स्थानीयकरण: सभी 5 मुख्य टैब (होम, फसल डॉक्टर, खाद व योजना, मंडी भाव, चौपाल), 4 हार्डवेयर मॉडल्स (GPS मापक, माटी IoT, मोटर कंट्रोलर, डिवाइस हब) एवं \'मोर खेत\' किसान डैशबोर्ड में पूर्णतः शुद्ध छत्तीसगढ़ी अनुवाद व प्रतिक्रियात्मक भाषा स्विचिंग।',
+    releaseNotes: 'लाइव मौसम व छिड़काव एडवाइजरी में पूर्ण छत्तीसगढ़ी एकीकरण: होम स्क्रीन वेदर कार्ड में आसमान की स्थिति (उघरा अकास / घाम), छिड़काव सुरक्षा बैज (छिड़काव रोक्व / बने मौसम), पानी व उमस मेट्रिक्स, दैनिक किसानी सलाह एवं 3-दिवसीय पूर्वानुमान (आज, बिहान, पर्सों) का शुद्ध छत्तीसगढ़ी में गतिशील प्रदर्शन व वॉयस आउटपुट।',
     updatedAt: new Date().toISOString()
   });
 });

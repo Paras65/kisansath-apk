@@ -25,26 +25,26 @@ export const CG_DISTRICT_COORDS = {
   'मुंगेली': { lat: 22.0664, lon: 81.6936, name: 'मुंगेली' },
 };
 
-// Weather WMO Code to Hindi condition & icon
+// Weather WMO Code to Hindi & Chhattisgarhi condition & icon
 const WMO_CODE_MAP = {
-  0: { text: 'साफ आसमान (धूप)', icon: '☀️', condition: 'Sunny' },
-  1: { text: 'मुख्यतः साफ', icon: '🌤️', condition: 'Mainly Clear' },
-  2: { text: 'आंशिक बादल', icon: '⛅', condition: 'Partly Cloudy' },
-  3: { text: 'बादल छाए रहेंगे', icon: '☁️', condition: 'Overcast' },
-  45: { text: 'कोहरा / धुंध', icon: '🌫️', condition: 'Fog' },
-  48: { text: 'घना कोहरा', icon: '🌫️', condition: 'Fog' },
-  51: { text: 'हल्की बूंदाबांदी', icon: '🌦️', condition: 'Light Drizzle' },
-  53: { text: 'मध्यम बूंदाबांदी', icon: '🌦️', condition: 'Drizzle' },
-  55: { text: 'घनी बूंदाबांदी', icon: '🌧️', condition: 'Heavy Drizzle' },
-  61: { text: 'हल्की बारिश', icon: '🌧️', condition: 'Light Rain' },
-  63: { text: 'मध्यम बारिश', icon: '🌧️', condition: 'Moderate Rain' },
-  65: { text: 'भारी बारिश', icon: '⛈️', condition: 'Heavy Rain' },
-  80: { text: 'हल्की वर्षा बौछार', icon: '🌦️', condition: 'Rain Showers' },
-  81: { text: 'तेज वर्षा बौछार', icon: '🌧️', condition: 'Rain Showers' },
-  82: { text: 'मूसलाधार बौछारें', icon: '⛈️', condition: 'Violent Showers' },
-  95: { text: 'आंधी-तूफान व बिजली', icon: '⚡', condition: 'Thunderstorm' },
-  96: { text: 'तूफान व ओलावृष्टि', icon: '⛈️', condition: 'Hailstorm' },
-  99: { text: 'भारी तूफान व ओले', icon: '⛈️', condition: 'Severe Hailstorm' },
+  0: { text: 'साफ आसमान (धूप)', textCg: 'उघरा अकास (घाम)', icon: '☀️', condition: 'Sunny' },
+  1: { text: 'मुख्यतः साफ', textCg: 'जादातर उघरा', icon: '🌤️', condition: 'Mainly Clear' },
+  2: { text: 'आंशिक बादल', textCg: 'हल्का बादर', icon: '⛅', condition: 'Partly Cloudy' },
+  3: { text: 'बादल छाए रहेंगे', textCg: 'बादर छाये रहिही', icon: '☁️', condition: 'Overcast' },
+  45: { text: 'कोहरा / धुंध', textCg: 'कुहरा / धुंध', icon: '🌫️', condition: 'Fog' },
+  48: { text: 'घना कोहरा', textCg: 'गाढ़ा कुहरा', icon: '🌫️', condition: 'Fog' },
+  51: { text: 'हल्की बूंदाबांदी', textCg: 'हल्का फुहार / टिप-टिप', icon: '🌦️', condition: 'Light Drizzle' },
+  53: { text: 'मध्यम बूंदाबांदी', textCg: 'मंझोला फुहार', icon: '🌦️', condition: 'Drizzle' },
+  55: { text: 'घनी बूंदाबांदी', textCg: 'गाढ़ा फुहार', icon: '🌧️', condition: 'Heavy Drizzle' },
+  61: { text: 'हल्की बारिश', textCg: 'हल्का पानी', icon: '🌧️', condition: 'Light Rain' },
+  63: { text: 'मध्यम बारिश', textCg: 'मंझोला पानी', icon: '🌧️', condition: 'Moderate Rain' },
+  65: { text: 'भारी बारिश', textCg: 'जोर के पानी / झड़ी', icon: '⛈️', condition: 'Heavy Rain' },
+  80: { text: 'हल्की वर्षा बौछार', textCg: 'हल्का पानी के बौछार', icon: '🌦️', condition: 'Rain Showers' },
+  81: { text: 'तेज वर्षा बौछार', textCg: 'तेज पानी के बौछार', icon: '🌧️', condition: 'Rain Showers' },
+  82: { text: 'मूसलाधार बौछारें', textCg: 'मुसलाधार पानी', icon: '⛈️', condition: 'Violent Showers' },
+  95: { text: 'आंधी-तूफान व बिजली', textCg: 'अंधरा-तूफान अउ बिजली', icon: '⚡', condition: 'Thunderstorm' },
+  96: { text: 'तूफान व ओलावृष्टि', textCg: 'तूफान अउ पथरा (ओला)', icon: '⛈️', condition: 'Hailstorm' },
+  99: { text: 'भारी तूफान व ओले', textCg: 'भारी तूफान अउ पथरा गिरे के संका', icon: '⛈️', condition: 'Severe Hailstorm' },
 };
 
 /**
@@ -60,11 +60,15 @@ export const getSprayAdvisory = (weather) => {
   if (rainProb >= 50 || isRaining) {
     return {
       status: 'छिड़काव तुरंत रोकें',
+      statusCg: 'छिड़काव तुरते रोक्व',
       statusColor: 'error',
       severity: 'warning',
       badge: '⚠️ छिड़काव रोकें (बारिश की संभावना)',
+      badgeCg: '⚠️ छिड़काव रोक्व (पानी गिरे के संका)',
       advisory: `आज बारिश की संभावना ${rainProb}% है। यूरिया, पोटाश और कीटनाशक का छिड़काव तुरंत टालें ताकि दवा बहकर नष्ट न हो जाए।`,
+      advisoryCg: `आज पानी गिरे के संका ${rainProb}% हे। यूरिया, पोटाश अउ कीटनाशक के छिड़काव तुरते टालव ताकि दवाई बोहा के खराब झन होवय।`,
       voice: `सावधान किसान भाई! आज बारिश की संभावना ${rainProb} प्रतिशत है। खेत में यूरिया खाद और कीटनाशक का छिड़काव तुरंत रोकें ताकि दवा बह न जाए।`,
+      voiceCg: `हुसियार किसान भाई! आज पानी गिरे के संका ${rainProb} प्रतिशत हे। खेत म यूरिया खाद अउ कीटनाशक के छिड़काव तुरते रोक्व ताकि दवाई बोहा झन जाय।`,
       canSpray: false,
     };
   }
@@ -72,11 +76,15 @@ export const getSprayAdvisory = (weather) => {
   if (windSpeed > 15) {
     return {
       status: 'छिड़काव टालें (तेज हवा)',
+      statusCg: 'छिड़काव टालव (तेज हवा)',
       statusColor: 'warning',
       severity: 'warning',
       badge: '💨 तेज हवा (दवा उड़ने का जोखिम)',
+      badgeCg: '💨 तेज हवा (दवाई उड़े के खतरा)',
       advisory: `हवा की गति ${windSpeed} किमी/घंटा है। तेज हवा में कीटनाशक का छिड़काव न करें, दवा उड़कर बेकार हो जाएगी। हवा थमने की प्रतीक्षा करें।`,
+      advisoryCg: `हवा के गति ${windSpeed} किमी/घंटा हे। तेज हवा म कीटनाशक झन छिड़कव, दवाई उड़के बेकार हो जाही। हवा थमे के अगोरा करव।`,
       voice: `हवा की गति ${windSpeed} किलोमीटर प्रति घंटा है। तेज हवा के कारण दवा का छिड़काव टालें।`,
+      voiceCg: `हवा के गति ${windSpeed} किलोमीटर प्रति घंटा हे। तेज हवा के सेती दवाई के छिड़काव टालव।`,
       canSpray: false,
     };
   }
@@ -84,11 +92,15 @@ export const getSprayAdvisory = (weather) => {
   if (humidity > 80) {
     return {
       status: 'रोग निगरानी आवश्यक',
+      statusCg: 'रोग निगरानी जरूरी',
       statusColor: 'info',
       severity: 'info',
       badge: '🌫️ अधिक नमी (फफूंद जोखिम)',
+      badgeCg: '🌫️ जादा उमस (फफूंद के संका)',
       advisory: `हवा में नमी ${humidity}% है। धान में शीथ ब्लाइट और दलहन में फफूंद रोग की संभावना है। खेत की मेड़ों का निरीक्षण करें।`,
+      advisoryCg: `हवा म उमस ${humidity}% हे। धान म केंचुली (शीथ ब्लाइट) अउ दलहन म फफूंद रोग के संका हे। खेत के मेड़-मेड़ घुमके जांच करव।`,
       voice: `हवा में नमी ${humidity} प्रतिशत है। फसलों में फफूंद व कीटों के प्रकोप पर नजर रखें।`,
+      voiceCg: `हवा म उमस ${humidity} प्रतिशत हे। फसल म फफूंद अउ कीरा के परकोप म नजर राखव।`,
       canSpray: true,
     };
   }
@@ -96,22 +108,30 @@ export const getSprayAdvisory = (weather) => {
   if (temp > 38) {
     return {
       status: 'शाम को ही छिड़काव करें',
+      statusCg: 'संजौती म छिड़काव करव',
       statusColor: 'warning',
       severity: 'warning',
       badge: '☀️ तेज धूप (दोपहर में रोकें)',
+      badgeCg: '☀️ तेज घाम (मंझनिया म रोक्व)',
       advisory: `तापमान ${temp}°C पहुंच चुका है। दोपहर की कड़ी धूप में छिड़काव करने से पत्तियां जल सकती हैं। छिड़काव शाम 4:30 बजे के बाद ही करें।`,
+      advisoryCg: `तापमान ${temp}°C पहुंच गे हे। मंझनिया के कड़क घाम म छिड़काव करे ले पाना जर सकथे। छिड़काव संझा 4:30 बजे के बादे करव।`,
       voice: `तापमान ${temp} डिग्री है। दोपहर में छिड़काव न करें, शाम को हल्की धूप ढलने पर ही करें।`,
+      voiceCg: `तापमान ${temp} डिग्री हे। मंझनिया म छिड़काव झन करव, संझा बेरा घाम ढले ले करव।`,
       canSpray: true,
     };
   }
 
   return {
     status: 'छिड़काव हेतु उत्तम अनुकूल',
+    statusCg: 'छिड़काव बर बने बेरा',
     statusColor: 'success',
     severity: 'success',
     badge: '✅ उत्तम अनुकूल मौसम',
+    badgeCg: '✅ छिड़काव बर बने मौसम',
     advisory: `मौसम पूरी तरह साफ है और हवा सामान्य (${windSpeed} km/h) है। आज यूरिया खाद व कीटनाशक छिड़काव का सबसे उत्तम समय है।`,
+    advisoryCg: `मौसम पुरो तरहा उघरा हे अउ हवा सामान्य (${windSpeed} km/h) हे। आज यूरिया खाद अउ कीटनाशक छिड़के के सबले बने बेरा हे।`,
     voice: `आज मौसम बहुत अच्छा है। हवा सामान्य है। यूरिया खाद और कीटनाशक छिड़काव का अनुकूल समय है।`,
+    voiceCg: `आज मौसम बहुत बने हे। हवा सामान्य हे। यूरिया खाद अउ कीटनाशक दवाई छिड़के के बने बेरा हे।`,
     canSpray: true,
   };
 };
@@ -149,6 +169,7 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
         rainProbability,
         isRaining: (current.precipitation || 0) > 0.1 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode),
         conditionText: wmoInfo.text,
+        conditionTextCg: wmoInfo.textCg || wmoInfo.text,
         conditionIcon: wmoInfo.icon,
         conditionName: wmoInfo.condition,
         updatedAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }),
@@ -159,27 +180,33 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       parsedWeather.forecast3Days = [
         {
           day: 'आज (Today)',
+          dayCg: 'आज',
           tempMax: tempMax,
           tempMin: tempMin,
           rainProb: rainProbability,
           icon: wmoInfo.icon,
           condition: wmoInfo.text,
+          conditionCg: wmoInfo.textCg || wmoInfo.text,
         },
         {
           day: 'कल (Tomorrow)',
+          dayCg: 'बिहान',
           tempMax: daily.temperature_2m_max?.[1] ? Math.round(daily.temperature_2m_max[1]) : tempMax + 1,
           tempMin: daily.temperature_2m_min?.[1] ? Math.round(daily.temperature_2m_min[1]) : tempMin,
           rainProb: daily.precipitation_probability_max?.[1] ?? Math.max(0, rainProbability - 5),
           icon: WMO_CODE_MAP[daily.weather_code?.[1]]?.icon || '⛅',
           condition: WMO_CODE_MAP[daily.weather_code?.[1]]?.text || 'धूप व बादल',
+          conditionCg: WMO_CODE_MAP[daily.weather_code?.[1]]?.textCg || 'घाम अउ बादर',
         },
         {
           day: 'परसों (Day 3)',
+          dayCg: 'पर्सों',
           tempMax: daily.temperature_2m_max?.[2] ? Math.round(daily.temperature_2m_max[2]) : tempMax,
           tempMin: daily.temperature_2m_min?.[2] ? Math.round(daily.temperature_2m_min[2]) : tempMin - 1,
           rainProb: daily.precipitation_probability_max?.[2] ?? Math.max(0, rainProbability - 10),
           icon: WMO_CODE_MAP[daily.weather_code?.[2]]?.icon || '🌤️',
           condition: WMO_CODE_MAP[daily.weather_code?.[2]]?.text || 'मुख्यतः साफ',
+          conditionCg: WMO_CODE_MAP[daily.weather_code?.[2]]?.textCg || 'जादातर उघरा',
         }
       ];
 
@@ -220,14 +247,15 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     rainProbability: 15,
     isRaining: false,
     conditionText: 'सामान्य धूप व अनुकूल',
+    conditionTextCg: 'बने घाम अउ अनुकूर मौसम',
     conditionIcon: '🌤️',
     conditionName: 'Sunny',
     updatedAt: 'ऑफ़लाइन सुरक्षित डेटा',
     isLive: false,
     forecast3Days: [
-      { day: 'आज (Today)', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप' },
-      { day: 'कल (Tomorrow)', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल' },
-      { day: 'परसों (Day 3)', tempMax: 33, tempMin: 23, rainProb: 20, icon: '🌤️', condition: 'मुख्यतः साफ' }
+      { day: 'आज (Today)', dayCg: 'आज', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप', conditionCg: 'बने घाम' },
+      { day: 'कल (Tomorrow)', dayCg: 'बिहान', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल', conditionCg: 'घाम अउ बादर' },
+      { day: 'परसों (Day 3)', dayCg: 'पर्सों', tempMax: 33, tempMin: 23, rainProb: 20, icon: '🌤️', condition: 'मुख्यतः साफ', conditionCg: 'जादातर उघरा' }
     ]
   };
   defaultWeather.sprayAdvisory = getSprayAdvisory(defaultWeather);
@@ -269,6 +297,7 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
         rainProbability,
         isRaining: (current.precipitation || 0) > 0.1 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(weatherCode),
         conditionText: wmoInfo.text,
+        conditionTextCg: wmoInfo.textCg || wmoInfo.text,
         conditionIcon: wmoInfo.icon,
         conditionName: wmoInfo.condition,
         updatedAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }),
@@ -278,27 +307,33 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
       parsedWeather.forecast3Days = [
         {
           day: 'आज (Today)',
+          dayCg: 'आज',
           tempMax: tempMax,
           tempMin: tempMin,
           rainProb: rainProbability,
           icon: wmoInfo.icon,
           condition: wmoInfo.text,
+          conditionCg: wmoInfo.textCg || wmoInfo.text,
         },
         {
           day: 'कल (Tomorrow)',
+          dayCg: 'बिहान',
           tempMax: daily.temperature_2m_max?.[1] ? Math.round(daily.temperature_2m_max[1]) : tempMax + 1,
           tempMin: daily.temperature_2m_min?.[1] ? Math.round(daily.temperature_2m_min[1]) : tempMin,
           rainProb: daily.precipitation_probability_max?.[1] ?? Math.max(0, rainProbability - 5),
           icon: WMO_CODE_MAP[daily.weather_code?.[1]]?.icon || '⛅',
           condition: WMO_CODE_MAP[daily.weather_code?.[1]]?.text || 'धूप व बादल',
+          conditionCg: WMO_CODE_MAP[daily.weather_code?.[1]]?.textCg || 'घाम अउ बादर',
         },
         {
           day: 'परसों (Day 3)',
+          dayCg: 'पर्सों',
           tempMax: daily.temperature_2m_max?.[2] ? Math.round(daily.temperature_2m_max[2]) : tempMax,
           tempMin: daily.temperature_2m_min?.[2] ? Math.round(daily.temperature_2m_min[2]) : tempMin - 1,
           rainProb: daily.precipitation_probability_max?.[2] ?? Math.max(0, rainProbability - 10),
           icon: WMO_CODE_MAP[daily.weather_code?.[2]]?.icon || '🌤️',
           condition: WMO_CODE_MAP[daily.weather_code?.[2]]?.text || 'मुख्यतः साफ',
+          conditionCg: WMO_CODE_MAP[daily.weather_code?.[2]]?.textCg || 'जादातर उघरा',
         }
       ];
 
