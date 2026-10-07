@@ -332,7 +332,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
               🌾 मेरा खेत: बहु-फसली स्मार्ट डैशबोर्ड
             </Typography>
           </Box>
-          <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }}>
+          <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
             <CloseIcon />
           </IconButton>
         </DialogTitle>

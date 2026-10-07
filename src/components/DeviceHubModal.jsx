@@ -281,7 +281,7 @@ export const DeviceHubModal = ({
           >
             सुनें
           </Button>
-          <IconButton onClick={handleClose} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)' }}>
+          <IconButton onClick={handleClose} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)' }} aria-label="close">
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>

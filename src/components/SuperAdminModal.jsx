@@ -289,7 +289,7 @@ export const SuperAdminModal = ({ open, onClose }) => {
               </IconButton>
             </Tooltip>
           )}
-          <IconButton onClick={onClose} sx={{ color: '#94a3b8', '&:hover': { color: '#ffffff' } }}>
+          <IconButton onClick={onClose} sx={{ color: '#94a3b8', '&:hover': { color: '#ffffff' } }} aria-label="close">
             <CloseIcon />
           </IconButton>
         </Box>

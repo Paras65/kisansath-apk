@@ -164,24 +164,43 @@ export const initCapacitor = () => {
   // 2. Native Hardware Back Button Navigation & Exit Handling (Standard Android Double-Tap Exit)
   try {
     App.addListener('backButton', () => {
-      // 1) First check if an open MUI Dialog/Modal is active (stack unwinding)
+      // 1) First check if an open MUI Dialog/Modal is active (safe stack unwinding)
       const openDialog = document.querySelector('.MuiDialog-root');
       if (openDialog) {
         const closeBtn =
           openDialog.querySelector('button[aria-label="close"]') ||
           openDialog.querySelector('button[aria-label="Close"]') ||
-          openDialog.querySelector('.MuiIconButton-root');
+          openDialog.querySelector('button[data-action="close"]') ||
+          openDialog.querySelector('button[data-testid="close"]');
         if (closeBtn) {
           closeBtn.click();
           return;
         }
+
+        // Try cancel / dismiss button
+        const cancelBtn = Array.from(openDialog.querySelectorAll('button')).find(
+          (b) => b.textContent && (b.textContent.includes('रद्द करें') || b.textContent.includes('बंद करें') || b.textContent.includes('बाद में'))
+        );
+        if (cancelBtn) {
+          cancelBtn.click();
+          return;
+        }
+
+        // Fallback: Dispatch Escape keydown to trigger MUI Dialog onClose
         const escEvent = new KeyboardEvent('keydown', {
           key: 'Escape',
           code: 'Escape',
           keyCode: 27,
-          bubbles: true
+          bubbles: true,
+          cancelable: true
         });
         document.dispatchEvent(escEvent);
+
+        // Also trigger backdrop click if dialog supports backdrop dismissal
+        const backdrop = openDialog.querySelector('.MuiBackdrop-root');
+        if (backdrop) {
+          backdrop.click();
+        }
         return;
       }
 

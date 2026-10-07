@@ -186,11 +186,28 @@ function App() {
     });
   }, [currentTab]);
 
-  // Hardware back button support for Android TWA / PWA
+  // Hardware back button & modal stack unwinding for Android TWA / PWA / Native
   useEffect(() => {
-    const handlePopState = () => {
+    const handlePopState = (e) => {
       stopSpeech(); // Stop any active speech on back navigation
-      if (currentTab !== 'home') {
+
+      // 1) First check if an open MUI Dialog/Modal is active (safe stack unwinding)
+      const openDialog = document.querySelector('.MuiDialog-root');
+      if (openDialog) {
+        const closeBtn =
+          openDialog.querySelector('button[aria-label="close"]') ||
+          openDialog.querySelector('button[aria-label="Close"]') ||
+          openDialog.querySelector('button[data-action="close"]');
+        if (closeBtn) {
+          closeBtn.click();
+          return;
+        }
+      }
+
+      // 2) Return smoothly to home tab if on another tab
+      if (e.state && e.state.tab) {
+        setCurrentTab(e.state.tab);
+      } else if (currentTab !== 'home') {
         setCurrentTab('home');
       }
     };
@@ -202,8 +219,12 @@ function App() {
     stopSpeech(); // Stop any active speech when switching tabs
     if (newTab !== currentTab) {
       try {
-        // Use replaceState so history stack doesn't endlessly accumulate across tabs
-        window.history.replaceState({ tab: newTab }, '', window.location.pathname + (newTab === 'home' ? '' : `?tab=${newTab}`));
+        if (newTab === 'home') {
+          window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
+        } else {
+          // Push state for non-home tabs so Android/browser back button returns to home cleanly
+          window.history.pushState({ tab: newTab }, '', window.location.pathname + `?tab=${newTab}`);
+        }
       } catch (e) {}
       setCurrentTab(newTab);
       window.scrollTo({ top: 0, behavior: 'smooth' });

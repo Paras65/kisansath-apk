@@ -337,7 +337,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'рд
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }}>
+        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>

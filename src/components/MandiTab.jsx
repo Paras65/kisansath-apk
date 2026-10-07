@@ -32,6 +32,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import SyncIcon from '@mui/icons-material/Sync';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
+import CloseIcon from '@mui/icons-material/Close';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import {
@@ -1053,8 +1054,11 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
       {/* Sell Produce Modal Dialog */}
       <Dialog open={openSellModal} onClose={() => setOpenSellModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, color: '#1565c0', fontSize: '1.1rem' }}>
-          🌾 अपनी फसल बिक्री हेतु जोड़ें
+        <DialogTitle sx={{ fontWeight: 800, color: '#1565c0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>🌾 अपनी फसल बिक्री हेतु जोड़ें</span>
+          <IconButton size="small" onClick={() => setOpenSellModal(false)} aria-label="close">
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           <TextField
@@ -1117,9 +1121,14 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
       {/* Offline Mandi Query Modal Dialog (Zero-False-Data Policy) */}
       <Dialog open={openOfflineQueryModal} onClose={() => setOpenOfflineQueryModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, color: '#0369a1', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <BookmarkBorderIcon sx={{ color: '#0284c7' }} />
-          📡 ऑफ़लाइन भाव पूछताछ सहेजें
+        <DialogTitle sx={{ fontWeight: 800, color: '#0369a1', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BookmarkBorderIcon sx={{ color: '#0284c7' }} />
+            <span>📡 ऑफ़लाइन भाव पूछताछ सहेजें</span>
+          </Box>
+          <IconButton size="small" onClick={() => setOpenOfflineQueryModal(false)} aria-label="close">
+            <CloseIcon fontSize="small" />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           <Typography variant="caption" sx={{ color: '#64748b', lineHeight: 1.4 }}>

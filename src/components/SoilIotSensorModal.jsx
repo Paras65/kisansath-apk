@@ -150,7 +150,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }}>
+        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>

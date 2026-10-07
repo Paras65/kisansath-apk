@@ -141,7 +141,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={handleModalClose} sx={{ color: '#fff' }}>
+        <IconButton size="small" onClick={handleModalClose} sx={{ color: '#fff' }} aria-label="close">
           <CloseIcon fontSize="small" />
         </IconButton>
       </DialogTitle>

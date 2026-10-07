@@ -78,14 +78,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.11';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.12';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '2-टैब स्मार्ट किसान पंजीयन व सीधा लॉगिन, डाक पिन कोड से गांव की स्वतः खोज और आधुनिक कृषि सेवा इंटरफ़ेस।',
+    releaseNotes: 'एकीकृत पारंपरिक नेटिव मोबाइल ऐप अनुभव, सुरक्षित हार्डवेयर बैक-बटन डायलॉग अनवाइंडिंग, प्लेटफॉर्म-अवेयर टूलबार और त्वरित अतिथि व किसान ऑनबोर्डिंग।',
     updatedAt: new Date().toISOString()
   });
 });

@@ -30,6 +30,7 @@ import SensorsIcon from '@mui/icons-material/Sensors';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
+import { isNativePlatform } from '../utils/capacitorUtils';
 import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
@@ -377,7 +378,7 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* Dedicated Admin Portal Button */}
+          {/* Dedicated Admin Portal Button (Desktop Only) */}
           <Tooltip title="समर्पित कृषि प्रशासन पोर्टल (Admin Portal)">
             <Button
               onClick={onOpenAdmin}
@@ -400,24 +401,6 @@ export const Header = ({
             </Button>
           </Tooltip>
 
-          <Tooltip title="समर्पित कृषि प्रशासन पोर्टल (Admin Portal)">
-            <IconButton
-              onClick={onOpenAdmin}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.14)',
-                color: '#38bdf8',
-                width: 36,
-                height: 36,
-                borderRadius: 2.5,
-                display: { xs: 'inline-flex', lg: 'none' },
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'rgba(56,189,248,0.25)', color: '#ffffff' }
-              }}
-            >
-              <AdminPanelSettingsIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-          </Tooltip>
-
           {/* Voice Assistance Button */}
           <Tooltip title={speaking ? 'आवाज बंद करें' : 'हिंदी में आवाज में सुनें'}>
             <IconButton
@@ -437,8 +420,8 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* Compact APK Download Icon */}
-          {appConfig.apkDownloadUrl && (
+          {/* Compact APK Download Icon (Suppressed in Native APK & Hidden on Mobile xs) */}
+          {appConfig.apkDownloadUrl && !isNativePlatform() && (
             <Tooltip title={`Android APK डाउनलोड करें (v${appConfig.appVersion})`}>
               <IconButton
                 component="a"
@@ -453,6 +436,7 @@ export const Header = ({
                   height: 36,
                   borderRadius: 2.5,
                   border: '1px solid rgba(255,235,59,0.38)',
+                  display: { xs: 'none', md: 'inline-flex' },
                   transition: 'all 0.2s',
                   '&:hover': {
                     bgcolor: 'rgba(255,235,59,0.32)',

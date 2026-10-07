@@ -1401,620 +1401,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
     </Card>
   );
 
-  // 5. Guest / Public Showcase Landing Page (When !activeFarmer)
-  const renderGuestLandingPage = () => (
-    <>
-      {/* 1. Hero Showcase Section & Registration/Login Card */}
-      <Card
-        sx={{
-          mb: 3.5,
-          p: { xs: 2.2, sm: 3, md: 3.8 },
-          borderRadius: 4,
-          background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #1b5e20 100%)',
-          color: '#fff',
-          boxShadow: '0 12px 32px rgba(27, 94, 32, 0.2)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          position: 'relative',
-          overflow: 'hidden'
-        }}
-      >
-        <Grid container spacing={{ xs: 2.5, md: 4 }} alignItems="center">
-          {/* Left Column: Brand & Value Highlights */}
-          <Grid item xs={12} md={7}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5, flexWrap: 'wrap' }}>
-              <Chip
-                icon={<AgricultureIcon sx={{ color: '#1b5e20 !important', fontSize: '18px !important' }} />}
-                label="छत्तीसगढ़ शासन एवं राष्ट्रीय कृषि मंच"
-                sx={{
-                  bgcolor: '#ffeb3b',
-                  color: '#1b5e20',
-                  fontWeight: 800,
-                  fontSize: { xs: '0.72rem', sm: '0.78rem' },
-                  height: 28,
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
-                }}
-              />
-              <Chip
-                label="100% निःशुल्क खुला किसान पोर्टल"
-                sx={{
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  color: '#fff',
-                  fontWeight: 700,
-                  fontSize: '0.72rem',
-                  height: 28,
-                  border: '1px solid rgba(255,255,255,0.3)'
-                }}
-              />
-            </Box>
-
-            <Typography
-              variant="h3"
-              sx={{
-                fontWeight: 900,
-                fontSize: { xs: '1.75rem', sm: '2.2rem', md: '2.5rem' },
-                lineHeight: 1.18,
-                letterSpacing: '-0.02em',
-                mb: 1.5
-              }}
-            >
-              किसान साथी
-              <Typography
-                component="span"
-                sx={{
-                  display: 'block',
-                  color: '#ffeb3b',
-                  fontSize: { xs: '1.15rem', sm: '1.4rem', md: '1.65rem' },
-                  fontWeight: 800,
-                  mt: 0.5
-                }}
-              >
-                फसल से लेकर बिक्री तक का संपूर्ण डिजिटल साथी
-              </Typography>
-            </Typography>
-
-            <Typography
-              variant="body1"
-              sx={{
-                color: '#e8f5e9',
-                fontSize: { xs: '0.88rem', sm: '0.96rem' },
-                lineHeight: 1.6,
-                mb: 2.5,
-                maxWidth: 620
-              }}
-            >
-              भारतीय किसानों का आधुनिक कृषि केंद्र — सही वैज्ञानिक खाद, 3-दिवसीय मौसम व स्प्रे एडवाइजरी,
-              AI फसल डॉक्टर, लाइव APMC मंडी भाव, ₹3,100 धान उपार्जन और मोबाइल ट्यूबवेल मोटर कंट्रोल।
-            </Typography>
-
-            {/* 4 Value Pills */}
-            <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.2, bgcolor: 'rgba(255,255,255,0.12)', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.18)' }}>
-                  <Box sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontWeight: 900, fontSize: '0.9rem' }}>
-                    ₹
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#fff', lineHeight: 1.2 }}>
-                      ₹3,100/क्विं. धान उपार्जन
-                    </Typography>
-                    <Typography sx={{ color: '#dcedc8', fontSize: '0.72rem' }}>
-                      कृषक उन्नति योजना (21 क्विं./एकड़)
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.2, bgcolor: 'rgba(255,255,255,0.12)', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.18)' }}>
-                  <Box sx={{ bgcolor: '#ff5252', color: '#fff', width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <MedicalServicesIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#fff', lineHeight: 1.2 }}>
-                      AI फसल डॉक्टर
-                    </Typography>
-                    <Typography sx={{ color: '#dcedc8', fontSize: '0.72rem' }}>
-                      पत्ती फोटो से तुरंत बीमारी व दवा
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.2, bgcolor: 'rgba(255,255,255,0.12)', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.18)' }}>
-                  <Box sx={{ bgcolor: '#4fc3f7', color: '#01579b', width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <PowerSettingsNewIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#fff', lineHeight: 1.2 }}>
-                      ट्यूबवेल मोटर रिमोट
-                    </Typography>
-                    <Typography sx={{ color: '#dcedc8', fontSize: '0.72rem' }}>
-                      घर बैठे फोन से मोटर ऑन/ऑफ
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, p: 1.2, bgcolor: 'rgba(255,255,255,0.12)', borderRadius: 2.5, border: '1px solid rgba(255,255,255,0.18)' }}>
-                  <Box sx={{ bgcolor: '#ffd54f', color: '#e65100', width: 34, height: 34, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <TrendingUpIcon sx={{ fontSize: 18 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: '0.84rem', color: '#fff', lineHeight: 1.2 }}>
-                      लाइव APMC मंडी भाव
-                    </Typography>
-                    <Typography sx={{ color: '#dcedc8', fontSize: '0.72rem' }}>
-                      30+ मंडियों के आज के ताज़ा रेट
-                    </Typography>
-                  </Box>
-                </Box>
-              </Grid>
-            </Grid>
-
-            {/* Trust Footnotes */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap', pt: 1.2, borderTop: '1px solid rgba(255,255,255,0.18)' }}>
-              <Typography variant="caption" sx={{ color: '#f1f8e9', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CheckCircleIcon sx={{ fontSize: 15, color: '#ffeb3b' }} />
-                बिना किसी सरकारी कागजात या खसरा के
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#f1f8e9', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CheckCircleIcon sx={{ fontSize: 15, color: '#ffeb3b' }} />
-                100% सुरक्षित व निजी डेटा
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#f1f8e9', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CheckCircleIcon sx={{ fontSize: 15, color: '#ffeb3b' }} />
-                टोल-फ्री हेल्पलाइन: 1800-180-1551
-              </Typography>
-            </Box>
-          </Grid>
-
-          {/* Right Column: Direct Registration & Login Card */}
-          <Grid item xs={12} md={5}>
-            <Paper
-              elevation={10}
-              sx={{
-                p: { xs: 2.2, sm: 2.8 },
-                borderRadius: 4,
-                bgcolor: '#ffffff',
-                color: '#0f172a',
-                border: '1.8px solid #a5d6a7',
-                boxShadow: '0 20px 45px -10px rgba(27, 94, 32, 0.22), 0 8px 16px -6px rgba(0, 0, 0, 0.08)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 5,
-                  background: 'linear-gradient(90deg, #1b5e20 0%, #43a047 50%, #ffd54f 100%)'
-                }}
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, mb: 2, mt: 0.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: '50%', bgcolor: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1.5px solid #a5d6a7', flexShrink: 0 }}>
-                  <LockOpenIcon sx={{ color: '#1b5e20', fontSize: 24 }} />
-                </Box>
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
-                    किसान साथी डिजिटल सेवा
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                    पंजीयन करें या सीधे लॉगिन करें
-                  </Typography>
-                </Box>
-              </Box>
-
-              {renderSmartAuthCard(false)}
-            </Paper>
-          </Grid>
-        </Grid>
-      </Card>
-
-      {/* 2. 6-Feature Showcase Section */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Chip
-            label="✨ प्रमुख सुविधाएं व टूल्स"
-            size="small"
-            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.76rem', mb: 1, border: '1px solid #c8e6c9' }}
-          />
-          <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', fontSize: { xs: '1.4rem', sm: '1.8rem', md: '2.1rem' } }}>
-            किसान साथी की 6 प्रमुख डिजिटल सेवाएं
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#64748b', fontSize: { xs: '0.82rem', sm: '0.92rem' }, maxWidth: 700, mx: 'auto', mt: 0.5 }}>
-            लॉगिन करते ही आपके मोबाइल पर अनलॉक होते हैं ये सभी आधुनिक टूल्स:
-          </Typography>
-        </Box>
-
-        <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
-          {/* Feature 1: Crop Doctor */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #ffcdd2',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(211,47,47,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#ffebee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <MedicalServicesIcon sx={{ color: '#d32f2f', fontSize: 24 }} />
-                </Box>
-                <Chip label="AI संचालित" size="small" sx={{ bgcolor: '#ffebee', color: '#d32f2f', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                🌾 AI फसल डॉक्टर व रोग निदान
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                पत्ती या तने की फोटो खींचते ही Google AI सेकंडों में कीट, उकठा, झुलसा की पहचान कर 15L पंप की दवा खुराक बताता है।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d32f2f' }} />
-                  <span>खेत में सीधे कैमरा से लाइव फोटो पहचान</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d32f2f' }} />
-                  <span>15 लीटर स्प्रे पंप की सटीक रासायनिक खुराक</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d32f2f' }} />
-                  <span>कमजोर नेटवर्क पर ऑफलाइन फोटो सिंक</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => onNavigate('doctor')}
-                sx={{ borderColor: '#d32f2f', color: '#d32f2f', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#ffebee' } }}
-              >
-                फसल डॉक्टर खोलें
-              </Button>
-            </Card>
-          </Grid>
-
-          {/* Feature 2: Mandi Pulse */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #bbdefb',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(25,118,210,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#e3f2fd', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <StorefrontIcon sx={{ color: '#1976d2', fontSize: 24 }} />
-                </Box>
-                <Chip label="30+ मंडियां लाइव" size="small" sx={{ bgcolor: '#e3f2fd', color: '#1976d2', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                📈 लाइव APMC मंडी भाव व ₹3,100 धान
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                राज्य की सभी 30+ मंडियों के न्यूनतम, अधिकतम व मॉडल भाव। Agmarknet सत्यापित लाइव डेटा और ₹3,100 समर्थन मूल्य गाइड।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#1976d2' }} />
-                  <span>धान, चना, गेहूं, मक्का व सब्जियों के लाइव रेट</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#1976d2' }} />
-                  <span>₹3,100 कृषक उन्नति योजना व 21 क्विंटल कोटा</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#1976d2' }} />
-                  <span>खेत से सीधे खरीदारों व व्यापारियों से संपर्क</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => onNavigate('mandi')}
-                sx={{ borderColor: '#1976d2', color: '#1976d2', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#e3f2fd' } }}
-              >
-                मंडी भाव देखें
-              </Button>
-            </Card>
-          </Grid>
-
-          {/* Feature 3: Fertilizer Calc */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #c8e6c9',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(46,125,50,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#e8f5e9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CalculateIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
-                </Box>
-                <Chip label="सटीक N:P:K" size="small" sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                🧪 वैज्ञानिक खाद कैलकुलेटर
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                एकड़ और फसल के अनुसार यूरिया, DAP, SSP और पोटाश का सही वजन व सही समय पर छिड़काव की वैज्ञानिक खुराक।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#2e7d32' }} />
-                  <span>धान, चना, गेहूं, मक्का हेतु वैज्ञानिक N:P:K नाप</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#2e7d32' }} />
-                  <span>बुआई, कल्ले फूटने व बाली आने पर 3-चरण खुराक</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#2e7d32' }} />
-                  <span>अतिरिक्त खाद के अनावश्यक खर्च से पूरी बचत</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => onNavigate('schemes')}
-                sx={{ borderColor: '#2e7d32', color: '#2e7d32', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#e8f5e9' } }}
-              >
-                खाद कैलकुलेटर खोलें
-              </Button>
-            </Card>
-          </Grid>
-
-          {/* Feature 4: Weather & Spray Guard */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #b2dfdb',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(0,121,107,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#e0f2f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <WaterDropIcon sx={{ color: '#00796b', fontSize: 24 }} />
-                </Box>
-                <Chip label="ओपन-मेटियो लाइव" size="small" sx={{ bgcolor: '#e0f2f1', color: '#00796b', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                🌦️ मौसम रक्षक व स्प्रे एडवाइजरी
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                तापमान, हवा की गति, बारिश की संभावना और क्या आज कीटनाशक छिड़काव अनुकूल है या दवा बहने का खतरा है—सटीक अलर्ट।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#00796b' }} />
-                  <span>आपके जिले का 3-दिवसीय मौसम पूर्वानुमान</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#00796b' }} />
-                  <span>तेज हवा/वर्षा में कीटनाशक छिड़काव रोक चेतावनी</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#00796b' }} />
-                  <span>पूरी मौसम सलाह हिंदी में बोलकर सुनने की सुविधा</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={handleReadAdvisory}
-                sx={{ borderColor: '#00796b', color: '#00796b', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#e0f2f1' } }}
-              >
-                🔊 आज की मौसम सलाह सुनें
-              </Button>
-            </Card>
-          </Grid>
-
-          {/* Feature 5: Smart Motor Controller */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #b3e5fc',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(2,136,209,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#e1f5fe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 24 }} />
-                </Box>
-                <Chip label="GSM व इंटरनेट" size="small" sx={{ bgcolor: '#e1f5fe', color: '#0288d1', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                ⚡ ट्यूबवेल मोटर स्टार्टर रिमोट
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                घर बैठे या दूर खेत से मोबाइल कॉल या SMS से बोरवेल मोटर चालू व बंद करें। 3-फेज बिजली व वोल्टेज अलर्ट पाएं।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#0288d1' }} />
-                  <span>बिना इंटरनेट के फोन कॉल या SMS से मोटर ऑन/ऑफ</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#0288d1' }} />
-                  <span>3-फेज बिजली उपलब्धता व वोल्टेज गिरावट अलर्ट</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#0288d1' }} />
-                  <span>रात में खेत जाने के जोखिम व बिजली बर्बादी से मुक्ति</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => handleRequireLogin('motor')}
-                sx={{ borderColor: '#0288d1', color: '#0288d1', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#e1f5fe' } }}
-              >
-                🔒 मोटर रिमोट (लॉगिन करें)
-              </Button>
-            </Card>
-          </Grid>
-
-          {/* Feature 6: Field GPS Tracker & Diary */}
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                p: 2.2,
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: 3.5,
-                bgcolor: '#ffffff',
-                border: '1.2px solid #fde68a',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-                transition: 'all 0.2s ease',
-                '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 8px 24px rgba(217,119,6,0.12)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
-                <Box sx={{ width: 44, height: 44, borderRadius: 2.5, bgcolor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <DirectionsWalkIcon sx={{ color: '#d97706', fontSize: 24 }} />
-                </Box>
-                <Chip label="मेड़ों पर नापें" size="small" sx={{ bgcolor: '#fef3c7', color: '#d97706', fontWeight: 800, fontSize: '0.68rem', height: 22 }} />
-              </Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1rem', mb: 0.8 }}>
-                🗺️ खेत GPS मापक व किसान डायरी
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.8rem', lineHeight: 1.5, mb: 1.5, flex: 1 }}>
-                खेत की चारों मेड़ों पर चलकर सैटेलाइट GPS से वास्तविक एकड़, डिसमिल व मीटर नापें। खाद, बीज व मजदूरी का बहीखाता रखें।
-              </Typography>
-              <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2, mb: 1.5, fontSize: '0.74rem', color: '#334155' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d97706' }} />
-                  <span>खेत के कोनों पर चलकर सैटेलाइट GPS से सटीक नाप</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d97706' }} />
-                  <span>बीज, खाद, मजदूरी व कटाई खर्चों का सुरक्षित रिकॉर्ड</span>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <CheckCircleIcon sx={{ fontSize: 14, color: '#d97706' }} />
-                  <span>KCC ऋण हेतु बैंक-मान्य पीडीएफ रिपोर्ट तैयार करें</span>
-                </Box>
-              </Box>
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => setOpenGpsTracker(true)}
-                sx={{ borderColor: '#d97706', color: '#d97706', fontWeight: 800, borderRadius: 2, py: 0.6, fontSize: '0.76rem', '&:hover': { bgcolor: '#fef3c7' } }}
-              >
-                खेत GPS मापक खोलें (खुला टूल)
-              </Button>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
-
-      {/* 3. Government Scheme & Helpline Trust Strip */}
-      <Card
-        sx={{
-          mb: 3.5,
-          p: { xs: 2, sm: 2.5 },
-          borderRadius: 3.5,
-          bgcolor: '#f8fafc',
-          border: '1.5px solid #e2e8f0',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
-        }}
-      >
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ bgcolor: '#e8f5e9', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <MonetizationOnIcon sx={{ color: '#1b5e20', fontSize: 26 }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  धान ₹3,100 समर्थन मूल्य
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  कृषक उन्नति योजना • 21 क्विंटल/एकड़
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ bgcolor: '#e3f2fd', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <CampaignIcon sx={{ color: '#1565c0', fontSize: 26 }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  टोकन तुंहर हाथ पोर्टल
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  उपार्जन केंद्र हेतु घर बैठे ऑनलाइन टोकन
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{ bgcolor: '#fff3e0', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <VerifiedIcon sx={{ color: '#e65100', fontSize: 26 }} />
-              </Box>
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  किसान हेल्पलाइन 1800-180-1551
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  24x7 राष्ट्रीय टोल-फ्री कृषि परामर्श
-                </Typography>
-              </Box>
-            </Box>
-          </Grid>
-        </Grid>
-      </Card>
-
-      {/* 4. Native APK & Share Footer */}
-      {renderApkFooterCard()}
-    </>
-  );
-
-  // 6. Logged-In Farmer Command Center Dashboard (When activeFarmer is present)
+  // 5. Unified Agritech Command Center Dashboard (Native Mobile App Flow for Guest & Farmer)
   const renderFarmerDashboard = () => (
     <>
       {/* 1. Modern Hero Greeting & Profile Card */}
@@ -2056,39 +1443,62 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 <span>📍 {activeFarmer?.village ? `${activeFarmer.village}, ` : ''}{selectedDistrict}</span>
                 <span>•</span>
                 <span style={{ color: '#ffeb3b', fontWeight: 700 }}>
-                  {activeFarmer ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ पंजीकृत` : 'सार्वजनिक कृषि सेवा (खुला पोर्टल)'}
+                  {activeFarmer ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ पंजीकृत` : 'सार्वजनिक डिजिटल कृषि मंच (100% खुला)'}
                 </span>
               </Typography>
             </Box>
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
-              sx={{
-                bgcolor: '#ffeb3b',
-                color: '#1b5e20',
-                fontWeight: 800,
-                fontSize: '0.78rem',
-                borderRadius: 3,
-                px: 1.8,
-                py: 0.6,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                '&:hover': { bgcolor: '#fff' }
-              }}
-            >
-              🌾 मेरा खेत
-            </Button>
-            <IconButton
-              size="small"
-              title="लॉगआउट"
-              onClick={handleFarmerLogout}
-              sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
-            >
-              <LogoutIcon sx={{ fontSize: 18 }} />
-            </IconButton>
+            {activeFarmer ? (
+              <>
+                <Button
+                  variant="contained"
+                  size="small"
+                  onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
+                  sx={{
+                    bgcolor: '#ffeb3b',
+                    color: '#1b5e20',
+                    fontWeight: 800,
+                    fontSize: '0.78rem',
+                    borderRadius: 3,
+                    px: 1.8,
+                    py: 0.6,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                    '&:hover': { bgcolor: '#fff' }
+                  }}
+                >
+                  🌾 मेरा खेत
+                </Button>
+                <IconButton
+                  size="small"
+                  title="लॉगआउट"
+                  onClick={handleFarmerLogout}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+                >
+                  <LogoutIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => { stopSpeech(); setOpenQuickLogin(true); }}
+                sx={{
+                  bgcolor: '#ffeb3b',
+                  color: '#1b5e20',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  borderRadius: 3,
+                  px: 1.8,
+                  py: 0.6,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  '&:hover': { bgcolor: '#fff' }
+                }}
+              >
+                🌾 पंजीयन / लॉगिन
+              </Button>
+            )}
           </Box>
         </Box>
 
@@ -2119,6 +1529,56 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           />
         </Box>
       </Card>
+
+      {/* Native Guest Onboarding Quick Notice */}
+      {!activeFarmer && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.4,
+            px: 2,
+            mb: 2,
+            borderRadius: 3,
+            bgcolor: '#f0fdf4',
+            border: '1.2px solid #bbf7d0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1.2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <LockOpenIcon sx={{ color: '#16a34a', fontSize: 22 }} />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#14532d', fontSize: '0.84rem' }}>
+                🌾 100% खुला किसान मंच — बिना लॉगिन मौसम, मंडी भाव व खाद नापें
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.72rem' }}>
+                ट्यूबवेल मोटर कंट्रोल, मिट्टी सेंसर व किसान डायरी हेतु 6-अंक पिन कोड से तुरंत खाता बनाएं
+              </Typography>
+            </Box>
+          </Box>
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => setOpenQuickLogin(true)}
+            sx={{
+              bgcolor: '#166534',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.74rem',
+              borderRadius: 2,
+              px: 1.5,
+              py: 0.5,
+              boxShadow: 'none',
+              '&:hover': { bgcolor: '#14532d' }
+            }}
+          >
+            खाता बनाएं / लॉगिन
+          </Button>
+        </Paper>
+      )}
 
       {/* 2. App Update Alert Banner (if update ready) */}
       {updateInfo?.hasUpdate && (
@@ -2754,7 +2214,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
 
   return (
     <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
-      {!activeFarmer ? renderGuestLandingPage() : renderFarmerDashboard()}
+      {renderFarmerDashboard()}
 
       {/* Modals & Dialogs */}
       <MeraKhetModal
