@@ -31,7 +31,7 @@ export const extractBase64Data = (imageString) => {
  * Strict Integrity Guarantee: If AI analysis fails, returns explicit error without hallucinating dummy diseases.
  * Zero-Code Environment Driven: Base URL, Model Cascades, Timeout, Temperature read dynamically from externalApisConfig.
  */
-export const diagnoseWithGeminiVision = async ({ imageString, cropId = '', district = 'रायपुर' }) => {
+export const diagnoseWithGeminiVision = async ({ imageString, symptoms = '', cropId = '', district = 'रायपुर' }) => {
   const { apiKey, baseUrl, models, timeoutMs, temperature } = externalApisConfig.gemini;
 
   if (!apiKey) {
@@ -44,24 +44,26 @@ export const diagnoseWithGeminiVision = async ({ imageString, cropId = '', distr
 
   let mimeType = 'image/jpeg';
   let base64Data = '';
-  try {
-    const extracted = extractBase64Data(imageString);
-    mimeType = extracted.mimeType;
-    base64Data = extracted.base64Data;
-  } catch (e) {
-    return {
-      success: false,
-      error: 'तस्वीर लोड करने में त्रुटि: कृपया कैमरे से खींची गई वैध JPEG/PNG फोटो भेजें।'
-    };
+  if (imageString) {
+    try {
+      const extracted = extractBase64Data(imageString);
+      mimeType = extracted.mimeType;
+      base64Data = extracted.base64Data;
+    } catch (e) {
+      return {
+        success: false,
+        error: 'तस्वीर लोड करने में त्रुटि: कृपया कैमरे से खींची गई वैध JPEG/PNG फोटो भेजें।'
+      };
+    }
   }
 
   const prompt = `You are a Senior Indian Agricultural Scientist, Agronomist and Plant Pathologist (वरिष्ठ कृषि वैज्ञानिक व पादप रोग विशेषज्ञ) at Indira Gandhi Krishi Vishwavidyalaya (IGKV) & ICAR.
-Analyze this uploaded crop/plant leaf/stem image with extreme accuracy for Indian farmers (specifically Chhattisgarh & Central/North Indian agricultural conditions).
+${imageString ? 'Analyze this uploaded crop/plant leaf/stem image with extreme accuracy' : `Analyze these farmer-reported crop symptoms with extreme accuracy: "${symptoms}"`} for Indian farmers (specifically Chhattisgarh & Central/North Indian agricultural conditions).
 Farmer's selected crop context hint: ${cropId || 'Not specified (auto-detect)'}.
 District context: ${district}.
 
 STRICT INSTRUCTIONS:
-1. First, verify whether this image is genuinely a plant, crop, leaf, stem, or agricultural field. If it is NOT a plant (e.g. human, animal, machinery, tractor, house, completely blurry, or unrelated object), set "isPlant": false.
+1. First, verify whether this ${imageString ? 'image is' : 'symptom description relates to'} genuinely a plant, crop, leaf, stem, or agricultural field. If it is NOT agricultural, set "isPlant": false.
 2. If it IS a plant:
    - Identify if it is HEALTHY or DISEASED/PEST-INFESTED.
    - If healthy, set diseaseName to "फसल पूरी तरह स्वस्थ है (Healthy Crop)", and severity to "स्वस्थ".
@@ -91,7 +93,6 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
   "voiceAdvice": "आपकी धान की फसल में झुलसा रोग के लक्षण हैं। 15 लीटर स्प्रे टंकी में 15 ग्राम ट्राईसाइक्लाजोल मिलाकर तुरंत छिड़काव करें और यूरिया देना बंद कर दें।"
 }`;
 
-  // Multi-model fallback cascade
   // Multi-model fallback cascade read dynamically from externalApisConfig (.env GEMINI_MODELS)
   const modelsToTry = models.length > 0 ? models : ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash'];
 
@@ -102,24 +103,23 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
+      const parts = [];
+      if (base64Data) {
+        parts.push({
+          inlineData: {
+            mimeType,
+            data: base64Data
+          }
+        });
+      }
+      parts.push({ text: prompt });
+
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
         body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  inlineData: {
-                    mimeType,
-                    data: base64Data
-                  }
-                },
-                { text: prompt }
-              ]
-            }
-          ],
+          contents: [{ parts }],
           generationConfig: {
             temperature,
             responseMimeType: 'application/json'

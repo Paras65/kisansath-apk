@@ -1,6 +1,7 @@
 // किसान साथी - Zero-Key Public Weather & Agricultural Advisory Service
 // Powered by Open-Meteo Open API (100% Free, Zero API Key Required)
 // Features: Auto-Geocoding, Live Precipitation %, Wind Speed, Humidity, Offline Caching, Smart Spray Advisor.
+import { parseErrorPayload, logClientApiError, logClientNetworkError } from '../utils/errorHandler';
 
 // Coordinates for Chhattisgarh Districts
 export const CG_DISTRICT_COORDS = {
@@ -188,9 +189,12 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       // Save to localStorage for offline resilience
       localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
       return parsedWeather;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('open-meteo', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Open-Meteo Offline Fallback]', err.message);
+    logClientNetworkError('open-meteo', err, { method: 'GET' });
   }
 
   // Fallback to cache if offline

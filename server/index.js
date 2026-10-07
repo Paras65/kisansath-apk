@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import apiRoutes from './routes/api.js';
+import { centralizedErrorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
 
@@ -22,6 +23,20 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), geolocation=(self), microphone=()');
   res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+  next();
+});
+
+// Technical API Request & Error Debugger Logger
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    if (res.statusCode >= 400) {
+      console.error(`🚨 [TECHNICAL API ERROR ${res.statusCode}] ${req.method} ${req.originalUrl} (${duration}ms)`);
+    } else {
+      console.log(`📡 [API ${res.statusCode}] ${req.method} ${req.originalUrl} (${duration}ms)`);
+    }
+  });
   next();
 });
 
@@ -91,16 +106,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// 404 Handler
-app.use('/api', (req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
-});
+// 404 Handler for all unmatched routes
+app.use(notFoundHandler);
 
-// Centralized Error Handler
-app.use((err, req, res, next) => {
-  console.error('[Internal Server Error]', err);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
+// Centralized Error Handler with Technical Diagnostics
+app.use(centralizedErrorHandler);
 
 app.listen(PORT, () => {
   console.log(`[Kisan Saathi Server] running securely on http://localhost:${PORT}`);

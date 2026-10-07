@@ -106,11 +106,15 @@ const FarmerProfileSchema = new mongoose.Schema(
       type: [
         new mongoose.Schema({
           id: { type: String, required: true },
-          cropName: { type: String, required: true, trim: true },
-          areaAcres: { type: String, required: true },
-          sowDate: { type: String, required: true },
+          cropName: { type: String, default: 'धान', trim: true },
+          areaAcres: { type: String, default: '1' },
+          sowDate: { type: String, default: () => new Date().toISOString().split('T')[0] },
           stage: { type: String, default: 'नर्सरी / प्रारंभिक वृद्धि' },
           nextAction: { type: String, default: '' },
+          type: { type: String, default: 'activity' }, // 'expense' | 'income' | 'activity'
+          category: { type: String, default: '' },
+          amount: { type: Number, default: 0 },
+          description: { type: String, default: '' },
           createdAt: { type: Date, default: Date.now },
         })
       ],

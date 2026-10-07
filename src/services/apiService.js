@@ -1,4 +1,10 @@
 import { appConfig } from '../config/appConfig';
+import {
+  parseErrorPayload,
+  logClientApiError,
+  logClientNetworkError,
+  createOfflineFallback,
+} from '../utils/errorHandler';
 
 const API_BASE_URL = appConfig.apiBaseUrl;
 
@@ -42,9 +48,12 @@ export const fetchModuleWithCache = async (endpoint, cacheKey) => {
         }
         return data;
       }
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(endpoint, res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn(`[Module Offline Fetch] ${endpoint}:`, err.message);
+    logClientNetworkError(endpoint, err, { method: 'GET' });
   }
 
   // Fallback ONLY to last fetched data from localStorage
@@ -131,9 +140,12 @@ export const getMandiRates = async (options = {}) => {
           hasData: rates.length > 0
         };
       }
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(endpoint, res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Mandi API Offline Fallback]', err.message);
+    logClientNetworkError(endpoint, err, { method: 'GET' });
   }
 
   // Fallback ONLY to previously fetched data in localStorage
@@ -179,9 +191,12 @@ export const refreshLiveMandiRates = async () => {
       const data = await res.json();
       localStorage.setItem('kisan_cache_mandi_payload', JSON.stringify(data));
       return data;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/mandi-rates/refresh', res, errPayload, { method: 'POST' });
     }
   } catch (err) {
-    console.warn('[Mandi Refresh Offline]', err.message);
+    logClientNetworkError('/mandi-rates/refresh', err, { method: 'POST' });
   }
   return null;
 };
@@ -256,8 +271,12 @@ export const syncOfflineMandiQueries = async () => {
             resolved.push(updatedList[idx]);
           }
         }
+      } else {
+        const errPayload = await parseErrorPayload(res);
+        logClientApiError('/mandi-rates/offline-query', res, errPayload, { method: 'POST' });
       }
     } catch (err) {
+      logClientNetworkError('/mandi-rates/offline-query', err, { method: 'POST' });
       // Still offline, retain pending state
       break;
     }
@@ -286,9 +305,13 @@ export const postMachinery = async (payload) => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/machinery', res, errPayload, { method: 'POST', payloadSent: payload });
+      return errPayload.raw || errPayload;
     }
   } catch (err) {
-    console.warn('[Machinery Post Offline]', err);
+    logClientNetworkError('/machinery', err, { method: 'POST' });
   }
   return null;
 };
@@ -307,9 +330,13 @@ export const postCommunityQuestion = async (payload) => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/community-qa', res, errPayload, { method: 'POST', payloadSent: payload });
+      return errPayload.raw || errPayload;
     }
   } catch (err) {
-    console.warn('[Community QA Post Offline]', err);
+    logClientNetworkError('/community-qa', err, { method: 'POST' });
   }
   return null;
 };
@@ -323,9 +350,13 @@ export const postCommunityReply = async (questionId, payload) => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/community-qa/${questionId}/reply`, res, errPayload, { method: 'POST', payloadSent: payload });
+      return errPayload.raw || errPayload;
     }
   } catch (err) {
-    console.warn('[Community QA Reply Offline]', err);
+    logClientNetworkError(`/community-qa/${questionId}/reply`, err, { method: 'POST' });
   }
   return null;
 };
@@ -344,9 +375,13 @@ export const postMarketplaceListing = async (payload) => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/marketplace', res, errPayload, { method: 'POST', payloadSent: payload });
+      return errPayload.raw || errPayload;
     }
   } catch (err) {
-    console.warn('[Marketplace Post Offline]', err);
+    logClientNetworkError('/marketplace', err, { method: 'POST' });
   }
   return null;
 };
@@ -364,18 +399,19 @@ export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', distric
       const data = await res.json();
       return data;
     } else {
-      const errData = await res.json().catch(() => ({}));
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/crop-doctor/diagnose', res, errPayload, { method: 'POST' });
       return {
         success: false,
-        error: errData.error || 'AI सर्वर से जांच रिपोर्ट प्राप्त नहीं हो सकी।'
+        error: errPayload.error || 'AI सर्वर से जांच रिपोर्ट प्राप्त नहीं हो सकी।',
+        technicalError: errPayload.technicalError,
       };
     }
   } catch (err) {
-    console.warn('[AI Vision Offline]', err.message);
-    return {
-      success: false,
-      isOffline: true,
-      error: 'इंटरनेट कनेक्शन उपलब्ध नहीं है। लाइव AI फोटो जांच के लिए इंटरनेट आवश्यक है। किसानों की सुरक्षा हेतु कोई भी नकली या अनुमानित (False/Dummy) डेटा नहीं दिखाया जाता है।'
-    };
+    logClientNetworkError('/crop-doctor/diagnose', err, { method: 'POST' });
+    return createOfflineFallback(
+      'इंटरनेट कनेक्शन उपलब्ध नहीं है। लाइव AI फोटो जांच के लिए इंटरनेट आवश्यक है। किसानों की सुरक्षा हेतु कोई भी नकली या अनुमानित (False/Dummy) डेटा नहीं दिखाया जाता है।',
+      err.message
+    );
   }
 };

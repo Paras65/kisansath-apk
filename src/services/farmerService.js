@@ -1,6 +1,7 @@
 // किसान साथी - Multi-Farmer Isolated Farmer Service
 // Handles authentication, multi-tenant plot synchronization, and zero-PII purge on logout.
 import { appConfig } from '../config/appConfig';
+import { parseErrorPayload, logClientApiError, logClientNetworkError } from '../utils/errorHandler';
 
 const API_BASE_URL = appConfig.apiBaseUrl;
 
@@ -59,11 +60,12 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
       }
       return { success: true, farmer };
     } else {
-      const err = await res.json();
-      return { success: false, error: err.error || 'लॉगिन विफल रहा।' };
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/farmer/auth', res, errPayload, { method: 'POST' });
+      return { success: false, error: errPayload.error || 'लॉगिन विफल रहा।' };
     }
   } catch (err) {
-    console.warn('[Farmer Auth Offline]', err.message);
+    logClientNetworkError('/farmer/auth', err, { method: 'POST' });
   }
 
   // Offline Fallback for Farmers in Field
@@ -122,9 +124,12 @@ export const getFarmerPlots = async (phone) => {
       const plots = profile.plots || [];
       localStorage.setItem(cacheKey, JSON.stringify(plots));
       return plots;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/farmer/profile/${cleanPhone}`, res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Get Plots Offline]', err.message);
+    logClientNetworkError(`/farmer/profile/${cleanPhone}`, err, { method: 'GET' });
   }
 
   // Offline fallback
@@ -178,9 +183,12 @@ export const saveFarmerPlot = async (phone, plotData) => {
       const serverPlots = await res.json();
       localStorage.setItem(cacheKey, JSON.stringify(serverPlots));
       return serverPlots;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/farmer/plots/${cleanPhone}`, res, errPayload, { method: 'POST' });
     }
   } catch (err) {
-    console.warn('[Save Plot Offline]', err.message);
+    logClientNetworkError(`/farmer/plots/${cleanPhone}`, err, { method: 'POST' });
   }
 
   return updatedPlots;
@@ -209,9 +217,12 @@ export const deleteFarmerPlot = async (phone, plotId) => {
       const serverPlots = await res.json();
       localStorage.setItem(cacheKey, JSON.stringify(serverPlots));
       return serverPlots;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/farmer/plots/${cleanPhone}/${plotId}`, res, errPayload, { method: 'DELETE' });
     }
   } catch (err) {
-    console.warn('[Delete Plot Offline]', err.message);
+    logClientNetworkError(`/farmer/plots/${cleanPhone}/${plotId}`, err, { method: 'DELETE' });
   }
 
   return filtered;
@@ -243,13 +254,17 @@ export const togglePlotTask = async (phone, plotId, taskId) => {
   localStorage.setItem(cacheKey, JSON.stringify(updated));
 
   try {
-    await fetch(`${API_BASE_URL}/farmer/tasks/${cleanPhone}`, {
+    const res = await fetch(`${API_BASE_URL}/farmer/tasks/${cleanPhone}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
       body: JSON.stringify({ plotId, taskId }),
     });
+    if (!res.ok) {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/farmer/tasks/${cleanPhone}`, res, errPayload, { method: 'POST' });
+    }
   } catch (err) {
-    console.warn('[Toggle Task Offline]', err.message);
+    logClientNetworkError(`/farmer/tasks/${cleanPhone}`, err, { method: 'POST' });
   }
 
   return updated;
@@ -271,9 +286,12 @@ export const getFarmerDiary = async (phone) => {
         localStorage.setItem(cacheKey, JSON.stringify(diary));
         localStorage.setItem('kisan_farm_diary', JSON.stringify(diary));
         return { data: diary, isCloudSynced: true };
+      } else {
+        const errPayload = await parseErrorPayload(res);
+        logClientApiError(`/farmer/diary/${cleanPhone}`, res, errPayload, { method: 'GET' });
       }
     } catch (err) {
-      console.warn('[Get Diary Offline]', err.message);
+      logClientNetworkError(`/farmer/diary/${cleanPhone}`, err, { method: 'GET' });
     }
   }
 
@@ -315,9 +333,12 @@ export const saveFarmerDiaryEntry = async (phone, entry) => {
         localStorage.setItem(cacheKey, JSON.stringify(serverDiary));
         localStorage.setItem('kisan_farm_diary', JSON.stringify(serverDiary));
         return { data: serverDiary, isCloudSynced: true };
+      } else {
+        const errPayload = await parseErrorPayload(res);
+        logClientApiError(`/farmer/diary/${cleanPhone}`, res, errPayload, { method: 'POST' });
       }
     } catch (err) {
-      console.warn('[Save Diary Offline]', err.message);
+      logClientNetworkError(`/farmer/diary/${cleanPhone}`, err, { method: 'POST' });
     }
   }
 
@@ -349,9 +370,12 @@ export const deleteFarmerDiaryEntry = async (phone, entryId) => {
         localStorage.setItem(cacheKey, JSON.stringify(serverDiary));
         localStorage.setItem('kisan_farm_diary', JSON.stringify(serverDiary));
         return { data: serverDiary, isCloudSynced: true };
+      } else {
+        const errPayload = await parseErrorPayload(res);
+        logClientApiError(`/farmer/diary/${cleanPhone}/${entryId}`, res, errPayload, { method: 'DELETE' });
       }
     } catch (err) {
-      console.warn('[Delete Diary Offline]', err.message);
+      logClientNetworkError(`/farmer/diary/${cleanPhone}/${entryId}`, err, { method: 'DELETE' });
     }
   }
 

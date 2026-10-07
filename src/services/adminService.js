@@ -1,6 +1,7 @@
 // किसान साथी - Super Admin & Extension Worker Service
 // Manages Admin authentication, platform telemetry, emergency broadcast advisories, and content moderation
 import { appConfig } from '../config/appConfig';
+import { parseErrorPayload, logClientApiError, logClientNetworkError } from '../utils/errorHandler';
 
 const API_BASE_URL = appConfig.apiBaseUrl;
 const ADMIN_JWT_KEY = 'kisan_admin_jwt_token';
@@ -70,10 +71,12 @@ export const adminLogin = async ({ passkey, username = 'kisan_admin' }) => {
       }
       return { success: true, message: data.message };
     } else {
-      const err = await res.json().catch(() => ({}));
-      return { success: false, error: err.error || 'अमान्य एडमिन पासकी।' };
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/login', res, errPayload, { method: 'POST' });
+      return { success: false, error: errPayload.error || 'अमान्य एडमिन पासकी।' };
     }
   } catch (err) {
+    logClientNetworkError('/admin/login', err, { method: 'POST' });
     const target = API_BASE_URL || 'सर्वर';
     return { success: false, error: `सर्वर से संपर्क नहीं हो सका (${target})। कृपया इंटरनेट कनेक्टिविटी जांचें।` };
   }
@@ -102,9 +105,12 @@ export const getAdminStats = async () => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/stats', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Admin Stats Fetch Offline]', err);
+    logClientNetworkError('/admin/stats', err, { method: 'GET' });
   }
 
   // Zero-False-Data Policy: Strict offline indicator without fabricating false farmer metrics
@@ -129,9 +135,12 @@ export const getAdminFarmers = async ({ district = '', search = '', limit = 30 }
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/farmers', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Admin Farmers Fetch Offline]', err);
+    logClientNetworkError('/admin/farmers', err, { method: 'GET' });
   }
 
   // Zero-False-Data Guarantee: Never inject fabricated farmer records
@@ -148,9 +157,12 @@ export const getAdminBroadcasts = async () => {
       const data = await res.json();
       localStorage.setItem('kisan_admin_broadcasts_cache', JSON.stringify(data));
       return data;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/broadcasts', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Admin Broadcasts Fetch Offline]', err);
+    logClientNetworkError('/admin/broadcasts', err, { method: 'GET' });
   }
 
   // Fallback ONLY to last known fetched broadcasts
@@ -175,9 +187,12 @@ export const createAdminBroadcast = async (broadcastData) => {
     });
     if (res.ok) {
       return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/broadcasts', res, errPayload, { method: 'POST', payloadSent: broadcastData });
     }
   } catch (err) {
-    console.warn('[Admin Broadcast Create Offline]', err);
+    logClientNetworkError('/admin/broadcasts', err, { method: 'POST' });
   }
 
   // Local caching fallback
@@ -202,9 +217,12 @@ export const deleteAdminBroadcast = async (broadcastId) => {
     });
     if (res.ok) {
       return true;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/admin/broadcasts/${broadcastId}`, res, errPayload, { method: 'DELETE' });
     }
   } catch (err) {
-    console.warn('[Admin Broadcast Delete Offline]', err);
+    logClientNetworkError(`/admin/broadcasts/${broadcastId}`, err, { method: 'DELETE' });
   }
 
   const existing = await getAdminBroadcasts();
@@ -220,9 +238,15 @@ export const deleteMarketListing = async (listingId) => {
       method: 'DELETE',
       headers: getAdminHeaders(),
     });
-    return res.ok;
+    if (res.ok) {
+      return true;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/admin/listings/${listingId}`, res, errPayload, { method: 'DELETE' });
+      return false;
+    }
   } catch (err) {
-    console.warn('[Delete Listing Error]', err);
+    logClientNetworkError(`/admin/listings/${listingId}`, err, { method: 'DELETE' });
     return false;
   }
 };
@@ -234,9 +258,15 @@ export const deleteCommunityQA = async (qaId) => {
       method: 'DELETE',
       headers: getAdminHeaders(),
     });
-    return res.ok;
+    if (res.ok) {
+      return true;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError(`/admin/qa/${qaId}`, res, errPayload, { method: 'DELETE' });
+      return false;
+    }
   } catch (err) {
-    console.warn('[Delete Community QA Error]', err);
+    logClientNetworkError(`/admin/qa/${qaId}`, err, { method: 'DELETE' });
     return false;
   }
 };
@@ -249,9 +279,12 @@ export const getPublicBroadcasts = async (district = '') => {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return data;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/broadcasts', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Public Broadcasts Fetch Error]', err);
+    logClientNetworkError('/broadcasts', err, { method: 'GET' });
   }
 
   // Cached fallback
@@ -276,9 +309,12 @@ export const checkAllApisHealth = async () => {
     if (res.ok) {
       const data = await res.json();
       return data;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/api-health', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Admin API Health Check Offline]', err);
+    logClientNetworkError('/admin/api-health', err, { method: 'GET' });
   }
 
   // Graceful Client-side fallback check (if backend is offline or in client-only demo mode)
@@ -388,9 +424,12 @@ export const getAdminExternalConfig = async () => {
     if (res.ok) {
       const data = await res.json();
       return data;
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/external-config', res, errPayload, { method: 'GET' });
     }
   } catch (err) {
-    console.warn('[Admin External Config Offline]', err);
+    logClientNetworkError('/admin/external-config', err, { method: 'GET' });
   }
 
   // Graceful fallback config if backend is offline or unreachable
@@ -507,3 +546,53 @@ export const getAdminExternalConfig = async () => {
     },
   };
 };
+
+// 12. Fetch Real-Time Security & Error Audit Logs (Zero-PII Bounded Stream)
+export const getAdminAuditLogs = async ({ severity = 'all', type = 'all', search = '', limit = 50 } = {}) => {
+  try {
+    const params = new URLSearchParams();
+    if (severity && severity !== 'all') params.append('severity', severity);
+    if (type && type !== 'all') params.append('type', type);
+    if (search) params.append('search', search);
+    if (limit) params.append('limit', limit);
+
+    const res = await fetch(`${API_BASE_URL}/admin/audit-logs?${params.toString()}`, {
+      headers: getAdminHeaders(),
+    });
+    if (res.ok) {
+      return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/audit-logs', res, errPayload, { method: 'GET' });
+    }
+  } catch (err) {
+    logClientNetworkError('/admin/audit-logs', err, { method: 'GET' });
+  }
+
+  return {
+    success: false,
+    stats: { total: 0, high: 0, medium: 0, low: 0, securityAlerts: 0, serverErrors: 0, lastEventAt: null },
+    logs: [],
+    isOffline: true,
+  };
+};
+
+// 13. Clear Security & Error Audit Logs
+export const clearAdminAuditLogs = async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/admin/audit-logs`, {
+      method: 'DELETE',
+      headers: getAdminHeaders(),
+    });
+    if (res.ok) {
+      return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/admin/audit-logs', res, errPayload, { method: 'DELETE' });
+    }
+  } catch (err) {
+    logClientNetworkError('/admin/audit-logs', err, { method: 'DELETE' });
+  }
+  return { success: false, message: 'लॉग्स साफ़ करने में असमर्थ।' };
+};
+
