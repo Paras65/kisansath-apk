@@ -33,8 +33,14 @@ import SyncIcon from '@mui/icons-material/Sync';
 import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import CloseIcon from '@mui/icons-material/Close';
+import MicIcon from '@mui/icons-material/Mic';
+import MicOffIcon from '@mui/icons-material/MicOff';
+import ClearIcon from '@mui/icons-material/Clear';
+import Tooltip from '@mui/material/Tooltip';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
+import { useLanguage } from '../utils/i18n';
+import { startVoiceRecognition, stopVoiceRecognition, isSpeechRecognitionSupported, normalizeSpokenQuery } from '../utils/speechRecognition';
 import {
   getMandiRates,
   refreshLiveMandiRates,
@@ -51,7 +57,9 @@ import { validateIndianPhone } from '../services/deviceManagerService';
 import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
 export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
+  const { isChhattisgarhi, t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [selectedCropFilter, setSelectedCropFilter] = useState('all');
   const [districtFilterOnly, setDistrictFilterOnly] = useState(false);
   const [openSellModal, setOpenSellModal] = useState(false);
@@ -162,7 +170,10 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     };
 
     window.addEventListener('online', handleReconnected);
-    return () => window.removeEventListener('online', handleReconnected);
+    return () => {
+      window.removeEventListener('online', handleReconnected);
+      stopVoiceRecognition();
+    };
   }, [selectedDistrict]);
 
   const handleRefresh = async () => {
@@ -253,29 +264,52 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     setFormData({ crop: '', quantity: '', expectedPrice: '', farmerName: '', location: '', phone: '' });
   };
 
+  const handleToggleVoiceSearch = () => {
+    if (isVoiceListening) {
+      stopVoiceRecognition();
+      setIsVoiceListening(false);
+    } else {
+      startVoiceRecognition({
+        onResult: (normalized, raw) => {
+          setSearchQuery(normalized || raw);
+        },
+        onListeningChange: (listening) => {
+          setIsVoiceListening(listening);
+        },
+        onError: (msg) => {
+          notify.info(msg);
+          setIsVoiceListening(false);
+        }
+      });
+    }
+  };
+
   const filteredRates = (mandiRatesList || []).filter((item) => {
     if (!item) return false;
     const cropStr = String(item.crop || '').toLowerCase();
     const mandiStr = String(item.mandi || '').toLowerCase();
     const districtStr = String(item.district || '').toLowerCase();
     const search = searchQuery.toLowerCase().trim();
+    const normalizedSearch = normalizeSpokenQuery(search);
 
-    // Bilingual matching for standard crops (e.g. धान matches Paddy, चना matches Gram)
+    // Bilingual matching for standard crops (e.g. धान matches Paddy/चांउर, चना matches Gram/बूट)
     const filterCrop = selectedCropFilter.toLowerCase();
     const matchesCrop =
       selectedCropFilter === 'all' ||
       cropStr.includes(filterCrop) ||
-      (filterCrop.includes('धान') && (cropStr.includes('dhan') || cropStr.includes('paddy') || cropStr.includes('rice'))) ||
-      (filterCrop.includes('चना') && (cropStr.includes('chana') || cropStr.includes('gram'))) ||
+      (filterCrop.includes('धान') && (cropStr.includes('dhan') || cropStr.includes('paddy') || cropStr.includes('rice') || cropStr.includes('चांउर') || cropStr.includes('चावल'))) ||
+      (filterCrop.includes('चना') && (cropStr.includes('chana') || cropStr.includes('gram') || cropStr.includes('बूट'))) ||
       (filterCrop.includes('सोयाबीन') && (cropStr.includes('soya') || cropStr.includes('soybean'))) ||
-      (filterCrop.includes('मक्का') && (cropStr.includes('makka') || cropStr.includes('maize'))) ||
+      (filterCrop.includes('मक्का') && (cropStr.includes('makka') || cropStr.includes('maize') || cropStr.includes('जुनहरी'))) ||
+      (filterCrop.includes('तीवड़ा') && (cropStr.includes('laakh') || cropStr.includes('लाखड़ी') || cropStr.includes('खेसरी'))) ||
       (filterCrop.includes('गेहूं') && (cropStr.includes('wheat') || cropStr.includes('gehu')));
 
     const matchesSearch =
       !search ||
       mandiStr.includes(search) ||
       cropStr.includes(search) ||
-      districtStr.includes(search);
+      districtStr.includes(search) ||
+      (normalizedSearch && (cropStr.includes(normalizedSearch) || mandiStr.includes(normalizedSearch) || districtStr.includes(normalizedSearch)));
 
     const targetDistrict = selectedDistrict.toLowerCase();
     const matchesDistrictOnly =
@@ -753,11 +787,11 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Grid>
         </Grid>
 
-        {/* Search Input */}
+        {/* Search Input with Voice Mic & Clear (Zero-Typing) */}
         <TextField
           fullWidth
           size="small"
-          placeholder="मंडी या फसल का नाम खोजें (जैसे: रायपुर, धमतरी, धान...)"
+          placeholder={isChhattisgarhi ? "मंडी या फसल के नाव बोलव या खोजव (जैसे: धान, रायपुर...)" : "मंडी या फसल का नाम बोलें या खोजें (जैसे: धान, रायपुर...)"}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           InputProps={{
@@ -766,12 +800,82 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 <SearchIcon sx={{ color: '#888', fontSize: 20 }} />
               </InputAdornment>
             ),
+            endAdornment: (
+              <InputAdornment position="end" sx={{ gap: 0.5 }}>
+                {searchQuery && (
+                  <IconButton
+                    size="small"
+                    onClick={() => setSearchQuery('')}
+                    sx={{ color: '#94a3b8' }}
+                  >
+                    <ClearIcon sx={{ fontSize: 18 }} />
+                  </IconButton>
+                )}
+                <Tooltip title={isVoiceListening ? (isChhattisgarhi ? "सुनत हन... (रोके बर दबावहू)" : "सुन रहे हैं... (रोकने हेतु दबाएं)") : (isChhattisgarhi ? "बोलके खोजव (माइक दबावहू)" : "बोलकर खोजें (माइक दबाएं)")}>
+                  <IconButton
+                    size="small"
+                    onClick={handleToggleVoiceSearch}
+                    sx={{
+                      color: isVoiceListening ? '#fff' : '#1976d2',
+                      bgcolor: isVoiceListening ? '#d32f2f' : 'rgba(25, 118, 210, 0.08)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        bgcolor: isVoiceListening ? '#b71c1c' : 'rgba(25, 118, 210, 0.18)'
+                      }
+                    }}
+                  >
+                    {isVoiceListening ? <MicIcon sx={{ fontSize: 20 }} /> : <MicIcon sx={{ fontSize: 20 }} />}
+                  </IconButton>
+                </Tooltip>
+              </InputAdornment>
+            )
           }}
           sx={{
             bgcolor: '#fff',
             '& .MuiOutlinedInput-root': { borderRadius: 2 }
           }}
         />
+
+        {/* 1-Tap Quick Crop Filter Chips (Zero-Typing Rural Farmers) */}
+        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pt: 1, pb: 0.2, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+          {[
+            { label: isChhattisgarhi ? '🌾 सबो फसल' : '🌾 सभी फसल', value: 'all' },
+            { label: isChhattisgarhi ? '🌾 धान (चांउर)' : '🌾 धान (Paddy)', value: 'धान' },
+            { label: isChhattisgarhi ? '🟤 चना (बूट)' : '🟤 चना (Gram)', value: 'चना' },
+            { label: isChhattisgarhi ? '🟡 सोयाबीन' : '🟡 सोयाबीन', value: 'सोयाबीन' },
+            { label: isChhattisgarhi ? '🌽 मक्का (जुनहरी)' : '🌽 मक्का', value: 'मक्का' },
+            { label: isChhattisgarhi ? '🌾 तीवड़ा (लाखड़ी)' : '🌾 तीवड़ा', value: 'तीवड़ा' },
+            { label: isChhattisgarhi ? '🌾 गेहूं' : '🌾 गेहूं', value: 'गेहूं' }
+          ].map((chip) => {
+            const isSelected = selectedCropFilter === chip.value;
+            return (
+              <Chip
+                key={chip.value}
+                label={chip.label}
+                clickable
+                size="small"
+                onClick={() => {
+                  setSelectedCropFilter(chip.value);
+                  if (chip.value !== 'all') {
+                    setSearchQuery('');
+                  }
+                }}
+                sx={{
+                  fontWeight: isSelected ? 800 : 600,
+                  fontSize: '0.78rem',
+                  borderRadius: '16px',
+                  bgcolor: isSelected ? '#1976d2' : '#f1f5f9',
+                  color: isSelected ? '#fff' : '#334155',
+                  border: isSelected ? '1px solid #1565c0' : '1px solid #e2e8f0',
+                  flexShrink: 0,
+                  '&:hover': {
+                    bgcolor: isSelected ? '#1565c0' : '#e2e8f0'
+                  }
+                }}
+              />
+            );
+          })}
+        </Box>
       </Box>
 
       {/* Mandi Rate Cards */}

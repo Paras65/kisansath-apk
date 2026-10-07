@@ -49,6 +49,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import { speakText, stopSpeech } from '../utils/speech';
+import { useLanguage } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
 import {
@@ -131,6 +132,7 @@ const LIFECYCLE_STEPS = [
 ];
 
 export const HomeTab = ({ onNavigate, selectedDistrict }) => {
+  const { isChhattisgarhi, t } = useLanguage();
   const [expandedStep, setExpandedStep] = useState(1);
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
@@ -1451,13 +1453,15 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             </Box>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: '1.05rem', sm: '1.2rem' }, lineHeight: 1.2 }}>
-                {activeFarmer?.name ? `नमस्ते, ${activeFarmer.name} जी` : 'नमस्ते, किसान साथी'}
+                {activeFarmer?.name
+                  ? (isChhattisgarhi ? `जय जोहार, ${activeFarmer.name} जी` : `नमस्ते, ${activeFarmer.name} जी`)
+                  : (isChhattisgarhi ? 'जय जोहार, किसान संगी' : 'नमस्ते, किसान साथी')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.3 }}>
                 <span>📍 {activeFarmer?.village ? `${activeFarmer.village}, ` : ''}{selectedDistrict}</span>
                 <span>•</span>
                 <span style={{ color: '#ffeb3b', fontWeight: 700 }}>
-                  {activeFarmer ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ पंजीकृत` : 'सार्वजनिक डिजिटल कृषि मंच (100% खुला)'}
+                  {activeFarmer ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} एकड़ पंजीकृत` : (isChhattisgarhi ? 'सार्वजनिक डिजिटल कृषि मंच (100% खुला)' : 'सार्वजनिक डिजिटल कृषि मंच (100% खुला)')}
                 </span>
               </Typography>
             </Box>
@@ -1482,7 +1486,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     '&:hover': { bgcolor: '#fff' }
                   }}
                 >
-                  🌾 मेरा खेत
+                  {isChhattisgarhi ? '🌾 मोर खेत' : '🌾 मेरा खेत'}
                 </Button>
                 <IconButton
                   size="small"

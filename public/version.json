@@ -1,8 +1,8 @@
 {
-  "version": "1.0.19",
+  "version": "1.0.20",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.19",
-  "releaseNotes": "सम्पूर्ण 8 कृषि मॉड्यूल्स का विस्तृत UI/UX सुधार, मोबाइल-डेस्कटॉप रिस्पॉन्सिव लेआउट, त्वरित रकबा चयन एवं 1-क्लिक बैच डायग्नोसिस।",
+  "releaseName": "किसान साथी v1.0.20",
+  "releaseNotes": "छत्तीसगढ़ी-फर्स्ट भाषा, 1-टैप भाषा स्विच, वॉयस माइक सर्च व शून्य-टाइपिंग चिप्स, एकड़-डिसमिल कन्वर्टर, बारदाना जूट बोरी कैलकुलेटर एवं डांड/बाहरा खेत एडवाइजरी।",
   "updatedAt": "2026-10-07"
 }

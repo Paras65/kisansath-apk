@@ -14,7 +14,9 @@ import {
   DialogContent,
   DialogActions,
   Divider,
-  IconButton
+  IconButton,
+  InputAdornment,
+  Tooltip
 } from '@mui/material';
 import { notify } from '../services/notificationService';
 import PrecisionManufacturingIcon from '@mui/icons-material/PrecisionManufacturing';
@@ -33,10 +35,14 @@ import CloudDoneIcon from '@mui/icons-material/CloudDone';
 import CloudOffIcon from '@mui/icons-material/CloudOff';
 import ReplyIcon from '@mui/icons-material/Reply';
 import DeleteIcon from '@mui/icons-material/Delete';
+import MicIcon from '@mui/icons-material/Mic';
+import ClearIcon from '@mui/icons-material/Clear';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import { speakText } from '../utils/speech';
+import { useLanguage } from '../utils/i18n';
+import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
 import {
   getMachinery,
   postMachinery,
@@ -56,12 +62,14 @@ import { MeraKhetModal } from './MeraKhetModal';
 import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
 export const ChaupalTab = () => {
+  const { isChhattisgarhi, t } = useLanguage();
   const [subTab, setSubTab] = useState(0);
   const [openAskModal, setOpenAskModal] = useState(false);
   const [openDiaryModal, setOpenDiaryModal] = useState(false);
   const [openMeraKhetModal, setOpenMeraKhetModal] = useState(false);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
   const [isDiaryCloudSynced, setIsDiaryCloudSynced] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
 
   // Machinery Add Modal state
   const [openAddMachineryModal, setOpenAddMachineryModal] = useState(false);
@@ -127,7 +135,34 @@ export const ChaupalTab = () => {
 
   useEffect(() => {
     loadFromMongo();
+    return () => {
+      stopVoiceRecognition();
+    };
   }, []);
+
+  // Voice recognition mic toggle for asking question
+  const handleToggleVoiceQuestion = () => {
+    if (isVoiceListening) {
+      stopVoiceRecognition();
+      setIsVoiceListening(false);
+    } else {
+      startVoiceRecognition({
+        onResult: (normalized, raw) => {
+          setNewQuestion((prev) => ({
+            ...prev,
+            questionText: raw || normalized
+          }));
+        },
+        onListeningChange: (listening) => {
+          setIsVoiceListening(listening);
+        },
+        onError: (msg) => {
+          notify.info(msg);
+          setIsVoiceListening(false);
+        }
+      });
+    }
+  };
 
   // Question Form
   const [newQuestion, setNewQuestion] = useState({
@@ -889,50 +924,166 @@ export const ChaupalTab = () => {
         </Box>
       )}
 
-      {/* Ask Question Dialog */}
+      {/* Ask Question Dialog with Voice & Zero-Typing */}
       <Dialog open={openAskModal} onClose={() => setOpenAskModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
-          ❓ किसान चौपाल में सवाल पूछें
+        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem', pb: 1 }}>
+          {isChhattisgarhi ? '❓ किसान चौपाल म सवाल पूछव' : '❓ किसान चौपाल में सवाल पूछें'}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+          {/* Prominent Voice Input Button */}
+          <Button
+            fullWidth
+            variant={isVoiceListening ? 'contained' : 'outlined'}
+            color={isVoiceListening ? 'error' : 'success'}
+            onClick={handleToggleVoiceQuestion}
+            startIcon={<MicIcon sx={{ fontSize: 22 }} />}
+            sx={{
+              py: 1,
+              borderRadius: 2.5,
+              fontWeight: 800,
+              fontSize: '0.84rem',
+              boxShadow: isVoiceListening ? '0 0 14px rgba(211, 47, 47, 0.4)' : 'none',
+              animation: isVoiceListening ? 'pulse 1.2s infinite' : 'none'
+            }}
+          >
+            {isVoiceListening
+              ? (isChhattisgarhi ? '🛑 सुनत हन... बोलव (रोके बर दबावहू)' : '🛑 सुन रहे हैं... बोलें (रोकने हेतु दबाएं)')
+              : (isChhattisgarhi ? '🎙️ बोलके सवाल पूछव (माइक छुअहू)' : '🎙️ बोलकर सवाल पूछें (माइक दबाएं)')}
+          </Button>
+
           <TextField
             fullWidth
             size="small"
-            label="आपका नाम व गांव"
+            label={isChhattisgarhi ? 'तुंहर नाव व गांव' : 'आपका नाम व गांव'}
             value={newQuestion.author}
             onChange={(e) => setNewQuestion({ ...newQuestion, author: e.target.value })}
           />
-          <TextField
-            fullWidth
-            size="small"
-            label="फसल का नाम (उदा. धान, चना, गेहूं)"
-            value={newQuestion.crop}
-            onChange={(e) => setNewQuestion({ ...newQuestion, crop: e.target.value })}
-          />
+
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+              {isChhattisgarhi ? '🌾 फसल चुनव (1-टैप):' : '🌾 फसल चुनें (1-टैप):'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
+              {[
+                { label: isChhattisgarhi ? '🌾 धान (चांउर)' : '🌾 धान', val: 'धान' },
+                { label: isChhattisgarhi ? '🟤 चना (बूट)' : '🟤 चना', val: 'चना' },
+                { label: isChhattisgarhi ? '🌽 मक्का (जुनहरी)' : '🌽 मक्का', val: 'मक्का' },
+                { label: isChhattisgarhi ? '🌾 तीवड़ा (लाखड़ी)' : '🌾 तीवड़ा', val: 'तीवड़ा' },
+                { label: '🟡 सोयाबीन', val: 'सोयाबीन' },
+                { label: '🌾 गेहूं', val: 'गेहूं' }
+              ].map((c) => (
+                <Chip
+                  key={c.val}
+                  label={c.label}
+                  size="small"
+                  clickable
+                  onClick={() => setNewQuestion({ ...newQuestion, crop: c.val })}
+                  sx={{
+                    fontWeight: newQuestion.crop === c.val ? 800 : 600,
+                    bgcolor: newQuestion.crop === c.val ? '#1b5e20' : '#f1f5f9',
+                    color: newQuestion.crop === c.val ? '#fff' : '#334155',
+                    fontSize: '0.74rem'
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
           <TextField
             fullWidth
             multiline
             rows={3}
-            label="अपना सवाल विस्तार से लिखें"
+            label={isChhattisgarhi ? 'तुंहर सवाल (बोलव या लिखव)' : 'अपना सवाल (बोलें या लिखें)'}
             value={newQuestion.questionText}
             onChange={(e) => setNewQuestion({ ...newQuestion, questionText: e.target.value })}
-            placeholder="जैसे: धान में बालियां निकलते समय कौन सा कीटनाशक डालना चाहिए?"
+            placeholder={isChhattisgarhi ? 'उदा. धान म बालियां निकलत बेरा कौन सा दवाई छिड़कना चाही?' : 'जैसे: धान में बालियां निकलते समय कौन सा कीटनाशक डालना चाहिए?'}
+            InputProps={{
+              endAdornment: newQuestion.questionText ? (
+                <InputAdornment position="end">
+                  <IconButton size="small" onClick={() => setNewQuestion({ ...newQuestion, questionText: '' })}>
+                    <ClearIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </InputAdornment>
+              ) : null
+            }}
           />
+
+          {/* Quick Question Template Chips (Zero-Typing) */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', display: 'block', mb: 0.5 }}>
+              ⚡ 1-टैप सामान्य सवाल:
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              {[
+                '🌾 धान म गाभा कीट (तना छेदक) के उपाय का हे?',
+                '🍂 पाना म धब्बा (ब्लास्ट) दिखत हे, कौन दवाई छिड़कन?',
+                '🧪 यूरिया अउ डीएपी के सही मात्रा कतका हे?',
+                '💧 धान म पहिली पानी (सिंचाई) कब देना चाही?'
+              ].map((template, idx) => (
+                <Chip
+                  key={idx}
+                  label={template}
+                  size="small"
+                  clickable
+                  onClick={() => setNewQuestion(prev => ({ ...prev, questionText: template }))}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    fontSize: '0.73rem',
+                    bgcolor: '#f8fafc',
+                    color: '#1e293b',
+                    border: '1px solid #e2e8f0',
+                    '&:hover': { bgcolor: '#e2e8f0' }
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenAskModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
-          <Button variant="contained" onClick={handlePostQuestion} sx={{ bgcolor: '#2e7d32', borderRadius: 2 }}>
-            सवाल भेजें
+          <Button onClick={() => setOpenAskModal(false)} sx={{ color: '#666' }}>{isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}</Button>
+          <Button variant="contained" onClick={handlePostQuestion} sx={{ bgcolor: '#2e7d32', borderRadius: 2, fontWeight: 700 }}>
+            {isChhattisgarhi ? 'सवाल भेजव ➔' : 'सवाल भेजें ➔'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Add Diary Crop Dialog */}
+      {/* Add Diary Crop Dialog with Zero-Typing Chips */}
       <Dialog open={openDiaryModal} onClose={() => setOpenDiaryModal(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
-          🌱 नई फसल दर्ज करें
+          {isChhattisgarhi ? '🌱 नवा फसल डायरी म जोड़व' : '🌱 नई फसल दर्ज करें'}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+          {/* Quick Crop Chips */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+              {isChhattisgarhi ? '🌾 फसल चुनव:' : '🌾 फसल चुनें:'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
+              {[
+                'धान (सरना)',
+                'धान (एचएमटी)',
+                'चना (बूट)',
+                'सोयाबीन',
+                'मक्का (जुनहरी)',
+                'तीवड़ा (लाखड़ी)'
+              ].map((cropName) => (
+                <Chip
+                  key={cropName}
+                  label={cropName}
+                  size="small"
+                  clickable
+                  onClick={() => setNewCropEntry({ ...newCropEntry, cropName })}
+                  sx={{
+                    fontWeight: newCropEntry.cropName === cropName ? 800 : 600,
+                    bgcolor: newCropEntry.cropName === cropName ? '#1b5e20' : '#f1f5f9',
+                    color: newCropEntry.cropName === cropName ? '#fff' : '#334155',
+                    fontSize: '0.74rem'
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
           <TextField
             fullWidth
             size="small"
@@ -940,6 +1091,31 @@ export const ChaupalTab = () => {
             value={newCropEntry.cropName}
             onChange={(e) => setNewCropEntry({ ...newCropEntry, cropName: e.target.value })}
           />
+
+          {/* Quick Area Chips */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: '#475569', display: 'block', mb: 0.5 }}>
+              {isChhattisgarhi ? '📐 रकबा चुनव (एकड़):' : '📐 रकबा चुनें (एकड़):'}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 0.8 }}>
+              {['1', '2', '2.5', '3', '5'].map((area) => (
+                <Chip
+                  key={area}
+                  label={`${area} एकड़`}
+                  size="small"
+                  clickable
+                  onClick={() => setNewCropEntry({ ...newCropEntry, areaAcres: area })}
+                  sx={{
+                    fontWeight: newCropEntry.areaAcres === area ? 800 : 600,
+                    bgcolor: newCropEntry.areaAcres === area ? '#2e7d32' : '#f1f5f9',
+                    color: newCropEntry.areaAcres === area ? '#fff' : '#334155',
+                    fontSize: '0.74rem'
+                  }}
+                />
+              ))}
+            </Box>
+          </Box>
+
           <TextField
             fullWidth
             size="small"
@@ -959,9 +1135,9 @@ export const ChaupalTab = () => {
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenDiaryModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
-          <Button variant="contained" onClick={handleSaveDiary} sx={{ bgcolor: '#2e7d32', borderRadius: 2 }}>
-            डायरी में जोड़ें
+          <Button onClick={() => setOpenDiaryModal(false)} sx={{ color: '#666' }}>{isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}</Button>
+          <Button variant="contained" onClick={handleSaveDiary} sx={{ bgcolor: '#2e7d32', borderRadius: 2, fontWeight: 700 }}>
+            {isChhattisgarhi ? 'डायरी म जोड़व' : 'डायरी में जोड़ें'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.19';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.20';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सम्पूर्ण 8 कृषि मॉड्यूल्स का विस्तृत UI/UX सुधार, मोबाइल-डेस्कटॉप रिस्पॉन्सिव लेआउट, त्वरित रकबा चयन एवं 1-क्लिक बैच डायग्नोसिस।',
+    releaseNotes: 'छत्तीसगढ़ी-फर्स्ट भाषा, 1-टैप भाषा स्विच, वॉयस माइक सर्च व शून्य-टाइपिंग चिप्स, एकड़-डिसमिल कन्वर्टर, बारदाना जूट बोरी कैलकुलेटर एवं डांड/बाहरा खेत एडवाइजरी।',
     updatedAt: new Date().toISOString()
   });
 });

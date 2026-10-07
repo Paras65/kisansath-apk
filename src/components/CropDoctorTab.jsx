@@ -36,7 +36,11 @@ import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 import CallIcon from '@mui/icons-material/Call';
 import SyncIcon from '@mui/icons-material/Sync';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import MicIcon from '@mui/icons-material/Mic';
+import ClearIcon from '@mui/icons-material/Clear';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
+import { useLanguage } from '../utils/i18n';
+import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
 import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides } from '../services/apiService';
 import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
 import { notify } from '../services/notificationService';
@@ -44,24 +48,27 @@ import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services
 import { openNativeDialer } from '../utils/capacitorUtils';
 import { appConfig } from '../config/appConfig';
 
-// Visual Symptom Quick Filter Taxonomy
+// Visual Symptom Quick Filter Taxonomy with Chhattisgarhi Dialect Names
 const VISUAL_SYMPTOMS = [
-  { id: 'all', label: 'सभी लक्षण', icon: '✨', match: '' },
-  { id: 'spot', label: 'नाव/आंख जैसे धब्बे', icon: '🍂', match: 'धब्बे' },
-  { id: 'stemborer', label: 'गोभ सूखना / सफेद बाली', icon: '🐛', match: 'गोभ' },
-  { id: 'bph', label: 'तने पर माहू / पौधा सूखना', icon: '🦟', match: 'माहू' },
-  { id: 'sheath', label: 'केंचुली जैसे धब्बे', icon: '🌿', match: 'केंचुली' },
-  { id: 'wilt', label: 'अचानक पीलापन / जड़ सूखना', icon: '🟡', match: 'पीलापन' },
+  { id: 'all', label: 'सभी लक्षण / सबो चिन्हारी', icon: '✨', match: '' },
+  { id: 'spot', label: 'नाव/आंख जैसे धब्बे (ब्लास्ट)', icon: '🍂', match: 'धब्बे' },
+  { id: 'stemborer', label: 'गाभा कीट / भंवरी / मृत गोभ', icon: '🐛', match: 'गोभ' },
+  { id: 'bph', label: 'माहू / लाही / चेंपा (तने पर)', icon: '🦟', match: 'माहू' },
+  { id: 'sheath', label: 'केंचुली जैसे धब्बे (शीथ ब्लाइट)', icon: '🌿', match: 'केंचुली' },
+  { id: 'khaira', label: 'खैरा रोग / पीलापन (जिंक कमी)', icon: '🟡', match: 'खैरा' },
+  { id: 'wilt', label: 'अचानक पीलापन / जड़ सूखना (उकठा)', icon: '🥀', match: 'पीलापन' },
+  { id: 'gandhi', label: 'गांधी कीड़ा / बदबूदार कीड़ा (दूधिया दाना)', icon: '🦗', match: 'गांधी' },
+  { id: 'armyworm', label: 'पत्तियों में बड़े छेद / कटरुआ इल्ली', icon: '🐛', match: 'छेद' },
   { id: 'rust', label: 'पीला/भूरा पाउडर (रतुआ)', icon: '🌾', match: 'पाउडर' },
-  { id: 'armyworm', label: 'पत्तियों में बड़े छेद (इल्ली)', icon: '🐛', match: 'छेद' },
-  { id: 'mosaic', label: 'पीले-हरे चकत्ते', icon: '🟡', match: 'चकत्ते' },
-  { id: 'curl', label: 'पत्तियां सिकुड़ना व मुड़ना', icon: '🍃', match: 'मुड़ना' },
+  { id: 'curl', label: 'पत्तियां सिकुड़ना व मुड़ना (कुकरो)', icon: '🍃', match: 'मुड़ना' },
 ];
 
 export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
+  const { isChhattisgarhi, t } = useLanguage();
   const [selectedCrop, setSelectedCrop] = useState('paddy');
   const [selectedSymptom, setSelectedSymptom] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
   // Strictly initialize from cache or empty (Zero-False-Data Policy)
   const [cropsList, setCropsList] = useState(() => {
     const cached = getCachedModuleData('crops');
@@ -97,8 +104,30 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     });
     return () => {
       if (unsubscribe) unsubscribe();
+      stopVoiceRecognition();
     };
   }, []);
+
+  // Voice recognition mic toggle
+  const handleToggleVoiceSearch = () => {
+    if (isVoiceListening) {
+      stopVoiceRecognition();
+      setIsVoiceListening(false);
+    } else {
+      startVoiceRecognition({
+        onResult: (normalized, raw) => {
+          setSearchQuery(normalized || raw);
+        },
+        onListeningChange: (listening) => {
+          setIsVoiceListening(listening);
+        },
+        onError: (msg) => {
+          notify.info(msg);
+          setIsVoiceListening(false);
+        }
+      });
+    }
+  };
 
   // Load live weather spray advisory for selectedDistrict
   useEffect(() => {
@@ -191,12 +220,18 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     }
 
     const needle = searchQuery.toLowerCase().trim();
+    const normalizedNeedle = normalizeSpokenQuery(needle);
     const matchesSearch =
       !needle ||
       d.diseaseName.toLowerCase().includes(needle) ||
       d.symptoms.toLowerCase().includes(needle) ||
       d.cropName.toLowerCase().includes(needle) ||
-      (d.chemicalRemedy && d.chemicalRemedy.toLowerCase().includes(needle));
+      (d.chemicalRemedy && d.chemicalRemedy.toLowerCase().includes(needle)) ||
+      (normalizedNeedle && (
+        d.diseaseName.toLowerCase().includes(normalizedNeedle) ||
+        d.symptoms.toLowerCase().includes(normalizedNeedle) ||
+        d.cropName.toLowerCase().includes(normalizedNeedle)
+      ));
 
     return matchesCrop && matchesSymptom && matchesSearch;
   });
@@ -1139,11 +1174,11 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         </Grid>
       </Box>
 
-      {/* 6. Search Bar */}
+      {/* 6. Search Bar with Voice Mic & Clear (Zero-Typing) */}
       <TextField
         fullWidth
         size="small"
-        placeholder="रोग, लक्षण या दवा खोजें (उदा. ब्लास्ट, माहू, कोराजन, उकठा)..."
+        placeholder={isChhattisgarhi ? "रोग, चिन्हारी या दवाई बोलव या खोजव (जैसे: गाभा कीट, केंचुली, माहू)..." : "रोग, लक्षण या दवा बोलें या खोजें (जैसे: तना छेदक, शीथ ब्लाइट, माहू)..."}
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         InputProps={{
@@ -1152,21 +1187,73 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               <SearchIcon sx={{ color: '#888', fontSize: 20 }} />
             </InputAdornment>
           ),
-          endAdornment: searchQuery ? (
-            <InputAdornment position="end">
-              <IconButton size="small" onClick={() => setSearchQuery('')}>
-                <RestartAltIcon sx={{ fontSize: 18 }} />
-              </IconButton>
+          endAdornment: (
+            <InputAdornment position="end" sx={{ gap: 0.5 }}>
+              {searchQuery && (
+                <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#94a3b8' }}>
+                  <ClearIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              )}
+              <Tooltip title={isVoiceListening ? (isChhattisgarhi ? "सुनत हन... (रोके बर दबावहू)" : "सुन रहे हैं... (रोकने हेतु दबाएं)") : (isChhattisgarhi ? "बोलके खोजव (माइक दबावहू)" : "बोलकर खोजें (माइक दबाएं)")}>
+                <IconButton
+                  size="small"
+                  onClick={handleToggleVoiceSearch}
+                  sx={{
+                    color: isVoiceListening ? '#fff' : '#c62828',
+                    bgcolor: isVoiceListening ? '#d32f2f' : 'rgba(198, 40, 40, 0.08)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      bgcolor: isVoiceListening ? '#b71c1c' : 'rgba(198, 40, 40, 0.18)'
+                    }
+                  }}
+                >
+                  <MicIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+              </Tooltip>
             </InputAdornment>
-          ) : null
+          )
         }}
         sx={{
-          mb: 2,
+          mb: 1.2,
           bgcolor: '#fff',
           borderRadius: 2.5,
           '& .MuiOutlinedInput-root': { borderRadius: 2.5 }
         }}
       />
+
+      {/* 1-Tap Quick Visual Symptom Chips (Zero-Typing Rural Farmers) */}
+      <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 1.5, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+        {VISUAL_SYMPTOMS.map((sym) => {
+          const isSelected = selectedSymptom === sym.id;
+          return (
+            <Chip
+              key={sym.id}
+              icon={<span style={{ fontSize: '13px', marginRight: -2 }}>{sym.icon}</span>}
+              label={sym.label}
+              clickable
+              size="small"
+              onClick={() => {
+                setSelectedSymptom(sym.id);
+                if (sym.id !== 'all') {
+                  setSearchQuery('');
+                }
+              }}
+              sx={{
+                fontWeight: isSelected ? 800 : 600,
+                fontSize: '0.76rem',
+                borderRadius: '16px',
+                bgcolor: isSelected ? '#c62828' : '#f8fafc',
+                color: isSelected ? '#fff' : '#334155',
+                border: isSelected ? '1px solid #b71c1c' : '1px solid #e2e8f0',
+                flexShrink: 0,
+                '&:hover': {
+                  bgcolor: isSelected ? '#b71c1c' : '#f1f5f9'
+                }
+              }}
+            />
+          );
+        })}
+      </Box>
 
       {/* 7. Quick Disease Selection Pills & Detailed Prescription Card */}
       {diseasesList.length === 0 ? (

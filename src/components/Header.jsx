@@ -36,14 +36,7 @@ import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
 import { notify } from '../services/notificationService';
 import { CG_DISTRICT_COORDS } from '../services/weatherService';
-
-const NAV_ITEMS = [
-  { id: 'home', label: 'होम', icon: HomeIcon },
-  { id: 'doctor', label: 'फसल डॉक्टर', icon: LocalHospitalIcon },
-  { id: 'schemes', label: 'खाद व योजना', icon: CalculateIcon },
-  { id: 'mandi', label: 'मंडी भाव', icon: StorefrontIcon },
-  { id: 'chaupal', label: 'चौपाल व रेंटल', icon: ForumIcon },
-];
+import { useLanguage } from '../utils/i18n';
 
 export const Header = ({
   selectedDistrict,
@@ -55,10 +48,19 @@ export const Header = ({
   onOpenDeviceHub = () => {},
   onOpenAdmin = () => {}
 }) => {
+  const { isChhattisgarhi, isHindi, setLanguage, t } = useLanguage();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [detectingGps, setDetectingGps] = useState(false);
+
+  const navItems = [
+    { id: 'home', label: t('tab_home'), icon: HomeIcon },
+    { id: 'doctor', label: t('tab_doctor'), icon: LocalHospitalIcon },
+    { id: 'schemes', label: t('tab_schemes'), icon: CalculateIcon },
+    { id: 'mandi', label: t('tab_mandi'), icon: StorefrontIcon },
+    { id: 'chaupal', label: t('tab_chaupal'), icon: ForumIcon },
+  ];
 
   const handleGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -122,7 +124,9 @@ export const Header = ({
     if (speaking) {
       stopSpeech();
     } else {
-      const text = `${appConfig.appName} ऐप में आपका स्वागत है। फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और मंडी भाव के लिए नीचे दिए गए विकल्पों का चयन करें।`;
+      const text = isChhattisgarhi
+        ? `${appConfig.appName} ऐप म आप मन के स्वागत हे! फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना अऊ मंडी भाव बर नीचे दिए गए विकल्प मन ला चुनव।`
+        : `${appConfig.appName} ऐप में आपका स्वागत है। फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और मंडी भाव के लिए नीचे दिए गए विकल्पों का चयन करें।`;
       speakText(text);
     }
   };
@@ -274,7 +278,7 @@ export const Header = ({
                 {appConfig.appName}
               </Typography>
               <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: { xs: 'none', sm: 'block' } }}>
-                {appConfig.appTagline}
+                {t('app_tagline')}
               </Typography>
             </Box>
           </Box>
@@ -282,7 +286,7 @@ export const Header = ({
 
         {/* Desktop Navigation Links (Visible on md and above) */}
         <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: { md: 0.5, lg: 0.8 } }}>
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = currentTab === item.id;
             return (
@@ -392,6 +396,73 @@ export const Header = ({
                 <MenuItem value="मुंगेली">मुंगेली (Mungeli)</MenuItem>
               </Select>
             </FormControl>
+          </Box>
+
+          {/* Language Switcher Segmented Capsule [ 🌾 छत्ती. | हिंदी ] */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: 'rgba(0,0,0,0.25)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 2.5,
+              height: { xs: 34, sm: 36 },
+              p: 0.3,
+              gap: 0.3
+            }}
+          >
+            <Button
+              size="small"
+              onClick={() => {
+                setLanguage('cg');
+                notify.info(t('lang_switched_toast'));
+              }}
+              sx={{
+                py: 0.2,
+                px: { xs: 0.7, sm: 1 },
+                minWidth: 0,
+                height: '100%',
+                borderRadius: 2,
+                fontSize: { xs: '0.68rem', sm: '0.74rem' },
+                fontWeight: isChhattisgarhi ? 900 : 600,
+                bgcolor: isChhattisgarhi ? '#ffeb3b' : 'transparent',
+                color: isChhattisgarhi ? '#1b5e20' : 'rgba(255,255,255,0.85)',
+                boxShadow: isChhattisgarhi ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                textTransform: 'none',
+                lineHeight: 1,
+                '&:hover': {
+                  bgcolor: isChhattisgarhi ? '#fdd835' : 'rgba(255,255,255,0.15)'
+                }
+              }}
+            >
+              छत्ती.
+            </Button>
+            <Button
+              size="small"
+              onClick={() => {
+                setLanguage('hi');
+                notify.info(t('lang_switched_toast'));
+              }}
+              sx={{
+                py: 0.2,
+                px: { xs: 0.7, sm: 1 },
+                minWidth: 0,
+                height: '100%',
+                borderRadius: 2,
+                fontSize: { xs: '0.68rem', sm: '0.74rem' },
+                fontWeight: isHindi ? 900 : 600,
+                bgcolor: isHindi ? '#ffeb3b' : 'transparent',
+                color: isHindi ? '#1b5e20' : 'rgba(255,255,255,0.85)',
+                boxShadow: isHindi ? '0 1px 4px rgba(0,0,0,0.2)' : 'none',
+                textTransform: 'none',
+                lineHeight: 1,
+                '&:hover': {
+                  bgcolor: isHindi ? '#fdd835' : 'rgba(255,255,255,0.15)'
+                }
+              }}
+            >
+              हिंदी
+            </Button>
           </Box>
 
           {/* Smart Centralized Device Hub Button (Tablet & Desktop Only) */}

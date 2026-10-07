@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
 import { notify } from '../services/notificationService';
+import { t } from './i18n';
 
 let currentTabState = 'home';
 let navigateHomeCallback = null;
@@ -113,7 +114,7 @@ export const setNativeNavContext = ({ currentTab = 'home', onNavigateHome = null
 /**
  * Displays a lightweight native toast across mobile devices and triggers global notification
  */
-export const showExitToast = (message = 'ऐप से बाहर निकलने के लिए दोबारा बैक दबाएं') => {
+export const showExitToast = (message = t('exit_toast')) => {
   notify.info(message, null, 2000);
 
   const toast = document.createElement('div');
@@ -218,7 +219,7 @@ export const initCapacitor = () => {
         App.exitApp();
       } else {
         lastBackPressTime = now;
-        showExitToast('ऐप से बाहर निकलने के लिए दोबारा बैक दबाएं');
+        showExitToast(t('exit_toast'));
       }
     });
   } catch (err) {

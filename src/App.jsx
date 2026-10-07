@@ -30,6 +30,7 @@ import { notify } from './services/notificationService';
 import { appConfig } from './config/appConfig';
 import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
+import { useLanguage } from './utils/i18n';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { AdminPortal } from './components/AdminPortal';
@@ -83,6 +84,7 @@ class ErrorBoundary extends React.Component {
 }
 
 function App() {
+  const { t } = useLanguage();
   const [currentTab, setCurrentTab] = useState('home');
   const [selectedDistrict, setSelectedDistrict] = useState(appConfig.defaultDistrict);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -589,27 +591,27 @@ function App() {
             }}
           >
             <BottomNavigationAction
-              label="होम"
+              label={t('tab_home')}
               value="home"
               icon={<HomeIcon sx={{ fontSize: 24 }} />}
             />
             <BottomNavigationAction
-              label="फसल डॉक्टर"
+              label={t('tab_doctor')}
               value="doctor"
               icon={<LocalHospitalIcon sx={{ fontSize: 24 }} />}
             />
             <BottomNavigationAction
-              label="खाद व योजना"
+              label={t('tab_schemes')}
               value="schemes"
               icon={<CalculateIcon sx={{ fontSize: 24 }} />}
             />
             <BottomNavigationAction
-              label="मंडी भाव"
+              label={t('tab_mandi')}
               value="mandi"
               icon={<StorefrontIcon sx={{ fontSize: 24 }} />}
             />
             <BottomNavigationAction
-              label="चौपाल व रेंटल"
+              label={t('tab_chaupal')}
               value="chaupal"
               icon={<ForumIcon sx={{ fontSize: 24 }} />}
             />
