@@ -47,16 +47,40 @@ export const extractPlatformSignature = (userAgent = '') => {
 };
 
 /**
- * Sanitize error message to prevent secret/PII leaks in client logs
+ * Sanitize error message to prevent secret/PII leaks in server and client logs (Rule 8, 10 & 13)
  */
-const sanitizeLogMessage = (msg) => {
+export const sanitizeLogMessage = (msg) => {
   if (!msg) return '';
   return String(msg)
+    // Redact MongoDB connection URI and database credentials
+    .replace(/mongodb(?:\+srv)?:\/\/[^\s"'`]+/gi, 'mongodb+srv://[REDACTED_DB_CREDENTIALS]')
+    // Redact JWT Bearer tokens
     .replace(/(Bearer\s+)[A-Za-z0-9\-_.]+/gi, '$1[MASKED_TOKEN]')
-    .replace(/(passkey["':\s]+)[^"'\s,}]+/gi, '$1[MASKED]')
+    .replace(/\beyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.?[A-Za-z0-9-_.+/=]*/g, '[MASKED_JWT]')
+    // Redact Google / Gemini API keys
+    .replace(/AQ\.[A-Za-z0-9_\-\.]{20,}/g, '[REDACTED_API_KEY]')
+    .replace(/AIza[A-Za-z0-9_\-]{30,}/g, '[REDACTED_API_KEY]')
+    // Redact URL query parameter secrets (?key=..., &passkey=..., etc.)
+    .replace(/([?&](?:key|apiKey|api_key|token|secret|passkey|pin|password)=)[^&\s"'`]+/gi, '$1[REDACTED]')
+    // Redact passwords, passkeys, admin secrets and PINs
+    .replace(/((?:password|passkey|adminSecret|jwtSecret|ADMIN_SECRET|JWT_SECRET)["':\s=]+)[^"'\s,}]+/gi, '$1[MASKED]')
     .replace(/(pin["':\s]+)\d+/gi, '$1[MASKED]')
+    // Mask Indian phone numbers (keep first 2 and last 2 digits)
     .replace(/(\b[6-9]\d{9}\b)/g, (phone) => `${phone.slice(0, 2)}******${phone.slice(-2)}`)
-    .slice(0, 300);
+    .slice(0, 500);
+};
+
+/**
+ * Deep-sanitize object parameters / query / headers to prevent secret leaks
+ */
+export const sanitizeLogObject = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj;
+  try {
+    const serialized = JSON.stringify(obj);
+    return JSON.parse(sanitizeLogMessage(serialized));
+  } catch {
+    return '[Sanitized Object]';
+  }
 };
 
 /**
@@ -195,15 +219,19 @@ export const clearAuditLogs = () => {
  */
 export const logApiError = (endpoint, req, err) => {
   const status = err?.statusCode || 500;
+  const rawUrl = req?.originalUrl || req?.url || 'N/A';
+  const cleanUrl = sanitizeLogMessage(rawUrl);
+  const cleanEndpoint = sanitizeLogMessage(endpoint || rawUrl);
+
   const details = {
-    endpoint: endpoint || req?.originalUrl || req?.url || 'unknown',
+    endpoint: cleanEndpoint,
     method: req?.method || 'N/A',
-    url: req?.originalUrl || req?.url || 'N/A',
-    params: req?.params || {},
-    query: req?.query || {},
+    url: cleanUrl,
+    params: sanitizeLogObject(req?.params || {}),
+    query: sanitizeLogObject(req?.query || {}),
     errorName: err?.name || 'Error',
-    errorMessage: err?.message || String(err),
-    stack: err?.stack || 'No stack trace available',
+    errorMessage: sanitizeLogMessage(err?.message || String(err)),
+    stack: sanitizeLogMessage(err?.stack || 'No stack trace available'),
     timestamp: new Date().toISOString(),
   };
 
@@ -216,7 +244,7 @@ export const logApiError = (endpoint, req, err) => {
     endpoint: details.endpoint,
     method: details.method,
     statusCode: status,
-    message: err?.userMessage || err?.message || 'सर्वर तकनीकी त्रुटि',
+    message: sanitizeLogMessage(err?.userMessage || err?.message || 'सर्वर तकनीकी त्रुटि'),
     technicalError: `${details.errorName}: ${details.errorMessage}`,
     req,
   });

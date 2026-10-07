@@ -1,8 +1,8 @@
 {
-  "version": "1.0.16",
+  "version": "1.0.17",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.16",
-  "releaseNotes": "लाइव एआई फसल डॉक्टर मल्टीमॉडल विज़न प्रमाणीकरण, सक्रिय API कुंजी एकीकरण, x-goog-api-key हेडर एवं डायरेक्ट कंसोल डायग्नोस्टिक्स।",
+  "releaseName": "किसान साथी v1.0.17",
+  "releaseNotes": "सम्पूर्ण सुरक्षा हार्डनिंग, MongoDB URI व API कुंजी डीप-स्क्रबिंग, किसान पिन प्राइवेसी सुरक्षा एवं जीरो-लीक लॉग्स।",
   "updatedAt": "2026-10-07"
 }

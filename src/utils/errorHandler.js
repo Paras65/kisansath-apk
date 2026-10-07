@@ -33,6 +33,32 @@ export const parseErrorPayload = async (res) => {
 };
 
 /**
+ * Sanitize client-side error details to prevent confidential data or secret leaks in DevTools console (Rule 10 & 13)
+ */
+export const sanitizeClientDetails = (obj) => {
+  if (!obj || typeof obj !== 'object') return obj;
+  try {
+    const serialized = JSON.stringify(obj, (key, value) => {
+      const lowerKey = String(key).toLowerCase();
+      if (['pin', 'passkey', 'password', 'token', 'authorization', 'secret'].includes(lowerKey)) {
+        return '[MASKED]';
+      }
+      if (typeof value === 'string') {
+        return value
+          .replace(/(Bearer\s+)[A-Za-z0-9\-_.]+/gi, '$1[MASKED_TOKEN]')
+          .replace(/AQ\.[A-Za-z0-9_\-\.]{20,}/g, '[REDACTED_API_KEY]')
+          .replace(/AIza[A-Za-z0-9_\-]{30,}/g, '[REDACTED_API_KEY]')
+          .replace(/mongodb(?:\+srv)?:\/\/[^\s"'`]+/gi, 'mongodb+srv://[REDACTED_DB_CREDENTIALS]');
+      }
+      return value;
+    });
+    return JSON.parse(serialized);
+  } catch {
+    return obj;
+  }
+};
+
+/**
  * Standardized Client API Error Logger (for HTTP 4xx / 5xx responses)
  */
 export const logClientApiError = (endpoint, res, errorData = {}, context = {}) => {
@@ -52,7 +78,7 @@ export const logClientApiError = (endpoint, res, errorData = {}, context = {}) =
     raw: errorData?.raw !== undefined ? errorData.raw : errorData,
   };
 
-  console.error(`🚨 [Kisan API Client Error] ${method} ${endpoint} [HTTP ${status}]:`, details);
+  console.error(`🚨 [Kisan API Client Error] ${method} ${endpoint} [HTTP ${status}]:`, sanitizeClientDetails(details));
   return details;
 };
 
@@ -72,7 +98,7 @@ export const logClientNetworkError = (endpoint, err, context = {}) => {
     ...context,
   };
 
-  console.error(`🚨 [Kisan API Network/Offline Error] ${method} ${endpoint}:`, details);
+  console.error(`🚨 [Kisan API Network/Offline Error] ${method} ${endpoint}:`, sanitizeClientDetails(details));
   return details;
 };
 

@@ -76,6 +76,7 @@ const FarmerProfileSchema = new mongoose.Schema(
       minlength: 4,
       maxlength: 6,
       default: '1234',
+      select: false,
     },
     village: {
       type: String,

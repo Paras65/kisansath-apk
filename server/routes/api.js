@@ -30,6 +30,7 @@ import {
   getAuditLogs,
   getAuditStats,
   clearAuditLogs,
+  sanitizeLogMessage,
 } from '../middleware/errorHandler.js';
 
 const router = express.Router();
@@ -95,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.16';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.17';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'लाइव एआई फसल डॉक्टर मल्टीमॉडल विज़न प्रमाणीकरण, सक्रिय API कुंजी एकीकरण, x-goog-api-key हेडर एवं डायरेक्ट कंसोल डायग्नोस्टिक्स।',
+    releaseNotes: 'सम्पूर्ण सुरक्षा हार्डनिंग, MongoDB URI व API कुंजी डीप-स्क्रबिंग, किसान पिन प्राइवेसी सुरक्षा एवं जीरो-लीक लॉग्स।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -580,7 +581,7 @@ router.post('/farmer/auth', async (req, res) => {
     }
 
     const cleanPin = (pin || '1234').toString().trim().slice(0, 6);
-    let farmer = await FarmerProfile.findOne({ phone: cleanPhone });
+    let farmer = await FarmerProfile.findOne({ phone: cleanPhone }).select('+pin');
 
     if (farmer) {
       // Authenticate existing farmer with timing-safe constant-time comparison
@@ -1225,7 +1226,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           status: 'offline',
           statusLabel: 'कनेक्शन त्रुटि',
           latencyMs: Date.now() - t0,
-          message: err.message || 'डेटाबेस से संपर्क नहीं हो सका',
+          message: sanitizeLogMessage(err.message || 'डेटाबेस से संपर्क नहीं हो सका'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -1304,7 +1305,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : sanitizeLogMessage(err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -1375,7 +1376,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'अनुरोध समय समाप्त (>5s)' : sanitizeLogMessage(err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
@@ -1431,7 +1432,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           status: 'offline',
           statusLabel: 'टाइमआउट / ऑफलाइन',
           latencyMs: Date.now() - t0,
-          message: err.name === 'AbortError' ? 'समय समाप्त (>5s)' : (err.message || 'संपर्क विफल'),
+          message: err.name === 'AbortError' ? 'समय समाप्त (>5s)' : sanitizeLogMessage(err.message || 'संपर्क विफल'),
           lastChecked: new Date().toISOString(),
         };
       }
