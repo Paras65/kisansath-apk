@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.24';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.25';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'लाइव मौसम व छिड़काव एडवाइजरी में पूर्ण छत्तीसगढ़ी एकीकरण: होम स्क्रीन वेदर कार्ड में आसमान की स्थिति (उघरा अकास / घाम), छिड़काव सुरक्षा बैज (छिड़काव रोक्व / बने मौसम), पानी व उमस मेट्रिक्स, दैनिक किसानी सलाह एवं 3-दिवसीय पूर्वानुमान (आज, बिहान, पर्सों) का शुद्ध छत्तीसगढ़ी में गतिशील प्रदर्शन व वॉयस आउटपुट।',
+    releaseNotes: 'वर्तमान स्थान स्वतः चयन (Default GPS Location) व 33 जिला सपोर्ट: ऐप खुलते ही यूजर का निकटतम जिला GPS द्वारा स्वतः चयनित होगा और लाइव मौसम कार्ड व हेडर में सक्रिय GPS स्थिति प्रदर्शित होगी। साथ ही छत्तीसगढ़ के सभी 33 जिलों के कृषि मौसम केंद्र का पूर्ण समर्थन व ड्रॉपडाउन में समावेश।',
     updatedAt: new Date().toISOString()
   });
 });

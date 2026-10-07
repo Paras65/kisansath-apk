@@ -35,12 +35,13 @@ import { appConfig } from '../config/appConfig';
 import { shareApp } from '../utils/shareUtils';
 import { ShareModal } from './ShareModal';
 import { notify } from '../services/notificationService';
-import { CG_DISTRICT_COORDS } from '../services/weatherService';
+import { CG_DISTRICT_COORDS, detectCurrentLocationDistrict } from '../services/weatherService';
 import { useLanguage } from '../utils/i18n';
 
 export const Header = ({
   selectedDistrict,
   onDistrictChange,
+  isGpsLocation = false,
   onInstallClick,
   isInstallable,
   currentTab = 'home',
@@ -62,35 +63,24 @@ export const Header = ({
     { id: 'chaupal', label: t('tab_chaupal'), icon: ForumIcon },
   ];
 
-  const handleGpsLocation = () => {
+  const handleGpsLocation = async () => {
     if (!navigator.geolocation) {
       notify.warning(isChhattisgarhi ? 'आपके मोबाइल म GPS सुविधा नइये।' : 'आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
       return;
     }
     setDetectingGps(true);
     notify.info(isChhattisgarhi ? '📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...' : '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setDetectingGps(false);
-        const { latitude, longitude } = pos.coords;
-        let closestDistrict = 'रायपुर';
-        let minDistance = Infinity;
-        Object.entries(CG_DISTRICT_COORDS).forEach(([dist, coords]) => {
-          const d = Math.hypot(coords.lat - latitude, coords.lon - longitude);
-          if (d < minDistance) {
-            minDistance = d;
-            closestDistrict = dist;
-          }
-        });
-        onDistrictChange(closestDistrict);
-        notify.success(isChhattisgarhi ? `📍 GPS ले मिले जगह: ${closestDistrict} (लाइव मौसम चालू)` : `📍 GPS स्थान प्राप्त: ${closestDistrict} (लाइव मौसम सक्रिय)`);
-      },
-      (err) => {
-        setDetectingGps(false);
-        notify.info(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।' : 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
+    try {
+      const res = await detectCurrentLocationDistrict(true);
+      setDetectingGps(false);
+      if (res && res.district) {
+        onDistrictChange(res.district, true);
+        notify.success(isChhattisgarhi ? `📍 GPS ले मिले जगह: ${res.district} (लाइव मौसम चालू)` : `📍 GPS स्थान प्राप्त: ${res.district} (लाइव मौसम सक्रिय)`);
+      }
+    } catch (err) {
+      setDetectingGps(false);
+      notify.info(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।' : 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
+    }
   };
 
   useEffect(() => {
@@ -336,7 +326,9 @@ export const Header = ({
               }
             }}
           >
-            <Tooltip title={isChhattisgarhi ? "📍 मोर अभी के जगह (GPS ले अपने-आप पहचानव)" : "📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)"}>
+            <Tooltip title={isGpsLocation
+              ? (isChhattisgarhi ? `📍 GPS सक्रिय: ${selectedDistrict} (अपन जगह)` : `📍 GPS सक्रिय: ${selectedDistrict} (वर्तमान स्थान)`)
+              : (isChhattisgarhi ? "📍 मोर अभी के जगह (GPS ले अपने-आप पहचानव)" : "📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)")}>
               <span>
                 <IconButton
                   onClick={handleGpsLocation}
@@ -344,7 +336,8 @@ export const Header = ({
                   size="small"
                   aria-label="GPS द्वारा जिला पहचानें"
                   sx={{
-                    color: detectingGps ? '#4ade80' : '#ffffff',
+                    color: (detectingGps || isGpsLocation) ? '#4ade80' : '#ffffff',
+                    bgcolor: isGpsLocation ? 'rgba(74, 222, 128, 0.2)' : 'transparent',
                     p: { xs: 0.4, sm: 0.6 },
                     '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
                   }}
@@ -357,7 +350,7 @@ export const Header = ({
             <FormControl size="small" variant="standard" sx={{ minWidth: { xs: 75, sm: 110, md: 125 } }}>
               <Select
                 value={selectedDistrict}
-                onChange={(e) => onDistrictChange(e.target.value)}
+                onChange={(e) => onDistrictChange(e.target.value, false)}
                 disableUnderline
                 aria-label="जिला चुनें"
                 sx={{
@@ -376,24 +369,11 @@ export const Header = ({
                   }
                 }}
               >
-                <MenuItem value="रायपुर">रायपुर (Raipur)</MenuItem>
-                <MenuItem value="बिलासपुर">बिलासपुर (Bilaspur)</MenuItem>
-                <MenuItem value="दुर्ग">दुर्ग (Durg)</MenuItem>
-                <MenuItem value="राजनांदगांव">राजनांदगांव (Rajnandgaon)</MenuItem>
-                <MenuItem value="धमतरी">धमतरी (Dhamtari)</MenuItem>
-                <MenuItem value="कवर्धा">कबीरधाम / कवर्धा</MenuItem>
-                <MenuItem value="बलौदाबाजार">बलौदाबाजार</MenuItem>
-                <MenuItem value="जगदलपुर">बस्तर / जगदलपुर</MenuItem>
-                <MenuItem value="महासमुंद">महासमुंद (Mahasamund)</MenuItem>
-                <MenuItem value="जांजगीर-चांपा">जांजगीर-चांपा</MenuItem>
-                <MenuItem value="रायगढ़">रायगढ़ (Raigarh)</MenuItem>
-                <MenuItem value="कोरबा">कोरबा (Korba)</MenuItem>
-                <MenuItem value="अंबिकापुर">सरगुजा / अंबिकापुर</MenuItem>
-                <MenuItem value="कांकेर">उत्तर बस्तर कांकेर</MenuItem>
-                <MenuItem value="बेमेतरा">बेमेतरा (Bemetara)</MenuItem>
-                <MenuItem value="बालोद">बालोद (Balod)</MenuItem>
-                <MenuItem value="गरियाबंद">गरियाबंद (Gariaband)</MenuItem>
-                <MenuItem value="मुंगेली">मुंगेली (Mungeli)</MenuItem>
+                {Object.entries(CG_DISTRICT_COORDS).map(([distKey, info]) => (
+                  <MenuItem key={distKey} value={distKey}>
+                    {info.name || distKey}
+                  </MenuItem>
+                ))}
               </Select>
             </FormControl>
           </Box>

@@ -159,7 +159,7 @@ export const getLifecycleSteps = (isChhattisgarhi = false) => [
 
 export const LIFECYCLE_STEPS = getLifecycleSteps(false);
 
-export const HomeTab = ({ onNavigate, selectedDistrict }) => {
+export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false }) => {
   const { isChhattisgarhi, t } = useLanguage();
   const lifecycleSteps = getLifecycleSteps(isChhattisgarhi);
   const [expandedStep, setExpandedStep] = useState(1);
@@ -1274,7 +1274,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               {isChhattisgarhi ? 'जय जोहार, किसान संगवारी' : 'नमस्ते, किसान साथी'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.78rem', display: 'block', mt: 0.3 }}>
-              📍 {selectedDistrict} • {isChhattisgarhi ? 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे' : 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली'}
+              📍 {selectedDistrict}{isGpsLocation ? (isChhattisgarhi ? ' (वर्तमान जगह)' : ' (वर्तमान स्थान)') : ''} • {isChhattisgarhi ? 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे' : 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली'}
             </Typography>
           </Box>
         </Box>
@@ -2144,7 +2144,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                     </Typography>
                   </Box>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                    📍 {selectedDistrict} {weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? '• सुरक्छित डेटा' : '• सुरक्षित डेटा')}
+                    📍 {selectedDistrict} {isGpsLocation ? (isChhattisgarhi ? '• वर्तमान जगह (GPS)' : '• वर्तमान स्थान (GPS)') : (weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? '• सुरक्छित डेटा' : '• सुरक्षित डेटा'))}
                   </Typography>
                 </Box>
               </Box>

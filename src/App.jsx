@@ -31,6 +31,8 @@ import { appConfig } from './config/appConfig';
 import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
 import { stopSpeech, subscribeSpeechState } from './utils/speech';
 import { useLanguage } from './utils/i18n';
+import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS } from './services/weatherService';
+import { getActiveFarmer } from './services/farmerService';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { AdminPortal } from './components/AdminPortal';
@@ -86,7 +88,56 @@ class ErrorBoundary extends React.Component {
 function App() {
   const { isChhattisgarhi, t } = useLanguage();
   const [currentTab, setCurrentTab] = useState('home');
-  const [selectedDistrict, setSelectedDistrict] = useState(appConfig.defaultDistrict);
+  const [selectedDistrict, setSelectedDistrict] = useState(() => {
+    try {
+      const saved = localStorage.getItem('kisan_selected_district');
+      if (saved && CG_DISTRICT_COORDS[saved]) return saved;
+      const farmer = getActiveFarmer();
+      if (farmer?.district && CG_DISTRICT_COORDS[farmer.district]) return farmer.district;
+    } catch (e) {}
+    return appConfig.defaultDistrict || 'रायपुर';
+  });
+  const [isGpsLocation, setIsGpsLocation] = useState(() => {
+    try {
+      return localStorage.getItem('kisan_is_gps_location') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Handler for district changes (manual or GPS)
+  const handleDistrictChange = (newDistrict, fromGps = false) => {
+    setSelectedDistrict(newDistrict);
+    setIsGpsLocation(fromGps);
+    try {
+      localStorage.setItem('kisan_selected_district', newDistrict);
+      localStorage.setItem('kisan_is_gps_location', fromGps ? 'true' : 'false');
+    } catch (e) {}
+  };
+
+  // Automatically detect user's current GPS location on app mount
+  useEffect(() => {
+    let isCancelled = false;
+    detectCurrentLocationDistrict(false)
+      .then((res) => {
+        if (!isCancelled && res?.district) {
+          setSelectedDistrict(res.district);
+          setIsGpsLocation(true);
+          try {
+            localStorage.setItem('kisan_selected_district', res.district);
+            localStorage.setItem('kisan_is_gps_location', 'true');
+          } catch (e) {}
+        }
+      })
+      .catch((err) => {
+        // Silent fallback - if GPS denied or timeout, preserve cached/fallback district
+        console.log('[GPS Auto-detect] Geolocation fallback:', err?.message || err);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
@@ -255,7 +306,8 @@ function App() {
         {/* Top Header (Adaptive Desktop Nav & Mobile Header) */}
         <Header
           selectedDistrict={selectedDistrict}
-          onDistrictChange={setSelectedDistrict}
+          onDistrictChange={handleDistrictChange}
+          isGpsLocation={isGpsLocation}
           onInstallClick={handleInstallClick}
           isInstallable={Boolean(deferredPrompt)}
           currentTab={currentTab}
@@ -290,6 +342,7 @@ function App() {
               <HomeTab
                 onNavigate={handleTabChange}
                 selectedDistrict={selectedDistrict}
+                isGpsLocation={isGpsLocation}
               />
             )}
             {currentTab === 'doctor' && <CropDoctorTab selectedDistrict={selectedDistrict} />}
