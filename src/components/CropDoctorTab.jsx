@@ -79,6 +79,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [aiReport, setAiReport] = useState(null);
   const [nonPlantWarning, setNonPlantWarning] = useState(false);
   const [scanError, setScanError] = useState(null);
+  const [scanTechnicalError, setScanTechnicalError] = useState(null);
+  const [scanModelErrors, setScanModelErrors] = useState([]);
   const [pendingScans, setPendingScans] = useState(() => getOfflineScans());
   const [isSyncingPending, setIsSyncingPending] = useState(false);
 
@@ -234,6 +236,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           setAnalyzing(true);
           setAiReport(null);
           setNonPlantWarning(false);
+          setScanError(null);
+          setScanTechnicalError(null);
+          setScanModelErrors([]);
 
           try {
             const diagResult = await diagnoseCropWithLiveAi({
@@ -246,10 +251,19 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
 
             // Zero-False-Data Enforcement: If AI failed, do NOT show fake/dummy data
             if (!diagResult || diagResult.success === false) {
+              console.group('%c🚨 [Crop Doctor Diagnostic Failure (Photo Scan)]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
+              console.error('Error Message:', diagResult?.error);
+              if (diagResult?.technicalError) console.error('🔧 Technical Error Details:', diagResult.technicalError);
+              if (diagResult?.modelErrors) console.error('🤖 Model Cascade Errors:', diagResult.modelErrors);
+              console.error('Full Diagnosis Result:', diagResult);
+              console.groupEnd();
+
               setScanError(
                 diagResult?.error ||
                 'फोटो की AI जांच पूरी नहीं हो सकी। किसानों की फसल सुरक्षा हेतु कोई भी अनुमानित या नकली (Dummy) रोग नहीं दिखाया जा रहा है।'
               );
+              setScanTechnicalError(diagResult?.technicalError || null);
+              setScanModelErrors(diagResult?.modelErrors || []);
               notify.error(diagResult?.isOffline ? 'इंटरनेट कनेक्शन बंद है। लाइव AI हेतु इंटरनेट ऑन करें।' : 'AI जांच असफल रही।');
               return;
             }
@@ -328,6 +342,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     setAnalyzing(false);
     setNonPlantWarning(false);
     setScanError(null);
+    setScanTechnicalError(null);
+    setScanModelErrors([]);
     stopSpeech();
     notify.info('स्कैन रीसेट कर दिया गया');
   };
@@ -356,6 +372,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     setIsSyncingPending(true);
     setAnalyzing(true);
     setScanError(null);
+    setScanTechnicalError(null);
+    setScanModelErrors([]);
     setNonPlantWarning(false);
     setUploadedImage(scanItem.imageBase64);
 
@@ -370,10 +388,19 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       setIsSyncingPending(false);
 
       if (!diagResult || diagResult.success === false) {
+        console.group('%c🚨 [Crop Doctor Diagnostic Failure (Offline Recheck)]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
+        console.error('Error Message:', diagResult?.error);
+        if (diagResult?.technicalError) console.error('🔧 Technical Error Details:', diagResult.technicalError);
+        if (diagResult?.modelErrors) console.error('🤖 Model Cascade Errors:', diagResult.modelErrors);
+        console.error('Full Diagnosis Result:', diagResult);
+        console.groupEnd();
+
         setScanError(
           diagResult?.error ||
           'AI जांच पूरी नहीं हो सकी। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
         );
+        setScanTechnicalError(diagResult?.technicalError || null);
+        setScanModelErrors(diagResult?.modelErrors || []);
         notify.error('AI जांच नहीं हो सकी।');
         return;
       }
@@ -916,6 +943,26 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             <Typography variant="body2" sx={{ color: '#5d4037', fontSize: '0.78rem', mt: 0.5 }}>
               🛡️ <strong>शून्य गलत डेटा नीति (Zero-False-Data Policy):</strong> किसान साथी किसानों की फसल सुरक्षा को सर्वोच्च प्राथमिकता देता है और बिना सटीक AI विश्लेषण के कोई भी फर्जी या अनुमानित (Dummy) डेटा नहीं दिखाता। आप नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर भारतीय कृषि अनुसंधान परिषद (ICAR) अनुमोदित प्रमाणिक इलाज देख सकते हैं।
             </Typography>
+
+            {scanTechnicalError && (
+              <Box
+                sx={{
+                  mt: 1.2,
+                  p: 1.2,
+                  bgcolor: '#ffffff',
+                  borderRadius: 2,
+                  border: '1px dashed #ef9a9a',
+                }}
+              >
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#b71c1c', display: 'block', mb: 0.3 }}>
+                  🛠️ तकनीकी विफलता विवरण (Technical Error for Console / Debugging):
+                </Typography>
+                <Typography variant="caption" sx={{ fontFamily: 'monospace', color: '#c62828', fontSize: '0.74rem', wordBreak: 'break-all', display: 'block', lineHeight: 1.4 }}>
+                  {scanTechnicalError}
+                </Typography>
+              </Box>
+            )}
+
             <Box sx={{ mt: 1.2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {uploadedImage && (
                 <Button

@@ -35,10 +35,13 @@ export const diagnoseWithGeminiVision = async ({ imageString, symptoms = '', cro
   const { apiKey, baseUrl, models, timeoutMs, temperature } = externalApisConfig.gemini;
 
   if (!apiKey) {
-    console.warn('[GeminiVision Diagnostic] GEMINI_API_KEY is not configured in .env. Refusing to serve false/guessed diagnosis.');
+    const techMsg = 'GEMINI_API_KEY is not configured in server environment variables (.env). Check GEMINI_API_KEY / VITE_AI_VISION_API_URL.';
+    console.warn(`[GeminiVision Diagnostic] ${techMsg}`);
     return {
       success: false,
-      error: 'AI विज़न सेवा की कुंजी (.env) में सक्रिय नहीं है। गलत या नकली सलाह से बचने के लिए कोई अनुमानित डेटा नहीं दिखाया जा रहा है। कृपया नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर प्रमाणित इलाज देखें।'
+      error: 'AI विज़न सेवा की कुंजी (.env) में सक्रिय नहीं है। गलत या नकली सलाह से बचने के लिए कोई अनुमानित डेटा नहीं दिखाया जा रहा है। कृपया नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर प्रमाणित इलाज देखें।',
+      technicalError: techMsg,
+      modelErrors: ['API key missing or empty in environment configuration'],
     };
   }
 
@@ -52,7 +55,9 @@ export const diagnoseWithGeminiVision = async ({ imageString, symptoms = '', cro
     } catch (e) {
       return {
         success: false,
-        error: 'तस्वीर लोड करने में त्रुटि: कृपया कैमरे से खींची गई वैध JPEG/PNG फोटो भेजें।'
+        error: 'तस्वीर लोड करने में त्रुटि: कृपया कैमरे से खींची गई वैध JPEG/PNG फोटो भेजें।',
+        technicalError: `Base64 extraction failure: ${e.message}`,
+        modelErrors: [`Invalid image payload: ${e.message}`],
       };
     }
   }
@@ -94,7 +99,10 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 }`;
 
   // Multi-model fallback cascade read dynamically from externalApisConfig (.env GEMINI_MODELS)
-  const modelsToTry = models.length > 0 ? models : ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-1.5-flash'];
+  const defaultModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-1.5-pro'];
+  const modelsToTry = models.length > 0 ? Array.from(new Set([...models, ...defaultModels])) : defaultModels;
+
+  const modelErrors = [];
 
   for (const model of modelsToTry) {
     try {
@@ -131,13 +139,16 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 
       if (!res.ok) {
         const errorText = await res.text();
-        if (res.status === 429) {
-          console.warn(`[GeminiVision Diagnostic] Model ${model} rate-limited / quota exhausted (HTTP 429). Auto-cascading to next model in GEMINI_MODELS...`);
-        } else if (res.status === 404) {
-          console.warn(`[GeminiVision Diagnostic] Model ${model} not found (HTTP 404). Check GEMINI_MODELS in .env.`);
-        } else {
-          console.warn(`[GeminiVision Diagnostic] Model ${model} returned HTTP ${res.status}:`, errorText.slice(0, 150));
+        let parsedErrMsg = '';
+        try {
+          const parsedErr = JSON.parse(errorText);
+          parsedErrMsg = parsedErr.error?.message || errorText.slice(0, 200);
+        } catch {
+          parsedErrMsg = errorText.slice(0, 200);
         }
+        const errDetail = `[Model ${model}] HTTP ${res.status}: ${parsedErrMsg}`;
+        modelErrors.push(errDetail);
+        console.warn(`[GeminiVision Diagnostic] ${errDetail}`);
         continue;
       }
 
@@ -145,7 +156,9 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
       const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
-        console.warn(`[GeminiVision] Model ${model} returned empty content parts.`);
+        const errDetail = `[Model ${model}] Empty content parts returned`;
+        modelErrors.push(errDetail);
+        console.warn(`[GeminiVision Diagnostic] ${errDetail}`);
         continue;
       }
 
@@ -160,14 +173,19 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
         ...parsed
       };
     } catch (err) {
+      const errDetail = `[Model ${model}] Exception: ${err.message}`;
+      modelErrors.push(errDetail);
       console.warn(`[GeminiVision] Attempt with ${model} failed:`, err.message);
     }
   }
 
   // Zero-False-Data: If AI call failed, do NOT guess or return fake database records
-  console.warn('[GeminiVision] All Gemini models failed or timed out. Returning explicit failure to prevent false advice.');
+  const allErrorsSummary = modelErrors.join(' | ') || 'All Gemini models failed or timed out';
+  console.warn('[GeminiVision] All Gemini models failed or timed out:', allErrorsSummary);
   return {
     success: false,
-    error: 'AI सर्वर से संपर्क नहीं हो सका। किसान भाइयों की सुरक्षा हेतु कोई भी अनुमानित (Dummy) रोग नहीं दिखाया जा रहा है। कृपया इंटरनेट कनेक्शन जांचें या नीचे दी गई सूची से अपनी फसल के दृश्य लक्षण चुनकर सटीक इलाज देखें।'
+    error: 'AI सर्वर से संपर्क नहीं हो सका। किसान भाइयों की सुरक्षा हेतु कोई भी अनुमानित (Dummy) रोग नहीं दिखाया जा रहा है। कृपया इंटरनेट कनेक्शन जांचें या नीचे दी गई सूची से अपनी फसल के दृश्य लक्षण चुनकर सटीक इलाज देखें।',
+    technicalError: allErrorsSummary,
+    modelErrors,
   };
 };

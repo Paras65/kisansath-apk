@@ -180,6 +180,13 @@ router.post('/crop-doctor/diagnose', async (req, res) => {
       district: cleanDistrict
     });
 
+    if (!diagnosis.success) {
+      logApiError('POST /crop-doctor/diagnose', req, {
+        message: diagnosis.technicalError || diagnosis.error,
+        modelErrors: diagnosis.modelErrors,
+      });
+    }
+
     res.json(diagnosis);
   } catch (err) {
     logApiError('POST /crop-doctor/diagnose', req, err);
