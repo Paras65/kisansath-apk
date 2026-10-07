@@ -80,6 +80,26 @@ export const getDiseases = async (cropId = '') => {
   return await fetchModuleWithCache(`/diseases${query}`, `diseases_${cropId || 'all'}`);
 };
 
+// 3b. CIB&RC Approved Safe Chemical Formulations (Zero-Fake-Data Policy)
+export const getCibrcPesticides = async (cropId = '', pest = '') => {
+  const params = [];
+  if (cropId && cropId !== 'all') params.push(`cropId=${encodeURIComponent(cropId)}`);
+  if (pest) params.push(`pest=${encodeURIComponent(pest)}`);
+  const query = params.length > 0 ? `?${params.join('&')}` : '';
+  return await fetchModuleWithCache(`/cibrc-pesticides${query}`, `cibrc_${cropId || 'all'}_${pest || 'all'}`);
+};
+
+// 3c. District Soil Health Card Survey Baseline (Zero-Fake-Data Policy)
+export const getDistrictSoilHealth = async (district = 'रायपुर') => {
+  const cleanDistrict = encodeURIComponent((district || 'रायपुर').trim());
+  return await fetchModuleWithCache(`/soil-health/${cleanDistrict}`, `soil_health_${cleanDistrict}`);
+};
+
+// 3d. Official CACP MSP Benchmarks (Zero-Fake-Data Policy)
+export const getMspBenchmarks = async () => {
+  return await fetchModuleWithCache('/msp-benchmarks', 'msp_benchmarks');
+};
+
 // 4. Mandi Rates (Zero-Key Live Agmarknet Engine with Zero-False-Data Policy)
 export const getMandiRates = async (options = {}) => {
   const force = options?.force === true;

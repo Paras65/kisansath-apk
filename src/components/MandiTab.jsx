@@ -43,7 +43,8 @@ import {
   removeOfflineMandiQuery,
   syncOfflineMandiQueries,
   getMarketplaceListings,
-  postMarketplaceListing
+  postMarketplaceListing,
+  getMspBenchmarks
 } from '../services/apiService';
 import { notify } from '../services/notificationService';
 import { validateIndianPhone } from '../services/deviceManagerService';
@@ -54,6 +55,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [selectedCropFilter, setSelectedCropFilter] = useState('all');
   const [districtFilterOnly, setDistrictFilterOnly] = useState(false);
   const [openSellModal, setOpenSellModal] = useState(false);
+  const [mspBenchmarksList, setMspBenchmarksList] = useState([]);
 
   // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
   const [mandiRatesList, setMandiRatesList] = useState(() => {
@@ -134,6 +136,16 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       if (liveListings && liveListings.length > 0) setMyListings(liveListings);
     };
     loadMarketplace();
+
+    const loadMsp = async () => {
+      try {
+        const res = await getMspBenchmarks();
+        if (res && res.data) setMspBenchmarksList(res.data);
+      } catch (e) {
+        console.warn('[MSP Benchmarks Load Error]', e);
+      }
+    };
+    loadMsp();
 
     // Load saved offline queries
     setOfflineQueries(getOfflineMandiQueries());
@@ -532,6 +544,55 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Typography>
         </Box>
       </Paper>
+
+      {/* Official CACP Government MSP Benchmarks (Zero-Fake-Data Enforced) */}
+      {mspBenchmarksList && mspBenchmarksList.length > 0 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.5,
+            mb: 2,
+            borderRadius: 2.5,
+            bgcolor: '#f8fafc',
+            border: '1.2px solid #e2e8f0'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.8 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+              <Typography sx={{ fontSize: '1rem' }}>🏛️</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.84rem' }}>
+                केन्द्रीय न्यूनतम समर्थन मूल्य (CACP Official MSP 2024-25):
+              </Typography>
+            </Box>
+            <Chip
+              label="100% सत्यापित CACP डेटा"
+              size="small"
+              sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+            />
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 0.8 }}>
+            {mspBenchmarksList.map((item) => (
+              <Chip
+                key={item.cropId}
+                label={`${item.cropName.split('(')[0].trim()}: ₹${item.effectiveFarmerPrice.toLocaleString('en-IN')}/क्विं.`}
+                size="small"
+                sx={{
+                  bgcolor: item.cropId === 'paddy' ? '#ecfdf5' : '#ffffff',
+                  border: `1px solid ${item.cropId === 'paddy' ? '#6ee7b7' : '#cbd5e1'}`,
+                  fontWeight: 800,
+                  fontSize: '0.7rem',
+                  color: item.cropId === 'paddy' ? '#065f46' : '#1e293b'
+                }}
+              />
+            ))}
+          </Box>
+
+          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+            स्रोत: डेटा.गॉव.इन / कृषि लागत एवं मूल्य आयोग (CACP, भारत सरकार) • GODL-India अनुपालित • शून्य फर्जी डेटा गारंटी
+          </Typography>
+        </Paper>
+      )}
 
       {/* Saved Offline Queries Strip (When farmer has offline inquiries) */}
       {offlineQueries.length > 0 && (

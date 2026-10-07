@@ -25,6 +25,45 @@ export const externalApisConfig = {
       .filter(Boolean),
   },
 
+  // 1b. data.gov.in / OGD Platform India (CIB&RC Registered Pesticides)
+  cibrc: {
+    baseUrl: (process.env.MANDI_API_BASE_URL || 'https://api.data.gov.in/resource/').trim(),
+    resourceId: (process.env.DATA_GOV_IN_CIBRC_RESOURCE_ID || '').trim(),
+    apiKey: (
+      process.env.DATA_GOV_IN_API_KEY ||
+      process.env.OGD_API_KEY ||
+      process.env.VITE_DATA_GOV_IN_API_KEY ||
+      ''
+    ).trim(),
+    timeoutMs: parseInt(process.env.OGD_API_TIMEOUT_MS, 10) || 8000,
+  },
+
+  // 1c. data.gov.in / OGD Platform India (District Soil Health Card Survey)
+  soilHealth: {
+    baseUrl: (process.env.MANDI_API_BASE_URL || 'https://api.data.gov.in/resource/').trim(),
+    resourceId: (process.env.DATA_GOV_IN_SOIL_RESOURCE_ID || '').trim(),
+    apiKey: (
+      process.env.DATA_GOV_IN_API_KEY ||
+      process.env.OGD_API_KEY ||
+      process.env.VITE_DATA_GOV_IN_API_KEY ||
+      ''
+    ).trim(),
+    timeoutMs: parseInt(process.env.OGD_API_TIMEOUT_MS, 10) || 8000,
+  },
+
+  // 1d. data.gov.in / CACP Official MSP Benchmarks
+  msp: {
+    baseUrl: (process.env.MANDI_API_BASE_URL || 'https://api.data.gov.in/resource/').trim(),
+    resourceId: (process.env.DATA_GOV_IN_MSP_RESOURCE_ID || '').trim(),
+    apiKey: (
+      process.env.DATA_GOV_IN_API_KEY ||
+      process.env.OGD_API_KEY ||
+      process.env.VITE_DATA_GOV_IN_API_KEY ||
+      ''
+    ).trim(),
+    timeoutMs: parseInt(process.env.OGD_API_TIMEOUT_MS, 10) || 8000,
+  },
+
   // 2. Google Gemini Multimodal Vision AI (AI Crop Doctor)
   gemini: {
     baseUrl: (process.env.GEMINI_API_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/models').trim().replace(/\/+$/, ''),

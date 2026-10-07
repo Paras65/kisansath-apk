@@ -14,6 +14,11 @@ import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
 import { diagnoseWithGeminiVision } from '../services/geminiVisionService.js';
 import { getOrFetchLiveMandiRates } from '../services/mandiLiveService.js';
 import { externalApisConfig } from '../config/externalApis.js';
+import {
+  getOrFetchCibrcPesticides,
+  getOrFetchDistrictSoilHealth,
+  getOrFetchMspBenchmarks,
+} from '../services/ogdLiveService.js';
 import crypto from 'node:crypto';
 import mongoose from 'mongoose';
 
@@ -78,14 +83,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.12';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.13';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'एकीकृत पारंपरिक नेटिव मोबाइल ऐप अनुभव, सुरक्षित हार्डवेयर बैक-बटन डायलॉग अनवाइंडिंग, प्लेटफॉर्म-अवेयर टूलबार और त्वरित अतिथि व किसान ऑनबोर्डिंग।',
+    releaseNotes: 'CIB&RC सरकारी अनुमोदित कीटनाशक व सुरक्षित तुड़ाई अंतराल (PHI), DAC&FW जिला मृदा स्वास्थ्य कार्ड सर्वेक्षण, CACP न्यूनतम समर्थन मूल्य मानक और शून्य फर्जी डेटा नीति एकीकरण।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -236,6 +241,41 @@ router.post('/mandi-rates/offline-query', async (req, res) => {
   } catch (err) {
     console.error('[Mandi Offline Query Sync Error]', err);
     res.status(500).json({ success: false, error: 'ऑफ़लाइन पूछताछ सिंक करने में समस्या आई।' });
+  }
+});
+
+// 4d. CIB&RC Approved Safe Chemical Formulations (Dynamic OGD Live Engine)
+router.get('/cibrc-pesticides', async (req, res) => {
+  try {
+    const cropId = sanitize(req.query.cropId || '', 50);
+    const targetPest = sanitize(req.query.pest || '', 50);
+    const forceRefresh = req.query.force === 'true';
+
+    const result = await getOrFetchCibrcPesticides({ cropId, pest: targetPest, forceRefresh });
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'CIB&RC डेटा लोड करने में असमर्थ।' });
+  }
+});
+
+// 4e. District Soil Health Card Survey Baseline (Dynamic OGD Live Engine)
+router.get('/soil-health/:district', async (req, res) => {
+  try {
+    const districtName = sanitize(req.params.district || 'रायपुर', 50);
+    const result = await getOrFetchDistrictSoilHealth(districtName);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'मृदा स्वास्थ्य डेटा लोड करने में असमर्थ।' });
+  }
+});
+
+// 4f. Official CACP MSP Benchmarks & Price Policies (Dynamic OGD Live Engine)
+router.get('/msp-benchmarks', async (req, res) => {
+  try {
+    const result = await getOrFetchMspBenchmarks();
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: 'MSP मानक डेटा लोड करने में असमर्थ।' });
   }
 });
 

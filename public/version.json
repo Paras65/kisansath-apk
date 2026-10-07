@@ -1,8 +1,8 @@
 {
-  "version": "1.0.12",
+  "version": "1.0.13",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.12",
-  "releaseNotes": "एकीकृत पारंपरिक नेटिव मोबाइल ऐप अनुभव, सुरक्षित हार्डवेयर बैक-बटन डायलॉग अनवाइंडिंग, प्लेटफॉर्म-अवेयर टूलबार और त्वरित अतिथि व किसान ऑनबोर्डिंग।",
+  "releaseName": "किसान साथी v1.0.13",
+  "releaseNotes": "CIB&RC सरकारी अनुमोदित कीटनाशक व सुरक्षित तुड़ाई अंतराल (PHI), DAC&FW जिला मृदा स्वास्थ्य कार्ड सर्वेक्षण, CACP न्यूनतम समर्थन मूल्य मानक और शून्य फर्जी डेटा नीति एकीकरण।",
   "updatedAt": "2026-10-07"
 }

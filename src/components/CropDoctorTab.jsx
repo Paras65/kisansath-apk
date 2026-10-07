@@ -33,13 +33,15 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
 import SecurityIcon from '@mui/icons-material/Security';
 import CloudQueueIcon from '@mui/icons-material/CloudQueue';
+import CallIcon from '@mui/icons-material/Call';
 import SyncIcon from '@mui/icons-material/Sync';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
-import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData } from '../services/apiService';
+import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides } from '../services/apiService';
 import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
+import { openNativeDialer } from '../utils/capacitorUtils';
 
 // Visual Symptom Quick Filter Taxonomy
 const VISUAL_SYMPTOMS = [
@@ -115,6 +117,8 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     };
   }, [selectedDistrict]);
 
+  const [cibrcList, setCibrcList] = useState([]);
+
   // Load live data from MongoDB if available
   const loadFromMongo = async () => {
     const liveCrops = await getCrops();
@@ -129,6 +133,43 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   useEffect(() => {
     loadFromMongo();
   }, []);
+
+  // Synchronize official CIB&RC certified formulations
+  useEffect(() => {
+    let isMounted = true;
+    const fetchCibrc = async () => {
+      try {
+        const res = await getCibrcPesticides(selectedCrop);
+        if (isMounted && res && res.data) {
+          setCibrcList(res.data);
+        }
+      } catch (e) {
+        console.warn('[CIBRC Pesticides Fetch Error]', e);
+      }
+    };
+    fetchCibrc();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedCrop]);
+
+  const getMatchingCibrc = (disease) => {
+    if (!disease || !cibrcList || cibrcList.length === 0) return null;
+    const dName = (disease.diseaseName || '').toLowerCase();
+    const dSym = (disease.symptoms || '').toLowerCase();
+    const dChem = (disease.chemicalRemedy || '').toLowerCase();
+
+    return (
+      cibrcList.find((item) => {
+        const pName = (item.targetPest || '').toLowerCase().slice(0, 4);
+        const gName = (item.genericName || '').toLowerCase().slice(0, 6);
+        return (
+          (item.cropId === disease.cropId || disease.cropId === 'all') &&
+          (dName.includes(pName) || dChem.includes(gName) || dSym.includes(pName))
+        );
+      }) || null
+    );
+  };
 
   // Filter diseases based on selected crop, symptom, and search text
   const filteredDiseases = diseasesList.filter((d) => {
@@ -1348,31 +1389,111 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     </Typography>
                   </Paper>
 
-                  {/* Chemical Remedy */}
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.8,
-                      bgcolor: '#e3f2fd',
-                      borderRadius: 2.5,
-                      border: '1.5px solid #bbdefb'
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.6 }}>
-                      <ScienceIcon sx={{ color: '#1565c0', fontSize: 18 }} />
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0d47a1', fontSize: '0.86rem' }}>
-                        रासायनिक दवा व तकनीकी नाम (Chemical Medicine):
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" sx={{ color: '#0d47a1', fontSize: '0.82rem', lineHeight: 1.55 }}>
-                      {activeDisease.chemicalRemedy}
-                    </Typography>
-                  </Paper>
+                  {/* Chemical Remedy & CIB&RC Certified Active Formulation */}
+                  {(() => {
+                    const matchedCibrc = getMatchingCibrc(activeDisease);
+                    return (
+                      <Paper
+                        elevation={0}
+                        sx={{
+                          p: 1.8,
+                          bgcolor: '#e3f2fd',
+                          borderRadius: 2.5,
+                          border: '1.5px solid #bbdefb'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.8, mb: 0.8, flexWrap: 'wrap' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                            <ScienceIcon sx={{ color: '#1565c0', fontSize: 18 }} />
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0d47a1', fontSize: '0.86rem' }}>
+                              रासायनिक दवा व तकनीकी नाम (Chemical Medicine):
+                            </Typography>
+                          </Box>
+                          {matchedCibrc ? (
+                            <Chip
+                              icon={<VerifiedIcon sx={{ fontSize: '13px !important', color: '#1565c0 !important' }} />}
+                              label="🛡️ CIB&RC अनुमोदित"
+                              size="small"
+                              sx={{ bgcolor: '#fff', color: '#1565c0', fontWeight: 800, fontSize: '0.68rem', height: 22, border: '1px solid #90caf9' }}
+                            />
+                          ) : (
+                            <Chip
+                              label="🛡️ शून्य फर्जी डेटा नीति"
+                              size="small"
+                              sx={{ bgcolor: '#fff3e0', color: '#e65100', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+                            />
+                          )}
+                        </Box>
+
+                        <Typography variant="body2" sx={{ color: '#0d47a1', fontSize: '0.82rem', lineHeight: 1.55, mb: 1 }}>
+                          {activeDisease.chemicalRemedy}
+                        </Typography>
+
+                        {/* CIB&RC Pre-Harvest Interval (PHI) & Government Verified Dosage Specs */}
+                        {matchedCibrc ? (
+                          <Box sx={{ mt: 1.2, p: 1.2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #90caf9' }}>
+                            <Typography variant="caption" sx={{ color: '#0284c7', fontWeight: 800, display: 'block', mb: 0.6, fontSize: '0.74rem' }}>
+                              📋 CIB&RC आधिकारिक तकनीकी विवरण (Official CIB&RC Label Claim):
+                            </Typography>
+
+                            <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 0.8 }}>
+                              <Chip
+                                label={`⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन`}
+                                size="small"
+                                sx={{
+                                  bgcolor: matchedCibrc.phiDays <= 7 ? '#e8f5e9' : matchedCibrc.phiDays <= 21 ? '#fff8e1' : '#ffebee',
+                                  color: matchedCibrc.phiDays <= 7 ? '#2e7d32' : matchedCibrc.phiDays <= 21 ? '#b78103' : '#c62828',
+                                  fontWeight: 800,
+                                  fontSize: '0.7rem'
+                                }}
+                              />
+                              <Chip
+                                label={`🎒 15L पंप: ${matchedCibrc.dosagePerPump15L}`}
+                                size="small"
+                                sx={{ bgcolor: '#f0fdf4', color: '#15803d', fontWeight: 700, fontSize: '0.68rem' }}
+                              />
+                              <Chip
+                                label={`💧 प्रति एकड़: ${matchedCibrc.dosagePerAcre}`}
+                                size="small"
+                                sx={{ bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 700, fontSize: '0.68rem' }}
+                              />
+                            </Box>
+
+                            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', mb: 0.4 }}>
+                              ⚠️ <strong>तुड़ाई पूर्व अंतराल (PHI):</strong> कटाई से कम से कम <strong>{matchedCibrc.phiDays} दिन पूर्व</strong> छिड़काव बंद करना अनिवार्य है ताकि उपज में रासायनिक अवशेष न रहें (FSSAI/निर्यात सुरक्षा)।
+                            </Typography>
+
+                            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                              🔒 {matchedCibrc.safetyEquipment} • {matchedCibrc.cibrcRegRef}
+                            </Typography>
+                          </Box>
+                        ) : (
+                          <Alert
+                            severity="warning"
+                            icon={<SecurityIcon sx={{ fontSize: 18 }} />}
+                            sx={{ mt: 1, p: 0.8, borderRadius: 2, bgcolor: '#fffde7', border: '1px solid #fff59d' }}
+                          >
+                            <Typography variant="caption" sx={{ color: '#795548', fontSize: '0.72rem', display: 'block', lineHeight: 1.4 }}>
+                              🛡️ <strong>शून्य फर्जी डेटा नीति:</strong> इस कीट/रोग हेतु कोई मनगढ़ंत रासायनिक दवा नहीं दिखाई गई है। केवल जैविक उपचार अपनाएं या विशेषज्ञ सलाह हेतु KCC हेल्पलाइन पर संपर्क करें।
+                            </Typography>
+                            <Button
+                              size="small"
+                              startIcon={<CallIcon sx={{ fontSize: 13 }} />}
+                              onClick={() => openNativeDialer('18001801551')}
+                              sx={{ mt: 0.5, py: 0.2, px: 1, fontSize: '0.68rem', color: '#e65100', borderColor: '#ffb74d', bgcolor: '#fff', border: '1px solid' }}
+                            >
+                              किसान कॉल सेंटर (1800-180-1551)
+                            </Button>
+                          </Alert>
+                        )}
+                      </Paper>
+                    );
+                  })()}
                 </Box>
               </Grid>
             </Grid>
 
-            {/* Scientific Disclaimer Footer */}
+            {/* Scientific Disclaimer & GODL Attribution Footer */}
             <Box
               sx={{
                 p: 1.2,
@@ -1386,7 +1507,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             >
               <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', fontWeight: 600 }}>
-                प्रमाणित कृषि विज्ञान केंद्र (KVK) व इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसा आधारित पर्ची।
+                प्रमाणित CIB&RC (केंद्रीय कीटनाशी बोर्ड), KVK एवं इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसा आधारित • स्रोत: डेटा.गॉव.इन (GODL-India अनुपालित)
               </Typography>
             </Box>
           </CardContent>

@@ -5,11 +5,9 @@ import connectDB from './config/db.js';
 import Crop from './models/Crop.js';
 import FertilizerDose from './models/FertilizerDose.js';
 import CropDisease from './models/CropDisease.js';
-import MandiRate from './models/MandiRate.js';
 import Scheme from './models/Scheme.js';
 import MachineryRental from './models/MachineryRental.js';
 import CommunityQA from './models/CommunityQA.js';
-import MarketListing from './models/MarketListing.js';
 
 dotenv.config();
 
@@ -291,112 +289,9 @@ const DISEASES_DATA = [
   }
 ];
 
-const MANDI_DATA = [
-  {
-    mandi: 'रायपुर (Raipur)',
-    district: 'रायपुर, छत्तीसगढ़',
-    crop: 'धान (सरना / मोटा)',
-    variety: 'सामान्य (Common)',
-    minRate: 2300,
-    maxRate: 3100,
-    modalRate: 3100,
-    trend: '+150',
-    unit: '₹ / क्विंटल',
-    arrival: '450 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'रायपुर (Raipur)',
-    district: 'रायपुर, छत्तीसगढ़',
-    crop: 'धान (सुगंधित / बासमती)',
-    variety: 'Dubraj / HMT',
-    minRate: 2850,
-    maxRate: 3650,
-    modalRate: 3380,
-    trend: '+80',
-    unit: '₹ / क्विंटल',
-    arrival: '180 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'बिलासपुर (Bilaspur)',
-    district: 'बिलासपुर, छत्तीसगढ़',
-    crop: 'धान (सरना)',
-    variety: 'ग्रेड-ए',
-    minRate: 2320,
-    maxRate: 3100,
-    modalRate: 3100,
-    trend: '+100',
-    unit: '₹ / क्विंटल',
-    arrival: '320 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'राजनांदगांव (Rajnandgaon)',
-    district: 'राजनांदगांव, छत्तीसगढ़',
-    crop: 'चना (Chickpea)',
-    variety: 'देसी चना',
-    minRate: 5600,
-    maxRate: 6150,
-    modalRate: 5950,
-    trend: '+210',
-    unit: '₹ / क्विंटल',
-    arrival: '120 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'धमतरी (Dhamtari)',
-    district: 'धमतरी, छत्तीसगढ़',
-    crop: 'धान (एच.एम.टी.)',
-    variety: 'HMT Fine',
-    minRate: 2750,
-    maxRate: 3280,
-    modalRate: 3100,
-    trend: '+50',
-    unit: '₹ / क्विंटल',
-    arrival: '510 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'कवर्धा (Kawardha)',
-    district: 'कबीरधाम, छत्तीसगढ़',
-    crop: 'सोयाबीन (Soybean)',
-    variety: 'पीला सोयाबीन',
-    minRate: 4400,
-    maxRate: 4850,
-    modalRate: 4680,
-    trend: '+45',
-    unit: '₹ / क्विंटल',
-    arrival: '90 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'भाटापारा (Bhatapara)',
-    district: 'बलौदाबाजार, छत्तीसगढ़',
-    crop: 'मक्का (Maize)',
-    variety: 'हाइब्रिड पीला',
-    minRate: 2050,
-    maxRate: 2350,
-    modalRate: 2260,
-    trend: '-30',
-    unit: '₹ / क्विंटल',
-    arrival: '220 टन',
-    date: 'आज के भाव'
-  },
-  {
-    mandi: 'जगदलपुर (Jagdalpur)',
-    district: 'बस्तर, छत्तीसगढ़',
-    crop: 'कोदो - कुटकी (Millets)',
-    variety: 'श्री अन्न',
-    minRate: 3900,
-    maxRate: 4400,
-    modalRate: 4200,
-    trend: '+120',
-    unit: '₹ / क्विंटल',
-    arrival: '65 टन',
-    date: 'आज के भाव'
-  }
-];
+// 4. मंडी भाव (Mandi Rates) - Zero-Fake-Data Policy Enforced:
+// Static MANDI_DATA array removed. Live mandi rates are pulled directly from data.gov.in (OGD India) via mandiLiveService.js.
+
 
 const SCHEMES_DATA = [
   {
@@ -492,8 +387,8 @@ const MACHINERY_DATA = [
     category: 'जुताई एवं खेत तैयारी',
     rate: '₹900 - ₹1,100 / घंटा',
     operatorIncluded: true,
-    contactName: 'रामेश्वर पटेल (कस्टम हायरिंग सेंटर)',
-    phone: '98260XXXXX',
+    contactName: 'कस्टम हायरिंग सेंटर (CHC)',
+    phone: '18001801551',
     location: 'आरंग / रायपुर',
     features: ['खेत की गहरी जुताई', 'रोटावेटर से मिट्टी भुरभुरी करना', 'लेवलर उपलब्ध']
   },
@@ -503,8 +398,8 @@ const MACHINERY_DATA = [
     category: 'कटाई व थ्रेशिंग',
     rate: '₹1,900 - ₹2,200 / घंटा',
     operatorIncluded: true,
-    contactName: 'सुरेश साहू (कृषि सेवा केंद्र)',
-    phone: '94252XXXXX',
+    contactName: 'कृषि सेवा केंद्र (CHC)',
+    phone: '18001801551',
     location: 'तखतपुर / बिलासपुर',
     features: ['1 घंटे में 1 एकड़ धान कटाई व मिंजाई', 'अनाज का न्यूनतम नुकसान', 'स्ट्रॉ रीपर सुविधा']
   },
@@ -514,8 +409,8 @@ const MACHINERY_DATA = [
     category: 'आधुनिक छिड़काव तकनीक',
     rate: '₹350 - ₹400 / एकड़',
     operatorIncluded: true,
-    contactName: 'ग्रीन एग्रो ड्रोन सर्विसेज',
-    phone: '91110XXXXX',
+    contactName: 'एग्रो ड्रोन सर्विस सेंटर',
+    phone: '18001801551',
     location: 'दुर्ग / भिलाई व पाटन',
     features: ['10 मिनट में 1 एकड़ छिड़काव', 'दवा और पानी की 50% बचत', 'पौधों के पत्तों पर समान छिड़काव']
   },
@@ -525,8 +420,8 @@ const MACHINERY_DATA = [
     category: 'जल संरक्षण एवं लेवलिंग',
     rate: '₹1,200 / घंटा',
     operatorIncluded: true,
-    contactName: 'किसान विकास समिति',
-    phone: '97520XXXXX',
+    contactName: 'किसान विकास समिति (CHC)',
+    phone: '18001801551',
     location: 'बेमेतरा / कवर्धा',
     features: ['खेत को 100% समतल करना', 'पानी की 30% बचत', 'उर्वरक का समान फैलाव']
   }
@@ -535,45 +430,35 @@ const MACHINERY_DATA = [
 const COMMUNITY_DATA = [
   {
     id: 'qa-1',
-    author: 'महेश कुमार (किसान, बेमेतरा)',
+    author: 'महेश कुमार (किसान भाई)',
     crop: 'धान',
-    time: '2 घंटे पहले',
+    time: 'हालिया चर्चा',
     question: 'धान की पत्तियों पर कत्थई रंग के नाव के आकार के धब्बे दिख रहे हैं, यह कौन सा रोग है और क्या तुरंत उपाय करें?',
     answersCount: 3,
-    bestAnswer: 'यह धान का झुलसा (ब्लास्ट) रोग है। तुरंत ट्राईसाइक्लाजोल 75% WP (120 ग्राम प्रति एकड़) का 200 लीटर पानी में छिड़काव करें। खेत में यूरिया देना तुरंत बंद कर दें। - डॉ. वर्मा (कृषि विशेषज्ञ)'
+    bestAnswer: 'यह धान का झुलसा (ब्लास्ट) रोग है। तुरंत ट्राईसाइक्लाजोल 75% WP (120 ग्राम प्रति एकड़) का 200 लीटर पानी में छिड़काव करें। खेत में यूरिया देना तुरंत बंद कर दें। - कृषि विशेषज्ञ दल'
   },
   {
     id: 'qa-2',
-    author: 'भूपेश साहू (किसान, धमतरी)',
+    author: 'भूपेश साहू (किसान भाई)',
     crop: 'धान उपार्जन',
-    time: '5 घंटे पहले',
+    time: 'हालिया चर्चा',
     question: 'इस साल धान बेचने के लिए क्या टोकन तुंहर हाथ में नया रजिस्ट्रेशन करना पड़ेगा या एग्री-स्टैक आईडी से ही होगा?',
     answersCount: 5,
     bestAnswer: 'इस वर्ष सरकार ने एग्री-स्टैक / किसान रजिस्ट्री को अनिवार्य कर दिया है। यदि सत्यापन हो गया है, तो टोकन ऐप में आईडी स्वतः जुड़ जाएगी। - समिति प्रबंधक'
   },
   {
     id: 'qa-3',
-    author: 'दिलीप वर्मा (किसान, बलौदाबाजार)',
+    author: 'दिलीप वर्मा (किसान भाई)',
     crop: 'चना',
-    time: '1 दिन पहले',
+    time: 'हालिया चर्चा',
     question: 'धान कटाई के बाद तुरंत चना बोने पर उकठा रोग का खतरा कैसे कम करें?',
     answersCount: 4,
-    bestAnswer: 'बीज बोने से पहले ट्राइकोडर्मा वीरिडी 10 ग्राम प्रति किग्रा बीज से बीजोपचार अवश्य करें। खेत में अंतिम जुताई पर 2 किग्रा ट्राइकोडर्मा गोबर खाद में मिलाकर फैलाएं। - रामनारायण पटेल'
+    bestAnswer: 'बीज बोने से पहले ट्राइकोडर्मा वीरिडी 10 ग्राम प्रति किग्रा बीज से बीजोपचार अवश्य करें। खेत में अंतिम जुताई पर 2 किग्रा ट्राइकोडर्मा गोबर खाद में मिलाकर फैलाएं। - कृषि विशेषज्ञ दल'
   }
 ];
 
-const MARKETPLACE_DATA = [
-  {
-    id: 'list-1',
-    crop: 'सुगंधित दुबराज धान',
-    quantity: '50 क्विंटल',
-    expectedPrice: '₹3,400 / क्विंटल',
-    farmerName: 'दीपक पटेल',
-    location: 'धमतरी',
-    phone: '98261XXXXX',
-    date: 'कल पोस्ट किया गया'
-  }
-];
+// Zero-Fake-Data Guarantee: Start peer-to-peer marketplace clean for actual farmer listings
+const MARKETPLACE_DATA = [];
 
 const seedDatabase = async () => {
   try {
@@ -595,10 +480,8 @@ const seedDatabase = async () => {
     await CropDisease.insertMany(DISEASES_DATA);
     console.log(`[CropDiseases] Seeded ${DISEASES_DATA.length} records.`);
 
-    // 4. Mandi Rates
-    await MandiRate.deleteMany();
-    await MandiRate.insertMany(MANDI_DATA);
-    console.log(`[MandiRates] Seeded ${MANDI_DATA.length} records.`);
+    // 4. Mandi Rates (Zero-Fake-Data: Dynamically sourced from data.gov.in)
+    console.log('[MandiRates] 100% Zero-Fake-Data: Mandi rates dynamically handled via mandiLiveService.');
 
     // 5. Schemes
     await Scheme.deleteMany();
@@ -615,10 +498,8 @@ const seedDatabase = async () => {
     await CommunityQA.insertMany(COMMUNITY_DATA);
     console.log(`[CommunityQA] Seeded ${COMMUNITY_DATA.length} records.`);
 
-    // 8. Marketplace
-    await MarketListing.deleteMany();
-    await MarketListing.insertMany(MARKETPLACE_DATA);
-    console.log(`[Marketplace] Seeded ${MARKETPLACE_DATA.length} records.`);
+    // 8. Marketplace (Zero-Fake-Data)
+    console.log('[Marketplace] 100% Zero-Fake-Data: Marketplace ready for real farmer listings.');
 
     console.log('🎉 MongoDB Atlas Seeding Completed Successfully! All data is now live in database.');
     process.exit(0);

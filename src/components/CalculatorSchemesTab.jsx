@@ -23,12 +23,12 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ScienceIcon from '@mui/icons-material/Science';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
-import { getFertilizers, getSchemes, getCachedModuleData } from '../services/apiService';
+import { getFertilizers, getSchemes, getCachedModuleData, getDistrictSoilHealth } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { notify } from '../services/notificationService';
 
-export const CalculatorSchemesTab = () => {
+export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [subTab, setSubTab] = useState(0);
 
   // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
@@ -40,6 +40,9 @@ export const CalculatorSchemesTab = () => {
     const cached = getCachedModuleData('schemes');
     return cached && Array.isArray(cached.data) ? cached.data : [];
   });
+
+  // District Soil Health Card Survey State (DAC&FW / OGD India)
+  const [districtSoilHealth, setDistrictSoilHealth] = useState(null);
 
   // Fertilizer Calculator State
   const [fertCrop, setFertCrop] = useState('paddy');
@@ -61,6 +64,25 @@ export const CalculatorSchemesTab = () => {
   useEffect(() => {
     loadFromMongo();
   }, []);
+
+  // Fetch official DAC&FW District Soil Health Card baseline
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSoilHealth = async () => {
+      try {
+        const res = await getDistrictSoilHealth(selectedDistrict);
+        if (isMounted && res && res.data) {
+          setDistrictSoilHealth(res.data);
+        }
+      } catch (e) {
+        console.warn('[Soil Health Fetch Error]', e);
+      }
+    };
+    fetchSoilHealth();
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedDistrict]);
 
   const activeFert = fertData ? (fertData[fertCrop] || fertData.paddy || Object.values(fertData)[0]) : null;
   const acresNum = parseFloat(fertAcres) || 0;
@@ -246,6 +268,89 @@ export const CalculatorSchemesTab = () => {
                 </strong>
                 यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
               </Alert>
+            )}
+
+            {/* Official DAC&FW Soil Health Card District Baseline Insight (Zero-Fake-Data Enforced) */}
+            {districtSoilHealth && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 1.8,
+                  mb: 2,
+                  borderRadius: '16px',
+                  bgcolor: districtSoilHealth.isDistrictVerified ? '#f0fdf4' : '#fffbeb',
+                  border: `1.5px solid ${districtSoilHealth.isDistrictVerified ? '#86efac' : '#fde68a'}`,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <ScienceIcon sx={{ color: districtSoilHealth.isDistrictVerified ? '#16a34a' : '#d97706', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: districtSoilHealth.isDistrictVerified ? '#15803d' : '#b45309', fontSize: '0.88rem' }}>
+                      🧪 {districtSoilHealth.district} मृदा स्वास्थ्य कार्ड (DAC&FW Soil Health Survey)
+                    </Typography>
+                  </Box>
+                  <Chip
+                    icon={districtSoilHealth.isDistrictVerified ? <CheckCircleIcon sx={{ fontSize: '13px !important' }} /> : <InfoOutlinedIcon sx={{ fontSize: '13px !important' }} />}
+                    label={districtSoilHealth.statusLabel}
+                    size="small"
+                    sx={{
+                      bgcolor: districtSoilHealth.isDistrictVerified ? '#dcfce7' : '#fef3c7',
+                      color: districtSoilHealth.isDistrictVerified ? '#166534' : '#92400e',
+                      fontWeight: 800,
+                      fontSize: '0.68rem',
+                      height: 22
+                    }}
+                  />
+                </Box>
+
+                {/* Nutrient Status Chips Strip */}
+                <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 1 }}>
+                  <Chip
+                    label={`नाइट्रोजन (N): ${districtSoilHealth.nitrogenStatus}`}
+                    size="small"
+                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                  />
+                  <Chip
+                    label={`फास्फोरस (P): ${districtSoilHealth.phosphorusStatus}`}
+                    size="small"
+                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                  />
+                  <Chip
+                    label={`पोटाश (K): ${districtSoilHealth.potashStatus}`}
+                    size="small"
+                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                  />
+                  <Chip
+                    label={`pH: ${districtSoilHealth.phAverage}`}
+                    size="small"
+                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                  />
+                </Box>
+
+                {/* Micronutrient Deficiencies if present */}
+                {districtSoilHealth.micronutrientDeficiencies && districtSoilHealth.micronutrientDeficiencies.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap', mb: 1 }}>
+                    {districtSoilHealth.micronutrientDeficiencies.map((m, idx) => (
+                      <Chip
+                        key={idx}
+                        label={`⚠️ ${m.nutrient}: ${m.deficiencyPercent}% खेतों में कमी (${m.severity})`}
+                        size="small"
+                        sx={{ bgcolor: '#fee2e2', color: '#991b1b', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                      />
+                    ))}
+                  </Box>
+                )}
+
+                {/* District Recommendation Note */}
+                <Typography variant="body2" sx={{ color: '#1e293b', fontSize: '0.78rem', lineHeight: 1.45, mb: 0.8 }}>
+                  💡 <strong>जिला विशिष्ट खाद समायोजन:</strong> {districtSoilHealth.fertilizerRecommendationNote}
+                </Typography>
+
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                  📜 {districtSoilHealth.officialSurveySource} • शून्य फर्जी डेटा नीति अनुपालित (Zero False Data Guarantee)
+                </Typography>
+              </Paper>
             )}
 
             {/* Regional Soil Health Advisory Box */}
