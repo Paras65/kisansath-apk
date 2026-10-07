@@ -1,8 +1,8 @@
 {
-  "version": "1.0.17",
+  "version": "1.0.18",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.17",
-  "releaseNotes": "सम्पूर्ण सुरक्षा हार्डनिंग, MongoDB URI व API कुंजी डीप-स्क्रबिंग, किसान पिन प्राइवेसी सुरक्षा एवं जीरो-लीक लॉग्स।",
+  "releaseName": "किसान साथी v1.0.18",
+  "releaseNotes": "Google Gemini 3.8/3.5 Flash आधुनिक विज़न AI मॉडल इंटीग्रेशन एवं कॉन्फ़िगरेबल डिबग मोड।",
   "updatedAt": "2026-10-07"
 }

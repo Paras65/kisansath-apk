@@ -42,6 +42,7 @@ import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
 import { openNativeDialer } from '../utils/capacitorUtils';
+import { appConfig } from '../config/appConfig';
 
 // Visual Symptom Quick Filter Taxonomy
 const VISUAL_SYMPTOMS = [
@@ -251,12 +252,14 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
 
             // Zero-False-Data Enforcement: If AI failed, do NOT show fake/dummy data
             if (!diagResult || diagResult.success === false) {
-              console.error('🚨 [Crop Doctor Diagnostic Failure (Photo Scan)]:', diagResult?.error);
-              console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
-              if (diagResult?.modelErrors?.length) {
-                console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+              if (appConfig.debugMode) {
+                console.error('🚨 [Crop Doctor Diagnostic Failure (Photo Scan)]:', diagResult?.error);
+                console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
+                if (diagResult?.modelErrors?.length) {
+                  console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+                }
+                console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
               }
-              console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
 
               setScanError(
                 diagResult?.error ||
@@ -316,7 +319,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             }, 180);
           } catch (err) {
             setAnalyzing(false);
-            console.error('[CropDoctor Scan Error]', err);
+            if (appConfig.debugMode) {
+              console.error('[CropDoctor Scan Error]', err);
+            }
             setScanError('फोटो विश्लेषण में तकनीकी समस्या आई। गलत जानकारी से बचने के लिए कोई डमी डेटा नहीं दिखाया गया है।');
             notify.error('फोटो विश्लेषण में त्रुटि हुई। कृपया पुनः प्रयास करें।');
           }
@@ -388,12 +393,14 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       setIsSyncingPending(false);
 
       if (!diagResult || diagResult.success === false) {
-        console.error('🚨 [Crop Doctor Diagnostic Failure (Offline Recheck)]:', diagResult?.error);
-        console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
-        if (diagResult?.modelErrors?.length) {
-          console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+        if (appConfig.debugMode) {
+          console.error('🚨 [Crop Doctor Diagnostic Failure (Offline Recheck)]:', diagResult?.error);
+          console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
+          if (diagResult?.modelErrors?.length) {
+            console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+          }
+          console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
         }
-        console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
 
         setScanError(
           diagResult?.error ||
@@ -944,7 +951,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               🛡️ <strong>शून्य गलत डेटा नीति (Zero-False-Data Policy):</strong> किसान साथी किसानों की फसल सुरक्षा को सर्वोच्च प्राथमिकता देता है और बिना सटीक AI विश्लेषण के कोई भी फर्जी या अनुमानित (Dummy) डेटा नहीं दिखाता। आप नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर भारतीय कृषि अनुसंधान परिषद (ICAR) अनुमोदित प्रमाणिक इलाज देख सकते हैं।
             </Typography>
 
-            {scanTechnicalError && (
+            {appConfig.debugMode && scanTechnicalError && (
               <Box
                 sx={{
                   mt: 1.2,

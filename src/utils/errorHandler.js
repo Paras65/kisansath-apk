@@ -1,6 +1,8 @@
 // किसान साथी - Centralized Client API Error Handler & Debugger
 // Single Source of Truth for Browser DevTools Diagnostics, Structured Logging & Offline Fallbacks (Rule 12)
 
+import { appConfig } from '../config/appConfig';
+
 /**
  * Safely parses response error payload from fetch response
  * Prevents JSON parse crashes when backend returns HTML, plain text, or empty body.
@@ -78,7 +80,9 @@ export const logClientApiError = (endpoint, res, errorData = {}, context = {}) =
     raw: errorData?.raw !== undefined ? errorData.raw : errorData,
   };
 
-  console.error(`🚨 [Kisan API Client Error] ${method} ${endpoint} [HTTP ${status}]:`, sanitizeClientDetails(details));
+  if (appConfig?.debugMode) {
+    console.error(`🚨 [Kisan API Client Error] ${method} ${endpoint} [HTTP ${status}]:`, sanitizeClientDetails(details));
+  }
   return details;
 };
 
@@ -98,7 +102,9 @@ export const logClientNetworkError = (endpoint, err, context = {}) => {
     ...context,
   };
 
-  console.error(`🚨 [Kisan API Network/Offline Error] ${method} ${endpoint}:`, sanitizeClientDetails(details));
+  if (appConfig?.debugMode) {
+    console.error(`🚨 [Kisan API Network/Offline Error] ${method} ${endpoint}:`, sanitizeClientDetails(details));
+  }
   return details;
 };
 

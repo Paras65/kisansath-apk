@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.17';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.18';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सम्पूर्ण सुरक्षा हार्डनिंग, MongoDB URI व API कुंजी डीप-स्क्रबिंग, किसान पिन प्राइवेसी सुरक्षा एवं जीरो-लीक लॉग्स।',
+    releaseNotes: 'Google Gemini 3.8/3.5 Flash आधुनिक विज़न AI मॉडल इंटीग्रेशन एवं कॉन्फ़िगरेबल डिबग मोड।',
     updatedAt: new Date().toISOString()
   });
 });

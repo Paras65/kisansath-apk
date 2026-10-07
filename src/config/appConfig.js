@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.17',
+  appVersion: env.VITE_APP_VERSION || '1.0.18',
   defaultLang: env.VITE_DEFAULT_LANG || 'hi',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -80,6 +80,15 @@ export const appConfig = {
     mandiUrl: env.VITE_MANDI_API_URL || '',
     aiVisionUrl: env.VITE_AI_VISION_API_URL || '',
   },
+  // 6. Diagnostics & Debugging Mode (Zero-Code Dynamic Configuration)
+  debugMode:
+    env.VITE_DEBUG_MODE === 'true' ||
+    env.VITE_DEBUG_MODE === '1' ||
+    Boolean(
+      typeof window !== 'undefined' &&
+        (window.__KISAN_DEBUG__ === true ||
+          window.localStorage?.getItem('kisan_debug_mode') === 'true')
+    ),
 };
 
 export default appConfig;

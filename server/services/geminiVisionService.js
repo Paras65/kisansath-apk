@@ -99,7 +99,7 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 }`;
 
   // Multi-model fallback cascade read dynamically from externalApisConfig (.env GEMINI_MODELS)
-  const defaultModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash-lite', 'gemini-1.5-pro'];
+  const defaultModels = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
   const modelsToTry = models.length > 0 ? Array.from(new Set([...models, ...defaultModels])) : defaultModels;
 
   const modelErrors = [];
