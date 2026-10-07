@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.20';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.21';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'छत्तीसगढ़ी-फर्स्ट भाषा, 1-टैप भाषा स्विच, वॉयस माइक सर्च व शून्य-टाइपिंग चिप्स, एकड़-डिसमिल कन्वर्टर, बारदाना जूट बोरी कैलकुलेटर एवं डांड/बाहरा खेत एडवाइजरी।',
+    releaseNotes: 'पारंपरिक दोहरी कार्यप्रणाली: अतिथि किसानों हेतु सार्वजनिक किसान सुविधा पोर्टल (100% खुला) एवं पंजीकृत किसानों हेतु डिजिटल किसान पहचान पत्र व पासबुक, लाइव सक्रिय खेत व दैनिक कार्य फीड।',
     updatedAt: new Date().toISOString()
   });
 });
