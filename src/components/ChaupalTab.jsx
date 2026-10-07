@@ -319,9 +319,9 @@ export const ChaupalTab = () => {
       {/* Modern Capsule Tab Switcher */}
       <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
         {[
-          { label: 'मशीनरी रेंटल', icon: <PrecisionManufacturingIcon sx={{ fontSize: 18 }} /> },
-          { label: 'किसान चौपाल', icon: <ForumIcon sx={{ fontSize: 18 }} /> },
-          { label: 'मेरी फसल डायरी', icon: <BookmarksIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? '🚜 मशीन किराया' : 'मशीनरी रेंटल', icon: <PrecisionManufacturingIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? '💬 किसान चौपाल' : 'किसान चौपाल', icon: <ForumIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? '📖 मोर फसल डायरी' : 'मेरी फसल डायरी', icon: <BookmarksIcon sx={{ fontSize: 18 }} /> },
         ].map((item, idx) => (
           <Button
             key={idx}
@@ -355,10 +355,10 @@ export const ChaupalTab = () => {
           <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल
+                {isChhattisgarhi ? '🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल' : '🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                ट्रैक्टर, कंबाइन हार्वेस्टर और कृषि ड्रोन उचित दरों पर
+                {isChhattisgarhi ? 'ट्रैक्टर, कंबाइन हार्वेस्टर अउ कृषि ड्रोन सही दर म' : 'ट्रैक्टर, कंबाइन हार्वेस्टर और कृषि ड्रोन उचित दरों पर'}
               </Typography>
             </Box>
             <Button
@@ -368,7 +368,7 @@ export const ChaupalTab = () => {
               onClick={() => setOpenAddMachineryModal(true)}
               sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.75rem', borderRadius: 2, '&:hover': { bgcolor: '#125420' } }}
             >
-              + मशीन किराए पर जोड़ें
+              {isChhattisgarhi ? '+ मशीन किराया बर जोड़व' : '+ मशीन किराए पर जोड़ें'}
             </Button>
           </Box>
           {/* Zero-False-Data Benchmark Notice */}
@@ -388,10 +388,12 @@ export const ChaupalTab = () => {
             <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>🏛️</Typography>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem', mb: 0.2 }}>
-                कस्टम हायरिंग सेंटर (CHC) अनुमोदित मानक संदर्भ दरें
+                {isChhattisgarhi ? 'कस्टम हायरिंग सेंटर (CHC) मान्यता प्राप्त मानक दर' : 'कस्टम हायरिंग सेंटर (CHC) अनुमोदित मानक संदर्भ दरें'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
-                यह दरें छत्तीसगढ़ कृषि अभियांत्रिकी विभाग व स्थानीय कस्टम हायरिंग समितियों द्वारा अनुशंसित मानक रेंटल दरें हैं। ग्राम पंचायत में सरकारी मशीनरी रेंटल व सब्सिडी सहायता हेतु किसान कॉल सेंटर टोल-फ्री <strong>1800-180-1551</strong> पर संपर्क करें।
+                {isChhattisgarhi
+                  ? 'ये दर छत्तीसगढ़ कृषि अभियांत्रिकी विभाग व स्थानीय कस्टम हायरिंग समिति के अनुशंसित मानक दर हे। ग्राम पंचायत म सरकारी मशीनरी रेंटल व सब्सिडी सहायता बर किसान कॉल सेंटर 1800-180-1551 म फोन लगाव।'
+                  : 'यह दरें छत्तीसगढ़ कृषि अभियांत्रिकी विभाग व स्थानीय कस्टम हायरिंग समितियों द्वारा अनुशंसित मानक रेंटल दरें हैं। ग्राम पंचायत में सरकारी मशीनरी रेंटल व सब्सिडी सहायता हेतु किसान कॉल सेंटर टोल-फ्री 1800-180-1551 पर संपर्क करें।'}
               </Typography>
             </Box>
           </Paper>
@@ -410,10 +412,12 @@ export const ChaupalTab = () => {
             >
               <PrecisionManufacturingIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                कोई मशीनरी रेंटल डेटा उपलब्ध नहीं है
+                {isChhattisgarhi ? 'कोनो मशीनरी रेंटल डेटा नइये' : 'कोई मशीनरी रेंटल डेटा उपलब्ध नहीं है'}
               </Typography>
               <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 460, mx: 'auto', mb: 2 }}>
-                शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई फर्जी या अप्रमाणित नंबर नहीं दिखाया जाता। कस्टम हायरिंग सेंटर (CHC) मशीनरी बुकिंग व किराए की जानकारी हेतु किसान कॉल सेंटर पर सीधे संपर्क करें।
+                {isChhattisgarhi
+                  ? 'शून्य गलत डेटा नीति के तहत कोनो फर्जी नंबर नई दिखाय जाय। कस्टम हायरिंग सेंटर (CHC) मशीनरी बुकिंग व किराया के जानकारी बर किसान कॉल सेंटर म सीधा फोन लगाव।'
+                  : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई फर्जी या अप्रमाणित नंबर नहीं दिखाया जाता। कस्टम हायरिंग सेंटर (CHC) मशीनरी बुकिंग व किराए की जानकारी हेतु किसान कॉल सेंटर पर सीधे संपर्क करें।'}
               </Typography>
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                 <Button
@@ -423,7 +427,7 @@ export const ChaupalTab = () => {
                   onClick={() => openNativeDialer('18001801551')}
                   sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
                 >
-                  📞 किसान कॉल सेंटर (1800-180-1551)
+                  📞 {isChhattisgarhi ? 'किसान कॉल सेंटर (1800-180-1551)' : 'किसान कॉल सेंटर (1800-180-1551)'}
                 </Button>
                 <Button
                   variant="outlined"
@@ -432,7 +436,7 @@ export const ChaupalTab = () => {
                   onClick={loadFromMongo}
                   sx={{ fontWeight: 800, borderRadius: 2 }}
                 >
-                  🔄 पुनः प्रयास करें
+                  {isChhattisgarhi ? '🔄 फेर कोशिश करव' : '🔄 पुनः प्रयास करें'}
                 </Button>
               </Box>
             </Paper>
@@ -470,7 +474,7 @@ export const ChaupalTab = () => {
                             {item.title}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                            स्थान: <strong>{item.location}</strong> • संचालक: {item.contactName}
+                            {isChhattisgarhi ? 'स्थान' : 'स्थान'}: <strong>{item.location}</strong> • {isChhattisgarhi ? 'मालिक' : 'संचालक'}: {item.contactName}
                           </Typography>
                         </Box>
 
@@ -479,7 +483,7 @@ export const ChaupalTab = () => {
                             {item.rate}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', fontWeight: 600 }}>
-                            किराया दर
+                            {isChhattisgarhi ? 'किराया भाव' : 'किराया दर'}
                           </Typography>
                         </Box>
                       </Box>
@@ -502,7 +506,7 @@ export const ChaupalTab = () => {
                       <Divider sx={{ my: 1 }} />
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                         <Chip
-                          label={item.operatorIncluded ? '✅ चालक सहित' : 'केवल मशीन'}
+                          label={item.operatorIncluded ? (isChhattisgarhi ? '✅ ड्राइवर सहित' : '✅ चालक सहित') : (isChhattisgarhi ? 'सिर्फ मशीन' : 'केवल मशीन')}
                           size="small"
                           sx={{ bgcolor: '#f1f8e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
                         />
@@ -512,7 +516,9 @@ export const ChaupalTab = () => {
                             size="small"
                             startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
                             onClick={() => {
-                              const msg = `नमस्ते, मुझे कस्टम हायरिंग सेंटर से (${item.title} - ${item.rate}) रेंटल हेतु जानकारी व बुकिंग मार्गदर्शन चाहिए।`;
+                              const msg = isChhattisgarhi
+                                ? `प्रणाम, मोला कस्टम हायरिंग सेंटर ले (${item.title} - ${item.rate}) रेंटल बर जानकारी अउ बुकिंग करना हे।`
+                                : `नमस्ते, मुझे कस्टम हायरिंग सेंटर से (${item.title} - ${item.rate}) रेंटल हेतु जानकारी व बुकिंग मार्गदर्शन चाहिए।`;
                               openNativeWhatsApp(item.isHelpline ? '' : item.phone, msg);
                             }}
                             sx={{
@@ -528,7 +534,7 @@ export const ChaupalTab = () => {
                               '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
                             }}
                           >
-                            मार्गदर्शन 💬
+                            {isChhattisgarhi ? 'सलाह 💬' : 'मार्गदर्शन 💬'}
                           </Button>
                           <Button
                             variant="contained"
@@ -548,7 +554,7 @@ export const ChaupalTab = () => {
                               '&:hover': { bgcolor: '#125420' }
                             }}
                           >
-                            {item.isHelpline ? '1800-180-1551' : 'कॉल करें 📞'}
+                            {item.isHelpline ? '1800-180-1551' : (isChhattisgarhi ? 'फोन लगाव 📞' : 'कॉल करें 📞')}
                           </Button>
                         </Box>
                       </Box>
@@ -568,10 +574,10 @@ export const ChaupalTab = () => {
           <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                💬 किसान चौपाल (Community Forum)
+                {isChhattisgarhi ? '💬 किसान चौपाल (संगी मंच)' : '💬 किसान चौपाल (Community Forum)'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
-                कृषि विशेषज्ञों व साथी किसानों से सवाल पूछें और अनुभव बांटें
+                {isChhattisgarhi ? 'कृषि वैज्ञानिक व संगी किसान मन ले सवाल पूछव अउ अनुभव बांटव' : 'कृषि विशेषज्ञों व साथी किसानों से सवाल पूछें और अनुभव बांटें'}
               </Typography>
             </Box>
             <Button
@@ -589,7 +595,7 @@ export const ChaupalTab = () => {
                 '&:hover': { bgcolor: '#125420' }
               }}
             >
-              सवाल पूछें
+              {isChhattisgarhi ? 'सवाल पूछव' : 'सवाल पूछें'}
             </Button>
           </Box>
 
@@ -607,10 +613,10 @@ export const ChaupalTab = () => {
             >
               <ForumIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                वर्तमान में कोई चौपाल प्रश्न उपलब्ध नहीं हैं
+                {isChhattisgarhi ? 'अभी कोनो चौपाल सवाल नइये' : 'वर्तमान में कोई चौपाल प्रश्न उपलब्ध नहीं हैं'}
               </Typography>
               <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
-                साथी किसानों व कृषि वैज्ञानिकों से मार्गदर्शन पाने के लिए अपना पहला सवाल पूछें।
+                {isChhattisgarhi ? 'संगी किसान अउ कृषि वैज्ञानिक ले सलाह पाय बर अपन पहिली सवाल पूछव।' : 'साथी किसानों व कृषि वैज्ञानिकों से मार्गदर्शन पाने के लिए अपना पहला सवाल पूछें।'}
               </Typography>
               <Button
                 variant="contained"
@@ -619,7 +625,7 @@ export const ChaupalTab = () => {
                 onClick={() => setOpenAskModal(true)}
                 sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
               >
-                + पहला सवाल पूछें
+                {isChhattisgarhi ? '+ पहिली सवाल पूछव' : '+ पहला सवाल पूछें'}
               </Button>
             </Paper>
           ) : (
@@ -656,10 +662,10 @@ export const ChaupalTab = () => {
                         <Button
                           size="small"
                           startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
-                          onClick={() => speakText(`${q.question}. समाधान: ${q.bestAnswer}`)}
+                          onClick={() => speakText(`${q.question}. ${isChhattisgarhi ? 'समाधान' : 'समाधान'}: ${q.bestAnswer}`)}
                           sx={{ color: '#1b5e20', fontSize: '0.7rem', p: 0.4, borderRadius: '6px' }}
                         >
-                          सुनें
+                          {isChhattisgarhi ? 'सुनव' : 'सुनें'}
                         </Button>
                       </Box>
 
@@ -683,12 +689,12 @@ export const ChaupalTab = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <QuestionAnswerIcon sx={{ color: '#1b5e20', fontSize: 15 }} />
                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                              ताजा समाधान ({q.answersCount || (q.replies?.length ?? 1)} उत्तर):
+                              ताजा समाधान ({q.answersCount || (q.replies?.length ?? 1)} {isChhattisgarhi ? 'उत्तर' : 'उत्तर'}):
                             </Typography>
                           </Box>
                         </Box>
                         <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: { xs: '0.8rem', sm: '0.84rem' }, lineHeight: 1.45 }}>
-                          {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || 'समाधान प्रक्रियाधीन है।'}
+                          {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || (isChhattisgarhi ? 'समाधान प्रक्रिया म हे।' : 'समाधान प्रक्रियाधीन है।')}
                         </Typography>
 
                         {/* Recent Replies Thread */}
@@ -696,7 +702,7 @@ export const ChaupalTab = () => {
                           <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #a5d6a7' }}>
                             {q.replies.slice(-2).map((rep) => (
                               <Box key={rep.id || rep._id} sx={{ mb: 0.5, p: 0.6, bgcolor: 'rgba(255,255,255,0.7)', borderRadius: '6px', fontSize: '0.72rem', color: '#1b5e20' }}>
-                                <strong>{rep.author}</strong> ({rep.role || 'किसान भाई'}): {rep.text}
+                                <strong>{rep.author}</strong> ({rep.role || (isChhattisgarhi ? 'किसान भाई' : 'किसान भाई')}): {rep.text}
                               </Box>
                             ))}
                           </Box>
@@ -729,7 +735,7 @@ export const ChaupalTab = () => {
                           '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
                         }}
                       >
-                        💬 अपना समाधान / उत्तर लिखें
+                        {isChhattisgarhi ? '💬 अपन समाधान / उत्तर लिखव' : '💬 अपना समाधान / उत्तर लिखें'}
                       </Button>
                     </Box>
                   </CardContent>
@@ -748,26 +754,26 @@ export const ChaupalTab = () => {
             <Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.3 }}>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                  📖 मेरी फसल डायरी (My Farm Diary)
+                  {isChhattisgarhi ? '📖 मोर फसल डायरी (My Farm Diary)' : '📖 मेरी फसल डायरी (My Farm Diary)'}
                 </Typography>
                 {isDiaryCloudSynced ? (
                   <Chip
                     icon={<CloudDoneIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
-                    label="क्लाउड सुरक्षित"
+                    label={isChhattisgarhi ? 'क्लाउड म सुरक्षित' : 'क्लाउड सुरक्षित'}
                     size="small"
                     sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
                   />
                 ) : (
                   <Chip
                     icon={<CloudOffIcon sx={{ fontSize: '13px !important', color: '#64748b' }} />}
-                    label="लोकल ऑफ़लाइन"
+                    label={isChhattisgarhi ? 'लोकल ऑफ़लाइन' : 'लोकल ऑफ़लाइन'}
                     size="small"
                     sx={{ bgcolor: '#f1f5f9', color: '#64748b', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
                   />
                 )}
               </Box>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
-                अपनी फसलें दर्ज करें और सिंचाई व खाद का रिमाइंडर पाएं
+                {isChhattisgarhi ? 'अपन फसल दर्ज करव अउ पानी व खाद के सुरता पावव' : 'अपनी फसलें दर्ज करें और सिंचाई व खाद का रिमाइंडर पाएं'}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1 }}>
@@ -778,9 +784,9 @@ export const ChaupalTab = () => {
                 onClick={() => {
                   const active = getActiveFarmer();
                   generateAndPrintKccReport({
-                    farmerName: active?.name || 'सम्मानित कृषक',
+                    farmerName: active?.name || (isChhattisgarhi ? 'सम्मानित कृषक' : 'सम्मानित कृषक'),
                     phone: active?.phone || '',
-                    village: active?.village || 'ग्राम',
+                    village: active?.village || (isChhattisgarhi ? 'ग्राम' : 'ग्राम'),
                     district: active?.district || 'रायपुर',
                     items: farmDiary
                   });
@@ -811,7 +817,7 @@ export const ChaupalTab = () => {
                   '&:hover': { bgcolor: '#1b5e20' }
                 }}
               >
-                फसल जोड़ें
+                {isChhattisgarhi ? 'फसल जोड़व' : 'फसल जोड़ें'}
               </Button>
             </Box>
           </Box>
@@ -840,10 +846,10 @@ export const ChaupalTab = () => {
               <AgricultureIcon sx={{ fontSize: 32, color: '#ffeb3b' }} />
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
-                  🌾 मेरा खेत: बहु-फसली स्मार्ट ट्रैकर
+                  {isChhattisgarhi ? '🌾 मोर खेत: बहु-फसली स्मार्ट ट्रैकर' : '🌾 मेरा खेत: बहु-फसली स्मार्ट ट्रैकर'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.75rem' }}>
-                  धान, चना, सब्जी का अलग-अलग A to Z हिसाब व आज का मौसम-कार्य
+                  {isChhattisgarhi ? 'धान, चना, साग-भाजी के अलग-अलग A ले Z हिसाब अउ आज के काम' : 'धान, चना, सब्जी का अलग-अलग A to Z हिसाब व आज का मौसम-कार्य'}
                 </Typography>
               </Box>
             </Box>
@@ -852,7 +858,7 @@ export const ChaupalTab = () => {
               size="small"
               sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, fontSize: '0.72rem', whiteSpace: 'nowrap' }}
             >
-              खोलें
+              {isChhattisgarhi ? 'खोलव' : 'खोलें'}
             </Button>
           </Paper>
 
@@ -860,10 +866,10 @@ export const ChaupalTab = () => {
             <Paper sx={{ p: 3, textAlign: 'center', borderRadius: 3, bgcolor: '#fafafa' }}>
               <EventNoteIcon sx={{ fontSize: 44, color: '#ccc', mb: 1 }} />
               <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#666' }}>
-                अभी कोई फसल दर्ज नहीं है
+                {isChhattisgarhi ? 'अभी कोनो फसल दर्ज नइये' : 'अभी कोई फसल दर्ज नहीं है'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 2 }}>
-                ऊपर दिए गए 'फसल जोड़ें' बटन से अपनी वर्तमान फसल को रिकॉर्ड करें
+                {isChhattisgarhi ? "ऊपर दे गे 'फसल जोड़व' बटन ले अपन फसल के हिसाब दर्ज करव" : "ऊपर दिए गए 'फसल जोड़ें' बटन से अपनी वर्तमान फसल को रिकॉर्ड करें"}
               </Typography>
             </Paper>
           ) : (
@@ -894,14 +900,14 @@ export const ChaupalTab = () => {
                             {item.cropName}
                           </Typography>
                           <Typography variant="caption" sx={{ color: '#666', fontSize: '0.74rem' }}>
-                            बुआई तिथि: <strong>{item.sowDate}</strong> • वर्तमान अवस्था: {item.stage}
+                            {isChhattisgarhi ? 'बुआई तारीख' : 'बुआई तिथि'}: <strong>{item.sowDate}</strong> • {isChhattisgarhi ? 'अवस्था' : 'वर्तमान अवस्था'}: {item.stage}
                           </Typography>
                         </Box>
                         <IconButton
                           size="small"
                           onClick={() => handleDeleteDiaryEntry(item.id)}
                           sx={{ color: '#94a3b8', '&:hover': { color: '#ef4444', bgcolor: '#fef2f2' } }}
-                          aria-label="हटाएं"
+                          aria-label={isChhattisgarhi ? 'मिटावव' : 'हटाएं'}
                         >
                           <DeleteIcon sx={{ fontSize: 18 }} />
                         </IconButton>
@@ -909,7 +915,7 @@ export const ChaupalTab = () => {
 
                       <Paper elevation={0} sx={{ p: 1.2, bgcolor: '#fffde7', border: '1px solid #fff59d', borderRadius: 2, mt: 'auto' }}>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#f57f17', display: 'block', fontSize: '0.74rem' }}>
-                          🔔 आगामी कार्य व सिफारिश (Next Step):
+                          {isChhattisgarhi ? '🔔 आगे के काम व सलाह (Next Step):' : '🔔 आगामी कार्य व सिफारिश (Next Step):'}
                         </Typography>
                         <Typography variant="body2" sx={{ color: '#795548', fontSize: '0.8rem', lineHeight: 1.35 }}>
                           {item.nextAction}
@@ -1087,7 +1093,7 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label="फसल व किस्म (उदा. धान सरना, गेहूं लोक-1)"
+            label={isChhattisgarhi ? 'फसल अउ किस्म (उदा. धान सरना, गेहूं लोक-1)' : 'फसल व किस्म (उदा. धान सरना, गेहूं लोक-1)'}
             value={newCropEntry.cropName}
             onChange={(e) => setNewCropEntry({ ...newCropEntry, cropName: e.target.value })}
           />
@@ -1119,7 +1125,7 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label="रकबा (एकड़ में)"
+            label={isChhattisgarhi ? 'रकबा (एकड़ म)' : 'रकबा (एकड़ में)'}
             type="number"
             value={newCropEntry.areaAcres}
             onChange={(e) => setNewCropEntry({ ...newCropEntry, areaAcres: e.target.value })}
@@ -1127,7 +1133,7 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label="बुआई की तारीख"
+            label={isChhattisgarhi ? 'बुआई के तारीख' : 'बुआई की तारीख'}
             type="date"
             InputLabelProps={{ shrink: true }}
             value={newCropEntry.sowDate}
@@ -1145,14 +1151,14 @@ export const ChaupalTab = () => {
       {/* Add Machinery Listing Dialog */}
       <Dialog open={openAddMachineryModal} onClose={() => setOpenAddMachineryModal(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
-          🚜 अपनी मशीन किराए पर जोड़ें
+          {isChhattisgarhi ? '🚜 अपन मशीन किराया बर जोड़व' : '🚜 अपनी मशीन किराए पर जोड़ें'}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           <TextField
             fullWidth
             size="small"
-            label="मशीन / यंत्र का नाम *"
-            placeholder="उदा. स्वराज 744 FE + रोटावेटर या कृषि ड्रोन"
+            label={isChhattisgarhi ? 'मशीन / यंत्र के नाव *' : 'मशीन / यंत्र का नाम *'}
+            placeholder={isChhattisgarhi ? 'उदा. स्वराज 744 FE + रोटावेटर या कृषि ड्रोन' : 'उदा. स्वराज 744 FE + रोटावेटर या कृषि ड्रोन'}
             value={newMachine.title}
             onChange={(e) => setNewMachine({ ...newMachine, title: e.target.value })}
           />
@@ -1160,35 +1166,35 @@ export const ChaupalTab = () => {
             select
             fullWidth
             size="small"
-            label="यंत्र की श्रेणी *"
+            label={isChhattisgarhi ? 'यंत्र के श्रेणी *' : 'यंत्र की श्रेणी *'}
             value={newMachine.category}
             onChange={(e) => setNewMachine({ ...newMachine, category: e.target.value })}
           >
-            <MenuItem value="जुताई एवं खेत तैयारी">जुताई एवं खेत तैयारी</MenuItem>
-            <MenuItem value="कटाई व थ्रेशिंग">कटाई व थ्रेशिंग</MenuItem>
-            <MenuItem value="आधुनिक छिड़काव तकनीक">आधुनिक छिड़काव तकनीक (ड्रोन)</MenuItem>
-            <MenuItem value="जल संरक्षण एवं लेवलिंग">जल संरक्षण एवं लेवलिंग</MenuItem>
-            <MenuItem value="सामान्य मशीनरी">सामान्य मशीनरी</MenuItem>
+            <MenuItem value="जुताई एवं खेत तैयारी">{isChhattisgarhi ? 'जुताई एवं खेत तैयारी' : 'जुताई एवं खेत तैयारी'}</MenuItem>
+            <MenuItem value="कटाई व थ्रेशिंग">{isChhattisgarhi ? 'कटाई व थ्रेशिंग (मिंजाई)' : 'कटाई व थ्रेशिंग'}</MenuItem>
+            <MenuItem value="आधुनिक छिड़काव तकनीक">{isChhattisgarhi ? 'आधुनिक छिड़काव तकनीक (ड्रोन)' : 'आधुनिक छिड़काव तकनीक (ड्रोन)'}</MenuItem>
+            <MenuItem value="जल संरक्षण एवं लेवलिंग">{isChhattisgarhi ? 'जल संरक्षण एवं लेवलिंग' : 'जल संरक्षण एवं लेवलिंग'}</MenuItem>
+            <MenuItem value="सामान्य मशीनरी">{isChhattisgarhi ? 'सामान्य मशीनरी' : 'सामान्य मशीनरी'}</MenuItem>
           </TextField>
           <TextField
             fullWidth
             size="small"
-            label="किराया दर *"
-            placeholder="उदा. ₹900 - ₹1,100 / घंटा या ₹350 / एकड़"
+            label={isChhattisgarhi ? 'किराया दर *' : 'किराया दर *'}
+            placeholder={isChhattisgarhi ? 'उदा. ₹900 - ₹1,100 / घंटा या ₹350 / एकड़' : 'उदा. ₹900 - ₹1,100 / घंटा या ₹350 / एकड़'}
             value={newMachine.rate}
             onChange={(e) => setNewMachine({ ...newMachine, rate: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="संचालक / मालिक का नाम"
+            label={isChhattisgarhi ? 'मालिक / ऑपरेटर के नाव' : 'संचालक / मालिक का नाम'}
             value={newMachine.contactName}
             onChange={(e) => setNewMachine({ ...newMachine, contactName: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="मोबाइल नंबर (10 अंक) *"
+            label={isChhattisgarhi ? 'मोबाइल नंबर (10 अंक) *' : 'मोबाइल नंबर (10 अंक) *'}
             type="tel"
             value={newMachine.phone}
             onChange={(e) => setNewMachine({ ...newMachine, phone: e.target.value })}
@@ -1196,15 +1202,15 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label="स्थान / ब्लॉक / तहसील"
+            label={isChhattisgarhi ? 'स्थान / ब्लॉक / तहसील' : 'स्थान / ब्लॉक / तहसील'}
             value={newMachine.location}
             onChange={(e) => setNewMachine({ ...newMachine, location: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="विशेषताएं (कॉमा से अलग करें)"
-            placeholder="उदा. गहरी जुताई, 10 मिनट में छिड़काव, स्ट्रॉ रीपर"
+            label={isChhattisgarhi ? 'खासियत (कॉमा ले अलग करव)' : 'विशेषताएं (कॉमा से अलग करें)'}
+            placeholder={isChhattisgarhi ? 'उदा. गहिर जुताई, 10 मिनट म छिड़काव, स्ट्रॉ रीपर' : 'उदा. गहरी जुताई, 10 मिनट में छिड़काव, स्ट्रॉ रीपर'}
             value={newMachine.features}
             onChange={(e) => setNewMachine({ ...newMachine, features: e.target.value })}
           />
@@ -1216,13 +1222,13 @@ export const ChaupalTab = () => {
                 color="success"
               />
             }
-            label={newMachine.operatorIncluded ? '✅ चालक (ऑपरेटर) सहित' : 'केवल मशीन (स्वयं चलाएं)'}
+            label={newMachine.operatorIncluded ? (isChhattisgarhi ? '✅ ड्राइवर (ऑपरेटर) सहित' : '✅ चालक (ऑपरेटर) सहित') : (isChhattisgarhi ? 'सिर्फ मशीन (खुद चलावव)' : 'केवल मशीन (स्वयं चलाएं)')}
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenAddMachineryModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
+          <Button onClick={() => setOpenAddMachineryModal(false)} sx={{ color: '#666' }}>{isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}</Button>
           <Button variant="contained" onClick={handlePostMachinery} sx={{ bgcolor: '#1b5e20', borderRadius: 2 }}>
-            मशीन जोड़ें
+            {isChhattisgarhi ? 'मशीन जोड़व' : 'मशीन जोड़ें'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1230,13 +1236,13 @@ export const ChaupalTab = () => {
       {/* Reply to Community Question Dialog */}
       <Dialog open={openReplyModal} onClose={() => setOpenReplyModal(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
-          💬 चौपाल में समाधान / उत्तर लिखें
+          {isChhattisgarhi ? '💬 चौपाल म समाधान / उत्तर लिखव' : '💬 चौपाल में समाधान / उत्तर लिखें'}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           {selectedQuestionForReply && (
             <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 2 }}>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
-                सवाल ({selectedQuestionForReply.crop}):
+                {isChhattisgarhi ? 'सवाल' : 'सवाल'} ({selectedQuestionForReply.crop}):
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 700, color: '#0f172a' }}>
                 {selectedQuestionForReply.question}
@@ -1246,7 +1252,7 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label="आपका नाम"
+            label={isChhattisgarhi ? 'तुंहर नाव' : 'आपका नाम'}
             value={replyForm.author}
             onChange={(e) => setReplyForm({ ...replyForm, author: e.target.value })}
           />
@@ -1254,28 +1260,28 @@ export const ChaupalTab = () => {
             select
             fullWidth
             size="small"
-            label="आपकी भूमिका (Role)"
+            label={isChhattisgarhi ? 'तुंहर भूमिका (Role)' : 'आपकी भूमिका (Role)'}
             value={replyForm.role}
             onChange={(e) => setReplyForm({ ...replyForm, role: e.target.value })}
           >
-            <MenuItem value="किसान भाई">किसान भाई (Farmer)</MenuItem>
-            <MenuItem value="कृषि वैज्ञानिक / विशेषज्ञ">कृषि वैज्ञानिक / विशेषज्ञ (Scientist)</MenuItem>
-            <MenuItem value="समिति प्रबंधक / RAEO">समिति प्रबंधक / RAEO</MenuItem>
+            <MenuItem value="किसान भाई">{isChhattisgarhi ? 'किसान भाई' : 'किसान भाई (Farmer)'}</MenuItem>
+            <MenuItem value="कृषि वैज्ञानिक / विशेषज्ञ">{isChhattisgarhi ? 'कृषि वैज्ञानिक / विशेषज्ञ' : 'कृषि वैज्ञानिक / विशेषज्ञ (Scientist)'}</MenuItem>
+            <MenuItem value="समिति प्रबंधक / RAEO">{isChhattisgarhi ? 'समिति प्रबंधक / RAEO' : 'समिति प्रबंधक / RAEO'}</MenuItem>
           </TextField>
           <TextField
             fullWidth
             multiline
             rows={3}
-            label="आपका अनुभव व वैज्ञानिक समाधान *"
-            placeholder="विस्तार से उपाय, दवा का नाम, मात्रा व सावधानी लिखें..."
+            label={isChhattisgarhi ? 'तुंहर अनुभव व वैज्ञानिक समाधान *' : 'आपका अनुभव व वैज्ञानिक समाधान *'}
+            placeholder={isChhattisgarhi ? 'विस्तार ले उपाय, दवाई के नाव, मात्रा अउ सावधानी लिखव...' : 'विस्तार से उपाय, दवा का नाम, मात्रा व सावधानी लिखें...'}
             value={replyForm.text}
             onChange={(e) => setReplyForm({ ...replyForm, text: e.target.value })}
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenReplyModal(false)} sx={{ color: '#666' }}>रद्द करें</Button>
+          <Button onClick={() => setOpenReplyModal(false)} sx={{ color: '#666' }}>{isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}</Button>
           <Button variant="contained" onClick={handlePostReply} sx={{ bgcolor: '#1b5e20', borderRadius: 2 }}>
-            उत्तर भेजें
+            {isChhattisgarhi ? 'उत्तर भेजव' : 'उत्तर भेजें'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -84,7 +84,7 @@ class ErrorBoundary extends React.Component {
 }
 
 function App() {
-  const { t } = useLanguage();
+  const { isChhattisgarhi, t } = useLanguage();
   const [currentTab, setCurrentTab] = useState('home');
   const [selectedDistrict, setSelectedDistrict] = useState(appConfig.defaultDistrict);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -506,7 +506,7 @@ function App() {
                       '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' }
                     }}
                   >
-                    किसान भाइयों को शेयर करें
+                    {isChhattisgarhi ? 'किसान संगी मन ला शेयर करव' : 'किसान भाइयों को शेयर करें'}
                   </Button>
                 </Box>
               </Box>
@@ -643,7 +643,7 @@ function App() {
             }}
           >
             <VolumeOffIcon sx={{ mr: 1, fontSize: 20 }} />
-            🛑 बोलना बंद करें (Stop Voice)
+            {isChhattisgarhi ? '🛑 बोलना बंद करव (Stop Voice)' : '🛑 बोलना बंद करें (Stop Voice)'}
           </Fab>
         )}
         {/* Centralized Smart Device & Hardware Hub */}

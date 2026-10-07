@@ -44,6 +44,7 @@ import { getGsmActionUri, getMotorTelemetry } from '../utils/motorControllerServ
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 import { openNativeDialer, openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
+import { useLanguage } from '../utils/i18n';
 
 export const DeviceHubModal = ({
   open,
@@ -53,6 +54,7 @@ export const DeviceHubModal = ({
   onOpenMotorModal,
   onApplySoilToCalc
 }) => {
+  const { isChhattisgarhi } = useLanguage();
   const [registry, setRegistry] = useState(getDeviceRegistry());
   const [bleScanning, setBleScanning] = useState(false);
   const [starterPhoneInput, setStarterPhoneInput] = useState(registry.motor?.phone || '');
@@ -257,10 +259,10 @@ export const DeviceHubModal = ({
           </Box>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800, fontSize: { xs: '1rem', sm: '1.18rem' }, lineHeight: 1.2 }}>
-              📡 स्मार्ट डिवाइस एवं ब्लूटूथ हब
+              {isChhattisgarhi ? '📡 स्मार्ट डिवाइस अउ ब्लूटूथ हब' : '📡 स्मार्ट डिवाइस एवं ब्लूटूथ हब'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
-              केंद्रीय कमांड सेंटर • वर्टिकल एकॉर्डियन नियंत्रण (Zero-Scroll)
+              {isChhattisgarhi ? 'केंद्रीय कमांड सेंटर • डिवाइस नियंत्रण' : 'केंद्रीय कमांड सेंटर • वर्टिकल एकॉर्डियन नियंत्रण (Zero-Scroll)'}
             </Typography>
           </Box>
         </Box>
@@ -281,7 +283,7 @@ export const DeviceHubModal = ({
               '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
             }}
           >
-            सुनें
+            {isChhattisgarhi ? 'सुनव' : 'सुनें'}
           </Button>
           <IconButton onClick={handleClose} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)' }} aria-label="close">
             <CloseIcon fontSize="small" />
@@ -310,11 +312,11 @@ export const DeviceHubModal = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CheckCircleIcon sx={{ color: '#1b5e20', fontSize: 20 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-              4 स्मार्ट कृषि उपकरण एकीकृत हैं
+              {isChhattisgarhi ? '4 स्मार्ट कृषि यंत्र जुड़े हे' : '4 स्मार्ट कृषि उपकरण एकीकृत हैं'}
             </Typography>
           </Box>
           <Chip
-            label="सेंट्रलाइज्ड सिंक सक्रिय"
+            label={isChhattisgarhi ? 'सेंट्रलाइज्ड सिंक चालू' : 'सेंट्रलाइज्ड सिंक सक्रिय'}
             size="small"
             sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
           />
@@ -355,10 +357,10 @@ export const DeviceHubModal = ({
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem' }}>
-                    स्मार्ट ट्यूबवेल मोटर
+                    {isChhattisgarhi ? 'स्मार्ट ट्यूबवेल मोटर' : 'स्मार्ट ट्यूबवेल मोटर'}
                   </Typography>
                   <Chip
-                    label={isMotorOn ? 'चालू (ON)' : 'बंद (OFF)'}
+                    label={isMotorOn ? (isChhattisgarhi ? 'चालू (ON)' : 'चालू (ON)') : (isChhattisgarhi ? 'बंद (OFF)' : 'बंद (OFF)')}
                     size="small"
                     sx={{
                       bgcolor: isMotorOn ? '#e8f5e9' : '#ffebee',
@@ -371,7 +373,7 @@ export const DeviceHubModal = ({
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  GSM/SMS स्टार्टर • सिम: <strong>{registry.motor?.phone || 'दर्ज नहीं'}</strong> • 415V (3-फेज)
+                  GSM/SMS {isChhattisgarhi ? 'स्टार्टर' : 'स्टार्टर'} • {isChhattisgarhi ? 'सिम' : 'सिम'}: <strong>{registry.motor?.phone || (isChhattisgarhi ? 'दर्ज नइये' : 'दर्ज नहीं')}</strong> • 415V (3-{isChhattisgarhi ? 'फेज' : 'फेज'})
                 </Typography>
               </Box>
             </Box>
@@ -396,7 +398,7 @@ export const DeviceHubModal = ({
                   '&:hover': { bgcolor: isMotorOn ? '#b71c1c' : '#125420' }
                 }}
               >
-                {isMotorOn ? '🔴 बंद करें' : '🟢 चालू करें'}
+                {isMotorOn ? (isChhattisgarhi ? '🔴 बंद करव' : '🔴 बंद करें') : (isChhattisgarhi ? '🟢 चालू करव' : '🟢 चालू करें')}
               </Button>
               <IconButton size="small" sx={{ color: '#0288d1' }}>
                 <ExpandMoreIcon
@@ -415,14 +417,14 @@ export const DeviceHubModal = ({
               {/* Starter SIM Input & Save */}
               <Box sx={{ mb: 2 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0288d1', mb: 0.5 }}>
-                  ⚙️ स्टार्टर सिम व SMS/कॉल नियंत्रण:
+                  {isChhattisgarhi ? '⚙️ स्टार्टर सिम व SMS/कॉल नियंत्रण:' : '⚙️ स्टार्टर सिम व SMS/कॉल नियंत्रण:'}
                 </Typography>
                 <Grid container spacing={1.5} alignItems="center">
                   <Grid item xs={12} sm={5.5}>
                     <TextField
                       fullWidth
                       size="small"
-                      label="स्टार्टर सिम मोबाइल नंबर"
+                      label={isChhattisgarhi ? 'स्टार्टर सिम मोबाइल नंबर' : 'स्टार्टर सिम मोबाइल नंबर'}
                       placeholder="उदा. 9826012345"
                       value={starterPhoneInput}
                       onChange={(e) => setStarterPhoneInput(e.target.value)}
@@ -434,7 +436,7 @@ export const DeviceHubModal = ({
                       fullWidth
                       size="small"
                       type={showPin ? 'text' : 'password'}
-                      label="सुरक्षा पिन (PIN)"
+                      label={isChhattisgarhi ? 'सुरक्षा पिन (PIN)' : 'सुरक्षा पिन (PIN)'}
                       placeholder="उदा. 1234"
                       value={starterPinInput}
                       onChange={(e) => setStarterPinInput(e.target.value.replace(/\D/g, '').slice(0, 4))}
@@ -462,7 +464,7 @@ export const DeviceHubModal = ({
                       onClick={handleSaveMotorPhone}
                       sx={{ bgcolor: '#0288d1', color: '#fff', fontWeight: 800, height: 40, borderRadius: '10px' }}
                     >
-                      सुरक्षित करें
+                      {isChhattisgarhi ? 'सहेजव' : 'सुरक्षित करें'}
                     </Button>
                   </Grid>
                 </Grid>
@@ -477,7 +479,7 @@ export const DeviceHubModal = ({
                     onClick={() => { openNativeDialer(starterPhoneInput); }}
                     sx={{ bgcolor: '#1b5e20', fontSize: '0.76rem', fontWeight: 800, borderRadius: '8px' }}
                   >
-                    📞 कॉल करके चालू/बंद करें
+                    {isChhattisgarhi ? '📞 फोन लगा के चालू/बंद करव' : '📞 कॉल करके चालू/बंद करें'}
                   </Button>
                   <Button
                     variant="outlined"
@@ -489,7 +491,7 @@ export const DeviceHubModal = ({
                     }}
                     sx={{ borderColor: '#0288d1', color: '#0288d1', fontSize: '0.76rem', fontWeight: 800, borderRadius: '8px' }}
                   >
-                    💬 सुरक्षित SMS भेजें ({starterPinInput ? `${starterPinInput} ` : ''}{isMotorOn ? 'STOP' : 'START'})
+                    {isChhattisgarhi ? '💬 सुरक्षित SMS भेजव' : '💬 सुरक्षित SMS भेजें'} ({starterPinInput ? `${starterPinInput} ` : ''}{isMotorOn ? 'STOP' : 'START'})
                   </Button>
                 </Box>
               )}
@@ -497,30 +499,30 @@ export const DeviceHubModal = ({
               {/* Live 3-Phase Telemetry */}
               <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f0f9ff', borderRadius: '12px', border: '1px solid #bae6fd', mb: 1.5 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#0369a1', display: 'block', mb: 1 }}>
-                  📊 लाइव 3-फेज वोल्टेज व पंप स्थिति:
+                  {isChhattisgarhi ? '📊 लाइव 3-फेज वोल्टेज व पंप स्थिति:' : '📊 लाइव 3-फेज वोल्टेज व पंप स्थिति:'}
                 </Typography>
                 <Grid container spacing={1}>
                   <Grid item xs={6} sm={3}>
                     <Paper elevation={0} sx={{ p: 0.8, textAlign: 'center', bgcolor: '#fff', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>लाइन वोल्टेज</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>{isChhattisgarhi ? 'लाइन वोल्टेज' : 'लाइन वोल्टेज'}</Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0288d1' }}>415V (3-फेज)</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper elevation={0} sx={{ p: 0.8, textAlign: 'center', bgcolor: '#fff', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>करंट (Amps)</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>{isChhattisgarhi ? 'करंट (Amps)' : 'करंट (Amps)'}</Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0288d1' }}>{telemetry.currentAmps} A</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper elevation={0} sx={{ p: 0.8, textAlign: 'center', bgcolor: '#fff', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>ड्राई-रन सुरक्षा</Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#16a34a' }}>✅ सुरक्षित (पानी उपलब्ध)</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>{isChhattisgarhi ? 'ड्राई-रन सुरक्षा' : 'ड्राई-रन सुरक्षा'}</Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#16a34a' }}>{isChhattisgarhi ? '✅ सुरक्षित (पानी हे)' : '✅ सुरक्षित (पानी उपलब्ध)'}</Typography>
                     </Paper>
                   </Grid>
                   <Grid item xs={6} sm={3}>
                     <Paper elevation={0} sx={{ p: 0.8, textAlign: 'center', bgcolor: '#fff', borderRadius: '8px', border: '1px solid #e0f2fe' }}>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>मोटर तापमान</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>{isChhattisgarhi ? 'मोटर तापमान' : 'मोटर तापमान'}</Typography>
                       <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0288d1' }}>{telemetry.motorTemp}</Typography>
                     </Paper>
                   </Grid>
@@ -539,7 +541,7 @@ export const DeviceHubModal = ({
                   }}
                   sx={{ borderColor: '#b3e5fc', color: '#0288d1', fontWeight: 700, borderRadius: '8px', fontSize: '0.74rem' }}
                 >
-                  विस्तृत टाइमर व ऑटो-कट स्क्रीन खोलें
+                  {isChhattisgarhi ? 'विस्तृत टाइमर व ऑटो-कट स्क्रीन खोलव' : 'विस्तृत टाइमर व ऑटो-कट स्क्रीन खोलें'}
                 </Button>
               )}
             </Box>
@@ -581,10 +583,10 @@ export const DeviceHubModal = ({
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem' }}>
-                    स्मार्ट मिट्टी IoT सेंसर
+                    {isChhattisgarhi ? 'स्मार्ट माटी IoT सेंसर' : 'स्मार्ट मिट्टी IoT सेंसर'}
                   </Typography>
                   <Chip
-                    label={registry.soilProbe?.connected ? 'सक्रिय 🔵' : 'स्टैंडबाय ⚪'}
+                    label={registry.soilProbe?.connected ? (isChhattisgarhi ? 'सक्रिय 🔵' : 'सक्रिय 🔵') : (isChhattisgarhi ? 'स्टैंडबाय ⚪' : 'स्टैंडबाय ⚪')}
                     size="small"
                     sx={{
                       bgcolor: registry.soilProbe?.connected ? '#e3f2fd' : '#f1f5f9',
@@ -597,7 +599,7 @@ export const DeviceHubModal = ({
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  AgriProbe BLE • उपकरण: <strong>{registry.soilProbe?.deviceName || 'AgriProbe BLE'}</strong> • बैटरी: 85%
+                  AgriProbe BLE • {isChhattisgarhi ? 'यंत्र' : 'उपकरण'}: <strong>{registry.soilProbe?.deviceName || 'AgriProbe BLE'}</strong> • {isChhattisgarhi ? 'बैटरी' : 'बैटरी'}: 85%
                 </Typography>
               </Box>
             </Box>
@@ -627,7 +629,7 @@ export const DeviceHubModal = ({
                   '&:hover': { bgcolor: registry.soilProbe?.connected ? '#37474f' : '#1b5e20' }
                 }}
               >
-                {bleScanning ? 'सेंसर खोज रहे हैं...' : registry.soilProbe?.connected ? 'डिस्कनेक्ट' : '📡 ब्लूटूथ जोड़ें'}
+                {bleScanning ? (isChhattisgarhi ? 'सेंसर खोजत हन...' : 'सेंसर खोज रहे हैं...') : registry.soilProbe?.connected ? (isChhattisgarhi ? 'डिस्कनेक्ट' : 'डिस्कनेक्ट') : (isChhattisgarhi ? '📡 ब्लूटूथ जोड़व' : '📡 ब्लूटूथ जोड़ें')}
               </Button>
               <IconButton size="small" sx={{ color: '#2e7d32' }}>
                 <ExpandMoreIcon
@@ -644,38 +646,38 @@ export const DeviceHubModal = ({
           <Collapse in={expandedCards.soilProbe}>
             <Box sx={{ p: 2, bgcolor: '#ffffff' }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', mb: 1 }}>
-                📊 लाइव मिट्टी पोषण टेलीमेट्री (Live NPK & pH):
+                {isChhattisgarhi ? '📊 लाइव माटी पोषण टेलीमेट्री (Live NPK & pH):' : '📊 लाइव मिट्टी पोषण टेलीमेट्री (Live NPK & pH):'}
               </Typography>
 
               <Grid container spacing={1} sx={{ mb: 2 }}>
                 <Grid item xs={4} sm={2.4}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>pH मान</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20' }}>6.8 (उत्तम)</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'pH मान' : 'pH मान'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20' }}>6.8 ({isChhattisgarhi ? 'बनेच' : 'उत्तम'})</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4} sm={2.4}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>नाइट्रोजन (N)</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'नाइट्रोजन (N)' : 'नाइट्रोजन (N)'}</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20' }}>185 mg/kg</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={4} sm={2.4}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>फास्फोरस (P)</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'फास्फोरस (P)' : 'फास्फोरस (P)'}</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20' }}>14.2 mg/kg</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={6} sm={2.4}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>पोटाश (K)</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'पोटाश (K)' : 'पोटाश (K)'}</Typography>
                     <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20' }}>210 mg/kg</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={6} sm={2.4}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>नमी (Moisture)</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0288d1' }}>68% (गीला)</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'नमी (Moisture)' : 'नमी (Moisture)'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0288d1' }}>68% ({isChhattisgarhi ? 'गीला' : 'गीला'})</Typography>
                   </Paper>
                 </Grid>
               </Grid>
@@ -684,10 +686,12 @@ export const DeviceHubModal = ({
               <Box sx={{ p: 1.5, bgcolor: '#e8f5e9', borderRadius: '12px', border: '1px solid #c8e6c9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Box>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', display: 'block' }}>
-                    🌱 खाद कैलकुलेटर में सीधे लागू करें:
+                    {isChhattisgarhi ? '🌱 खाद कैलकुलेटर म सीधे लागू करव:' : '🌱 खाद कैलकुलेटर में सीधे लागू करें:'}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.72rem' }}>
-                    इस मिट्टी रीडिंग के आधार पर यूरिया, DAP और पोटाश की सही बोरियों का हिसाब लगाएं
+                    {isChhattisgarhi
+                      ? 'ये माटी रीडिंग के आधार म यूरिया, DAP अउ पोटाश के सही बोरी के हिसाब लगाव'
+                      : 'इस मिट्टी रीडिंग के आधार पर यूरिया, DAP और पोटाश की सही बोरियों का हिसाब लगाएं'}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -701,7 +705,7 @@ export const DeviceHubModal = ({
                       }}
                       sx={{ borderColor: '#2e7d32', color: '#1b5e20', fontWeight: 800, borderRadius: '8px', fontSize: '0.74rem' }}
                     >
-                      विस्तृत रिपोर्ट
+                      {isChhattisgarhi ? 'विस्तृत रिपोर्ट' : 'विस्तृत रिपोर्ट'}
                     </Button>
                   )}
                   <Button
@@ -710,11 +714,11 @@ export const DeviceHubModal = ({
                     onClick={() => {
                       handleClose();
                       if (onApplySoilToCalc) onApplySoilToCalc();
-                      notify.success('मिट्टी सेंसर डेटा खाद कैलकुलेटर में लागू हुआ!');
+                      notify.success(isChhattisgarhi ? 'माटी सेंसर डेटा खाद कैलकुलेटर म लागू हो गे!' : 'मिट्टी सेंसर डेटा खाद कैलकुलेटर में लागू हुआ!');
                     }}
                     sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, borderRadius: '8px', fontSize: '0.74rem' }}
                   >
-                    खाद में लागू करें ➔
+                    {isChhattisgarhi ? 'खाद म लागू करव ➔' : 'खाद में लागू करें ➔'}
                   </Button>
                 </Box>
               </Box>
@@ -757,16 +761,16 @@ export const DeviceHubModal = ({
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem' }}>
-                    खेत सीमा GPS मापक
+                    {isChhattisgarhi ? 'खेत मेड़ GPS नापक' : 'खेत सीमा GPS मापक'}
                   </Typography>
                   <Chip
-                    label="GPS सक्रिय 🛰️"
+                    label={isChhattisgarhi ? 'GPS चालू 🛰️' : 'GPS सक्रिय 🛰️'}
                     size="small"
                     sx={{ bgcolor: '#e0f2f1', color: '#004d40', fontWeight: 800, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  उपग्रह नेविगेशन • सटीकता: <strong>±2.5 मीटर</strong> • 14 उपग्रह लॉक
+                  {isChhattisgarhi ? 'उपग्रह नेविगेशन • सटीकता: ±2.5 मीटर • 14 उपग्रह लॉक' : 'उपग्रह नेविगेशन • सटीकता: ±2.5 मीटर • 14 उपग्रह लॉक'}
                 </Typography>
               </Box>
             </Box>
@@ -792,7 +796,7 @@ export const DeviceHubModal = ({
                   '&:hover': { bgcolor: '#00695c' }
                 }}
               >
-                🚶‍♂️ खेत नापें
+                {isChhattisgarhi ? '🚶‍♂️ खेत नापव' : '🚶‍♂️ खेत नापें'}
               </Button>
               <IconButton size="small" sx={{ color: '#00897b' }}>
                 <ExpandMoreIcon
@@ -809,16 +813,28 @@ export const DeviceHubModal = ({
           <Collapse in={expandedCards.gpsTracker}>
             <Box sx={{ p: 2, bgcolor: '#ffffff' }}>
               <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.8rem', lineHeight: 1.6, mb: 1.5 }}>
-                खेत की मेड़ पर चारों ओर चलकर जीपीएस से एकड़ व डिसमिल में सटीक रकबा निकालें। यह तकनीक बिना इंटरनेट के भी सीधे उपग्रह सिग्नल से चलती है।
+                {isChhattisgarhi
+                  ? 'खेत के मेड़ म चारों कोती रेंग के जीपीएस ले एकड़ अउ डिसमिल म सटीक रकबा निकालव। ये तकनीक बिना इंटरनेट के भी सीधे उपग्रह सिग्नल ले चलथे।'
+                  : 'खेत की मेड़ पर चारों ओर चलकर जीपीएस से एकड़ व डिसमिल में सटीक रकबा निकालें। यह तकनीक बिना इंटरनेट के भी सीधे उपग्रह सिग्नल से चलती है।'}
               </Typography>
               <Box sx={{ p: 1.5, bgcolor: '#f0fdf4', borderRadius: '12px', border: '1px solid #bbf7d0', mb: 1.5 }}>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#166534', display: 'block', mb: 0.5 }}>
-                  📍 मेड़ नापने के 3 सरल नियम:
+                  {isChhattisgarhi ? '📍 मेड़ नापे के 3 सरल नियम:' : '📍 मेड़ नापने के 3 सरल नियम:'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#15803d', display: 'block', fontSize: '0.72rem' }}>
-                  1. खेत के पहले कोने (मेड़) पर खड़े हों और <strong>'नापी शुरू करें'</strong> दबाएं।<br />
-                  2. मेड़ की सीमा पर चलते हुए चारों कोनों पर रुकें और बिंदु जोड़ें।<br />
-                  3. वापस पहले कोने पर आकर <strong>'नापी पूर्ण करें'</strong> दबाते ही एकड़ रकबा सुरक्षित हो जाएगा।
+                  {isChhattisgarhi ? (
+                    <>
+                      1. खेत के पहिली कोना (मेड़) म खड़े हो के <strong>'नापना शुरू करव'</strong> दबावहू।<br />
+                      2. मेड़ म रेंगत चारों कोना म रुकव अउ बिंदु जोड़व।<br />
+                      3. वापस पहिली कोना म आ के <strong>'नाप पूरा करव'</strong> दबाते एकड़ रकबा सुरक्षित हो जही।
+                    </>
+                  ) : (
+                    <>
+                      1. खेत के पहले कोने (मेड़) पर खड़े हों और <strong>'नापी शुरू करें'</strong> दबाएं।<br />
+                      2. मेड़ की सीमा पर चलते हुए चारों कोनों पर रुकें और बिंदु जोड़ें।<br />
+                      3. वापस पहले कोने पर आकर <strong>'नापी पूर्ण करें'</strong> दबाते ही एकड़ रकबा सुरक्षित हो जाएगा।
+                    </>
+                  )}
                 </Typography>
               </Box>
               {onOpenGpsTracker && (
@@ -831,7 +847,7 @@ export const DeviceHubModal = ({
                   }}
                   sx={{ borderColor: '#00897b', color: '#00897b', fontWeight: 800, borderRadius: '10px' }}
                 >
-                  पूर्ण GPS नेविगेशन व मेड़ ट्रैकर खोलें
+                  {isChhattisgarhi ? 'पूरा GPS नेविगेशन व मेड़ ट्रैकर खोलव' : 'पूर्ण GPS नेविगेशन व मेड़ ट्रैकर खोलें'}
                 </Button>
               )}
             </Box>
@@ -873,16 +889,16 @@ export const DeviceHubModal = ({
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem' }}>
-                    स्मार्ट 15L स्प्रे पंप व फ्लो मीटर
+                    {isChhattisgarhi ? 'स्मार्ट 15L स्प्रे पंप व फ्लो मीटर' : 'स्मार्ट 15L स्प्रे पंप व फ्लो मीटर'}
                   </Typography>
                   <Chip
-                    label="मानक सेट"
+                    label={isChhattisgarhi ? 'मानक सेट' : 'मानक सेट'}
                     size="small"
                     sx={{ bgcolor: '#fff8e1', color: '#e65100', fontWeight: 800, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  टंकी क्षमता: <strong>15 लीटर (मानक)</strong> • फ्लो रेट: 1.2 L/मिनट
+                  {isChhattisgarhi ? 'टंकी क्षमता' : 'टंकी क्षमता'}: <strong>15 {isChhattisgarhi ? 'लीटर (मानक)' : 'लीटर (मानक)'}</strong> • {isChhattisgarhi ? 'फ्लो रेट' : 'फ्लो रेट'}: 1.2 L/{isChhattisgarhi ? 'मिनट' : 'मिनट'}
                 </Typography>
               </Box>
             </Box>
@@ -905,31 +921,33 @@ export const DeviceHubModal = ({
               <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
                 <Grid item xs={6} sm={3}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#fff8e1', borderRadius: '10px', border: '1px solid #ffe082' }}>
-                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>टंकी नाप</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>15 लीटर</Typography>
+                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'टंकी नाप' : 'टंकी नाप'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>15 {isChhattisgarhi ? 'लीटर' : 'लीटर'}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={6} sm={3}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#fff8e1', borderRadius: '10px', border: '1px solid #ffe082' }}>
-                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>नोजल बहाव</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>1.2 L / मिनट</Typography>
+                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'नोजल बहाव' : 'नोजल बहाव'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>1.2 L / {isChhattisgarhi ? 'मिनट' : 'मिनट'}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={6} sm={3}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#fff8e1', borderRadius: '10px', border: '1px solid #ffe082' }}>
-                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>प्रति एकड़ टंकी</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>10 - 12 टंकी</Typography>
+                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'प्रति एकड़ टंकी' : 'प्रति एकड़ टंकी'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>10 - 12 {isChhattisgarhi ? 'टंकी' : 'टंकी'}</Typography>
                   </Paper>
                 </Grid>
                 <Grid item xs={6} sm={3}>
                   <Paper elevation={0} sx={{ p: 1, textAlign: 'center', bgcolor: '#fff8e1', borderRadius: '10px', border: '1px solid #ffe082' }}>
-                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>पानी की मात्रा</Typography>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>150 - 180 L/एकड़</Typography>
+                    <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block' }}>{isChhattisgarhi ? 'पानी के मात्रा' : 'पानी की मात्रा'}</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#e65100' }}>150 - 180 L/{isChhattisgarhi ? 'एकड़' : 'एकड़'}</Typography>
                   </Paper>
                 </Grid>
               </Grid>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>
-                * टिप: फसल डॉक्टर में सुझाई गई दवा की मात्रा हमेशा 15 लीटर पानी की टंकी के अनुसार ही तैयार करें।
+                {isChhattisgarhi
+                  ? '* सलाह: फसल डॉक्टर म बताय गे दवाई के मात्रा हमेशा 15 लीटर पानी के टंकी के हिसाब ले ही बनावहू।'
+                  : '* टिप: फसल डॉक्टर में सुझाई गई दवा की मात्रा हमेशा 15 लीटर पानी की टंकी के अनुसार ही तैयार करें।'}
               </Typography>
             </Box>
           </Collapse>
@@ -968,10 +986,10 @@ export const DeviceHubModal = ({
               </Box>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.94rem' }}>
-                  📖 कनेक्शन सहायता व किसान गाइड
+                  {isChhattisgarhi ? '📖 कनेक्शन सहायता व किसान गाइड' : '📖 कनेक्शन सहायता व किसान गाइड'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                  मोटर GSM सिम, ब्लूटूथ प्रोब और GPS से जुड़े सामान्य सवालों के उत्तर
+                  {isChhattisgarhi ? 'मोटर GSM सिम, ब्लूटूथ प्रोब अउ GPS से जुड़े सवाल' : 'मोटर GSM सिम, ब्लूटूथ प्रोब और GPS से जुड़े सामान्य सवालों के उत्तर'}
                 </Typography>
               </Box>
             </Box>
@@ -993,28 +1011,28 @@ export const DeviceHubModal = ({
             <Box sx={{ p: 2, bgcolor: '#ffffff', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', mb: 0.5 }}>
-                  1. बोरवेल GSM मोटर स्टार्टर कैसे काम करता है?
+                  {isChhattisgarhi ? '1. बोरवेल GSM मोटर स्टार्टर कइसे काम करथे?' : '1. बोरवेल GSM मोटर स्टार्टर कैसे काम करता है?'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.78rem', lineHeight: 1.5 }}>
-                  बाजार में मिलने वाले कृषि GSM स्टार्टर (जैसे Shanti, Kisan Raja आदि) में एक साधारण सिम कार्ड लगता है। इस ऐप में केवल वह सिम नंबर दर्ज करें। आप घर बैठे 1-टैप से कॉल कर सकते हैं या SMS (START/STOP) भेजकर मोटर चालू व बंद कर सकते हैं।
+                  {isChhattisgarhi ? 'बजार म मिलइया किसानी GSM स्टार्टर (जइसे Shanti, Kisan Raja आदि) म एक साधारण सिम कार्ड लगथे। ए ऐप म सिरिफ ओ सिम नंबर दर्ज करव। अपन घर बइठे 1-टैप ले कॉल कर सकथो या SMS (START/STOP) भेजके मोटर चालू अउ बंद कर सकथो।' : 'बाजार में मिलने वाले कृषि GSM स्टार्टर (जैसे Shanti, Kisan Raja आदि) में एक साधारण सिम कार्ड लगता है। इस ऐप में केवल वह सिम नंबर दर्ज करें। आप घर बैठे 1-टैप से कॉल कर सकते हैं या SMS (START/STOP) भेजकर मोटर चालू व बंद कर सकते हैं।'}
                 </Typography>
               </Paper>
 
               <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', mb: 0.5 }}>
-                  2. ब्लूटूथ (BLE) मिट्टी प्रोब कैसे जोड़ें?
+                  {isChhattisgarhi ? '2. ब्लूटूथ (BLE) माटी जांच प्रोब कइसे जोड़व?' : '2. ब्लूटूथ (BLE) मिट्टी प्रोब कैसे जोड़ें?'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.78rem', lineHeight: 1.5 }}>
-                  अपने मोबाइल का ब्लूटूथ चालू करें। सेंसर का पावर बटन दबाएं। ऐप में <strong>'ब्लूटूथ जोड़ें'</strong> दबाते ही डिवाइस सूची दिखेगी, उस पर टैप करके पेयर करें। यह स्वतः NPK और pH नापकर खाद कैलकुलेटर में भेज देगा।
+                  {isChhattisgarhi ? 'अपन मोबाइल के ब्लूटूथ चालू करव। सेंसर के पावर बटन दबावहू। ऐप म \'ब्लूटूथ जोड़व\' दबातेच डिवाइस सूची दिखही, ओमा टैप करके पेयर करव। ये ह अपने-आप NPK अउ pH नापके खाद कैलकुलेटर म भेज दिही।' : 'अपने मोबाइल का ब्लूटूथ चालू करें। सेंसर का पावर बटन दबाएं। ऐप में \'ब्लूटूथ जोड़ें\' दबाते ही डिवाइस सूची दिखेगी, उस पर टैप करके पेयर करें। यह स्वतः NPK और pH नापकर खाद कैलकुलेटर में भेज देगा।'}
                 </Typography>
               </Paper>
 
               <Paper elevation={0} sx={{ p: 1.5, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', mb: 0.5 }}>
-                  3. खेत GPS मापक की सटीकता कैसे बढ़ाएं?
+                  {isChhattisgarhi ? '3. खेत GPS नाप के एक्यूरेसी कइसे बढ़ावव?' : '3. खेत GPS मापक की सटीकता कैसे बढ़ाएं?'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.78rem', lineHeight: 1.5 }}>
-                  खेत की खुली धूप में खड़े होकर नाप शुरू करें। पेड़ों या बिजली के तारों के नीचे रुकने से बचें। मेड़ के चारों कोनों पर चलते समय GPS सटीकता ±2 से ±3 मीटर तक पहुंच जाती है।
+                  {isChhattisgarhi ? 'खेत के उघरा घाम म ठाढ़ होके नाप सुरू करव। रुख-राई या बिजली तार तीर रुके ले बचव। मेड़ के चारों कोना म रेंगत बेरा GPS सटीकता ±2 ले ±3 मीटर तक पहुंच जाथे।' : 'खेत की खुली धूप में खड़े होकर नाप शुरू करें। पेड़ों या बिजली के तारों के नीचे रुकने से बचें। मेड़ के चारों कोनों पर चलते समय GPS सटीकता ±2 से ±3 मीटर तक पहुंच जाती है।'}
                 </Typography>
               </Paper>
             </Box>
@@ -1026,10 +1044,10 @@ export const DeviceHubModal = ({
       {/* Modal Bottom Actions */}
       <DialogActions sx={{ p: 2, bgcolor: '#ffffff', borderTop: '1px solid #e2e8f0', justifyContent: 'space-between' }}>
         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-          किसान साथी • ऑल-इन-वन हार्डवेयर रजिस्ट्री (Zero-Scroll)
+          {isChhattisgarhi ? 'किसान साथी • सबो हार्डवेयर रजिस्ट्री (Zero-Scroll)' : 'किसान साथी • ऑल-इन-वन हार्डवेयर रजिस्ट्री (Zero-Scroll)'}
         </Typography>
         <Button onClick={handleClose} variant="contained" sx={{ bgcolor: '#1b5e20', borderRadius: '10px', fontWeight: 800 }}>
-          पूर्ण (Done)
+          {isChhattisgarhi ? 'पूरा (Done)' : 'पूर्ण (Done)'}
         </Button>
       </DialogActions>
     </Dialog>

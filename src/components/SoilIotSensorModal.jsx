@@ -37,8 +37,10 @@ import {
 } from '../utils/bluetoothSoilSensor';
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
+import { useLanguage } from '../utils/i18n';
 
 export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotName = 'खेत' }) => {
+  const { isChhattisgarhi } = useLanguage();
   const [deviceConnected, setDeviceConnected] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [sensorData, setSensorData] = useState(generateSimulatedSoilData('balanced'));
@@ -143,10 +145,10 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
           <ScienceIcon sx={{ color: '#80cbc4', fontSize: 26 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff' }}>
-              स्मार्ट मिट्टी जांच IoT सेंसर (Soil BLE Probe)
+              {isChhattisgarhi ? 'स्मार्ट माटी जांच IoT सेंसर (Soil BLE Probe)' : 'स्मार्ट मिट्टी जांच IoT सेंसर (Soil BLE Probe)'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#b2dfdb', fontSize: '0.72rem' }}>
-              ब्लूटूथ प्रोब से लाइव pH, नमी व N-P-K की जांच
+              {isChhattisgarhi ? 'ब्लूटूथ प्रोब ले लाइव pH, नमी अउ N-P-K के जांच' : 'ब्लूटूथ प्रोब से लाइव pH, नमी व N-P-K की जांच'}
             </Typography>
           </Box>
         </Box>
@@ -172,10 +174,10 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
             )}
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#004d40' }}>
-                {deviceConnected ? sensorData.connectedDevice : 'कोई सेंसर कनेक्ट नहीं है'}
+                {deviceConnected ? sensorData.connectedDevice : (isChhattisgarhi ? 'कोनो सेंसर कनेक्ट नइये' : 'कोई सेंसर कनेक्ट नहीं है')}
               </Typography>
               <Typography variant="caption" sx={{ color: '#00695c', fontSize: '0.7rem' }}>
-                {deviceConnected ? `रीडिंग समय: ${sensorData.timestamp}` : 'खेत में सेंसर गड़ाकर नीचे बटन दबाएं'}
+                {deviceConnected ? `रीडिंग समय: ${sensorData.timestamp}` : (isChhattisgarhi ? 'खेत म सेंसर गड़ा के नीचे बटन दबावहू' : 'खेत में सेंसर गड़ाकर नीचे बटन दबाएं')}
               </Typography>
             </Box>
           </Box>
@@ -190,7 +192,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
                 onClick={handleConnectBleDevice}
                 sx={{ bgcolor: '#00796b', fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: '#004d40' } }}
               >
-                {connecting ? 'खोज रहे हैं...' : 'सेंसर कनेक्ट करें'}
+                {connecting ? (isChhattisgarhi ? 'खोजत हन...' : 'खोज रहे हैं...') : (isChhattisgarhi ? 'सेंसर जोड़व' : 'सेंसर कनेक्ट करें')}
               </Button>
             ) : (
               <Button
@@ -201,7 +203,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
                 onClick={handleDisconnect}
                 sx={{ borderRadius: 2, fontWeight: 700 }}
               >
-                डिस्कनेक्ट
+                {isChhattisgarhi ? 'डिस्कनेक्ट' : 'डिस्कनेक्ट'}
               </Button>
             )}
           </Box>
@@ -222,17 +224,21 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#f57f17', fontSize: '0.82rem', mb: 0.2 }}>
-              ⚠️ डेमो / सिमुलेशन मोड (Demo Mode - कोई भौतिक सेंसर कनेक्ट नहीं)
+              {isChhattisgarhi ? '⚠️ डेमो / सिमुलेशन मोड (कोनो असली सेंसर कनेक्ट नइये)' : '⚠️ डेमो / सिमुलेशन मोड (Demo Mode - कोई भौतिक सेंसर कनेक्ट नहीं)'}
             </Typography>
             <Typography variant="caption" sx={{ fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
-              नीचे दिखाए जा रहे pH एवं N-P-K मान केवल तकनीकी प्रदर्शन हेतु हैं। वास्तविक खेत की मिट्टी जांच हेतु ऊपर <strong>"सेंसर कनेक्ट करें"</strong> बटन दबाएं अथवा अपनी सरकारी प्रयोगशाला (मृदा स्वास्थ्य कार्ड) रिपोर्ट का उपयोग करें।
+              {isChhattisgarhi
+                ? 'नीचे दिखात pH अउ N-P-K मान सिर्फ प्रदर्शन बर हे। खेत के असली माटी जांच बर ऊपर "सेंसर जोड़व" बटन दबावहू या अपन सरकारी प्रयोगशाला (मृदा स्वास्थ्य कार्ड) रिपोर्ट के उपयोग करव।'
+                : 'नीचे दिखाए जा रहे pH एवं N-P-K मान केवल तकनीकी प्रदर्शन हेतु हैं। वास्तविक खेत की मिट्टी जांच हेतु ऊपर "सेंसर कनेक्ट करें" बटन दबाएं अथवा अपनी सरकारी प्रयोगशाला (मृदा स्वास्थ्य कार्ड) रिपोर्ट का उपयोग करें।'}
             </Typography>
           </Alert>
         )}
 
         {/* Soil Telemetry Cards */}
         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#004d40', mb: 1, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-          <span>📊</span> {deviceConnected ? 'लाइव मृदा टेलीमेट्री (🟢 असली सेंसर कनेक्टेड)' : 'मृदा टेलीमेट्री (डेमो सिमुलेशन)'}
+          <span>📊</span> {deviceConnected
+            ? (isChhattisgarhi ? 'लाइव माटी टेलीमेट्री (🟢 असली सेंसर जोड़े हे)' : 'लाइव मृदा टेलीमेट्री (🟢 असली सेंसर कनेक्टेड)')
+            : (isChhattisgarhi ? 'माटी टेलीमेट्री (डेमो सिमुलेशन)' : 'मृदा टेलीमेट्री (डेमो सिमुलेशन)')}
         </Typography>
 
         <Grid container spacing={1.5} sx={{ mb: 2 }}>
@@ -242,7 +248,9 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
               <CardContent sx={{ p: 1.5, textAlign: 'center', '&:last-child': { pb: 1.5 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.3, mb: 0.3 }}>
                   <ScienceIcon sx={{ fontSize: 16, color: analysis?.phColor }} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>मृदा pH</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>
+                    {isChhattisgarhi ? 'माटी pH' : 'मृदा pH'}
+                  </Typography>
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: analysis?.phColor }}>
                   {sensorData.ph}
@@ -262,7 +270,9 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
               <CardContent sx={{ p: 1.5, textAlign: 'center', '&:last-child': { pb: 1.5 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.3, mb: 0.3 }}>
                   <WaterDropIcon sx={{ fontSize: 16, color: analysis?.moistureColor }} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>नमी (Moisture)</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>
+                    {isChhattisgarhi ? 'नमी (Moisture)' : 'नमी (Moisture)'}
+                  </Typography>
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: analysis?.moistureColor }}>
                   {sensorData.moisture}%
@@ -282,13 +292,15 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
               <CardContent sx={{ p: 1.5, textAlign: 'center', '&:last-child': { pb: 1.5 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.3, mb: 0.3 }}>
                   <ThermostatIcon sx={{ fontSize: 16, color: '#f57c00' }} />
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>तापमान व EC</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#555' }}>
+                    {isChhattisgarhi ? 'तापमान व EC' : 'तापमान व EC'}
+                  </Typography>
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#37474f' }}>
                   {sensorData.temperature}°C
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#607d8b', display: 'block', fontSize: '0.72rem' }}>
-                  EC: {sensorData.ec} dS/m (लवणता)
+                  EC: {sensorData.ec} dS/m ({isChhattisgarhi ? 'लवणता/खार' : 'लवणता'})
                 </Typography>
               </CardContent>
             </Card>
@@ -300,13 +312,13 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#1b5e20', display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <GrassIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-              प्राथमिक पोषक तत्व (N-P-K स्थिति - kg/हेक्टेयर)
+              {isChhattisgarhi ? 'प्राथमिक पोषक तत्व (N-P-K स्थिति - kg/हेक्टेयर)' : 'प्राथमिक पोषक तत्व (N-P-K स्थिति - kg/हेक्टेयर)'}
             </Typography>
           </Box>
           <Grid container spacing={1}>
             <Grid item xs={4}>
               <Box sx={{ bgcolor: '#fff', p: 1, borderRadius: 2, textAlign: 'center', border: '1px solid #e0e0e0' }}>
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>नाइट्रोजन (N)</Typography>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>{isChhattisgarhi ? 'नाइट्रोजन (N)' : 'नाइट्रोजन (N)'}</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 800, color: '#1b5e20' }}>
                   {sensorData.nitrogen}
                 </Typography>
@@ -315,7 +327,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
             </Grid>
             <Grid item xs={4}>
               <Box sx={{ bgcolor: '#fff', p: 1, borderRadius: 2, textAlign: 'center', border: '1px solid #e0e0e0' }}>
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>फॉस्फोरस (P)</Typography>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>{isChhattisgarhi ? 'फॉस्फोरस (P)' : 'फॉस्फोरस (P)'}</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 800, color: '#00796b' }}>
                   {sensorData.phosphorus}
                 </Typography>
@@ -324,7 +336,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
             </Grid>
             <Grid item xs={4}>
               <Box sx={{ bgcolor: '#fff', p: 1, borderRadius: 2, textAlign: 'center', border: '1px solid #e0e0e0' }}>
-                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>पोटाश (K)</Typography>
+                <Typography variant="caption" sx={{ color: '#555', fontWeight: 700 }}>{isChhattisgarhi ? 'पोटाश (K)' : 'पोटाश (K)'}</Typography>
                 <Typography variant="body1" sx={{ fontWeight: 800, color: '#e65100' }}>
                   {sensorData.potassium}
                 </Typography>
@@ -338,30 +350,30 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
         <Paper elevation={0} sx={{ p: 1.5, borderRadius: 2.5, bgcolor: '#fffde7', border: '1.5px solid #fff59d', mb: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem', color: '#f57f17', display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
             <AutoFixHighIcon sx={{ fontSize: 18 }} />
-            कृषि वैज्ञानिक निदान व उपचार सलाह:
+            {isChhattisgarhi ? 'कृषि वैज्ञानिक निदान व उपचार सलाह:' : 'कृषि वैज्ञानिक निदान व उपचार सलाह:'}
           </Typography>
           <Typography variant="body2" sx={{ color: '#37474f', fontSize: '0.8rem', lineHeight: 1.4, mb: 0.8 }}>
             {analysis.phAdvice}
           </Typography>
           <Typography variant="caption" sx={{ color: '#546e7a', display: 'block', fontSize: '0.74rem' }}>
-            💡 <strong>खाद समायोजन:</strong> यूरिया ({analysis.ureaAdjustment}), डीएपी ({analysis.dapAdjustment}), पोटाश ({analysis.mopAdjustment})
+            💡 <strong>{isChhattisgarhi ? 'खाद समायोजन:' : 'खाद समायोजन:'}</strong> यूरिया ({analysis.ureaAdjustment}), डीएपी ({analysis.dapAdjustment}), पोटाश ({analysis.mopAdjustment})
           </Typography>
         </Paper>
 
         {/* Demo Simulation Switchers */}
         <Box sx={{ mb: 1 }}>
           <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
-            ⚡ यदि भौतिक सेंसर नहीं है, तो डेमो रीडिंग से टेस्ट करें:
+            {isChhattisgarhi ? '⚡ अगर भौतिक सेंसर नइये, त डेमो रीडिंग ले जांच करव:' : '⚡ यदि भौतिक सेंसर नहीं है, तो डेमो रीडिंग से टेस्ट करें:'}
           </Typography>
           <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
             <Button size="small" variant="outlined" onClick={() => handleSimulate('balanced')} sx={{ fontSize: '0.7rem', py: 0.3 }}>
-              संतुलित मिट्टी (pH 6.5)
+              {isChhattisgarhi ? 'संतुलित माटी (pH 6.5)' : 'संतुलित मिट्टी (pH 6.5)'}
             </Button>
             <Button size="small" variant="outlined" color="error" onClick={() => handleSimulate('acidic')} sx={{ fontSize: '0.7rem', py: 0.3 }}>
-              अम्लीय मिट्टी (pH 5.4)
+              {isChhattisgarhi ? 'अम्लीय माटी (pH 5.4)' : 'अम्लीय मिट्टी (pH 5.4)'}
             </Button>
             <Button size="small" variant="outlined" color="warning" onClick={() => handleSimulate('dry')} sx={{ fontSize: '0.7rem', py: 0.3 }}>
-              शुष्क मिट्टी (नमी 19%)
+              {isChhattisgarhi ? 'सूखा माटी (नमी 19%)' : 'शुष्क मिट्टी (नमी 19%)'}
             </Button>
           </Box>
         </Box>
@@ -374,11 +386,11 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
           onClick={handleVoiceReadout}
           sx={{ color: '#004d40', fontWeight: 700, fontSize: '0.78rem' }}
         >
-          रिपोर्ट सुनें
+          {isChhattisgarhi ? 'रिपोर्ट सुनव' : 'रिपोर्ट सुनें'}
         </Button>
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Button onClick={onClose} sx={{ color: '#666', fontWeight: 600 }}>
-            बंद करें
+            {isChhattisgarhi ? 'बंद करव' : 'बंद करें'}
           </Button>
           {onApplyToCalculator && (
             <Button
@@ -388,7 +400,7 @@ export const SoilIotSensorModal = ({ open, onClose, onApplyToCalculator, plotNam
               onClick={handleApply}
               sx={{ bgcolor: '#00796b', fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: '#004d40' } }}
             >
-              खाद कैलकुलेटर में लागू करें
+              {isChhattisgarhi ? 'खाद कैलकुलेटर म लागू करव' : 'खाद कैलकुलेटर में लागू करें'}
             </Button>
           )}
         </Box>

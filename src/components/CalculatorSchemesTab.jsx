@@ -189,9 +189,9 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
       {/* Modern Capsule Tab Switcher */}
       <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
         {[
-          { label: 'खाद कैलकुलेटर', icon: <CalculateIcon sx={{ fontSize: 18 }} /> },
-          { label: `धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}`, icon: <MonetizationOnIcon sx={{ fontSize: 18 }} /> },
-          { label: 'सरकारी योजनाएं', icon: <PolicyIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? 'खाद हिसाब' : 'खाद कैलकुलेटर', icon: <CalculateIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? `धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}` : `धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}`, icon: <MonetizationOnIcon sx={{ fontSize: 18 }} /> },
+          { label: isChhattisgarhi ? 'सरकारी योजना' : 'सरकारी योजनाएं', icon: <PolicyIcon sx={{ fontSize: 18 }} /> },
         ].map((item, idx) => (
           <Button
             key={idx}
@@ -225,7 +225,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           <Card sx={{ p: 2, mb: 2.5, borderRadius: 3.5, border: '1.5px solid #c8e6c9' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1rem' }}>
-                🌾 स्मार्ट खाद मात्रा कैलकुलेटर
+                {isChhattisgarhi ? '🌾 खाद नाप-जोख कैलकुलेटर' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
               </Typography>
               <Button
                 size="small"
@@ -234,7 +234,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 onClick={handleReadFertSummary}
                 sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: 2 }}
               >
-                सुनें
+                {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
               </Button>
             </Box>
 
@@ -244,21 +244,21 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   select
                   fullWidth
                   size="small"
-                  label="फसल चुनें"
+                  label={isChhattisgarhi ? 'फसल चुनव' : 'फसल चुनें'}
                   value={fertCrop}
                   onChange={(e) => setFertCrop(e.target.value)}
                 >
-                  <MenuItem value="paddy">धान (Paddy)</MenuItem>
-                  <MenuItem value="wheat">गेहूं (Wheat)</MenuItem>
-                  <MenuItem value="chana">चना (Chickpea)</MenuItem>
-                  <MenuItem value="maize">मक्का (Maize)</MenuItem>
+                  <MenuItem value="paddy">{isChhattisgarhi ? 'धान (चांउर)' : 'धान (Paddy)'}</MenuItem>
+                  <MenuItem value="wheat">{isChhattisgarhi ? 'गेहूं (गहुं)' : 'गेहूं (Wheat)'}</MenuItem>
+                  <MenuItem value="chana">{isChhattisgarhi ? 'चना (बूट)' : 'चना (Chickpea)'}</MenuItem>
+                  <MenuItem value="maize">{isChhattisgarhi ? 'मक्का (जुनहरी)' : 'मक्का (Maize)'}</MenuItem>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={4}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
-                      {fertUnit === 'acre' ? 'रकबा (एकड़)' : 'रकबा (डिसमिल)'}
+                      {fertUnit === 'acre' ? (isChhattisgarhi ? 'रकबा (एकड़ म)' : 'रकबा (एकड़)') : (isChhattisgarhi ? 'रकबा (डिसमिल म)' : 'रकबा (डिसमिल)')}
                     </Typography>
                     {/* Unit Switcher */}
                     <Box sx={{ display: 'inline-flex', bgcolor: '#e2e8f0', p: 0.2, borderRadius: 1.5 }}>
@@ -278,7 +278,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           lineHeight: 1.2
                         }}
                       >
-                        एकड़
+                        {isChhattisgarhi ? 'एकड़' : 'एकड़'}
                       </Button>
                       <Button
                         size="small"
@@ -296,7 +296,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           lineHeight: 1.2
                         }}
                       >
-                        डिसमिल
+                        {isChhattisgarhi ? 'डिसमिल' : 'डिसमिल'}
                       </Button>
                     </Box>
                   </Box>
@@ -363,15 +363,15 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   select
                   fullWidth
                   size="small"
-                  label="मिट्टी का प्रकार (वैकल्पिक)"
+                  label={isChhattisgarhi ? 'माटी के प्रकार (वैकल्पिक)' : 'मिट्टी का प्रकार (वैकल्पिक)'}
                   value={soilType}
                   onChange={(e) => setSoilType(e.target.value)}
                 >
-                  <MenuItem value="सामान्य">सामान्य (मानक दोमट)</MenuItem>
-                  <MenuItem value="मटासी">मटासी (पीली-दोमट)</MenuItem>
-                  <MenuItem value="डोर्सा">डोर्सा (मध्यम भारी)</MenuItem>
-                  <MenuItem value="कन्हार">कन्हार (काली चिकनी)</MenuItem>
-                  <MenuItem value="भाठा">भाठा (लाल कंकरीली)</MenuItem>
+                  <MenuItem value="सामान्य">{isChhattisgarhi ? 'सामान्य (दोमट माटी)' : 'सामान्य (मानक दोमट)'}</MenuItem>
+                  <MenuItem value="मटासी">{isChhattisgarhi ? 'मटासी (पियरा-दोमट)' : 'मटासी (पीली-दोमट)'}</MenuItem>
+                  <MenuItem value="डोर्सा">{isChhattisgarhi ? 'डोर्सा (मध्यम भारी)' : 'डोर्सा (मध्यम भारी)'}</MenuItem>
+                  <MenuItem value="कन्हार">{isChhattisgarhi ? 'कन्हार (करिया चिकनी माटी)' : 'कन्हार (काली चिकनी)'}</MenuItem>
+                  <MenuItem value="भाठा">{isChhattisgarhi ? 'भाठा (लाल कंकरीली माटी)' : 'भाठा (लाल कंकरीली)'}</MenuItem>
                 </TextField>
               </Grid>
             </Grid>
@@ -379,7 +379,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
             {/* Quick Acre/Dismil Selector Buttons */}
             <Box sx={{ mb: 2 }}>
               <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
-                ⚡ त्वरित {fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:
+                {isChhattisgarhi ? `⚡ तुरंत ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनव:` : `⚡ त्वरित ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:`}
               </Typography>
               <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
                 {(fertUnit === 'acre' ? [0.5, 1, 2, 3, 5] : [50, 75, 100, 150, 250]).map((val) => {
@@ -407,7 +407,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         }
                       }}
                     >
-                      {val} {fertUnit === 'acre' ? 'एकड़' : 'डिस.'}
+                      {val} {fertUnit === 'acre' ? (isChhattisgarhi ? 'एकड़' : 'एकड़') : (isChhattisgarhi ? 'डिस.' : 'डिस.')}
                     </Button>
                   );
                 })}
@@ -418,11 +418,11 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
             <Box sx={{ mb: 2, bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.5 }}>
                 <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, fontSize: '0.78rem' }}>
-                  🏞️ खेत के ढलान व स्थिति (Topography):
+                  {isChhattisgarhi ? '🏞️ खेत के ढलान व स्थिति:' : '🏞️ खेत के ढलान व स्थिति (Topography):'}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.6 }}>
                   <Chip
-                    label="डांड / टिकरा (ऊंचा)"
+                    label={isChhattisgarhi ? 'डांड / टिकरा (ऊंचा खेत)' : 'डांड / टिकरा (ऊंचा)'}
                     size="small"
                     onClick={() => setTopography('dand')}
                     sx={{
@@ -435,7 +435,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     }}
                   />
                   <Chip
-                    label="बाहरा / गहिरा (निचला)"
+                    label={isChhattisgarhi ? 'बाहरा / गहिरा (निचला खेत)' : 'बाहरा / गहिरा (निचला)'}
                     size="small"
                     onClick={() => setTopography('bahra')}
                     sx={{
@@ -450,7 +450,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 </Box>
               </Box>
               <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', lineHeight: 1.35 }}>
-                💡 <strong>छत्तीसगढ़ी सलाह:</strong> {topography === 'dand' ? t('topo_dand_tip') : t('topo_bahra_tip')}
+                💡 <strong>{isChhattisgarhi ? 'सलाह:' : 'छत्तीसगढ़ी सलाह:'}</strong> {topography === 'dand' ? t('topo_dand_tip') : t('topo_bahra_tip')}
               </Typography>
             </Box>
 
@@ -460,10 +460,10 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 <ScienceIcon sx={{ color: '#00796b', fontSize: 24 }} />
                 <Box>
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#004d40' }}>
-                    🔬 स्मार्ट मिट्टी IoT सेंसर
+                    {isChhattisgarhi ? '🔬 माटी IoT सेंसर' : '🔬 स्मार्ट मिट्टी IoT सेंसर'}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#00695c', fontSize: '0.73rem', display: 'block' }}>
-                    {soilSensorData ? `सेंसर सक्रिय: pH ${soilSensorData.soilReading.ph} (${soilSensorData.analysis.phStatus}) • N: ${soilSensorData.soilReading.nitrogen}, P: ${soilSensorData.soilReading.phosphorus}, K: ${soilSensorData.soilReading.potassium} kg/ha` : 'ब्लूटूथ प्रोब से वास्तविक pH व N-P-K मापकर सटीक संशोधित खाद मात्रा पाएं'}
+                    {soilSensorData ? `सेंसर सक्रिय: pH ${soilSensorData.soilReading.ph} (${soilSensorData.analysis.phStatus}) • N: ${soilSensorData.soilReading.nitrogen}, P: ${soilSensorData.soilReading.phosphorus}, K: ${soilSensorData.soilReading.potassium} kg/ha` : (isChhattisgarhi ? 'ब्लूटूथ ले असली pH अऊ N-P-K नाप के सटीक खाद मात्रा पाव' : 'ब्लूटूथ प्रोब से वास्तविक pH व N-P-K मापकर सटीक संशोधित खाद मात्रा पाएं')}
                   </Typography>
                 </Box>
               </Box>
@@ -473,7 +473,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 onClick={() => setOpenSoilIot(true)}
                 sx={{ bgcolor: '#00796b', color: '#fff', fontSize: '0.72rem', fontWeight: 700, borderRadius: 2, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#004d40' } }}
               >
-                {soilSensorData ? 'पुनः जांचें' : 'सेंसर कनेक्ट करें'}
+                {soilSensorData ? (isChhattisgarhi ? 'फेर जांचव' : 'पुनः जांचें') : (isChhattisgarhi ? 'सेंसर जोड़व' : 'सेंसर कनेक्ट करें')}
               </Button>
             </Box>
 
@@ -625,10 +625,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               >
                 <ScienceIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                  खाद सिफारिश डेटा उपलब्ध नहीं है
+                  {isChhattisgarhi ? 'खाद सिफारिश के जानकारी नइये' : 'खाद सिफारिश डेटा उपलब्ध नहीं है'}
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
-                  शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी अनुमानित या मनगढ़ंत खाद मात्रा नहीं दिखाई जाती। सटीक कृषि विश्वविद्यालय अनुशंसित पोषण लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+                  {isChhattisgarhi
+                    ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोनो भी अनुमानित खाद मात्रा नइ दिखाय जाय। सटीक कृषि विश्वविद्यालय अनुशंसित पोषण लोड करे बर इंटरनेट कनेक्ट कर फेर लोड करव।'
+                    : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी अनुमानित या मनगढ़ंत खाद मात्रा नहीं दिखाई जाती। सटीक कृषि विश्वविद्यालय अनुशंसित पोषण लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।'}
                 </Typography>
                 <Button
                   variant="contained"
@@ -636,14 +638,14 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   onClick={loadFromMongo}
                   sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
                 >
-                  पुनः लोड करें (Retry)
+                  {isChhattisgarhi ? 'फेर लोड करव (Retry)' : 'पुनः लोड करें (Retry)'}
                 </Button>
               </Paper>
             ) : (
               <>
                 {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
                 <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
-                  📦 कुल आवश्यक खाद की बोरी व मात्रा ({acresNum} एकड़ हेतु):
+                  {isChhattisgarhi ? `📦 कुल जरूरी खाद के बोरी अउ मात्रा (${acresNum} एकड़ बर):` : `📦 कुल आवश्यक खाद की बोरी व मात्रा (${acresNum} एकड़ हेतु):`}
                 </Typography>
 
                 <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
@@ -685,12 +687,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                          कुल: <strong>{totalUreaKg} kg</strong> (45kg/बोरी)
+                          {isChhattisgarhi ? 'जम्मा' : 'कुल'}: <strong>{totalUreaKg} kg</strong> (45kg/{isChhattisgarhi ? 'बोरी' : 'बोरी'})
                         </Typography>
                       </Box>
                       <Box sx={{ bgcolor: '#f1f8e9', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.66rem', fontWeight: 700 }}>
-                          नाइट्रोजन पोषण
+                          {isChhattisgarhi ? 'नाइट्रोजन पोषण (हरियर बाढ़ बर)' : 'नाइट्रोजन पोषण'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -734,12 +736,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                          कुल: <strong>{totalDapKg} kg</strong> (50kg/बोरी)
+                          {isChhattisgarhi ? 'जम्मा' : 'कुल'}: <strong>{totalDapKg} kg</strong> (50kg/{isChhattisgarhi ? 'बोरी' : 'बोरी'})
                         </Typography>
                       </Box>
                       <Box sx={{ bgcolor: '#e3f2fd', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#0d47a1', fontSize: '0.66rem', fontWeight: 700 }}>
-                          फास्फोरस व जड़ विकास
+                          {isChhattisgarhi ? 'फास्फोरस अउ जड़ के बाढ़ बर' : 'फास्फोरस व जड़ विकास'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -783,12 +785,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                          कुल: <strong>{totalMopKg} kg</strong> (50kg/बोरी)
+                          {isChhattisgarhi ? 'जम्मा' : 'कुल'}: <strong>{totalMopKg} kg</strong> (50kg/{isChhattisgarhi ? 'बोरी' : 'बोरी'})
                         </Typography>
                       </Box>
                       <Box sx={{ bgcolor: '#fff3e0', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#bf360c', fontSize: '0.66rem', fontWeight: 700 }}>
-                          दाने चमक व रोग प्रतिरोध
+                          {isChhattisgarhi ? 'दाना म चमक अउ कीरा-बीमारी ले बचाव' : 'दाने चमक व रोग प्रतिरोध'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -832,12 +834,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           </Typography>
                         </Box>
                         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'block', mt: 0.3 }}>
-                          प्रति एकड़ 10 kg मानक
+                          {isChhattisgarhi ? 'हर एकड़ 10 kg पैमाना' : 'प्रति एकड़ 10 kg मानक'}
                         </Typography>
                       </Box>
                       <Box sx={{ bgcolor: '#f3e5f5', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#4a148c', fontSize: '0.66rem', fontWeight: 700 }}>
-                          खैरा रोग से बचाव
+                          {isChhattisgarhi ? 'खैरा बीमारी ले बचाव' : 'खैरा रोग से बचाव'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -846,7 +848,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 
                 {/* Schedule Accordion / Timeline */}
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1, fontSize: '0.85rem' }}>
-                  ⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):
+                  {isChhattisgarhi ? '⏱️ खाद कब अउ कतका डाले के हे (बेरा अनुसूची):' : '⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):'}
                 </Typography>
 
                 <Grid container spacing={1.5}>
@@ -868,7 +870,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         <Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             <Chip
-                              label={`चरण ${idx + 1}`}
+                              label={isChhattisgarhi ? `पायरी ${idx + 1}` : `चरण ${idx + 1}`}
                               size="small"
                               sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
                             />
@@ -877,7 +879,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                             </Typography>
                           </Box>
                           <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
-                            समय: {step.time}
+                            {isChhattisgarhi ? 'बेरा' : 'समय'}: {step.time}
                           </Typography>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
                             {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
@@ -888,7 +890,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         </Box>
                         {step.note && (
                           <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
-                            ⚠️ सावधानी: {step.note}
+                            {isChhattisgarhi ? '⚠️ सुरता राखव: ' : '⚠️ सावधानी: '}{step.note}
                           </Typography>
                         )}
                       </Paper>
@@ -919,10 +921,10 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
-                  🌾 {appConfig.stateName} कृषक उन्नति धान उपार्जन कैलकुलेटर
+                  🌾 {appConfig.stateName} {isChhattisgarhi ? 'कृषक उन्नति धान उपार्जन हिसाब' : 'कृषक उन्नति धान उपार्जन कैलकुलेटर'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#556958', fontSize: '0.74rem' }}>
-                  {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल प्रति एकड़ सीमा • ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य
+                  {appConfig.paddyScheme.maxQuintalsPerAcre} {isChhattisgarhi ? `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल पक्का भाव` : `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य`}
                 </Typography>
               </Box>
               <Button
@@ -932,14 +934,16 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 onClick={handleReadPaddyMath}
                 sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
               >
-                सुनें
+                {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
               </Button>
             </Box>
 
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                 <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
-                  {paddyUnit === 'acre' ? 'अपनी जमीन का रकबा (एकड़ में)' : 'अपनी जमीन का रकबा (डिसमिल में)'}
+                  {isChhattisgarhi
+                    ? (paddyUnit === 'acre' ? 'अपन खेत के रकबा (एकड़ म)' : 'अपन खेत के रकबा (डिसमिल म)')
+                    : (paddyUnit === 'acre' ? 'अपनी जमीन का रकबा (एकड़ में)' : 'अपनी जमीन का रकबा (डिसमिल में)')}
                 </Typography>
                 {/* Unit Switcher */}
                 <Box sx={{ display: 'inline-flex', bgcolor: '#e2e8f0', p: 0.2, borderRadius: 1.5 }}>
@@ -959,7 +963,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       lineHeight: 1.2
                     }}
                   >
-                    एकड़
+                    {isChhattisgarhi ? 'एकड़' : 'एकड़'}
                   </Button>
                   <Button
                     size="small"
@@ -977,7 +981,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       lineHeight: 1.2
                     }}
                   >
-                    डिसमिल
+                    {isChhattisgarhi ? 'डिसमिल' : 'डिसमिल'}
                   </Button>
                 </Box>
               </Box>
@@ -988,7 +992,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   size="small"
                   variant="outlined"
                   onClick={() => handleStepPaddy(-0.5)}
-                  aria-label="रकबा घटाएं"
+                  aria-label={isChhattisgarhi ? 'रकबा घटाव' : 'रकबा घटाएं'}
                   sx={{
                     minWidth: 36,
                     height: 40,
@@ -1024,7 +1028,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   size="small"
                   variant="outlined"
                   onClick={() => handleStepPaddy(0.5)}
-                  aria-label="रकबा बढ़ाएं"
+                  aria-label={isChhattisgarhi ? 'रकबा बढ़ाव' : 'रकबा बढ़ाएं'}
                   sx={{
                     minWidth: 36,
                     height: 40,
@@ -1042,7 +1046,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               {/* Quick Chips */}
               <Box sx={{ mt: 1.2 }}>
                 <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
-                  ⚡ त्वरित {paddyUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:
+                  {isChhattisgarhi ? `⚡ झटपट ${paddyUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनव:` : `⚡ त्वरित ${paddyUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:`}
                 </Typography>
                 <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
                   {(paddyUnit === 'acre' ? [1, 2, 2.5, 5, 10] : [50, 100, 200, 250, 500]).map((val) => {
@@ -1070,7 +1074,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           }
                         }}
                       >
-                        {val} {paddyUnit === 'acre' ? 'एकड़' : 'डिस.'}
+                        {val} {paddyUnit === 'acre' ? (isChhattisgarhi ? 'एकड़' : 'एकड़') : (isChhattisgarhi ? 'डिस.' : 'डिस.')}
                       </Button>
                     );
                   })}
@@ -1104,7 +1108,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               >
                 <Box>
                   <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700 }}>
-                    सरकारी उपार्जन रसीद अनुमान
+                    {isChhattisgarhi ? 'सरकारी धान खरीदी रसीद हिसाब' : 'सरकारी उपार्जन रसीद अनुमान'}
                   </Typography>
                   <Typography variant="h5" sx={{ fontWeight: 900, color: '#ffeb3b', lineHeight: 1.1, mt: 0.2 }}>
                     ₹ {totalPaddyAmount.toLocaleString('en-IN')}
@@ -1120,7 +1124,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
                   <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    कुल दर्ज रकबा:
+                    {isChhattisgarhi ? 'जम्मा दर्ज रकबा:' : 'कुल दर्ज रकबा:'}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
                     {pAcresNum} एकड़
@@ -1129,7 +1133,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
                   <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    अधिकतम खरीदी धान ({appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):
+                    {isChhattisgarhi ? `ज्यादा ले ज्यादा धान खरीदी (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):` : `अधिकतम खरीदी धान (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):`}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
                     {maxQuintals} क्विंटल
@@ -1138,7 +1142,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
                   <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    1. समिति तौल भुगतान (MSP @ ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):
+                    {isChhattisgarhi ? `1. समिति तौल भुगतान (MSP @ ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):` : `1. समिति तौल भुगतान (MSP @ ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):`}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.85rem' }}>
                     ₹ {mspPart.toLocaleString('en-IN')}
@@ -1147,7 +1151,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px dashed #81c784' }}>
                   <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    2. अंतर राशि / बोनस DBT (@ ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):
+                    {isChhattisgarhi ? `2. अंतर राशि / बोनस DBT (@ ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):` : `2. अंतर राशि / बोनस DBT (@ ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):`}
                   </Typography>
                   <Typography variant="body2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.85rem' }}>
                     ₹ {bonusPart.toLocaleString('en-IN')}
@@ -1157,7 +1161,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 {/* Total Row */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, alignItems: 'center' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
-                    कुल बैंक खाता भुगतान:
+                    {isChhattisgarhi ? 'जम्मा बैंक खाता म भुगतान:' : 'कुल बैंक खाता भुगतान:'}
                   </Typography>
                   <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.1rem' }}>
                     ₹ {totalPaddyAmount.toLocaleString('en-IN')}
@@ -1169,7 +1173,9 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               <Box sx={{ bgcolor: '#f1f8e9', px: 2, py: 1, borderTop: '1px solid #dcedc8', display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
                 <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.72rem', fontWeight: 700 }}>
-                  समिति में धान तौल उपरांत MSP राशि तुरंत व अंतर राशि सीधे बैंक खाते में जमा होती है।
+                  {isChhattisgarhi
+                    ? 'समिति म धान तौल के बाद MSP पइसा तुरंत अउ अंतर राशि सीधा बैंक खाता म जमा होथे।'
+                    : 'समिति में धान तौल उपरांत MSP राशि तुरंत व अंतर राशि सीधे बैंक खाते में जमा होती है।'}
                 </Typography>
               </Box>
             </Paper>
@@ -1196,13 +1202,13 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 <Grid item xs={6}>
                   <Box sx={{ bgcolor: '#fff', p: 1.2, borderRadius: 2, border: '1px solid #ffe082', textAlign: 'center' }}>
                     <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>
-                      {t('bardana_bags')} (40kg मानक)
+                      {t('bardana_bags')} (40kg {isChhattisgarhi ? 'पैमाना' : 'मानक'})
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 900, color: '#e65100', fontSize: '1.25rem', lineHeight: 1.2, my: 0.3 }}>
-                      ~{paddyMath.bardanaBags} बोरी
+                      ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरी' : 'बोरी'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#8d6e63', fontSize: '0.68rem' }}>
-                      1 क्विंटल = 2.5 जूट बोरे
+                      {isChhattisgarhi ? '1 क्विंटल = 2.5 बारदाना (जूट बोरा)' : '1 क्विंटल = 2.5 जूट बोरे'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -1215,7 +1221,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       ₹{paddyMath.bardanaReimbursement.toLocaleString('en-IN')}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#388e3c', fontSize: '0.68rem' }}>
-                      ₹25 प्रति बोरा शासन प्रतिपूर्ति
+                      {isChhattisgarhi ? '₹25 हर बोरा शासन ले वापसी' : '₹25 प्रति बोरा शासन प्रतिपूर्ति'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -1226,9 +1232,13 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   📱 {t('token_guideline_title')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#5d4037', fontSize: '0.72rem', display: 'block', mt: 0.2 }}>
-                  {pAcresNum <= 10
-                    ? 'आपके रकबे (≤10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 2 टोकन कटेंगे।'
-                    : 'आपके रकबे (>10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 3 टोकन तक जारी हो सकते हैं।'}
+                  {isChhattisgarhi
+                    ? (pAcresNum <= 10
+                        ? 'तुंहर रकबा (≤10 एकड़) बर "टोकन तुंहर हाथ" म ज्यादा ले ज्यादा 2 टोकन कटही।'
+                        : 'तुंहर रकबा (>10 एकड़) बर "टोकन तुंहर हाथ" म 3 टोकन तक जारी हो सकत हे।')
+                    : (pAcresNum <= 10
+                        ? 'आपके रकबे (≤10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 2 टोकन कटेंगे।'
+                        : 'आपके रकबे (>10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 3 टोकन तक जारी हो सकते हैं।')}
                 </Typography>
               </Box>
             </Paper>
@@ -1238,13 +1248,23 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
                 <InfoOutlinedIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                  धान खरीदी आवश्यक दिशा-निर्देश:
+                  {isChhattisgarhi ? 'धान खरीदी के जरूरी नियम:' : 'धान खरीदी आवश्यक दिशा-निर्देश:'}
                 </Typography>
               </Box>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.4 }}>
-                1. प्रति एकड़ अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान उपार्जन मान्य है।<br />
-                2. धान में नमी 17% से कम होनी चाहिए (सूखा व साफ धान लाएं)।<br />
-                3. टोकन तुंहर हाथ मोबाइल ऐप से घर बैठे टोकन काटना अनिवार्य है।
+                {isChhattisgarhi ? (
+                  <>
+                    1. हर एकड़ ज्यादा ले ज्यादा {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान खरीदी मान्य हे।<br />
+                    2. धान म नमी 17% ले कम होना चाही (सूखा अउ साफ धान लावव)।<br />
+                    3. टोकन तुंहर हाथ मोबाइल ऐप ले घर बइठे टोकन काटना जरूरी हे।
+                  </>
+                ) : (
+                  <>
+                    1. प्रति एकड़ अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान उपार्जन मान्य है।<br />
+                    2. धान में नमी 17% से कम होनी चाहिए (सूखा व साफ धान लाएं)।<br />
+                    3. टोकन तुंहर हाथ मोबाइल ऐप से घर बैठे टोकन काटना अनिवार्य है।
+                  </>
+                )}
               </Typography>
             </Box>
           </Card>
@@ -1267,10 +1287,12 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           >
             <PolicyIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-              कोई सरकारी योजना डेटा उपलब्ध नहीं है
+              {isChhattisgarhi ? 'कोनो सरकारी योजना के जानकारी नइये' : 'कोई सरकारी योजना डेटा उपलब्ध नहीं है'}
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
-              शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत बिना सत्यापन के कोई भी योजना जानकारी नहीं दिखाई जाती। नवीनतम सरकारी योजनाएं लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+              {isChhattisgarhi
+                ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत बिना जांचे कोनो योजना जानकारी नइ दिखाय जाय। नवा योजना लोड करे बर इंटरनेट कनेक्ट कर फेर लोड करव।'
+                : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत बिना सत्यापन के कोई भी योजना जानकारी नहीं दिखाई जाती। नवीनतम सरकारी योजनाएं लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।'}
             </Typography>
             <Button
               variant="contained"
@@ -1278,7 +1300,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               onClick={loadFromMongo}
               sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
             >
-              पुनः लोड करें (Retry)
+              {isChhattisgarhi ? 'फेर लोड करव (Retry)' : 'पुनः लोड करें (Retry)'}
             </Button>
           </Paper>
         ) : (
@@ -1317,7 +1339,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                           onClick={() => speakText(`${scheme.title}. ${scheme.summary}`)}
                           sx={{ color: '#2e7d32', fontSize: '0.72rem', p: 0.5 }}
                         >
-                          सुनें
+                          {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
                         </Button>
                       </Box>
 

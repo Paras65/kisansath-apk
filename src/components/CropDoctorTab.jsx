@@ -596,17 +596,17 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Box>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 800, color: '#b71c1c', fontSize: '1.15rem', lineHeight: 1.2 }}>
-              एआई फसल डॉक्टर (Crop Doctor)
+              {isChhattisgarhi ? 'एआई फसल डॉक्टर (रोग-कीरा निदान)' : 'एआई फसल डॉक्टर (Crop Doctor)'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#666', fontSize: '0.78rem' }}>
-              कैमरा पहचान • 15L पंप सटीक खुराक • जैविक व रासायनिक उपचार
+              {isChhattisgarhi ? 'कैमरा जांच • 15L पंप पक्का खुराक • देसी अउ रासायनिक दवाई' : 'कैमरा पहचान • 15L पंप सटीक खुराक • जैविक व रासायनिक उपचार'}
             </Typography>
           </Box>
         </Box>
 
         <Chip
           icon={<VerifiedIcon sx={{ fontSize: '15px !important', color: '#1b5e20 !important' }} />}
-          label="IGKV वैज्ञानिक अनुमोदित"
+          label={isChhattisgarhi ? "IGKV वैज्ञानिक ले जांचे" : "IGKV वैज्ञानिक अनुमोदित"}
           size="small"
           sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 700, fontSize: '0.72rem' }}
         />
@@ -641,19 +641,21 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                         color: sprayAdvisory.canSpray ? '#1b5e20' : '#b71c1c'
                       }}
                     >
-                      {sprayAdvisory.canSpray ? `✅ ${selectedDistrict}: आज छिड़काव अनुकूल` : `⚠️ ${selectedDistrict}: आज छिड़काव टालें`}
+                      {isChhattisgarhi
+                        ? (sprayAdvisory.canSpray ? `✅ ${selectedDistrict}: आज दवाई छिड़काव बर बने हे` : `⚠️ ${selectedDistrict}: आज दवाई छिड़काव झन करव`)
+                        : (sprayAdvisory.canSpray ? `✅ ${selectedDistrict}: आज छिड़काव अनुकूल` : `⚠️ ${selectedDistrict}: आज छिड़काव टालें`)}
                     </Typography>
                     {sprayAdvisory.weather && (
                       <Box sx={{ display: 'flex', gap: 0.6 }}>
                         <Chip
                           icon={<WaterDropIcon sx={{ fontSize: '12px !important' }} />}
-                          label={`वर्षा ${sprayAdvisory.weather.rainProbability}%`}
+                          label={`${isChhattisgarhi ? 'पानी' : 'वर्षा'} ${sprayAdvisory.weather.rainProbability}%`}
                           size="small"
                           sx={{ height: 20, fontSize: '0.68rem', bgcolor: '#fff', fontWeight: 600 }}
                         />
                         <Chip
                           icon={<AirIcon sx={{ fontSize: '12px !important' }} />}
-                          label={`हवा ${sprayAdvisory.weather.windSpeed} km/h`}
+                          label={`${isChhattisgarhi ? 'हवा' : 'हवा'} ${sprayAdvisory.weather.windSpeed} km/h`}
                           size="small"
                           sx={{ height: 20, fontSize: '0.68rem', bgcolor: '#fff', fontWeight: 600 }}
                         />
@@ -666,7 +668,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 </Box>
               </Box>
 
-              <Tooltip title="मौसम सलाह सुनें">
+              <Tooltip title={isChhattisgarhi ? "मौसम के गोठ सुनव" : "मौसम सलाह सुनें"}>
                 <IconButton
                   size="small"
                   onClick={handleVoiceReadWeather}
@@ -698,10 +700,12 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         }}
       >
         <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.94rem', mb: 0.4 }}>
-          📸 बीमार पत्ती या तने की फोटो से तुरंत जांच करें
+          {isChhattisgarhi ? '📸 बीमार पाना या तना के फोटो ले तुरंत जांच करव' : '📸 बीमार पत्ती या तने की फोटो से तुरंत जांच करें'}
         </Typography>
         <Typography variant="caption" sx={{ color: '#5d4037', display: 'block', mb: 1.5, fontSize: '0.76rem' }}>
-          कैमरा से सीधी फोटो लें या गैलरी से चुनें • एआई तुरंत रोग पहचानकर 15L पंप की खुराक बताएगा
+          {isChhattisgarhi
+            ? 'कैमरा ले सीधा फोटो खींचव या गैलरी ले चुनव • एआई तुरंत रोग पहचान के 15L पंप के खुराक बताही'
+            : 'कैमरा से सीधी फोटो लें या गैलरी से चुनें • एआई तुरंत रोग पहचानकर 15L पंप की खुराक बताएगा'}
         </Typography>
 
         {/* Pending Offline Scan Queue */}
@@ -721,7 +725,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <CloudQueueIcon sx={{ color: '#1b5e20', fontSize: 20 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem' }}>
-                  📥 ऑफ़लाइन सुरक्षित प्रश्न ({pendingScans.length})
+                  {isChhattisgarhi ? `📥 ऑफ़लाइन सहेजाये फोटो (${pendingScans.length})` : `📥 ऑफ़लाइन सुरक्षित प्रश्न (${pendingScans.length})`}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
@@ -744,11 +748,15 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                       '&:hover': { bgcolor: '#1b5e20' }
                     }}
                   >
-                    ⚡ सभी जांचें ({pendingScans.length})
+                    {isChhattisgarhi ? `⚡ सबो जांचव (${pendingScans.length})` : `⚡ सभी जांचें (${pendingScans.length})`}
                   </Button>
                 )}
                 <Chip
-                  label={navigator.onLine ? '🟢 इंटरनेट उपलब्ध' : '🟠 इंटरनेट की प्रतीक्षा'}
+                  label={
+                    navigator.onLine
+                      ? (isChhattisgarhi ? '🟢 इंटरनेट चालू हे' : '🟢 इंटरनेट उपलब्ध')
+                      : (isChhattisgarhi ? '🟠 इंटरनेट के अगोरा' : '🟠 इंटरनेट की प्रतीक्षा')
+                  }
                   size="small"
                   sx={{
                     bgcolor: navigator.onLine ? '#c8e6c9' : '#ffe0b2',
@@ -762,7 +770,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             </Box>
 
             <Typography variant="caption" sx={{ color: '#2e7d32', display: 'block', mb: 1, fontSize: '0.74rem' }}>
-              खेत में इंटरनेट न होने पर आपकी फोटो सुरक्षित कर ली गई थी। जैसे ही आप नेटवर्क में आएंगे, 'जांचें' दबाएं या ऐप स्वतः जांच करेगी।
+              {isChhattisgarhi
+                ? 'खेत म इंटरनेट नइ रहे त तुंहर फोटो सहेज लिये गे रिहिस। जइसे ही नेटवर्क मिलही, "जांचव" दबाबव या ऐप अपने-आप जांच करही।'
+                : "खेत में इंटरनेट न होने पर आपकी फोटो सुरक्षित कर ली गई थी। जैसे ही आप नेटवर्क में आएंगे, 'जांचें' दबाएं या ऐप स्वतः जांच करेगी।"}
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -789,10 +799,10 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     />
                     <Box>
                       <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.78rem', color: '#1b5e20' }}>
-                        🌾 {scan.cropId === 'paddy' ? 'धान' : scan.cropId} • {scan.district}
+                        🌾 {scan.cropId === 'paddy' ? (isChhattisgarhi ? 'धान (चांउर)' : 'धान') : scan.cropId} • {scan.district}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#666', fontSize: '0.68rem' }}>
-                        समय: {scan.displayTime}
+                        {isChhattisgarhi ? 'बेरा' : 'समय'}: {scan.displayTime}
                       </Typography>
                     </Box>
                   </Box>
@@ -815,14 +825,16 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                         '&:hover': { bgcolor: '#0a3d0c' }
                       }}
                     >
-                      {isSyncingPending ? 'जांच जारी...' : '⚡ जांचें'}
+                      {isSyncingPending
+                        ? (isChhattisgarhi ? 'जांच चलत हे...' : 'जांच जारी...')
+                        : (isChhattisgarhi ? '⚡ जांचव' : '⚡ जांचें')}
                     </Button>
                     <IconButton
                       size="small"
                       onClick={() => {
                         removeOfflineScan(scan.id);
                         setPendingScans(getOfflineScans());
-                        notify.info('सुरक्षित फोटो हटा दी गई');
+                        notify.info(isChhattisgarhi ? 'सहेजाये फोटो हटा दे गे' : 'सुरक्षित फोटो हटा दी गई');
                       }}
                       sx={{ color: '#888' }}
                     >
@@ -862,7 +874,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 '&:hover': { bgcolor: '#1b5e20' }
               }}
             >
-              कैमरा से फोटो खींचें
+              {isChhattisgarhi ? 'कैमरा ले फोटो खींचव' : 'कैमरा से फोटो खींचें'}
             </Button>
           </label>
 
@@ -891,7 +903,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 '&:hover': { bgcolor: '#fff3e0', borderColor: '#bf360c' }
               }}
             >
-              गैलरी से चुनें
+              {isChhattisgarhi ? 'गैलरी ले चुनव' : 'गैलरी से चुनें'}
             </Button>
           </label>
         </Box>
@@ -941,10 +953,10 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             >
               <CircularProgress size={32} sx={{ color: '#ffb74d' }} />
               <Typography variant="body2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.85rem', textAlign: 'center' }}>
-                🔍 एआई फसल व पत्ती का विश्लेषण कर रहा है...
+                {isChhattisgarhi ? '🔍 एआई फसल अउ पाना के जांच करत हे...' : '🔍 एआई फसल व पत्ती का विश्लेषण कर रहा है...'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#ffe082', fontSize: '0.72rem' }}>
-                कृपया कुछ सेकंड प्रतीक्षा करें
+                {isChhattisgarhi ? 'कनिहा बेरा अगोरव' : 'कृपया कुछ सेकंड प्रतीक्षा करें'}
               </Typography>
             </Box>
           </Box>
@@ -954,7 +966,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.2 }}>
             <CircularProgress size={22} sx={{ color: '#e65100' }} />
             <Typography variant="body2" sx={{ fontWeight: 700, color: '#e65100', fontSize: '0.82rem' }}>
-              एआई फोटो का स्कैन व विश्लेषण कर रहा है... कृपया प्रतीक्षा करें
+              {isChhattisgarhi ? 'एआई फोटो के जांच करत हे... कनिहा बेरा अगोरव' : 'एआई फोटो का स्कैन व विश्लेषण कर रहा है... कृपया प्रतीक्षा करें'}
             </Typography>
           </Box>
         )}
@@ -981,15 +993,15 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
                   <VerifiedIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.9rem' }}>
-                    पहचान: {aiReport.disease}
+                    {isChhattisgarhi ? 'पहचान:' : 'पहचान:'} {aiReport.disease}
                   </Typography>
                   <Chip
-                    label={`${aiReport.confidence}% निश्चित`}
+                    label={`${aiReport.confidence}% ${isChhattisgarhi ? 'पक्का' : 'निश्चित'}`}
                     size="small"
                     sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, height: 20, fontSize: '0.68rem' }}
                   />
                   <Chip
-                    label={aiReport.isLiveAi ? '⚡ Gemini AI लाइव' : '📶 ऑफ़लाइन डेटाबेस'}
+                    label={aiReport.isLiveAi ? '⚡ Gemini AI लाइव' : (isChhattisgarhi ? '📶 ऑफ़लाइन डेटा' : '📶 ऑफ़लाइन डेटाबेस')}
                     size="small"
                     sx={{
                       bgcolor: aiReport.isLiveAi ? '#ede7f6' : '#fff3e0',
@@ -1001,7 +1013,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.74rem', mt: 0.3 }}>
-                  फसल: <strong>{aiReport.crop}</strong> • 15L पंप खुराक: <strong>{aiReport.pumpDose}</strong>
+                  {isChhattisgarhi ? 'फसल:' : 'फसल:'} <strong>{aiReport.crop}</strong> • 15L {isChhattisgarhi ? 'पंप खुराक:' : 'पंप खुराक:'} <strong>{aiReport.pumpDose}</strong>
                 </Typography>
               </Box>
 
@@ -1013,7 +1025,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   onClick={handleResetScan}
                   sx={{ fontSize: '0.72rem', borderRadius: 2, py: 0.4 }}
                 >
-                  नई फोटो
+                  {isChhattisgarhi ? 'नवा फोटो' : 'नई फोटो'}
                 </Button>
                 <Button
                   size="small"
@@ -1021,7 +1033,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   onClick={() => prescriptionRef.current?.scrollIntoView({ behavior: 'smooth' })}
                   sx={{ bgcolor: '#c62828', fontSize: '0.72rem', borderRadius: 2, py: 0.4, '&:hover': { bgcolor: '#b71c1c' } }}
                 >
-                  पर्ची देखें 👇
+                  {isChhattisgarhi ? 'पर्ची देखव 👇' : 'पर्ची देखें 👇'}
                 </Button>
               </Box>
             </Box>
@@ -1040,10 +1052,12 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#f57f17', fontSize: '0.86rem' }}>
-              ⚠️ पौधे या पत्ती की स्पष्ट फोटो नहीं मिली (Unclear/Non-Plant Photo)
+              {isChhattisgarhi ? '⚠️ पौधा या पाना के साफ फोटो नइ मिलिस (Unclear Photo)' : '⚠️ पौधे या पत्ती की स्पष्ट फोटो नहीं मिली (Unclear/Non-Plant Photo)'}
             </Typography>
             <Typography variant="body2" sx={{ color: '#5d4037', fontSize: '0.78rem', mt: 0.4 }}>
-              अपलोड की गई तस्वीर में पौधे या फसल के रोगग्रस्त भाग साफ़ दिखाई नहीं दे रहे हैं। सही और सटीक रासायनिक/जैविक इलाज जानने के लिए कृपया खेत में जाकर बीमार पत्ती की अच्छी रोशनी में साफ़ फोटो लें।
+              {isChhattisgarhi
+                ? 'फोटो म पौधा या फसल के बीमार भाग साफ नइ दिखत हे। सही देसी/रासायनिक दवाई जाने बर खेत म जाके बीमार पाना के अंजोर म साफ फोटो खींचव।'
+                : 'अपलोड की गई तस्वीर में पौधे या फसल के रोगग्रस्त भाग साफ़ दिखाई नहीं दे रहे हैं। सही और सटीक रासायनिक/जैविक इलाज जानने के लिए कृपया खेत में जाकर बीमार पत्ती की अच्छी रोशनी में साफ़ फोटो लें।'}
             </Typography>
             <Button
               size="small"
@@ -1051,7 +1065,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               onClick={handleResetScan}
               sx={{ mt: 1, color: '#e65100', borderColor: '#ffb74d', borderRadius: 2, fontSize: '0.74rem' }}
             >
-              🔄 पुनः फोटो खींचें
+              {isChhattisgarhi ? '🔄 फेर फोटो खींचव' : '🔄 पुनः फोटो खींचें'}
             </Button>
           </Alert>
         )}
@@ -1071,7 +1085,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               ⚠️ {scanError}
             </Typography>
             <Typography variant="body2" sx={{ color: '#5d4037', fontSize: '0.78rem', mt: 0.5 }}>
-              🛡️ <strong>शून्य गलत डेटा नीति (Zero-False-Data Policy):</strong> किसान साथी किसानों की फसल सुरक्षा को सर्वोच्च प्राथमिकता देता है और बिना सटीक AI विश्लेषण के कोई भी फर्जी या अनुमानित (Dummy) डेटा नहीं दिखाता। आप नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर भारतीय कृषि अनुसंधान परिषद (ICAR) अनुमोदित प्रमाणिक इलाज देख सकते हैं।
+              🛡️ <strong>{isChhattisgarhi ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy):' : 'शून्य गलत डेटा नीति (Zero-False-Data Policy):'}</strong> {isChhattisgarhi
+                ? 'किसान साथी किसान भाई मन के फसल सुरक्षा ल सबले पहिली रखथे अउ बिना पक्का AI जांच के कोनो मनगढ़ंत डेटा नइ दिखाय जाय। आप नीचे सूची ले अपन फसल अउ लक्षण चुन के प्रमाणिक इलाज देख सकत हव।'
+                : 'किसान साथी किसानों की फसल सुरक्षा को सर्वोच्च प्राथमिकता देता है और बिना सटीक AI विश्लेषण के कोई भी फर्जी या अनुमानित (Dummy) डेटा नहीं दिखाता। आप नीचे दी गई सूची से अपनी फसल व लक्षण चुनकर भारतीय कृषि अनुसंधान परिषद (ICAR) अनुमोदित प्रमाणिक इलाज देख सकते हैं।'}
             </Typography>
 
             {appConfig.debugMode && scanTechnicalError && (
@@ -1109,7 +1125,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     '&:hover': { bgcolor: '#1b5e20' }
                   }}
                 >
-                  💾 इस फोटो को सुरक्षित करें (इंटरनेट आने पर जांचें)
+                  {isChhattisgarhi ? '💾 ये फोटो ल सहेजव (इंटरनेट आये म जांचव)' : '💾 इस फोटो को सुरक्षित करें (इंटरनेट आने पर जांचें)'}
                 </Button>
               )}
               <Button
@@ -1118,7 +1134,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 onClick={handleResetScan}
                 sx={{ color: '#c62828', borderColor: '#ef9a9a', borderRadius: 2, fontSize: '0.74rem' }}
               >
-                🔄 नई फोटो लें
+                {isChhattisgarhi ? '🔄 नवा फोटो लेवव' : '🔄 नई फोटो लें'}
               </Button>
             </Box>
           </Alert>
@@ -1133,7 +1149,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               select
               fullWidth
               size="small"
-              label="🌾 फसल चुनें (Select Crop)"
+              label={isChhattisgarhi ? "🌾 फसल चुनव (फसल)" : "🌾 फसल चुनें (Select Crop)"}
               value={selectedCrop}
               onChange={(e) => setSelectedCrop(e.target.value)}
               sx={{
@@ -1142,7 +1158,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 '& .MuiOutlinedInput-root': { borderRadius: 2 }
               }}
             >
-              <MenuItem value="all">🌾 सभी फसलें (All Crops)</MenuItem>
+              <MenuItem value="all">{isChhattisgarhi ? "🌾 सबो फसल (सब)" : "🌾 सभी फसलें (All Crops)"}</MenuItem>
               {cropsList.map((crop) => (
                 <MenuItem key={crop.id} value={crop.id}>
                   {crop.name}
@@ -1155,7 +1171,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               select
               fullWidth
               size="small"
-              label="👁️ लक्षण देखकर रोग पहचानें (Visual Symptom)"
+              label={isChhattisgarhi ? "👁️ चिन्हारी देख के रोग पहचानव" : "👁️ लक्षण देखकर रोग पहचानें (Visual Symptom)"}
               value={selectedSymptom}
               onChange={(e) => setSelectedSymptom(e.target.value)}
               sx={{
@@ -1270,10 +1286,12 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         >
           <LocalHospitalIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-            रोग निदान लाइब्रेरी डेटा उपलब्ध नहीं है
+            {isChhattisgarhi ? 'रोग-कीरा के कोनो जानकारी नइये' : 'रोग निदान लाइब्रेरी डेटा उपलब्ध नहीं है'}
           </Typography>
           <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
-            शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित रोग पर्ची नहीं दिखाई जाती है। प्रमाणिक KVK/ICAR रोग डेटाबेस लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।
+            {isChhattisgarhi
+              ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोनो मनगढ़ंत रोग पर्ची नइ दिखाय जाय। प्रमाणिक KVK/ICAR डेटाबेस लोड करे बर इंटरनेट कनेक्ट कर फेर लोड करव।'
+              : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित रोग पर्ची नहीं दिखाई जाती है। प्रमाणिक KVK/ICAR रोग डेटाबेस लोड करने हेतु इंटरनेट कनेक्ट कर पुनः लोड करें।'}
           </Typography>
           <Button
             variant="contained"
@@ -1282,7 +1300,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             onClick={loadFromMongo}
             sx={{ bgcolor: '#c62828', color: '#fff', fontWeight: 800, borderRadius: 2, '&:hover': { bgcolor: '#b71c1c' } }}
           >
-            डेटा लोड करें (Retry)
+            {isChhattisgarhi ? 'फेर लोड करव (Retry)' : 'डेटा लोड करें (Retry)'}
           </Button>
         </Paper>
       ) : (
@@ -1291,7 +1309,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           <Box sx={{ mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', fontSize: '0.84rem' }}>
-            पहचाने गए सामान्य रोग ({filteredDiseases.length}):
+            {isChhattisgarhi ? `पहचाने गे आम रोग-कीरा (${filteredDiseases.length}):` : `पहचाने गए सामान्य रोग (${filteredDiseases.length}):`}
           </Typography>
           {(selectedSymptom !== 'all' || searchQuery || selectedCrop !== 'all') && (
             <Button
@@ -1303,7 +1321,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               }}
               sx={{ fontSize: '0.7rem', color: '#c62828', p: 0 }}
             >
-              फिल्टर हटाएं
+              {isChhattisgarhi ? 'फिल्टर हटावव' : 'फिल्टर हटाएं'}
             </Button>
           )}
         </Box>
@@ -1364,7 +1382,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             <Box sx={{ flex: 1, minWidth: 220 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5, flexWrap: 'wrap' }}>
                 <Chip
-                  label="Rx कृषि पर्ची"
+                  label={isChhattisgarhi ? "Rx किसान पर्ची" : "Rx कृषि पर्ची"}
                   size="small"
                   sx={{ bgcolor: '#c62828', color: '#fff', fontWeight: 900, fontSize: '0.72rem', height: 22, borderRadius: '6px' }}
                 />
@@ -1388,7 +1406,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   />
                 ) : (
                   <Chip
-                    label="📶 कृषि डेटाबेस"
+                    label={isChhattisgarhi ? "📶 कृषि डेटा" : "📶 कृषि डेटाबेस"}
                     size="small"
                     sx={{
                       bgcolor: '#fff3e0',
@@ -1404,7 +1422,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   const sevStyle = getSeverityStyle(activeDisease.severity);
                   return (
                     <Chip
-                      label={`${sevStyle.dot} गंभीरता: ${activeDisease.severity || 'गंभीर'}`}
+                      label={`${sevStyle.dot} ${isChhattisgarhi ? 'गंभीरता:' : 'गंभीरता:'} ${activeDisease.severity || 'गंभीर'}`}
                       size="small"
                       sx={{
                         bgcolor: sevStyle.bgcolor,
@@ -1418,7 +1436,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 })()}
                 {activeDisease.symptomTag && (
                   <Chip
-                    label={`लक्षण: ${activeDisease.symptomTag}`}
+                    label={`${isChhattisgarhi ? 'चिन्हारी:' : 'लक्षण:'} ${activeDisease.symptomTag}`}
                     size="small"
                     variant="outlined"
                     sx={{ fontSize: '0.68rem', fontWeight: 600 }}
@@ -1430,7 +1448,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 {activeDisease.diseaseName}
               </Typography>
               <Typography variant="caption" sx={{ color: '#666', fontSize: '0.76rem' }}>
-                कारक (Pathogen): <strong>{activeDisease.pathogen}</strong>
+                {isChhattisgarhi ? 'कारक:' : 'कारक (Pathogen):'} <strong>{activeDisease.pathogen}</strong>
               </Typography>
             </Box>
 
@@ -1459,7 +1477,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   '&:hover': { bgcolor: isVoicePlaying ? '#b71c1c' : '#ffebee' }
                 }}
               >
-                {isVoicePlaying ? 'रोकें ⏹️' : 'इलाज सुनें 🔊'}
+                {isVoicePlaying
+                  ? (isChhattisgarhi ? 'रोक्व ⏹️' : 'रोकें ⏹️')
+                  : (isChhattisgarhi ? 'इलाज सुनव 🔊' : 'इलाज सुनें 🔊')}
               </Button>
 
               <Button
@@ -1478,7 +1498,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   '&:hover': { bgcolor: '#1ebe5d' }
                 }}
               >
-                दुकानदार पर्ची 💬
+                {isChhattisgarhi ? 'दुकानदार बर पर्ची 💬' : 'दुकानदार पर्ची 💬'}
               </Button>
             </Box>
           </Box>
@@ -1492,7 +1512,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 sx={{ mb: 2, borderRadius: 2.5, bgcolor: '#fff8e1', border: '1.5px solid #ffe082' }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b78103', fontSize: '0.84rem' }}>
-                  🌧️ मौसम चेतावनी: आज छिड़काव टालें! (Live Spray Advisory)
+                  {isChhattisgarhi ? '🌧️ मौसम चेतावनी: आज दवाई छिड़काव झन करव!' : '🌧️ मौसम चेतावनी: आज छिड़काव टालें! (Live Spray Advisory)'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#5d4037', display: 'block', mt: 0.2 }}>
                   {sprayAdvisory.advisory}
@@ -1508,10 +1528,12 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 sx={{ mb: 2, borderRadius: 2.5, bgcolor: '#e8f5e9', border: '1.5px solid #a5d6a7' }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-                  🎉 बधाई! आपकी फसल पूरी तरह स्वस्थ है!
+                  {isChhattisgarhi ? '🎉 बधाई! तुंहर फसल एकदम तंदुरुस्त हे!' : '🎉 बधाई! आपकी फसल पूरी तरह स्वस्थ है!'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#2e7d32', display: 'block', mt: 0.2 }}>
-                  पौधे में किसी भी हानिकारक कीट या फफूंद के लक्षण नहीं मिले हैं। किसी रासायनिक कीटनाशक के छिड़काव की आवश्यकता नहीं है।
+                  {isChhattisgarhi
+                    ? 'पौधा म कोनो कीरा या फफूंद के लक्षण नइ मिले हे। कोनो रासायनिक दवाई छिड़के के जरूरत नइये।'
+                    : 'पौधे में किसी भी हानिकारक कीट या फफूंद के लक्षण नहीं मिले हैं। किसी रासायनिक कीटनाशक के छिड़काव की आवश्यकता नहीं है।'}
                 </Typography>
               </Alert>
             )}
@@ -1529,18 +1551,20 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
                 <Typography sx={{ fontSize: { xs: '1.15rem', sm: '1.25rem' } }}>🎒</Typography>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: { xs: '0.86rem', sm: '0.92rem' } }}>
-                  15 लीटर स्प्रे पंप (टंकी) हेतु सटीक नाप (Knapsack Pump Dose):
+                  {isChhattisgarhi ? '15 लीटर स्प्रे पंप (टंकी) बर पक्का नाप (15L पंप खुराक):' : '15 लीटर स्प्रे पंप (टंकी) हेतु सटीक नाप (Knapsack Pump Dose):'}
                 </Typography>
               </Box>
 
               <Box sx={{ p: { xs: 1, sm: 1.2 }, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082', mb: 1 }}>
                 <Typography variant="body1" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '0.94rem', sm: '1.02rem' } }}>
-                  👉 {activeDisease.pumpDose || '15-20 ग्राम प्रति 15 लीटर पंप'}
+                  👉 {activeDisease.pumpDose || (isChhattisgarhi ? '15-20 ग्राम हर 15 लीटर टंकी' : '15-20 ग्राम प्रति 15 लीटर पंप')}
                 </Typography>
               </Box>
 
               <Typography variant="caption" sx={{ color: '#6d4c41', fontSize: { xs: '0.72rem', sm: '0.75rem' }, lineHeight: 1.45, display: 'block' }}>
-                💧 <strong>एकड़ नाप:</strong> 1 एकड़ हेतु 150-200 लीटर पानी (लगभग 10-12 टंकी)। हमेशा साफ पानी का उपयोग करें और सुबह (8-11 बजे) या शाम (4-6 बजे) शांत मौसम में छिड़काव करें।
+                {isChhattisgarhi
+                  ? '💧 <strong>एकड़ नाप:</strong> 1 एकड़ बर 150-200 लीटर पानी (लगभग 10-12 टंकी)। हमेशा साफ पानी के उपयोग करव अउ बिहनिया (8-11 बजे) या संझा (4-6 बजे) शांत मौसम म दवाई छिड़कव।'
+                  : '💧 <strong>एकड़ नाप:</strong> 1 एकड़ हेतु 150-200 लीटर पानी (लगभग 10-12 टंकी)। हमेशा साफ पानी का उपयोग करें और सुबह (8-11 बजे) या शाम (4-6 बजे) शांत मौसम में छिड़काव करें।'}
               </Typography>
             </Box>
 
@@ -1563,7 +1587,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.8 }}>
                       <LocalHospitalIcon sx={{ color: '#c62828', fontSize: 18 }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b71c1c', fontSize: '0.86rem' }}>
-                        रोग के लक्षण (Visible Symptoms):
+                        {isChhattisgarhi ? 'रोग के चिन्हारी (लक्षण):' : 'रोग के लक्षण (Visible Symptoms):'}
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: '#424242', fontSize: '0.82rem', lineHeight: 1.6 }}>
@@ -1584,7 +1608,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.6 }}>
                       <SecurityIcon sx={{ color: '#388e3c', fontSize: 18 }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.86rem' }}>
-                        भविष्य में बचाव व बीजोपचार (Prevention):
+                        {isChhattisgarhi ? 'आगू बर बचाव अउ बीहा उपचार:' : 'भविष्य में बचाव व बीजोपचार (Prevention):'}
                       </Typography>
                     </Box>
                     <Typography variant="caption" sx={{ color: '#424242', fontSize: '0.78rem', lineHeight: 1.5, display: 'block' }}>
@@ -1610,7 +1634,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.6 }}>
                       <SpaIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
                       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-                        जैविक एवं देसी उपाय (Organic / Bio Remedy):
+                        {isChhattisgarhi ? 'देसी अउ जैविक उपाय (Organic उपचार):' : 'जैविक एवं देसी उपाय (Organic / Bio Remedy):'}
                       </Typography>
                     </Box>
                     <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: '0.82rem', lineHeight: 1.55 }}>
@@ -1635,19 +1659,19 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                             <ScienceIcon sx={{ color: '#1565c0', fontSize: 18 }} />
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0d47a1', fontSize: '0.86rem' }}>
-                              रासायनिक दवा व तकनीकी नाम (Chemical Medicine):
+                              {isChhattisgarhi ? 'रासायनिक दवाई अउ तकनीकी नाम:' : 'रासायनिक दवा व तकनीकी नाम (Chemical Medicine):'}
                             </Typography>
                           </Box>
                           {matchedCibrc ? (
                             <Chip
                               icon={<VerifiedIcon sx={{ fontSize: '13px !important', color: '#1565c0 !important' }} />}
-                              label="🛡️ CIB&RC अनुमोदित"
+                              label={isChhattisgarhi ? "🛡️ CIB&RC जांचे" : "🛡️ CIB&RC अनुमोदित"}
                               size="small"
                               sx={{ bgcolor: '#fff', color: '#1565c0', fontWeight: 800, fontSize: '0.68rem', height: 22, border: '1px solid #90caf9' }}
                             />
                           ) : (
                             <Chip
-                              label="🛡️ शून्य फर्जी डेटा नीति"
+                              label={isChhattisgarhi ? "🛡️ शून्य गलत डेटा नीति" : "🛡️ शून्य फर्जी डेटा नीति"}
                               size="small"
                               sx={{ bgcolor: '#fff3e0', color: '#e65100', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
                             />
@@ -1662,12 +1686,12 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                         {matchedCibrc ? (
                           <Box sx={{ mt: 1.2, p: 1.2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #90caf9' }}>
                             <Typography variant="caption" sx={{ color: '#0284c7', fontWeight: 800, display: 'block', mb: 0.6, fontSize: '0.74rem' }}>
-                              📋 CIB&RC आधिकारिक तकनीकी विवरण (Official CIB&RC Label Claim):
+                              {isChhattisgarhi ? '📋 CIB&RC सरकारी तकनीकी विवरण:' : '📋 CIB&RC आधिकारिक तकनीकी विवरण (Official CIB&RC Label Claim):'}
                             </Typography>
 
                             <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 0.8 }}>
                               <Chip
-                                label={`⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन`}
+                                label={isChhattisgarhi ? `⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन` : `⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन`}
                                 size="small"
                                 sx={{
                                   bgcolor: matchedCibrc.phiDays <= 7 ? '#e8f5e9' : matchedCibrc.phiDays <= 21 ? '#fff8e1' : '#ffebee',
@@ -1677,19 +1701,23 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                                 }}
                               />
                               <Chip
-                                label={`🎒 15L पंप: ${matchedCibrc.dosagePerPump15L}`}
+                                label={`🎒 15L ${isChhattisgarhi ? 'पंप' : 'पंप'}: ${matchedCibrc.dosagePerPump15L}`}
                                 size="small"
                                 sx={{ bgcolor: '#f0fdf4', color: '#15803d', fontWeight: 700, fontSize: '0.68rem' }}
                               />
                               <Chip
-                                label={`💧 प्रति एकड़: ${matchedCibrc.dosagePerAcre}`}
+                                label={`💧 ${isChhattisgarhi ? 'हर एकड़' : 'प्रति एकड़'}: ${matchedCibrc.dosagePerAcre}`}
                                 size="small"
                                 sx={{ bgcolor: '#f0f9ff', color: '#0369a1', fontWeight: 700, fontSize: '0.68rem' }}
                               />
                             </Box>
 
                             <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', mb: 0.4 }}>
-                              ⚠️ <strong>तुड़ाई पूर्व अंतराल (PHI):</strong> कटाई से कम से कम <strong>{matchedCibrc.phiDays} दिन पूर्व</strong> छिड़काव बंद करना अनिवार्य है ताकि उपज में रासायनिक अवशेष न रहें (FSSAI/निर्यात सुरक्षा)।
+                              {isChhattisgarhi ? (
+                                <>⚠️ <strong>तुड़ाई पहिली अंतराल (PHI):</strong> कटाई ले कम से कम <strong>{matchedCibrc.phiDays} दिन पहिली</strong> दवाई छिड़काव बंद करना जरूरी हे ताकि फसल म दवाई के अंश झन रहय।</>
+                              ) : (
+                                <>⚠️ <strong>तुड़ाई पूर्व अंतराल (PHI):</strong> कटाई से कम से कम <strong>{matchedCibrc.phiDays} दिन पूर्व</strong> छिड़काव बंद करना अनिवार्य है ताकि उपज में रासायनिक अवशेष न रहें (FSSAI/निर्यात सुरक्षा)।</>
+                              )}
                             </Typography>
 
                             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
@@ -1703,7 +1731,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                             sx={{ mt: 1, p: 0.8, borderRadius: 2, bgcolor: '#fffde7', border: '1px solid #fff59d' }}
                           >
                             <Typography variant="caption" sx={{ color: '#795548', fontSize: '0.72rem', display: 'block', lineHeight: 1.4 }}>
-                              🛡️ <strong>शून्य फर्जी डेटा नीति:</strong> इस कीट/रोग हेतु कोई मनगढ़ंत रासायनिक दवा नहीं दिखाई गई है। केवल जैविक उपचार अपनाएं या विशेषज्ञ सलाह हेतु KCC हेल्पलाइन पर संपर्क करें।
+                              {isChhattisgarhi
+                                ? '🛡️ शून्य गलत डेटा नीति: ये कीरा/रोग बर कोनो मनगढ़ंत दवाई नइ दिखाय गे हे। केवल देसी/जैविक उपाय करव या विशेषज्ञ सलाह बर किसान कॉल सेंटर म बात करव।'
+                                : '🛡️ शून्य फर्जी डेटा नीति: इस कीट/रोग हेतु कोई मनगढ़ंत रासायनिक दवा नहीं दिखाई गई है। केवल जैविक उपचार अपनाएं या विशेषज्ञ सलाह हेतु KCC हेल्पलाइन पर संपर्क करें।'}
                             </Typography>
                             <Button
                               size="small"
@@ -1711,7 +1741,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                               onClick={() => openNativeDialer('18001801551')}
                               sx={{ mt: 0.5, py: 0.2, px: 1, fontSize: '0.68rem', color: '#e65100', borderColor: '#ffb74d', bgcolor: '#fff', border: '1px solid' }}
                             >
-                              किसान कॉल सेंटर (1800-180-1551)
+                              {isChhattisgarhi ? 'किसान कॉल सेंटर (1800-180-1551)' : 'किसान कॉल सेंटर (1800-180-1551)'}
                             </Button>
                           </Alert>
                         )}
@@ -1736,7 +1766,9 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             >
               <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
               <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', fontWeight: 600 }}>
-                प्रमाणित CIB&RC (केंद्रीय कीटनाशी बोर्ड), KVK एवं इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसा आधारित • स्रोत: डेटा.गॉव.इन (GODL-India अनुपालित)
+                {isChhattisgarhi
+                  ? 'प्रमाणित CIB&RC, KVK अउ इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसा आधारित • स्रोत: डेटा.गॉव.इन (GODL-India)'
+                  : 'प्रमाणित CIB&RC (केंद्रीय कीटनाशी बोर्ड), KVK एवं इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसा आधारित • स्रोत: डेटा.गॉव.इन (GODL-India अनुपालित)'}
               </Typography>
             </Box>
           </CardContent>
@@ -1755,11 +1787,13 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 setSelectedCrop('all');
               }}
             >
-              रीसेट करें
+              {isChhattisgarhi ? 'फेर चुनव' : 'रीसेट करें'}
             </Button>
           }
         >
-          इस चयन के लिए कोई रोग नहीं मिला। कृपया अन्य लक्षण या फसल चुनें।
+          {isChhattisgarhi
+            ? 'ये पसंद बर कोनो रोग नइ मिलिस। कोनो दूसरा चिन्हारी या फसल चुनव।'
+            : 'इस चयन के लिए कोई रोग नहीं मिला। कृपया अन्य लक्षण या फसल चुनें।'}
         </Alert>
       )}
         </>

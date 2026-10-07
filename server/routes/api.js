@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.22';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.23';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सम्पूर्ण छत्तीसगढ़ी भाषा सक्रियता: 6 चरणीय कृषि यात्रा, 8-टूल लांचर ग्रिड, डिजिटल किसान पासबुक एवं मौसम कार्ड में गतिशील छत्तीसगढ़ी बोली अनुकूलन एवं त्वरित 1-टैप स्विचिंग।',
+    releaseNotes: '100% सम्पूर्ण छत्तीसगढ़ी बोली स्थानीयकरण: सभी 5 मुख्य टैब (होम, फसल डॉक्टर, खाद व योजना, मंडी भाव, चौपाल), 4 हार्डवेयर मॉडल्स (GPS मापक, माटी IoT, मोटर कंट्रोलर, डिवाइस हब) एवं \'मोर खेत\' किसान डैशबोर्ड में पूर्णतः शुद्ध छत्तीसगढ़ी अनुवाद व प्रतिक्रियात्मक भाषा स्विचिंग।',
     updatedAt: new Date().toISOString()
   });
 });

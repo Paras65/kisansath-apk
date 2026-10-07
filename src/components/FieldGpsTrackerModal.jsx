@@ -37,8 +37,10 @@ import {
 } from '../utils/geoUtils';
 import { speakText, stopSpeech } from '../utils/speech';
 import { vibrateDevice, setNativeKeepScreenOn } from '../utils/capacitorUtils';
+import { useLanguage } from '../utils/i18n';
 
 export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'खेत' }) => {
+  const { isChhattisgarhi } = useLanguage();
   const [trackingState, setTrackingState] = useState('idle'); // 'idle' | 'tracking' | 'paused' | 'completed'
   const [points, setPoints] = useState([]);
   const [currentAccuracy, setCurrentAccuracy] = useState(null);
@@ -306,10 +308,10 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
         {/* Live Legend */}
         <Box sx={{ position: 'absolute', bottom: 8, left: 10, bgcolor: 'rgba(255,255,255,0.85)', px: 1, py: 0.3, borderRadius: 1.5, display: 'flex', gap: 1 }}>
           <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 700, fontSize: '0.7rem' }}>
-            🟢 प्रारंभिक बिंदु
+            {isChhattisgarhi ? '🟢 पहिली बिंदु' : '🟢 प्रारंभिक बिंदु'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 700, fontSize: '0.7rem' }}>
-            🔴 वर्तमान स्थान
+            {isChhattisgarhi ? '🔴 अभी के जगह' : '🔴 वर्तमान स्थान'}
           </Typography>
         </Box>
       </Box>
@@ -341,10 +343,10 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
           <DirectionsWalkIcon sx={{ color: '#ffeb3b', fontSize: 26 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff' }}>
-              खेत सीमा मापक (GPS Walk Tracking)
+              {isChhattisgarhi ? 'खेत मेड़ नापक (GPS Walk Tracking)' : 'खेत सीमा मापक (GPS Walk Tracking)'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem' }}>
-              मेड़ पर चलकर सटीक रकबा व सीमा नापें
+              {isChhattisgarhi ? 'मेड़ म रेंगत सटीक रकबा व सीमा नापव' : 'मेड़ पर चलकर सटीक रकबा व सीमा नापें'}
             </Typography>
           </Box>
         </Box>
@@ -366,12 +368,12 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
             <Chip
               label={
                 trackingState === 'tracking'
-                  ? '🟢 ट्रैकिंग चालू (मेड़ पर चलें)'
+                  ? (isChhattisgarhi ? '🟢 ट्रैकिंग चालू (मेड़ म रेंगव)' : '🟢 ट्रैकिंग चालू (मेड़ पर चलें)')
                   : trackingState === 'paused'
-                  ? '⏸️ अस्थायी रुका हुआ'
+                  ? (isChhattisgarhi ? '⏸️ थोरिक रुके हे' : '⏸️ अस्थायी रुका हुआ')
                   : trackingState === 'completed'
-                  ? '✅ मापन पूर्ण'
-                  : '⚪ तैयार (Standby)'
+                  ? (isChhattisgarhi ? '✅ नाप पूरा हो गे' : '✅ मापन पूर्ण')
+                  : (isChhattisgarhi ? '⚪ तैयार (Standby)' : '⚪ तैयार (Standby)')
               }
               color={trackingState === 'tracking' ? 'success' : trackingState === 'completed' ? 'primary' : 'default'}
               size="small"
@@ -380,7 +382,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
             {wakeLockActive && (
               <Chip
                 icon={<ScreenLockPortraitIcon sx={{ fontSize: 14 }} />}
-                label="स्क्रीन ऑन"
+                label={isChhattisgarhi ? 'स्क्रीन ऑन' : 'स्क्रीन ऑन'}
                 size="small"
                 variant="outlined"
                 sx={{ fontSize: '0.68rem', height: 24 }}
@@ -389,7 +391,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="caption" sx={{ color: '#555', fontWeight: 600 }}>
-              {currentAccuracy ? `सटीकता: ±${currentAccuracy}m` : 'GPS सिग्नल खोज रहे हैं...'}
+              {currentAccuracy ? `सटीकता: ±${currentAccuracy}m` : (isChhattisgarhi ? 'GPS सिग्नल खोजत हन...' : 'GPS सिग्नल खोज रहे हैं...')}
             </Typography>
             <Chip label={`बिंदु: ${points.length}`} size="small" sx={{ height: 22, fontSize: '0.72rem' }} />
           </Box>
@@ -406,11 +408,11 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
                   <TerrainIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
                   <Typography variant="caption" sx={{ color: '#2e7d32', fontWeight: 700 }}>
-                    कुल रकबा (क्षेत्रफल)
+                    {isChhattisgarhi ? 'कुल रकबा (क्षेत्रफल)' : 'कुल रकबा (क्षेत्रफल)'}
                   </Typography>
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: '#1b5e20' }}>
-                  {areaData.acres} <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>एकड़</Typography>
+                  {areaData.acres} <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>{isChhattisgarhi ? 'एकड़' : 'एकड़'}</Typography>
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.72rem' }}>
                   {areaData.dismil} डिसमिल • {areaData.hectares} हेक्टेयर
@@ -425,14 +427,14 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
                   <StraightenIcon sx={{ fontSize: 18, color: '#f57f17' }} />
                   <Typography variant="caption" sx={{ color: '#f57f17', fontWeight: 700 }}>
-                    मेड़ की कुल लंबाई (परिधि)
+                    {isChhattisgarhi ? 'मेड़ के कुल लंबाई (घेरा)' : 'मेड़ की कुल लंबाई (परिधि)'}
                   </Typography>
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 800, color: '#b78103' }}>
                   {perimeterData.meters} <Typography component="span" variant="body2" sx={{ fontWeight: 700 }}>मीटर</Typography>
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#666', display: 'block', fontSize: '0.72rem' }}>
-                  लगभग {perimeterData.feet} फीट
+                  {isChhattisgarhi ? `लगभग ${perimeterData.feet} फीट` : `लगभग ${perimeterData.feet} फीट`}
                 </Typography>
               </CardContent>
             </Card>
@@ -442,12 +444,22 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
         {/* Instructions for Farmer */}
         <Paper elevation={0} sx={{ p: 1.5, borderRadius: 2.5, bgcolor: '#f1f5f9', border: '1px solid #e2e8f0', mb: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '0.8rem', color: '#334155', mb: 0.5 }}>
-            💡 मेड़ नापने के आसान निर्देश:
+            {isChhattisgarhi ? '💡 मेड़ नापे के सरल निर्देश:' : '💡 मेड़ नापने के आसान निर्देश:'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#475569', display: 'block', lineHeight: 1.4 }}>
-            1. खेत के किसी भी एक कोने पर खड़े होकर "सीमा नापना शुरू करें" दबाएं।<br />
-            2. खेत की चारों तरफ की मेड़ पर सामान्य गति से पैदल चलें (फोन हाथ में या जेब में रखें)।<br />
-            3. वापस उसी शुरुआती कोने पर पहुंचकर "नाप पूरा करें" दबाएं। ऐप तुरंत एकड़ और डिसमिल बता देगा।
+            {isChhattisgarhi ? (
+              <>
+                1. खेत के कोनो एक कोना म खड़े हो के "मेड़ नापना शुरू करव" दबावहू।<br />
+                2. खेत के चारों मेड़ म सामान्य चाल ले रेंगव (मोबाइल हाथ म या जेब म रखव)।<br />
+                3. वापिस पहिली कोना म पहुंच के "नाप पूरा करव" दबावहू। तुरंत एकड़ अउ डिसमिल दिख जही।
+              </>
+            ) : (
+              <>
+                1. खेत के किसी भी एक कोने पर खड़े होकर "सीमा नापना शुरू करें" दबाएं।<br />
+                2. खेत की चारों तरफ की मेड़ पर सामान्य गति से पैदल चलें (फोन हाथ में या जेब में रखें)।<br />
+                3. वापस उसी शुरुआती कोने पर पहुंचकर "नाप पूरा करें" दबाएं। ऐप तुरंत एकड़ और डिसमिल बता देगा।
+              </>
+            )}
           </Typography>
         </Paper>
 
@@ -462,7 +474,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
               onClick={startTracking}
               sx={{ bgcolor: '#1b5e20', py: 1.2, fontWeight: 800, borderRadius: 2.5, '&:hover': { bgcolor: '#2e7d32' } }}
             >
-              🚶‍♂️ सीमा नापना शुरू करें (Start Walk)
+              {isChhattisgarhi ? '🚶‍♂️ मेड़ नापना शुरू करव (Start Walk)' : '🚶‍♂️ सीमा नापना शुरू करें (Start Walk)'}
             </Button>
           )}
 
@@ -476,7 +488,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                   onClick={pauseTracking}
                   sx={{ py: 1, fontWeight: 700, borderRadius: 2.5 }}
                 >
-                  अस्थायी रोकें
+                  {isChhattisgarhi ? 'थोरिक रोक्व' : 'अस्थायी रोकें'}
                 </Button>
               </Grid>
               <Grid item xs={6}>
@@ -487,7 +499,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                   onClick={finishTracking}
                   sx={{ bgcolor: '#2e7d32', py: 1, fontWeight: 800, borderRadius: 2.5, '&:hover': { bgcolor: '#1b5e20' } }}
                 >
-                  🏁 नाप पूरा करें
+                  {isChhattisgarhi ? '🏁 नाप पूरा करव' : '🏁 नाप पूरा करें'}
                 </Button>
               </Grid>
             </Grid>
@@ -503,7 +515,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                   onClick={resumeTracking}
                   sx={{ bgcolor: '#1b5e20', py: 1, fontWeight: 700, borderRadius: 2.5 }}
                 >
-                  फिर से शुरू करें
+                  {isChhattisgarhi ? 'फेर शुरू करव' : 'फिर से शुरू करें'}
                 </Button>
               </Grid>
               <Grid item xs={6}>
@@ -514,7 +526,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                   onClick={finishTracking}
                   sx={{ bgcolor: '#2e7d32', py: 1, fontWeight: 800, borderRadius: 2.5 }}
                 >
-                  नाप समाप्त करें
+                  {isChhattisgarhi ? 'नाप पूरा करव' : 'नाप समाप्त करें'}
                 </Button>
               </Grid>
             </Grid>
@@ -530,7 +542,9 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                   onClick={handleApplyToMeraKhet}
                   sx={{ bgcolor: '#1b5e20', py: 1.2, fontWeight: 800, borderRadius: 2.5, '&:hover': { bgcolor: '#2e7d32' } }}
                 >
-                  ✅ {areaData.acres} एकड़ रकबा "{plotName}" में सुरक्षित करें
+                  {isChhattisgarhi
+                    ? `✅ ${areaData.acres} एकड़ रकबा "${plotName}" म सहेजव`
+                    : `✅ ${areaData.acres} एकड़ रकबा "${plotName}" में सुरक्षित करें`}
                 </Button>
               )}
               <Button
@@ -540,7 +554,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                 onClick={resetTracking}
                 sx={{ py: 0.8, borderRadius: 2.5 }}
               >
-                नया खेत दोबारा नापें
+                {isChhattisgarhi ? 'नवा खेत फेर नापव' : 'नया खेत दोबारा नापें'}
               </Button>
             </Box>
           )}
@@ -553,16 +567,18 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
               disabled={trackingState === 'tracking' && !simulationActive}
               sx={{ color: '#455a64', fontSize: '0.72rem', textTransform: 'none' }}
             >
-              ⚡ 2.4 एकड़ डेमो वॉक टेस्ट करें (सिमुलेशन)
+              {isChhattisgarhi ? '⚡ 2.4 एकड़ डेमो वॉक टेस्ट करव' : '⚡ 2.4 एकड़ डेमो वॉक टेस्ट करें (सिमुलेशन)'}
             </Button>
             {areaData.acres > 0 && (
               <Button
                 size="small"
                 startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-                onClick={() => speakText(`आपके खेत का रकबा ${areaData.acres} एकड़, यानि ${areaData.dismil} डिसमिल है। मेड़ की लंबाई ${perimeterData.meters} मीटर है।`)}
+                onClick={() => speakText(isChhattisgarhi
+                  ? `तुंहर खेत के रकबा ${areaData.acres} एकड़, यानि ${areaData.dismil} डिसमिल हे। मेड़ के लंबाई ${perimeterData.meters} मीटर हे।`
+                  : `आपके खेत का रकबा ${areaData.acres} एकड़, यानि ${areaData.dismil} डिसमिल है। मेड़ की लंबाई ${perimeterData.meters} मीटर है।`)}
                 sx={{ color: '#1b5e20', fontSize: '0.72rem', fontWeight: 700 }}
               >
-                सुनें
+                {isChhattisgarhi ? 'सुनव' : 'सुनें'}
               </Button>
             )}
           </Box>
@@ -571,7 +587,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
 
       <DialogActions sx={{ p: 1.5, bgcolor: '#f8faf6', borderTop: '1px solid #e0e0e0' }}>
         <Button onClick={onClose} sx={{ color: '#666', fontWeight: 600 }}>
-          बंद करें
+          {isChhattisgarhi ? 'बंद करव' : 'बंद करें'}
         </Button>
       </DialogActions>
     </Dialog>

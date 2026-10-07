@@ -42,8 +42,10 @@ import { validateIndianPhone, updateDevice } from '../services/deviceManagerServ
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 import { openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
+import { useLanguage } from '../utils/i18n';
 
 export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
+  const { isChhattisgarhi } = useLanguage();
   const [config, setConfig] = useState(getStoredMotorConfig());
   const [isMotorOn, setIsMotorOn] = useState(config.lastState === 'ON');
   const [timerSelected, setTimerSelected] = useState(config.timerMinutes || 60);
@@ -77,15 +79,19 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
     vibrateDevice(nextState ? 100 : 200);
 
     if (nextState) {
-      const msg = `बोरवेल मोटर चालू कर दी गई है। 3-फेज 415 वोल्ट बिजली सक्रिय है। टाइमर ${timerSelected} मिनट सेट है।`;
+      const msg = isChhattisgarhi
+        ? `बोरवेल मोटर चालू कर दे गे हे। 3-फेज 415 वोल्ट बिजली चालू हे। टाइमर ${timerSelected} मिनट सेट हे।`
+        : `बोरवेल मोटर चालू कर दी गई है। 3-फेज 415 वोल्ट बिजली सक्रिय है। टाइमर ${timerSelected} मिनट सेट है।`;
       speakText(msg);
-      const text = `✅ बोरवेल मोटर चालू! टाइमर: ${timerSelected} मिनट बाद स्वतः बंद होगी।`;
+      const text = isChhattisgarhi
+        ? `✅ बोरवेल मोटर चालू! टाइमर: ${timerSelected} मिनट बाद अपने-आप बंद होही।`
+        : `✅ बोरवेल मोटर चालू! टाइमर: ${timerSelected} मिनट बाद स्वतः बंद होगी।`;
       setNoticeMsg(text);
       notify.success(text);
     } else {
-      const msg = 'बोरवेल मोटर बंद कर दी गई है।';
+      const msg = isChhattisgarhi ? 'बोरवेल मोटर बंद कर दे गे हे।' : 'बोरवेल मोटर बंद कर दी गई है।';
       speakText(msg);
-      const text = '🛑 बोरवेल मोटर सुरक्षित रूप से बंद की गई।';
+      const text = isChhattisgarhi ? '🛑 बोरवेल मोटर सुरक्षित रूप ले बंद हो गे।' : '🛑 बोरवेल मोटर सुरक्षित रूप से बंद की गई।';
       setNoticeMsg(text);
       notify.info(text);
     }
@@ -122,8 +128,10 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   };
 
   const handleVoiceReport = () => {
-    const statusText = isMotorOn ? 'चालू' : 'बंद';
-    const msg = `ट्यूबवेल की स्थिति: मोटर अभी ${statusText} है। खेत में 3-फेज 415 वोल्ट बिजली आ रही है। बोरवेल में पर्याप्त जलस्तर है और मोटर सुरक्षित है।`;
+    const statusText = isMotorOn ? (isChhattisgarhi ? 'चालू' : 'चालू') : (isChhattisgarhi ? 'बंद' : 'बंद');
+    const msg = isChhattisgarhi
+      ? `ट्यूबवेल के हाल: मोटर अभी ${statusText} हे। खेत म 3-फेज 415 वोल्ट बिजली आवत हे। बोरवेल म बनेच पानी हे अउ मोटर सुरक्षित हे।`
+      : `ट्यूबवेल की स्थिति: मोटर अभी ${statusText} है। खेत में 3-फेज 415 वोल्ट बिजली आ रही है। बोरवेल में पर्याप्त जलस्तर है और मोटर सुरक्षित है।`;
     speakText(msg);
   };
 
@@ -134,10 +142,10 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
           <PowerSettingsNewIcon sx={{ color: '#81d4fa', fontSize: 28 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff' }}>
-              स्मार्ट ट्यूबवेल व मोटर कंट्रोलर
+              {isChhattisgarhi ? 'स्मार्ट ट्यूबवेल व मोटर कंट्रोलर' : 'स्मार्ट ट्यूबवेल व मोटर कंट्रोलर'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#b3e5fc', fontSize: '0.72rem' }}>
-              घर बैठे बोरवेल मोटर चालू/बंद व 3-फेज बिजली स्थिति
+              {isChhattisgarhi ? 'घर बैठे बोरवेल मोटर चालू/बंद व 3-फेज बिजली स्थिति' : 'घर बैठे बोरवेल मोटर चालू/बंद व 3-फेज बिजली स्थिति'}
             </Typography>
           </Box>
         </Box>
@@ -159,10 +167,14 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             <CloudQueueIcon sx={{ color: '#0288d1', fontSize: 26 }} />
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#01579b', display: 'block' }}>
-                🌧️ मौसम चेतावनी (बारिश संभावना: {weatherContext.rainProbability}%)
+                {isChhattisgarhi
+                  ? `🌧️ मौसम चेतावनी (पानी गिरे के संभावना: ${weatherContext.rainProbability}%)`
+                  : `🌧️ मौसम चेतावनी (बारिश संभावना: ${weatherContext.rainProbability}%)`}
               </Typography>
               <Typography variant="caption" sx={{ color: '#0277bd', fontSize: '0.73rem', lineHeight: 1.3, display: 'block' }}>
-                आज बारिश होने का पूर्वानुमान है। यदि खेत में पर्याप्त नमी है, तो मोटर चलाने से बचें और बिजली व पानी बचाएं।
+                {isChhattisgarhi
+                  ? 'आज पानी गिरे के संभावना हे। खेत म अगर पानी हे त मोटर मत चलावहू, बिजली अउ पानी बाचही।'
+                  : 'आज बारिश होने का पूर्वानुमान है। यदि खेत में पर्याप्त नमी है, तो मोटर चलाने से बचें और बिजली व पानी बचाएं।'}
               </Typography>
             </Box>
           </Paper>
@@ -207,17 +219,19 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             >
               <PowerSettingsNewIcon sx={{ fontSize: 52, mb: 0.5 }} />
               <Typography variant="h6" sx={{ fontWeight: 900, fontSize: '1.05rem', lineHeight: 1 }}>
-                {isMotorOn ? 'मोटर ON' : 'मोटर OFF'}
+                {isMotorOn ? (isChhattisgarhi ? 'मोटर चालू' : 'मोटर ON') : (isChhattisgarhi ? 'मोटर बंद' : 'मोटर OFF')}
               </Typography>
               <Typography variant="caption" sx={{ fontSize: '0.65rem', opacity: 0.9 }}>
-                {isMotorOn ? 'दबाकर बंद करें' : 'दबाकर चालू करें'}
+                {isMotorOn ? (isChhattisgarhi ? 'दबा के बंद करव' : 'दबाकर बंद करें') : (isChhattisgarhi ? 'दबा के चालू करव' : 'दबाकर चालू करें')}
               </Typography>
             </Button>
           </Box>
 
           <Chip
             icon={isMotorOn ? <WaterDropIcon sx={{ fontSize: 16 }} /> : <ElectricBoltIcon sx={{ fontSize: 16 }} />}
-            label={isMotorOn ? '🟢 मोटर चालू है (पानी बह रहा है)' : '🔴 मोटर बंद है'}
+            label={isMotorOn
+              ? (isChhattisgarhi ? '🟢 मोटर चालू हे (पानी बोहावत हे)' : '🟢 मोटर चालू है (पानी बह रहा है)')
+              : (isChhattisgarhi ? '🔴 मोटर बंद हे' : '🔴 मोटर बंद है')}
             color={isMotorOn ? 'success' : 'default'}
             sx={{ fontWeight: 800, fontSize: '0.78rem', py: 0.3 }}
           />
@@ -232,11 +246,11 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
                   <ElectricBoltIcon sx={{ fontSize: 18, color: '#0288d1' }} />
                   <Typography variant="caption" sx={{ fontWeight: 700, color: '#0277bd' }}>
-                    3-Phase बिजली स्थिति
+                    {isChhattisgarhi ? '3-Phase बिजली स्थिति' : '3-Phase बिजली स्थिति'}
                   </Typography>
                 </Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#01579b' }}>
-                  {telemetry.voltageL1}V • सक्रिय (OK)
+                  {telemetry.voltageL1}V • {isChhattisgarhi ? 'सक्रिय (ठीक हे)' : 'सक्रिय (OK)'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#666', fontSize: '0.68rem', display: 'block' }}>
                   L1: {telemetry.voltageL1}V | L2: {telemetry.voltageL2}V | L3: {telemetry.voltageL3}V
@@ -252,11 +266,11 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.3 }}>
                   <SecurityIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
                   <Typography variant="caption" sx={{ fontWeight: 700, color: '#2e7d32' }}>
-                    ड्राई-रन सुरक्षा (Dry Run)
+                    {isChhattisgarhi ? 'ड्राई-रन सुरक्षा' : 'ड्राई-रन सुरक्षा (Dry Run)'}
                   </Typography>
                 </Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20' }}>
-                  सुरक्षित (पर्याप्त पानी)
+                  {isChhattisgarhi ? 'सुरक्षित (पर्याप्त पानी)' : 'सुरक्षित (पर्याप्त पानी)'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#666', fontSize: '0.68rem', display: 'block' }}>
                   करंट: {telemetry.currentAmps}A • तापमान: {telemetry.motorTemp}
@@ -271,14 +285,16 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
             <TimerIcon sx={{ color: '#01579b', fontSize: 20 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#01579b', fontSize: '0.85rem' }}>
-              ⏱️ ऑटो-कट टाइमर (निर्धारित समय बाद खुद बंद होगी):
+              {isChhattisgarhi
+                ? '⏱️ ऑटो-कट टाइमर (ओतका बेरा बाद अपने आप बंद होही):'
+                : '⏱️ ऑटो-कट टाइमर (निर्धारित समय बाद खुद बंद होगी):'}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
             {[30, 60, 120, 180].map((mins) => (
               <Chip
                 key={mins}
-                label={mins < 60 ? `${mins} मिनट` : `${mins / 60} घंटा`}
+                label={mins < 60 ? `${mins} ${isChhattisgarhi ? 'मिनट' : 'मिनट'}` : `${mins / 60} ${isChhattisgarhi ? 'घंटा' : 'घंटा'}`}
                 clickable
                 color={timerSelected === mins ? 'primary' : 'default'}
                 variant={timerSelected === mins ? 'filled' : 'outlined'}
@@ -295,11 +311,13 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
               <PhoneAndroidIcon sx={{ color: '#f57f17', fontSize: 20 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#b78103', fontSize: '0.82rem' }}>
-                GSM स्टार्टर सिम नंबर: {config.starterPhone || '(सेट नहीं है)'}
+                {isChhattisgarhi
+                  ? `GSM स्टार्टर सिम नंबर: ${config.starterPhone || '(सेट नइये)'}`
+                  : `GSM स्टार्टर सिम नंबर: ${config.starterPhone || '(सेट नहीं है)'}`}
               </Typography>
             </Box>
             <Button size="small" onClick={() => setShowConfigEdit(!showConfigEdit)} sx={{ fontSize: '0.72rem', color: '#b78103', fontWeight: 700 }}>
-              {showConfigEdit ? 'रद्द करें' : 'बदलें'}
+              {showConfigEdit ? (isChhattisgarhi ? 'रद्द करव' : 'रद्द करें') : (isChhattisgarhi ? 'बदलव' : 'बदलें')}
             </Button>
           </Box>
 
@@ -313,12 +331,14 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
                 onChange={(e) => setStarterPhoneInput(e.target.value)}
               />
               <Button variant="contained" size="small" onClick={handleSavePhone} sx={{ bgcolor: '#f57f17', fontWeight: 800, borderRadius: 2, whiteSpace: 'nowrap' }}>
-                सहेजें
+                {isChhattisgarhi ? 'सहेजव' : 'सहेजें'}
               </Button>
             </Box>
           ) : (
             <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.72rem' }}>
-              यदि खेत में इंटरनेट नहीं है, तो आप नीचे 1-क्लिक SMS से सीधे स्टार्टर को ON/OFF कमांड भेज सकते हैं।
+              {isChhattisgarhi
+                ? 'अगर खेत म इंटरनेट नइये, त नीचे 1-क्लिक SMS ले स्टार्टर ल सीधा ON/OFF कर सकथो।'
+                : 'यदि खेत में इंटरनेट नहीं है, तो आप नीचे 1-क्लिक SMS से सीधे स्टार्टर को ON/OFF कमांड भेज सकते हैं।'}
             </Typography>
           )}
 
@@ -333,7 +353,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
                 onClick={() => handleSendGsmSms('ON')}
                 sx={{ fontSize: '0.72rem', fontWeight: 700, borderRadius: 2 }}
               >
-                SMS से ON करें
+                {isChhattisgarhi ? 'SMS ले चालू करव' : 'SMS से ON करें'}
               </Button>
               <Button
                 variant="outlined"
@@ -344,7 +364,7 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
                 onClick={() => handleSendGsmSms('OFF')}
                 sx={{ fontSize: '0.72rem', fontWeight: 700, borderRadius: 2 }}
               >
-                SMS से OFF करें
+                {isChhattisgarhi ? 'SMS ले बंद करव' : 'SMS से OFF करें'}
               </Button>
             </Box>
           )}
@@ -358,10 +378,10 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
           onClick={handleVoiceReport}
           sx={{ color: '#01579b', fontWeight: 700, fontSize: '0.78rem' }}
         >
-          आवाज में सुनें
+          {isChhattisgarhi ? 'आवाज म सुनव' : 'आवाज में सुनें'}
         </Button>
         <Button onClick={onClose} sx={{ color: '#666', fontWeight: 600 }}>
-          बंद करें
+          {isChhattisgarhi ? 'बंद करव' : 'बंद करें'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -64,11 +64,11 @@ export const Header = ({
 
   const handleGpsLocation = () => {
     if (!navigator.geolocation) {
-      notify.warning('आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
+      notify.warning(isChhattisgarhi ? 'आपके मोबाइल म GPS सुविधा नइये।' : 'आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
       return;
     }
     setDetectingGps(true);
-    notify.info('📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
+    notify.info(isChhattisgarhi ? '📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...' : '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setDetectingGps(false);
@@ -83,11 +83,11 @@ export const Header = ({
           }
         });
         onDistrictChange(closestDistrict);
-        notify.success(`📍 GPS स्थान प्राप्त: ${closestDistrict} (लाइव मौसम सक्रिय)`);
+        notify.success(isChhattisgarhi ? `📍 GPS ले मिले जगह: ${closestDistrict} (लाइव मौसम चालू)` : `📍 GPS स्थान प्राप्त: ${closestDistrict} (लाइव मौसम सक्रिय)`);
       },
       (err) => {
         setDetectingGps(false);
-        notify.info('GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
+        notify.info(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।' : 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );
@@ -96,11 +96,11 @@ export const Header = ({
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      notify.success('इंटरनेट कनेक्शन पुनः स्थापित हुआ (ऑनलाइन मोड)');
+      notify.success(isChhattisgarhi ? 'इंटरनेट चालू होगे (ऑनलाइन मोड)' : 'इंटरनेट कनेक्शन पुनः स्थापित हुआ (ऑनलाइन मोड)');
     };
     const handleOffline = () => {
       setIsOnline(false);
-      notify.warning('इंटरनेट बंद है। ऐप सुरक्षित ऑफलाइन मोड में काम कर रहा है।');
+      notify.warning(isChhattisgarhi ? 'इंटरनेट बंद हे। ऐप सुरक्षित ऑफ़लाइन मोड म काम करत हे।' : 'इंटरनेट बंद है। ऐप सुरक्षित ऑफलाइन मोड में काम कर रहा है।');
     };
 
     window.addEventListener('online', handleOnline);
@@ -110,7 +110,7 @@ export const Header = ({
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [isChhattisgarhi]);
 
   // Sync Header speaker icon with global speech engine
   useEffect(() => {
@@ -230,7 +230,7 @@ export const Header = ({
         {/* App Logo, Name & Universal Back Button */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1.2 }, flexShrink: 0 }}>
           {currentTab !== 'home' && (
-            <Tooltip title="होम स्क्रीन पर वापस जाएं">
+            <Tooltip title={isChhattisgarhi ? "होम स्क्रीन म वापस जावव" : "होम स्क्रीन पर वापस जाएं"}>
               <IconButton
                 onClick={() => {
                   stopSpeech();
@@ -336,7 +336,7 @@ export const Header = ({
               }
             }}
           >
-            <Tooltip title="📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)">
+            <Tooltip title={isChhattisgarhi ? "📍 मोर अभी के जगह (GPS ले अपने-आप पहचानव)" : "📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)"}>
               <span>
                 <IconButton
                   onClick={handleGpsLocation}
@@ -466,7 +466,7 @@ export const Header = ({
           </Box>
 
           {/* Smart Centralized Device Hub Button (Tablet & Desktop Only) */}
-          <Tooltip title="स्मार्ट डिवाइस व ब्लूटूथ हब">
+          <Tooltip title={isChhattisgarhi ? "स्मार्ट डिवाइस अउ ब्लूटूथ हब" : "स्मार्ट डिवाइस व ब्लूटूथ हब"}>
             <IconButton
               onClick={onOpenDeviceHub}
               aria-label="स्मार्ट डिवाइस हब"
@@ -486,7 +486,7 @@ export const Header = ({
           </Tooltip>
 
           {/* Dedicated Admin Portal Button (Desktop Only) */}
-          <Tooltip title="समर्पित कृषि प्रशासन पोर्टल (Admin Portal)">
+          <Tooltip title={isChhattisgarhi ? "कृषि प्रशासन पोर्टल (Admin Portal)" : "समर्पित कृषि प्रशासन पोर्टल (Admin Portal)"}>
             <Button
               onClick={onOpenAdmin}
               startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 17 }} />}
@@ -509,7 +509,7 @@ export const Header = ({
           </Tooltip>
 
           {/* Voice Assistance Button (Tablet & Desktop Only to avoid Mobile Header Crowding) */}
-          <Tooltip title={speaking ? 'आवाज बंद करें' : 'हिंदी में आवाज में सुनें'}>
+          <Tooltip title={speaking ? (isChhattisgarhi ? 'आवाज बंद करव' : 'आवाज बंद करें') : (isChhattisgarhi ? 'छत्तीसगढ़ी आवाज म सुनव' : 'हिंदी में आवाज में सुनें')}>
             <IconButton
               onClick={handleVoiceWelcome}
               aria-label="आवाज सहायता"
@@ -531,7 +531,7 @@ export const Header = ({
 
           {/* Compact APK Download Icon (Suppressed in Native APK & Hidden on Mobile) */}
           {appConfig.apkDownloadUrl && !isNativePlatform() && (
-            <Tooltip title={`Android APK डाउनलोड करें (v${appConfig.appVersion})`}>
+            <Tooltip title={isChhattisgarhi ? `Android APK डाउनलोड करव (v${appConfig.appVersion})` : `Android APK डाउनलोड करें (v${appConfig.appVersion})`}>
               <IconButton
                 component="a"
                 href={appConfig.apkDownloadUrl}
@@ -560,7 +560,7 @@ export const Header = ({
           )}
 
           {/* Share App Button (Universal on all screens) */}
-          <Tooltip title="किसान भाइयों को ऐप शेयर करें">
+          <Tooltip title={isChhattisgarhi ? "किसान संगी मन ला ऐप शेयर करव" : "किसान भाइयों को ऐप शेयर करें"}>
             <IconButton
               onClick={() => setShareModalOpen(true)}
               aria-label="ऐप शेयर करें"

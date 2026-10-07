@@ -514,20 +514,28 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       >
         <Box>
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.85rem' }}>
-            🏛️ छत्तीसगढ़ सरकारी उपार्जन दर: धान ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल
+            {isChhattisgarhi
+              ? `🏛️ छत्तीसगढ़ सरकारी धान उपार्जन दर: धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल`
+              : `🏛️ छत्तीसगढ़ सरकारी उपार्जन दर: धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल`}
           </Typography>
           <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', display: 'block' }}>
-            (MSP ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल/एकड़
+            {isChhattisgarhi
+              ? `(MSP ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • ज्यादा ले ज्यादा ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल/एकड़`
+              : `(MSP ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • अधिकतम ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल/एकड़`}
           </Typography>
         </Box>
         <Button
           size="small"
           variant="outlined"
           startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
-          onClick={() => speakText(`छत्तीसगढ़ में धान की कुल सरकारी खरीदी दर ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल है। जिसमें ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य और ₹${appConfig.paddyScheme.bonusRate} बोनस है।`)}
+          onClick={() => speakText(
+            isChhattisgarhi
+              ? `छत्तीसगढ़ म धान के कुल सरकारी खरीदी भाव ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल हे। जेमा ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य अउ ₹${appConfig.paddyScheme.bonusRate} बोनस हे।`
+              : `छत्तीसगढ़ में धान की कुल सरकारी खरीदी दर ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल है। जिसमें ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य और ₹${appConfig.paddyScheme.bonusRate} बोनस है।`
+          )}
           sx={{ fontSize: '0.7rem', py: 0.3, px: 1, color: '#1b5e20', borderColor: '#81c784', whiteSpace: 'nowrap' }}
         >
-          सुनें
+          {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
         </Button>
       </Paper>
 
@@ -549,15 +557,15 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         <Box sx={{ width: '100%' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 0.3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.84rem' }}>
-              🛡️ शून्य गलत डेटा नीति (Data Provenance & Transparency)
+              {isChhattisgarhi ? '🛡️ शून्य गलत डेटा नीति (सत्यापित मंडी भाव)' : '🛡️ शून्य गलत डेटा नीति (Data Provenance & Transparency)'}
             </Typography>
             <Chip
               label={
                 isLiveSource
-                  ? '🟢 आज के लाइव सत्यापित भाव (Agmarknet Live)'
+                  ? (isChhattisgarhi ? '🟢 आज के लाइव जांचे भाव' : '🟢 आज के लाइव सत्यापित भाव (Agmarknet Live)')
                   : isOfflineCached
-                  ? '🟡 ऑफ़लाइन सहेजा गया डेटा (Offline Cache)'
-                  : '📋 मानक संदर्भ भाव (Agmarknet Benchmark)'
+                  ? (isChhattisgarhi ? '🟡 ऑफ़लाइन सहेजे भाव' : '🟡 ऑफ़लाइन सहेजा गया डेटा (Offline Cache)')
+                  : (isChhattisgarhi ? '📋 मानक संदर्भ भाव' : '📋 मानक संदर्भ भाव (Agmarknet Benchmark)')
               }
               size="small"
               sx={{
@@ -571,10 +579,16 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Box>
           <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
             {isLiveSource
-              ? `स्रोतः ${mandiSource} • अंतिम अपडेट: ${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }) : 'आज'}। सभी दरें APMC मंडी से सत्यापित हैं।`
+              ? (isChhattisgarhi
+                  ? `स्रोतः ${mandiSource} • आखरी अपडेट: ${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }) : 'आज'}। सबो भाव APMC मंडी ले जांचे हे।`
+                  : `स्रोतः ${mandiSource} • अंतिम अपडेट: ${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }) : 'आज'}। सभी दरें APMC मंडी से सत्यापित हैं।`)
               : isOfflineCached
-              ? `यह डेटा आपके फ़ोन में पहले से सहेजा हुआ है (सिंक: ${lastSyncTime ? new Date(lastSyncTime).toLocaleDateString('hi-IN') : 'पूर्व सिंक'})। लाइव दरें देखने हेतु 'ताजा भाव' बटन दबाएं।`
-              : 'प्रदर्शित मंडी दरें Agmarknet एवं छत्तीसगढ़ राज्य कृषि विपणन बोर्ड के नवीनतम दर्ज आंकड़ों पर आधारित हैं। इंटरनेट कनेक्ट होने पर ऊपर दिए गए रीफ्रेश बटन से लाइव अपडेट प्राप्त करें।'}
+              ? (isChhattisgarhi
+                  ? `ये डेटा तुंहर फोन म पहिली ले सहेजे हे (सिंक: ${lastSyncTime ? new Date(lastSyncTime).toLocaleDateString('hi-IN') : 'पहिली सिंक'})। लाइव भाव देखे बर 'ताजा भाव' बटन दबावहू।`
+                  : `यह डेटा आपके फ़ोन में पहले से सहेजा हुआ है (सिंक: ${lastSyncTime ? new Date(lastSyncTime).toLocaleDateString('hi-IN') : 'पूर्व सिंक'})। लाइव दरें देखने हेतु 'ताजा भाव' बटन दबाएं।`)
+              : (isChhattisgarhi
+                  ? 'मंडी भाव Agmarknet अउ छत्तीसगढ़ राज्य कृषि विपणन बोर्ड के ताजा आंकड़ों पर आधारित हे। इंटरनेट चालू होय म ताजा भाव देखे बर रीफ्रेश करव।'
+                  : 'प्रदर्शित मंडी दरें Agmarknet एवं छत्तीसगढ़ राज्य कृषि विपणन बोर्ड के नवीनतम दर्ज आंकड़ों पर आधारित हैं। इंटरनेट कनेक्ट होने पर ऊपर दिए गए रीफ्रेश बटन से लाइव अपडेट प्राप्त करें।')}
           </Typography>
         </Box>
       </Paper>
@@ -644,7 +658,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <BookmarkBorderIcon sx={{ color: '#16a34a', fontSize: 20 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.85rem' }}>
-                📡 आपकी सहेजी गई ऑफ़लाइन पूछताछ ({offlineQueries.length})
+                {isChhattisgarhi ? `📡 तुंहर सहेजे ऑफ़लाइन पूछ-ताछ (${offlineQueries.length})` : `📡 आपकी सहेजी गई ऑफ़लाइन पूछताछ (${offlineQueries.length})`}
               </Typography>
             </Box>
             <Button
@@ -652,7 +666,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
               onClick={() => setOpenOfflineQueryModal(true)}
               sx={{ fontSize: '0.72rem', py: 0.2, px: 1, color: '#166534', fontWeight: 700 }}
             >
-              + नई पूछताछ
+              {isChhattisgarhi ? '+ नवा पूछ-ताछ' : '+ नई पूछताछ'}
             </Button>
           </Box>
           <Grid container spacing={1}>
@@ -679,7 +693,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         ({query.mandi})
                       </Typography>
                       <Chip
-                        label={query.status === 'resolved' ? 'सत्यापित' : 'लंबित सिंक'}
+                        label={query.status === 'resolved' ? (isChhattisgarhi ? 'सत्यापित' : 'सत्यापित') : (isChhattisgarhi ? 'सिंक बाकी' : 'लंबित सिंक')}
                         size="small"
                         color={query.status === 'resolved' ? 'success' : 'default'}
                         sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800 }}
@@ -687,11 +701,11 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     </Box>
                     {query.status === 'resolved' && query.resolvedRate ? (
                       <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, display: 'block', mt: 0.3 }}>
-                        ताजा मॉडल भाव: ₹{query.resolvedRate.modalRate}/क्विंटल • आवक: {query.resolvedRate.arrival}
+                        {isChhattisgarhi ? `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}` : `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}`}
                       </Typography>
                     ) : (
                       <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
-                        ⏳ इंटरनेट कनेक्ट होते ही ताजा भाव स्वतः अपडेट होगा
+                        {isChhattisgarhi ? '⏳ इंटरनेट जुड़ते ही ताजा भाव अपने-आप अपडेट होही' : '⏳ इंटरनेट कनेक्ट होते ही ताजा भाव स्वतः अपडेट होगा'}
                       </Typography>
                     )}
                   </Box>
@@ -699,7 +713,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     {query.status === 'resolved' && query.resolvedRate && (
                       <IconButton
                         size="small"
-                        onClick={() => speakText(`${query.crop} का ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल है।`)}
+                        onClick={() => speakText(isChhattisgarhi ? `${query.crop} के ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल हे।` : `${query.crop} का ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल है।`)}
                         sx={{ color: '#15803d' }}
                       >
                         <VolumeUpIcon sx={{ fontSize: 16 }} />
@@ -738,7 +752,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
               select
               fullWidth
               size="small"
-              label="🌾 फसल / जिंस चुनें (Commodity Filter)"
+              label={isChhattisgarhi ? "🌾 फसल / जिंस चुनव" : "🌾 फसल / जिंस चुनें (Commodity Filter)"}
               value={selectedCropFilter}
               onChange={(e) => setSelectedCropFilter(e.target.value)}
               sx={{
@@ -747,14 +761,14 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 '& .MuiOutlinedInput-root': { borderRadius: 2 }
               }}
             >
-              <MenuItem value="all">🌾 सभी जिंसें (All Commodities)</MenuItem>
-              <MenuItem value="धान">🌾 धान (Paddy - ₹3,100 उपार्जन)</MenuItem>
-              <MenuItem value="चना">🟤 चना (Gram / Chickpea)</MenuItem>
-              <MenuItem value="सोयाबीन">🟡 सोयाबीन (Soybean)</MenuItem>
-              <MenuItem value="मक्का">🌽 मक्का (Maize)</MenuItem>
-              <MenuItem value="कोदो">🌾 मिलेट्स / कोदो-कुटकी</MenuItem>
-              <MenuItem value="गेहूं">🌾 गेहूं (Wheat)</MenuItem>
-              <MenuItem value="सरसों">🌻 सरसों / तिलहन</MenuItem>
+              <MenuItem value="all">{isChhattisgarhi ? "🌾 सबो जिंस (सब)" : "🌾 सभी जिंसें (All Commodities)"}</MenuItem>
+              <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर - ₹3,100 उपार्जन)" : "🌾 धान (Paddy - ₹3,100 उपार्जन)"}</MenuItem>
+              <MenuItem value="चना">{isChhattisgarhi ? "🟤 चना (बूट)" : "🟤 चना (Gram / Chickpea)"}</MenuItem>
+              <MenuItem value="सोयाबीन">{isChhattisgarhi ? "🟡 सोयाबीन" : "🟡 सोयाबीन (Soybean)"}</MenuItem>
+              <MenuItem value="मक्का">{isChhattisgarhi ? "🌽 मक्का (जुनहरी)" : "🌽 मक्का (Maize)"}</MenuItem>
+              <MenuItem value="कोदो">{isChhattisgarhi ? "🌾 मिलेट्स / कोदो-कुटकी" : "🌾 मिलेट्स / कोदो-कुटकी"}</MenuItem>
+              <MenuItem value="गेहूं">{isChhattisgarhi ? "🌾 गेहूं (गहुं)" : "🌾 गेहूं (Wheat)"}</MenuItem>
+              <MenuItem value="सरसों">{isChhattisgarhi ? "🌻 सरसों / राई" : "🌻 सरसों / तिलहन"}</MenuItem>
             </TextField>
           </Grid>
           <Grid item xs={12} sm={6}>
@@ -780,9 +794,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 }
               }}
             >
-              {districtFilterOnly
-                ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)`
-                : `📍 केवल ${selectedDistrict} की दरें देखें`}
+              {isChhattisgarhi
+                ? (districtFilterOnly ? `📍 सिर्फ ${selectedDistrict} के भाव (फिल्टर चालू)` : `📍 सिर्फ ${selectedDistrict} के भाव देखव`)
+                : (districtFilterOnly ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)` : `📍 केवल ${selectedDistrict} की दरें देखें`)}
             </Button>
           </Grid>
         </Grid>
@@ -880,7 +894,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
       {/* Mandi Rate Cards */}
       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1.5, fontSize: '0.9rem' }}>
-        ताजा मंडी भाव दरें ({filteredRates.length}):
+        {isChhattisgarhi ? `ताजा मंडी भाव (${filteredRates.length}):` : `ताजा मंडी भाव दरें (${filteredRates.length}):`}
       </Typography>
 
       {filteredRates.length === 0 ? (
@@ -897,12 +911,18 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         >
           <StorefrontIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-            {mandiRatesList.length === 0 ? 'कोई मंडी भाव डेटा उपलब्ध नहीं है' : 'चयनित फिल्टर के अनुसार कोई मंडी नहीं मिली'}
+            {mandiRatesList.length === 0
+              ? (isChhattisgarhi ? 'कोनो मंडी भाव डेटा नइये' : 'कोई मंडी भाव डेटा उपलब्ध नहीं है')
+              : (isChhattisgarhi ? 'चुने गे फिल्टर बर कोनो मंडी नइ मिलिस' : 'चयनित फिल्टर के अनुसार कोई मंडी नहीं मिली')}
           </Typography>
           <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
             {mandiRatesList.length === 0
-              ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित डेटा नहीं दिखाया जाता है। आज के लाइव भाव लोड करने हेतु इंटरनेट कनेक्ट करके रीफ्रेश करें।'
-              : 'कृपया जिंस या मंडी का नाम बदलकर पुनः खोजें या फ़िल्टर साफ़ करें।'}
+              ? (isChhattisgarhi
+                  ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोनो मनगढ़ंत भाव नइ दिखाय जाय। आज के लाइव भाव लोड करे बर इंटरनेट कनेक्ट कर फेर लोड करव।'
+                  : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित डेटा नहीं दिखाया जाता है। आज के लाइव भाव लोड करने हेतु इंटरनेट कनेक्ट करके रीफ्रेश करें।')
+              : (isChhattisgarhi
+                  ? 'कृपा करके जिंस या मंडी के नाव बदल के फेर खोजव या फिल्टर हटावव।'
+                  : 'कृपया जिंस या मंडी का नाम बदलकर पुनः खोजें या फ़िल्टर साफ़ करें।')}
           </Typography>
           {mandiRatesList.length === 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
@@ -914,7 +934,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 onClick={handleRefresh}
                 sx={{ bgcolor: '#1565c0', fontWeight: 800, borderRadius: 2 }}
               >
-                ताजा भाव लोड करें
+                {isChhattisgarhi ? 'ताजा भाव लोड करव' : 'ताजा भाव लोड करें'}
               </Button>
               <Button
                 variant="outlined"
@@ -923,7 +943,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 onClick={() => setOpenOfflineQueryModal(true)}
                 sx={{ borderColor: '#0284c7', color: '#0284c7', fontWeight: 800, borderRadius: 2 }}
               >
-                ऑफ़लाइन पूछताछ सहेजें
+                {isChhattisgarhi ? 'ऑफ़लाइन पूछ-ताछ सहेजव' : 'ऑफ़लाइन पूछताछ सहेजें'}
               </Button>
             </Box>
           )}
@@ -963,7 +983,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                               {rate.mandi}
                             </Typography>
                             <Chip
-                              label={rate.date || (isLiveSource ? '🟢 आज के भाव' : '📋 संदर्भ भाव')}
+                              label={rate.date || (isLiveSource ? (isChhattisgarhi ? '🟢 आज के भाव' : '🟢 आज के भाव') : (isChhattisgarhi ? '📋 संदर्भ भाव' : '📋 संदर्भ भाव'))}
                               size="small"
                               sx={{
                                 bgcolor: rate.date?.includes('आज') || isLiveSource ? '#e8f5e9' : '#f1f5f9',
@@ -986,7 +1006,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                           onClick={() => handleReadMandiRates(rate)}
                           sx={{ color: '#1565c0', fontSize: '0.72rem', p: 0.5, borderRadius: '8px' }}
                         >
-                          सुनें
+                          {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
                         </Button>
                       </Box>
 
@@ -994,7 +1014,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         <Grid item xs={3.5}>
                           <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
-                              न्यूनतम
+                              {isChhattisgarhi ? 'कमती' : 'न्यूनतम'}
                             </Typography>
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.minRate}
@@ -1005,7 +1025,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         <Grid item xs={5}>
                           <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '2px solid #66bb6a', borderRadius: '12px', textAlign: 'center', boxShadow: '0 2px 6px rgba(46,125,50,0.12)' }}>
                             <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 900, display: 'block', fontSize: '0.7rem', letterSpacing: 0.3 }}>
-                              ⭐ मुख्य मॉडल भाव
+                              ⭐ {isChhattisgarhi ? 'मुख्य मॉडल भाव' : 'मुख्य मॉडल भाव'}
                             </Typography>
                             <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.15rem', sm: '1.25rem' }, lineHeight: 1.1, my: 0.2 }}>
                               ₹{rate.modalRate}
@@ -1019,7 +1039,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         <Grid item xs={3.5}>
                           <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
-                              अधिकतम
+                              {isChhattisgarhi ? 'ज्यादा' : 'अधिकतम'}
                             </Typography>
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.maxRate}
@@ -1034,20 +1054,20 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         {isPositive ? (
                           <Chip
                             icon={<TrendingUpIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
-                            label={`तेजी ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
+                            label={`${isChhattisgarhi ? 'तेजी' : 'तेजी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
                             size="small"
                             sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />
                         ) : isNegative ? (
                           <Chip
                             icon={<TrendingDownIcon sx={{ fontSize: '13px !important', color: '#c62828' }} />}
-                            label={`मंदी ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
+                            label={`${isChhattisgarhi ? 'मंदी' : 'मंदी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
                             size="small"
                             sx={{ bgcolor: '#ffebee', color: '#c62828', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />
                         ) : (
                           <Chip
-                            label={`स्थिर ${rate.trend || '0'}`}
+                            label={`${isChhattisgarhi ? 'स्थिर' : 'स्थिर'} ${rate.trend || '0'}`}
                             size="small"
                             sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />
@@ -1055,7 +1075,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                       </Box>
 
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', fontWeight: 600 }}>
-                        आवक: {rate.arrival || 'उपलब्ध'}
+                        {isChhattisgarhi ? 'आवक:' : 'आवक:'} {rate.arrival || (isChhattisgarhi ? 'उपलब्ध' : 'उपलब्ध')}
                       </Typography>
                     </Box>
                   </CardContent>
@@ -1069,7 +1089,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       {/* Direct Buyer & Farmer Marketplace */}
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant="h6" sx={{ fontSize: '1.05rem', fontWeight: 800, color: '#1b5e20' }}>
-          🤝 सीधे खेत से फसल बिक्री (Direct Marketplace)
+          {isChhattisgarhi ? '🤝 सीधा खेत ले फसल बिक्री (किसान बाजार)' : '🤝 सीधे खेत से फसल बिक्री (Direct Marketplace)'}
         </Typography>
       </Box>
 
@@ -1086,10 +1106,12 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           }}
         >
           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', mb: 0.5 }}>
-            वर्तमान में कोई फसल बिक्री लिस्टिंग दर्ज नहीं है
+            {isChhattisgarhi ? 'अभी कोनो फसल बिक्री लिस्टिंग नइये' : 'वर्तमान में कोई फसल बिक्री लिस्टिंग दर्ज नहीं है'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1.5 }}>
-            अपनी उपज सीधे व्यापारियों और खरीदारों को बेचने के लिए अपनी फसल जोड़ें।
+            {isChhattisgarhi
+              ? 'अपन उपज सीधा व्यापारी अउ खरीदार मन ल बेचे बर अपन फसल जोड़व।'
+              : 'अपनी उपज सीधे व्यापारियों और खरीदारों को बेचने के लिए अपनी फसल जोड़ें।'}
           </Typography>
           <Button
             size="small"
@@ -1098,7 +1120,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             onClick={() => setOpenSellModal(true)}
             sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
           >
-            अपनी फसल जोड़ें
+            {isChhattisgarhi ? 'अपन फसल जोड़व' : 'अपनी फसल जोड़ें'}
           </Button>
         </Paper>
       ) : (
@@ -1129,7 +1151,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
                   <Box>
                     <Chip
-                      label="विक्रेता (किसान)"
+                      label={isChhattisgarhi ? "बेचइया (किसान)" : "विक्रेता (किसान)"}
                       size="small"
                       sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5, borderRadius: '6px' }}
                     />
@@ -1137,7 +1159,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                       {listing.crop} - {listing.quantity}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                      किसान: <strong>{listing.farmerName}</strong> • स्थान: {listing.location}
+                      {isChhattisgarhi ? 'किसान:' : 'किसान:'} <strong>{listing.farmerName}</strong> • {isChhattisgarhi ? 'जगह:' : 'स्थान:'} {listing.location}
                     </Typography>
                   </Box>
 
@@ -1235,7 +1257,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       {/* Sell Produce Modal Dialog */}
       <Dialog open={openSellModal} onClose={() => setOpenSellModal(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, color: '#1565c0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <span>🌾 अपनी फसल बिक्री हेतु जोड़ें</span>
+          <span>🌾 {isChhattisgarhi ? 'अपन फसल बेचे बर जोड़व' : 'अपनी फसल बिक्री हेतु जोड़ें'}</span>
           <IconButton size="small" onClick={() => setOpenSellModal(false)} aria-label="close">
             <CloseIcon fontSize="small" />
           </IconButton>
@@ -1244,42 +1266,42 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           <TextField
             fullWidth
             size="small"
-            label="फसल का नाम व किस्म (जैसे: सुगंधित धान, गेहूं, चना)"
+            label={isChhattisgarhi ? "फसल के नाव अउ किस्म (जैसे: धान, गेहूं, चना)" : "फसल का नाम व किस्म (जैसे: सुगंधित धान, गेहूं, चना)"}
             value={formData.crop}
             onChange={(e) => setFormData({ ...formData, crop: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="मात्रा (जैसे: 25 क्विंटल, 50 बोरी)"
+            label={isChhattisgarhi ? "कतका हे (जैसे: 25 क्विंटल, 50 बोरी)" : "मात्रा (जैसे: 25 क्विंटल, 50 बोरी)"}
             value={formData.quantity}
             onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="अपेक्षित भाव (₹ प्रति क्विंटल)"
+            label={isChhattisgarhi ? "अपेक्षित भाव (₹ प्रति क्विंटल)" : "अपेक्षित भाव (₹ प्रति क्विंटल)"}
             value={formData.expectedPrice}
             onChange={(e) => setFormData({ ...formData, expectedPrice: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="आपका नाम"
+            label={isChhattisgarhi ? "तुंहर नाव" : "आपका नाम"}
             value={formData.farmerName}
             onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="गांव / तहसील / जिला"
+            label={isChhattisgarhi ? "गांव / तहसील / जिला" : "गांव / तहसील / जिला"}
             value={formData.location}
             onChange={(e) => setFormData({ ...formData, location: e.target.value })}
           />
           <TextField
             fullWidth
             size="small"
-            label="मोबाइल नंबर (खरीदार संपर्क हेतु)"
+            label={isChhattisgarhi ? "मोबाइल नंबर (खरीदार संपर्क बर)" : "मोबाइल नंबर (खरीदार संपर्क हेतु)"}
             type="tel"
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -1287,14 +1309,14 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setOpenSellModal(false)} sx={{ color: '#666' }}>
-            रद्द करें
+            {isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}
           </Button>
           <Button
             variant="contained"
             onClick={handleSaveListing}
             sx={{ bgcolor: '#1565c0', fontWeight: 700, borderRadius: 2 }}
           >
-            लिस्टिंग पोस्ट करें
+            {isChhattisgarhi ? 'लिस्टिंग जोड़व' : 'लिस्टिंग पोस्ट करें'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1304,7 +1326,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         <DialogTitle sx={{ fontWeight: 800, color: '#0369a1', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <BookmarkBorderIcon sx={{ color: '#0284c7' }} />
-            <span>📡 ऑफ़लाइन भाव पूछताछ सहेजें</span>
+            <span>📡 {isChhattisgarhi ? 'ऑफ़लाइन भाव पूछ-ताछ सहेजव' : 'ऑफ़लाइन भाव पूछताछ सहेजें'}</span>
           </Box>
           <IconButton size="small" onClick={() => setOpenOfflineQueryModal(false)} aria-label="close">
             <CloseIcon fontSize="small" />
@@ -1312,23 +1334,25 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           <Typography variant="caption" sx={{ color: '#64748b', lineHeight: 1.4 }}>
-            इंटरनेट न होने पर भी आप जिस फसल व मंडी का ताजा भाव जानना चाहते हैं, उसे यहाँ सहेजें। जैसे ही आपका फ़ोन इंटरनेट से जुड़ेगा, सत्यापित लाइव भाव स्वतः प्राप्त हो जाएगा।
+            {isChhattisgarhi
+              ? 'इंटरनेट नइ रहे म भी जउन फसल अउ मंडी के भाव जानना चाहत हव, वोला इहां सहेजव। जइसे ही फोन इंटरनेट ले जुड़ही, लाइव भाव अपने-आप मिल जाही।'
+              : 'इंटरनेट न होने पर भी आप जिस फसल व मंडी का ताजा भाव जानना चाहते हैं, उसे यहाँ सहेजें। जैसे ही आपका फ़ोन इंटरनेट से जुड़ेगा, सत्यापित लाइव भाव स्वतः प्राप्त हो जाएगा।'}
           </Typography>
 
           <TextField
             select
             fullWidth
             size="small"
-            label="फसल चुनें"
+            label={isChhattisgarhi ? "फसल चुनव" : "फसल चुनें"}
             value={offlineCrop}
             onChange={(e) => setOfflineCrop(e.target.value)}
           >
-            <MenuItem value="धान">🌾 धान (सरना / मोटा / सुगंधित)</MenuItem>
-            <MenuItem value="चना">🟤 चना (देसी चना)</MenuItem>
+            <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर)" : "🌾 धान (सरना / मोटा / सुगंधित)"}</MenuItem>
+            <MenuItem value="चना">{isChhattisgarhi ? "🟤 चना (बूट)" : "🟤 चना (देसी चना)"}</MenuItem>
             <MenuItem value="सोयाबीन">🟡 सोयाबीन (पीला)</MenuItem>
-            <MenuItem value="मक्का">🌽 मक्का (हाइब्रिड)</MenuItem>
+            <MenuItem value="मक्का">{isChhattisgarhi ? "🌽 मक्का (जुनहरी)" : "🌽 मक्का (हाइब्रिड)"}</MenuItem>
             <MenuItem value="कोदो - कुटकी">🌾 कोदो - कुटकी (मिलेट्स)</MenuItem>
-            <MenuItem value="गेहूं">🌾 गेहूं (शरबती / लोकवान)</MenuItem>
+            <MenuItem value="गेहूं">{isChhattisgarhi ? "🌾 गेहूं (गहुं)" : "🌾 गेहूं (शरबती / लोकवान)"}</MenuItem>
             <MenuItem value="सरसों">🌻 सरसों / राई</MenuItem>
             <MenuItem value="टमाटर">🍅 टमाटर</MenuItem>
             <MenuItem value="प्याज">🧅 प्याज</MenuItem>
@@ -1339,7 +1363,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             select
             fullWidth
             size="small"
-            label="मंडी समिति चुनें"
+            label={isChhattisgarhi ? "मंडी समिति चुनव" : "मंडी समिति चुनें"}
             value={offlineMandi}
             onChange={(e) => setOfflineMandi(e.target.value)}
           >
@@ -1357,7 +1381,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setOpenOfflineQueryModal(false)} sx={{ color: '#666' }}>
-            रद्द करें
+            {isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}
           </Button>
           <Button
             variant="contained"
@@ -1368,7 +1392,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
               borderRadius: 2
             }}
           >
-            पूछताछ सहेजें
+            {isChhattisgarhi ? 'पूछ-ताछ सहेजव' : 'पूछताछ सहेजें'}
           </Button>
         </DialogActions>
       </Dialog>

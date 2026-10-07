@@ -27,16 +27,29 @@ import AgricultureIcon from '@mui/icons-material/Agriculture';
 import { getShareDetails, shareOnWhatsApp, copyShareText, shareApp } from '../utils/shareUtils';
 import { appConfig } from '../config/appConfig';
 import { notify } from '../services/notificationService';
+import { useLanguage } from '../utils/i18n';
 
 export const ShareModal = ({ open, onClose }) => {
+  const { isChhattisgarhi } = useLanguage();
   const { apkUrl, webUrl, solutions } = getShareDetails();
+
+  const cgSolutions = [
+    '🧪 सटीक खाद कैलकुलेटर (यूरिया, DAP, पोटाश के सही नाप अउ खरचा बचत)',
+    '🩺 AI फसल डॉक्टर (पाना के फोटो ले रोग पहचान अउ तुरते दवाई)',
+    `📈 लाइव मंडी भाव अउ धान उपार्जन (${appConfig.stateName} ₹${appConfig.paddyScheme.totalRate}/क्विंटल योजना)`,
+    '🚶‍♂️ खेत मेड़ GPS नाप (मेड़ म रेंगत सही एकड़ अउ डिसमिल रकबा नापव)',
+    '💧 स्मार्ट ट्यूबवेल मोटर कंट्रोलर (घर बइठे मोबाइल ले बोरवेल चालू/बंद)',
+    '🚜 कृषि चौपाल अउ यंत्र रेंटल (ट्रैक्टर, हार्वेस्टर किराया अउ किसान गोठ-बात)',
+  ];
+
+  const activeSolutions = isChhattisgarhi ? cgSolutions : solutions;
 
   const handleCopy = async (text, label) => {
     const success = await copyShareText(text);
     if (success) {
-      notify.success(`${label} कॉपी हो गया!`);
+      notify.success(`${label} ${isChhattisgarhi ? 'कॉपी होगे!' : 'कॉपी हो गया!'}`);
     } else {
-      notify.error('कॉपी करने में समस्या आई।');
+      notify.error(isChhattisgarhi ? 'कॉपी करे म समस्या आइस।' : 'कॉपी करने में समस्या आई।');
     }
   };
 
@@ -74,10 +87,10 @@ export const ShareModal = ({ open, onClose }) => {
           <ShareIcon sx={{ color: '#ffeb3b', fontSize: 24 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff' }}>
-              किसान साथी ऐप साझा करें
+              {isChhattisgarhi ? 'किसान साथी ऐप साझा करव' : 'किसान साथी ऐप साझा करें'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem' }}>
-              फसल से लेकर बिक्री तक सम्पूर्ण कृषि समाधान
+              {isChhattisgarhi ? 'फसल ले लेके बिक्री तक सबो किसानी समाधान' : 'फसल से लेकर बिक्री तक सम्पूर्ण कृषि समाधान'}
             </Typography>
           </Box>
         </Box>
@@ -101,11 +114,11 @@ export const ShareModal = ({ open, onClose }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
               <AgricultureIcon sx={{ color: '#2e7d32', fontSize: 20 }} />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-                🌾 ऐप में किसानों के लिए उपलब्ध समाधान:
+                {isChhattisgarhi ? '🌾 ऐप म किसान मन बर उपलब्ध समाधान:' : '🌾 ऐप में किसानों के लिए उपलब्ध समाधान:'}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              {solutions.map((sol, index) => (
+              {activeSolutions.map((sol, index) => (
                 <Typography
                   key={index}
                   variant="caption"
@@ -140,7 +153,7 @@ export const ShareModal = ({ open, onClose }) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <AndroidIcon sx={{ color: '#2e7d32', fontSize: 20 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem' }}>
-                  📲 Android App (APK डाउनलोड लिंक)
+                  {isChhattisgarhi ? '📲 Android App (APK डाउनलोड लिंक)' : '📲 Android App (APK डाउनलोड लिंक)'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 0.6, alignItems: 'center' }}>
@@ -149,7 +162,7 @@ export const ShareModal = ({ open, onClose }) => {
               </Box>
             </Box>
             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1, fontSize: '0.72rem' }}>
-              फ़ोन में सीधे इंस्टॉल करने हेतु (ऑफ़लाइन सपोर्ट, इंटरनेट के बिना भी चालू)
+              {isChhattisgarhi ? 'फ़ोन म सीधा इंस्टॉल करे बर (ऑफ़लाइन सपोर्ट, बिना नेट के भी चालू)' : 'फ़ोन में सीधे इंस्टॉल करने हेतु (ऑफ़लाइन सपोर्ट, इंटरनेट के बिना भी चालू)'}
             </Typography>
 
             <Box
@@ -166,7 +179,7 @@ export const ShareModal = ({ open, onClose }) => {
             >
               <CheckCircleIcon sx={{ fontSize: 16, color: '#2e7d32' }} />
               <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 700, fontSize: '0.74rem' }}>
-                लेबल: आधिकारिक Android APK इंस्टॉलर
+                {isChhattisgarhi ? 'लेबल: आधिकारिक Android APK इंस्टॉलर' : 'लेबल: आधिकारिक Android APK इंस्टॉलर'}
               </Typography>
             </Box>
 
@@ -175,10 +188,10 @@ export const ShareModal = ({ open, onClose }) => {
                 variant="outlined"
                 size="small"
                 startIcon={<ContentCopyIcon sx={{ fontSize: 14 }} />}
-                onClick={() => handleCopy(apkUrl, 'APK डाउनलोड लिंक')}
+                onClick={() => handleCopy(apkUrl, isChhattisgarhi ? 'APK डाउनलोड लिंक' : 'APK डाउनलोड लिंक')}
                 sx={{ borderRadius: 2, fontSize: '0.72rem', py: 0.4, fontWeight: 700, flex: 1 }}
               >
-                लिंक कॉपी करें
+                {isChhattisgarhi ? 'लिंक कॉपी करव' : 'लिंक कॉपी करें'}
               </Button>
               <Button
                 variant="contained"
@@ -217,18 +230,18 @@ export const ShareModal = ({ open, onClose }) => {
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                 <LanguageIcon sx={{ color: '#1565c0', fontSize: 20 }} />
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.84rem' }}>
-                  🌐 ऑनलाइन वेब पोर्टल (Web PWA)
+                  {isChhattisgarhi ? '🌐 ऑनलाइन वेब पोर्टल (Web PWA)' : '🌐 ऑनलाइन वेब पोर्टल (Web PWA)'}
                 </Typography>
               </Box>
               <Chip
-                label="बिना डाउनलोड"
+                label={isChhattisgarhi ? 'बिना डाउनलोड' : 'बिना डाउनलोड'}
                 color="info"
                 size="small"
                 sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700 }}
               />
             </Box>
             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1, fontSize: '0.72rem' }}>
-              बिना ऐप डाउनलोड किए किसी भी फोन या कंप्यूटर के ब्राउज़र में सीधे चलाएं
+              {isChhattisgarhi ? 'बिना ऐप डाउनलोड करे कोनो भी फोन या कंप्यूटर म सीधा चलावव' : 'बिना ऐप डाउनलोड किए किसी भी फोन या कंप्यूटर के ब्राउज़र में सीधे चलाएं'}
             </Typography>
 
             <Box
@@ -245,7 +258,7 @@ export const ShareModal = ({ open, onClose }) => {
             >
               <CheckCircleIcon sx={{ fontSize: 16, color: '#1565c0' }} />
               <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 700, fontSize: '0.74rem' }}>
-                लेबल: आधिकारिक किसान साथी वेब पोर्टल
+                {isChhattisgarhi ? 'लेबल: आधिकारिक किसान साथी वेब पोर्टल' : 'लेबल: आधिकारिक किसान साथी वेब पोर्टल'}
               </Typography>
             </Box>
 
@@ -254,7 +267,7 @@ export const ShareModal = ({ open, onClose }) => {
                 variant="outlined"
                 size="small"
                 startIcon={<ContentCopyIcon sx={{ fontSize: 14 }} />}
-                onClick={() => handleCopy(webUrl, 'वेबसाइट लिंक')}
+                onClick={() => handleCopy(webUrl, isChhattisgarhi ? 'वेबसाइट लिंक' : 'वेबसाइट लिंक')}
                 sx={{
                   borderRadius: 2,
                   fontSize: '0.72rem',
@@ -265,7 +278,7 @@ export const ShareModal = ({ open, onClose }) => {
                   flex: 1,
                 }}
               >
-                लिंक कॉपी करें
+                {isChhattisgarhi ? 'लिंक कॉपी करव' : 'लिंक कॉपी करें'}
               </Button>
               <Button
                 variant="contained"
@@ -283,7 +296,7 @@ export const ShareModal = ({ open, onClose }) => {
                   flex: 1,
                 }}
               >
-                वेबसाइट खोलें
+                {isChhattisgarhi ? 'वेबसाइट खोलव' : 'वेबसाइट खोलें'}
               </Button>
             </Box>
           </CardContent>
@@ -308,7 +321,7 @@ export const ShareModal = ({ open, onClose }) => {
               '&:hover': { bgcolor: '#128C7E' },
             }}
           >
-            व्हाट्सएप (WhatsApp) पर शेयर करें
+            {isChhattisgarhi ? 'व्हाट्सएप (WhatsApp) म शेयर करव' : 'व्हाट्सएप (WhatsApp) पर शेयर करें'}
           </Button>
 
           <Box sx={{ display: 'flex', gap: 1 }}>
@@ -316,7 +329,7 @@ export const ShareModal = ({ open, onClose }) => {
               variant="outlined"
               size="medium"
               startIcon={<ContentCopyIcon />}
-              onClick={() => handleCopy(null, 'सम्पूर्ण समाधान संदेश')}
+              onClick={() => handleCopy(null, isChhattisgarhi ? 'सबो समाधान संदेश' : 'सम्पूर्ण समाधान संदेश')}
               sx={{
                 flex: 1,
                 borderRadius: 2.5,
@@ -327,7 +340,7 @@ export const ShareModal = ({ open, onClose }) => {
                 color: '#1b5e20',
               }}
             >
-              पूरा विवरण कॉपी करें
+              {isChhattisgarhi ? 'पूरा विवरण कॉपी करव' : 'पूरा विवरण कॉपी करें'}
             </Button>
 
             <Button
@@ -345,7 +358,7 @@ export const ShareModal = ({ open, onClose }) => {
                 '&:hover': { bgcolor: '#2e7d32' },
               }}
             >
-              अन्य ऐप्स पर शेयर
+              {isChhattisgarhi ? 'दूसर ऐप्स म शेयर' : 'अन्य ऐप्स पर शेयर'}
             </Button>
           </Box>
         </Box>
@@ -353,7 +366,7 @@ export const ShareModal = ({ open, onClose }) => {
 
       <DialogActions sx={{ p: 1.5, bgcolor: '#fafbf9', borderTop: '1px solid #e0e0e0', justifyContent: 'center' }}>
         <Typography variant="caption" sx={{ color: '#777', fontSize: '0.72rem' }}>
-          📞 किसान हेल्पलाइन: {appConfig.helpline.label} (निःशुल्क)
+          {isChhattisgarhi ? `📞 किसान हेल्पलाइन: ${appConfig.helpline.label} (मुफ़्त)` : `📞 किसान हेल्पलाइन: ${appConfig.helpline.label} (निःशुल्क)`}
         </Typography>
       </DialogActions>
     </Dialog>
