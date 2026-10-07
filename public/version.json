@@ -1,8 +1,8 @@
 {
-  "version": "1.0.13",
+  "version": "1.0.14",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.13",
-  "releaseNotes": "CIB&RC सरकारी अनुमोदित कीटनाशक व सुरक्षित तुड़ाई अंतराल (PHI), DAC&FW जिला मृदा स्वास्थ्य कार्ड सर्वेक्षण, CACP न्यूनतम समर्थन मूल्य मानक और शून्य फर्जी डेटा नीति एकीकरण।",
+  "releaseName": "किसान साथी v1.0.14",
+  "releaseNotes": "शून्य-निर्भरता इन-हाउस इंटरैक्टिव API प्लेग्राउंड व लाइव डिबगर (33 एंडपॉइंट्स, 1-क्लिक टेस्ट, ऑटो JWT टोकन, cURL जनरेटर एवं लेटेंसी ट्रैकर)।",
   "updatedAt": "2026-10-07"
 }

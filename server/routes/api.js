@@ -83,14 +83,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.13';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.14';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'CIB&RC सरकारी अनुमोदित कीटनाशक व सुरक्षित तुड़ाई अंतराल (PHI), DAC&FW जिला मृदा स्वास्थ्य कार्ड सर्वेक्षण, CACP न्यूनतम समर्थन मूल्य मानक और शून्य फर्जी डेटा नीति एकीकरण।',
+    releaseNotes: 'शून्य-निर्भरता इन-हाउस इंटरैक्टिव API प्लेग्राउंड व लाइव डिबगर (33 एंडपॉइंट्स, 1-क्लिक टेस्ट, ऑटो JWT टोकन, cURL जनरेटर एवं लेटेंसी ट्रैकर)।',
     updatedAt: new Date().toISOString()
   });
 });
