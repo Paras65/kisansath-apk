@@ -1,2 +1,6 @@
 # Cloudflare Pages SPA Routing Rules
-/*    /index.html   200
+# Assets must return 404 if missing, NEVER rewrite to index.html (prevents MIME type script errors)
+/assets/*    /assets/:splat    404
+
+# SPA Navigation Fallback
+/*           /index.html       200

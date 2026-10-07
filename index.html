@@ -23,6 +23,40 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <!-- PWA Self-Healing: Instant Stale Cache & Chunk Load Error Recovery -->
+    <script>
+      window.addEventListener('error', function(event) {
+        var msg = (event && event.message) || '';
+        var isScriptError = (event && event.target && event.target.tagName === 'SCRIPT');
+        var isMimeOrChunk = msg.indexOf('MIME type') !== -1 ||
+                            msg.indexOf('Failed to load module script') !== -1 ||
+                            msg.indexOf('Loading chunk') !== -1;
+        if (isMimeOrChunk || isScriptError) {
+          console.warn('[PWA Self-Healing] Stale script or MIME error detected:', msg);
+          var healKey = 'kisan_sw_healed_' + Math.floor(Date.now() / 30000);
+          if (!sessionStorage.getItem(healKey)) {
+            sessionStorage.setItem(healKey, '1');
+            if ('caches' in window) {
+              caches.keys().then(function(names) {
+                return Promise.all(names.map(function(name) { return caches.delete(name); }));
+              }).then(function() {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    regs.forEach(function(r) { r.unregister(); });
+                    window.location.reload();
+                  });
+                } else {
+                  window.location.reload();
+                }
+              });
+            } else {
+              window.location.reload();
+            }
+          }
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>

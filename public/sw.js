@@ -1,6 +1,6 @@
 // किसान साथी (Kisan Saathi) Service Worker
-// Version: v1.0.5 (Network-First Navigation + Stale-While-Revalidate Assets)
-const CACHE_NAME = 'kisan-saathi-v1.0.5';
+// Version: v1.0.15 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
+const CACHE_NAME = 'kisan-saathi-v1.0.15';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -15,7 +15,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.5');
+      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.15');
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
         console.warn('[Kisan Saathi SW] Non-fatal caching warning:', err);
       });
@@ -84,12 +84,34 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static Assets (JS, CSS, images, fonts): Stale-While-Revalidate
+  // 2. Static Assets (JS, CSS, images, fonts): Stale-While-Revalidate with Zero-Poisoning Protection
+  const isScriptOrStyle = requestUrl.pathname.endsWith('.js') || requestUrl.pathname.endsWith('.css') || requestUrl.pathname.startsWith('/assets/');
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
+      // Zero-Poisoning Protection: If cachedResponse is HTML for a script/style asset, discard it immediately!
+      if (cachedResponse && isScriptOrStyle) {
+        const cachedType = cachedResponse.headers.get('content-type') || '';
+        if (cachedType.includes('text/html')) {
+          console.warn('[Kisan Saathi SW] Discarding poisoned HTML cache for asset:', requestUrl.pathname);
+          cachedResponse = null;
+        }
+      }
+
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
+            const contentType = networkResponse.headers.get('content-type') || '';
+            // Never cache text/html for a script or stylesheet (prevents SPA rewrite poisoning)
+            if (isScriptOrStyle && contentType.includes('text/html')) {
+              console.warn('[Kisan Saathi SW] Server returned text/html for asset, refusing to cache:', requestUrl.pathname);
+              return new Response('Asset not found or outdated build', {
+                status: 404,
+                statusText: 'Not Found',
+                headers: { 'Content-Type': 'text/plain' }
+              });
+            }
+
             const responseToCache = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(event.request, responseToCache);
