@@ -251,18 +251,18 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
 
             // Zero-False-Data Enforcement: If AI failed, do NOT show fake/dummy data
             if (!diagResult || diagResult.success === false) {
-              console.group('%c🚨 [Crop Doctor Diagnostic Failure (Photo Scan)]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
-              console.error('Error Message:', diagResult?.error);
-              if (diagResult?.technicalError) console.error('🔧 Technical Error Details:', diagResult.technicalError);
-              if (diagResult?.modelErrors) console.error('🤖 Model Cascade Errors:', diagResult.modelErrors);
-              console.error('Full Diagnosis Result:', diagResult);
-              console.groupEnd();
+              console.error('🚨 [Crop Doctor Diagnostic Failure (Photo Scan)]:', diagResult?.error);
+              console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
+              if (diagResult?.modelErrors?.length) {
+                console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+              }
+              console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
 
               setScanError(
                 diagResult?.error ||
                 'फोटो की AI जांच पूरी नहीं हो सकी। किसानों की फसल सुरक्षा हेतु कोई भी अनुमानित या नकली (Dummy) रोग नहीं दिखाया जा रहा है।'
               );
-              setScanTechnicalError(diagResult?.technicalError || null);
+              setScanTechnicalError(diagResult?.technicalError || 'सर्वर द्वारा कोई विस्तृत तकनीकी विवरण नहीं दिया गया (Missing technical details from backend).');
               setScanModelErrors(diagResult?.modelErrors || []);
               notify.error(diagResult?.isOffline ? 'इंटरनेट कनेक्शन बंद है। लाइव AI हेतु इंटरनेट ऑन करें।' : 'AI जांच असफल रही।');
               return;
@@ -388,18 +388,18 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       setIsSyncingPending(false);
 
       if (!diagResult || diagResult.success === false) {
-        console.group('%c🚨 [Crop Doctor Diagnostic Failure (Offline Recheck)]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
-        console.error('Error Message:', diagResult?.error);
-        if (diagResult?.technicalError) console.error('🔧 Technical Error Details:', diagResult.technicalError);
-        if (diagResult?.modelErrors) console.error('🤖 Model Cascade Errors:', diagResult.modelErrors);
-        console.error('Full Diagnosis Result:', diagResult);
-        console.groupEnd();
+        console.error('🚨 [Crop Doctor Diagnostic Failure (Offline Recheck)]:', diagResult?.error);
+        console.error('🛠️ [Crop Doctor Technical Error Details]:', diagResult?.technicalError || 'No technical error provided by API');
+        if (diagResult?.modelErrors?.length) {
+          console.error('🤖 [Crop Doctor Model Cascade Errors]:', diagResult.modelErrors);
+        }
+        console.error('📦 [Crop Doctor Full Diagnosis Result]:', diagResult);
 
         setScanError(
           diagResult?.error ||
           'AI जांच पूरी नहीं हो सकी। कृपया इंटरनेट कनेक्शन जांचें और पुनः प्रयास करें।'
         );
-        setScanTechnicalError(diagResult?.technicalError || null);
+        setScanTechnicalError(diagResult?.technicalError || 'सर्वर द्वारा कोई विस्तृत तकनीकी विवरण नहीं दिया गया।');
         setScanModelErrors(diagResult?.modelErrors || []);
         notify.error('AI जांच नहीं हो सकी।');
         return;

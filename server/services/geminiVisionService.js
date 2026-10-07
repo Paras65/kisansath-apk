@@ -104,6 +104,11 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 
   const modelErrors = [];
 
+  const redactSecret = (str) => {
+    if (!str || typeof str !== 'string' || !apiKey) return str;
+    return str.split(apiKey).join('[REDACTED_API_KEY]');
+  };
+
   for (const model of modelsToTry) {
     try {
       const url = `${baseUrl}/${model}:generateContent?key=${apiKey}`;
@@ -124,7 +129,10 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 
       const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts }],
@@ -142,11 +150,11 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
         let parsedErrMsg = '';
         try {
           const parsedErr = JSON.parse(errorText);
-          parsedErrMsg = parsedErr.error?.message || errorText.slice(0, 200);
+          parsedErrMsg = parsedErr.error?.message || parsedErr.message || errorText.slice(0, 300);
         } catch {
-          parsedErrMsg = errorText.slice(0, 200);
+          parsedErrMsg = errorText.slice(0, 300);
         }
-        const errDetail = `[Model ${model}] HTTP ${res.status}: ${parsedErrMsg}`;
+        const errDetail = redactSecret(`[Model ${model}] HTTP ${res.status} (${res.statusText}): ${parsedErrMsg}`);
         modelErrors.push(errDetail);
         console.warn(`[GeminiVision Diagnostic] ${errDetail}`);
         continue;
@@ -173,9 +181,9 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
         ...parsed
       };
     } catch (err) {
-      const errDetail = `[Model ${model}] Exception: ${err.message}`;
+      const errDetail = redactSecret(`[Model ${model}] Exception: ${err.message}`);
       modelErrors.push(errDetail);
-      console.warn(`[GeminiVision] Attempt with ${model} failed:`, err.message);
+      console.warn(`[GeminiVision] Attempt with ${model} failed:`, errDetail);
     }
   }
 

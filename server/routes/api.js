@@ -95,14 +95,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.15';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.16';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सुरक्षित Zero-PII रीयल-टाइम ऑडिट लॉग्स, सेंट्रलाइज्ड एरर हैंडलर, टेलीमेट्री व एडमिन डायग्नोस्टिक्स सिस्टम।',
+    releaseNotes: 'लाइव एआई फसल डॉक्टर मल्टीमॉडल विज़न प्रमाणीकरण, सक्रिय API कुंजी एकीकरण, x-goog-api-key हेडर एवं डायरेक्ट कंसोल डायग्नोस्टिक्स।',
     updatedAt: new Date().toISOString()
   });
 });

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.15",
+  "version": "1.0.16",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.15",
-  "releaseNotes": "सुरक्षित Zero-PII रीयल-टाइम ऑडिट लॉग्स, सेंट्रलाइज्ड एरर हैंडलर, टेलीमेट्री व एडमिन डायग्नोस्टिक्स सिस्टम।",
+  "releaseName": "किसान साथी v1.0.16",
+  "releaseNotes": "लाइव एआई फसल डॉक्टर मल्टीमॉडल विज़न प्रमाणीकरण, सक्रिय API कुंजी एकीकरण, x-goog-api-key हेडर एवं डायरेक्ट कंसोल डायग्नोस्टिक्स।",
   "updatedAt": "2026-10-07"
 }

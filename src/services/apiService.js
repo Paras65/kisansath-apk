@@ -388,8 +388,11 @@ export const postMarketplaceListing = async (payload) => {
 
 // 9. Live Gemini Vision AI Plant Doctor Diagnosis (Zero-False-Data Policy)
 export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', district = 'रायपुर' }) => {
+  const targetUrl = `${API_BASE_URL}/crop-doctor/diagnose`;
+  console.log(`[Crop Doctor] 📡 Calling Live AI Diagnosis: ${targetUrl}`, { cropId, district });
+
   try {
-    const res = await fetch(`${API_BASE_URL}/crop-doctor/diagnose`, {
+    const res = await fetch(targetUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image: imageBase64, cropId, district }),
@@ -398,22 +401,22 @@ export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', distric
     if (res.ok) {
       const data = await res.json();
       if (data && data.success === false) {
-        // ALWAYS log technical error details to DevTools console for debugging
-        console.group('%c🚨 [Crop Doctor Diagnostic Error (Live API)]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
-        console.error('User Error:', data.error);
-        if (data.technicalError) console.error('🔧 Technical Error:', data.technicalError);
-        if (data.modelErrors) console.error('🤖 Model Cascade Failures:', data.modelErrors);
-        console.error('Payload:', data);
-        console.groupEnd();
+        // Direct top-level console error output for instant DevTools visibility
+        console.error('🚨 [Crop Doctor Diagnostic Error]:', data.error);
+        console.error('🛠️ [Crop Doctor Technical Error]:', data.technicalError || '(No technical details returned by server)');
+        if (data.modelErrors && data.modelErrors.length > 0) {
+          console.error('🤖 [Crop Doctor Model Cascade Failures]:', data.modelErrors);
+        }
+        console.error('📦 [Crop Doctor Full Server Payload]:', data);
+      } else if (data && data.success) {
+        console.log('✅ [Crop Doctor Live AI Diagnosis Success]:', data.diseaseName || data);
       }
       return data;
     } else {
       const errPayload = await parseErrorPayload(res);
       logClientApiError('/crop-doctor/diagnose', res, errPayload, { method: 'POST' });
-      console.group('%c🚨 [Crop Doctor HTTP Error]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
-      console.error(`Status: ${res.status} ${res.statusText}`);
-      console.error('Error Details:', errPayload);
-      console.groupEnd();
+      console.error(`🚨 [Crop Doctor HTTP ${res.status} Error]:`, errPayload);
+      console.error('🛠️ [Crop Doctor Technical Detail]:', errPayload.technicalError || `HTTP ${res.status}: ${res.statusText}`);
       return {
         success: false,
         error: errPayload.error || 'AI सर्वर से जांच रिपोर्ट प्राप्त नहीं हो सकी।',
@@ -422,9 +425,7 @@ export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', distric
     }
   } catch (err) {
     logClientNetworkError('/crop-doctor/diagnose', err, { method: 'POST' });
-    console.group('%c🚨 [Crop Doctor Network Exception]', 'color: #dc2626; font-weight: 800; font-size: 13px;');
-    console.error('Network Error:', err.message);
-    console.groupEnd();
+    console.error('🚨 [Crop Doctor Network Exception]:', err.message, err);
     return createOfflineFallback(
       'इंटरनेट कनेक्शन उपलब्ध नहीं है। लाइव AI फोटो जांच के लिए इंटरनेट आवश्यक है। किसानों की सुरक्षा हेतु कोई भी नकली या अनुमानित (False/Dummy) डेटा नहीं दिखाया जाता है।',
       err.message
