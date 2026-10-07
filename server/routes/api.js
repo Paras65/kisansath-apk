@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.18';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.19';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'Google Gemini 3.8/3.5 Flash आधुनिक विज़न AI मॉडल इंटीग्रेशन एवं कॉन्फ़िगरेबल डिबग मोड।',
+    releaseNotes: 'सम्पूर्ण 8 कृषि मॉड्यूल्स का विस्तृत UI/UX सुधार, मोबाइल-डेस्कटॉप रिस्पॉन्सिव लेआउट, त्वरित रकबा चयन एवं 1-क्लिक बैच डायग्नोसिस।',
     updatedAt: new Date().toISOString()
   });
 });

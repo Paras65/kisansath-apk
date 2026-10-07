@@ -34,6 +34,10 @@ import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { AdminPortal } from './components/AdminPortal';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import SecurityIcon from '@mui/icons-material/Security';
+import AndroidIcon from '@mui/icons-material/Android';
+import ShareIcon from '@mui/icons-material/Share';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -276,7 +280,7 @@ function App() {
             mx: 'auto',
             px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
             py: { xs: 1.5, sm: 2.5, md: 3 },
-            pb: { xs: 11, md: 4 }
+            pb: { xs: '76px', md: '28px' }
           }}
         >
           <ErrorBoundary key={currentTab} onReset={() => handleTabChange('home')}>
@@ -291,6 +295,51 @@ function App() {
             {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}
           </ErrorBoundary>
+
+          {/* Mobile Farmer Informational Footer Card (Visible only on xs and sm) */}
+          <Box
+            component="footer"
+            sx={{
+              display: { xs: 'block', md: 'none' },
+              mt: 3,
+              mb: 1,
+              p: 2,
+              borderRadius: 3,
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+              textAlign: 'center'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.8 }}>
+              <Box
+                component="img"
+                src="/icons/kisan-icon-512.png"
+                onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
+                alt={appConfig.appName}
+                sx={{ width: 28, height: 28, borderRadius: 1.5 }}
+              />
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
+                {appConfig.appName} • {appConfig.appTagline}
+              </Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', mb: 1 }}>
+              {appConfig.stateName} के किसानों का भरोसेमंद डिजिटल मंच • v{appConfig.appVersion}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap', pt: 0.8, borderTop: '1px dashed #e2e8f0' }}>
+              <Typography
+                component="a"
+                href={`tel:${appConfig.helpline?.phone || '18001801551'}`}
+                variant="caption"
+                sx={{ color: '#1b5e20', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                📞 किसान कॉल सेंटर: {appConfig.helpline?.phone || '1800-180-1551'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                🔒 100% सुरक्षित • ऑफलाइन सुलभ
+              </Typography>
+            </Box>
+          </Box>
         </Box>
 
         {/* Desktop Agricultural Portal Footer (Visible on md and above) */}
@@ -301,89 +350,184 @@ function App() {
             bgcolor: '#ffffff',
             borderTop: '1px solid #e2e8f0',
             mt: 'auto',
-            py: 3,
-            px: { md: 3, lg: 4 }
+            pt: 4,
+            pb: 3,
+            px: { md: 4, lg: 6 }
           }}
         >
-          <Box
-            sx={{
-              maxWidth: '1280px',
-              mx: 'auto',
-              display: 'flex',
-              flexDirection: { md: 'row' },
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 2
-            }}
-          >
-            {/* Branding and Tagline */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                component="img"
-                src="/icons/kisan-icon-512.png"
-                onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
-                alt={appConfig.appName}
-                sx={{ width: 36, height: 36, borderRadius: 2 }}
-              />
+          <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
+            {/* 3-Column Structured Layout */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { md: '1.25fr 1.15fr 1fr' },
+                gap: 4,
+                mb: 3
+              }}
+            >
+              {/* Column 1: Branding & State Agriculture Identity */}
               <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.92rem' }}>
-                  {appConfig.appName} • {appConfig.appTagline}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                  <Box
+                    component="img"
+                    src="/icons/kisan-icon-512.png"
+                    onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
+                    alt={appConfig.appName}
+                    sx={{ width: 44, height: 44, borderRadius: 2.5, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                  />
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.15rem', lineHeight: 1.2 }}>
+                      {appConfig.appName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700, fontSize: '0.78rem' }}>
+                      {appConfig.appTagline}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem', lineHeight: 1.6, mb: 1.5 }}>
+                  {appConfig.stateName} के किसान भाइयों के लिए बुआई पूर्व मिट्टी परीक्षण, संतुलित NPK पोषण, फसल रोग निदान से लेकर ₹3,100/क्विंटल धान उपार्जन एवं मंडी बिक्री तक का संपूर्ण डिजिटल समाधान।
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block' }}>
-                  {appConfig.stateName} के किसान भाइयों का विश्वसनीय डिजिटल मंच • संस्करण v{appConfig.appVersion}
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', px: 1.2, py: 0.4, borderRadius: 2 }}>
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.74rem' }}>
+                    🌿 संस्करण v{appConfig.appVersion} • {isNativePlatform() ? 'Android TWA/APK' : 'Web PWA'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Column 2: Government Helpline & Security Guarantees */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  📞 आधिकारिक किसान हेल्पलाइन व सुरक्षा
                 </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <PhoneInTalkIcon sx={{ fontSize: 18, color: '#16a34a', mt: 0.2 }} />
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.8rem', display: 'block' }}>
+                        किसान कॉल सेंटर (टोल-फ्री): {appConfig.helpline.phone}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                        सुबह 6:00 से रात 10:00 बजे तक (निःशुल्क कृषि परामर्श)
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <SecurityIcon sx={{ fontSize: 18, color: '#0284c7', mt: 0.2 }} />
+                    <Box>
+                      <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.8rem', display: 'block' }}>
+                        सुरक्षा व डेटा गोपनीयता (Zero-PII)
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                        OWASP / ISO 27001 दिशानिर्देशों का अनुपालन • संवेदनशील किसान डेटा डिवाइस पर सुरक्षित
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Column 3: Quick Administrative & Download Actions */}
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', mb: 1.5 }}>
+                  ⚙️ त्वरित पोर्टल व सेवाएं
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 17 }} />}
+                    onClick={handleOpenAdminPortal}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      color: '#0284c7',
+                      borderColor: '#bae6fd',
+                      bgcolor: '#f0f9ff',
+                      fontWeight: 800,
+                      fontSize: '0.76rem',
+                      py: 0.6,
+                      px: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#e0f2fe', borderColor: '#0284c7' }
+                    }}
+                  >
+                    कृषि प्रशासन पोर्टल (Admin)
+                  </Button>
+                  {appConfig.apkDownloadUrl && !isNativePlatform() && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      component="a"
+                      href={appConfig.apkDownloadUrl}
+                      target="_blank"
+                      download
+                      startIcon={<AndroidIcon sx={{ fontSize: 17 }} />}
+                      sx={{
+                        justifyContent: 'flex-start',
+                        color: '#166534',
+                        borderColor: '#bbf7d0',
+                        bgcolor: '#f0fdf4',
+                        fontWeight: 800,
+                        fontSize: '0.76rem',
+                        py: 0.6,
+                        px: 1.5,
+                        borderRadius: 2,
+                        textTransform: 'none',
+                        '&:hover': { bgcolor: '#dcfce7', borderColor: '#16a34a' }
+                      }}
+                    >
+                      Android APK डाउनलोड (v{appConfig.appVersion})
+                    </Button>
+                  )}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: appConfig.appName,
+                          text: `${appConfig.appName} - ${appConfig.appTagline}`,
+                          url: window.location.origin
+                        }).catch(() => {});
+                      }
+                    }}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      color: '#475569',
+                      borderColor: '#cbd5e1',
+                      fontWeight: 700,
+                      fontSize: '0.76rem',
+                      py: 0.6,
+                      px: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#f1f5f9', borderColor: '#94a3b8' }
+                    }}
+                  >
+                    किसान भाइयों को शेयर करें
+                  </Button>
+                </Box>
               </Box>
             </Box>
 
-            {/* Quick Links / Helplines */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap' }}>
-              <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.78rem' }}>
-                📞 किसान कॉल सेंटर (टोल-फ्री): <strong>{appConfig.helpline.phone}</strong>
-              </Typography>
+            {/* Bottom Copyright Sub-Bar */}
+            <Box
+              sx={{
+                pt: 2.5,
+                borderTop: '1px solid #f1f5f9',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 1
+              }}
+            >
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
-                🔒 100% सुरक्षित • OWASP / Zero-PII Offline
+                © {new Date().getFullYear()} {appConfig.appName} • {appConfig.stateName} किसान कल्याण मंच • सर्वाधिकार सुरक्षित
               </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<AdminPanelSettingsIcon sx={{ fontSize: 16 }} />}
-                onClick={handleOpenAdminPortal}
-                sx={{
-                  color: '#0284c7',
-                  borderColor: '#bae6fd',
-                  bgcolor: '#f0f9ff',
-                  fontWeight: 800,
-                  fontSize: '0.74rem',
-                  py: 0.3,
-                  px: 1.2,
-                  borderRadius: 2,
-                  '&:hover': { bgcolor: '#e0f2fe', borderColor: '#0284c7' }
-                }}
-              >
-                🏛️ कृषि प्रशासन पोर्टल
-              </Button>
-              {appConfig.apkDownloadUrl && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  href={appConfig.apkDownloadUrl}
-                  target="_blank"
-                  download
-                  sx={{
-                    color: '#1b5e20',
-                    borderColor: '#a5d6a7',
-                    fontWeight: 800,
-                    fontSize: '0.74rem',
-                    py: 0.3,
-                    px: 1.2,
-                    borderRadius: 2,
-                    '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
-                  }}
-                >
-                  Android APK डाउनलोड
-                </Button>
-              )}
+              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.72rem' }}>
+                Made with ❤️ for Indian Farmers • Offline-First PWA & Android TWA
+              </Typography>
             </Box>
           </Box>
         </Box>

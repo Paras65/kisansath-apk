@@ -1033,7 +1033,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
         </Box>
 
         {/* 1. Crop Switcher Pills */}
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pb: 1, mb: 1.2, '::-webkit-scrollbar': { display: 'none' } }}>
+        <Box sx={{ display: 'flex', gap: 0.8, flexWrap: { xs: 'nowrap', sm: 'wrap' }, overflowX: 'auto', pb: 1, mb: 1.2, '::-webkit-scrollbar': { display: 'none' } }}>
           {[
             { key: 'paddy', label: '🌾 धान (Paddy)' },
             { key: 'chana', label: '🌱 चना (Gram)' },
@@ -1048,7 +1048,8 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
               onClick={() => setSelectedCropKey(c.key)}
               sx={{
                 fontWeight: 800,
-                fontSize: '0.74rem',
+                fontSize: { xs: '0.72rem', sm: '0.76rem' },
+                flexShrink: 0,
                 bgcolor: selectedCropKey === c.key ? '#1b5e20' : '#f1f5f9',
                 color: selectedCropKey === c.key ? '#ffffff' : '#334155',
                 border: selectedCropKey === c.key ? '1px solid #1b5e20' : '1px solid #e2e8f0',
@@ -1058,28 +1059,41 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           ))}
         </Box>
 
-        {/* 2. Acre Quick Selector */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#f8fafc', p: 1, px: 1.5, borderRadius: 2.5, mb: 1.5, border: '1px solid #f1f5f9' }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.76rem' }}>
-            रकबा चुनें:
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 0.6 }}>
+        {/* 2. Acre Quick Selector - Segmented Balanced Grid */}
+        <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, mb: 1.5, border: '1px solid #e2e8f0' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.76rem' }}>
+              🌾 रकबा (Acre): <strong>{quickAcre} एकड़</strong>
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '0.72rem' }}>
+              {selectedCropKey === 'paddy' ? `₹${appConfig.paddyScheme.totalRate}/क्विं. समर्थन मूल्य` : 'अनुमानित आय व खाद गणना'}
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: { xs: 0.5, sm: 0.8 } }}>
             {[0.5, 1.0, 2.0, 3.0, 5.0].map((ac) => (
-              <Chip
+              <Button
                 key={ac}
-                label={`${ac} एकड़`}
                 size="small"
-                clickable
                 onClick={() => setQuickAcre(ac)}
                 sx={{
-                  fontWeight: 800,
-                  fontSize: '0.72rem',
-                  height: 24,
+                  minWidth: 0,
+                  py: 0.5,
+                  px: 0.3,
+                  borderRadius: 2,
+                  fontSize: { xs: '0.7rem', sm: '0.76rem' },
+                  fontWeight: quickAcre === ac ? 900 : 700,
                   bgcolor: quickAcre === ac ? '#2e7d32' : '#ffffff',
-                  color: quickAcre === ac ? '#ffffff' : '#475569',
-                  border: quickAcre === ac ? '1px solid #2e7d32' : '1px solid #cbd5e1'
+                  color: quickAcre === ac ? '#ffffff' : '#334155',
+                  border: quickAcre === ac ? '1.5px solid #1b5e20' : '1px solid #cbd5e1',
+                  boxShadow: quickAcre === ac ? '0 2px 6px rgba(46,125,50,0.22)' : 'none',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    bgcolor: quickAcre === ac ? '#1b5e20' : '#f1f5f9'
+                  }
                 }}
-              />
+              >
+                {ac} एकड़
+              </Button>
             ))}
           </Box>
         </Box>
@@ -1678,7 +1692,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           <Card
             sx={{
               mb: 2.2,
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               borderRadius: 3.5,
               bgcolor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -1687,16 +1701,16 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
           >
             {/* Top Row: Temp, Condition, Spray Badge */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Typography sx={{ fontSize: '2.2rem', lineHeight: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                <Typography sx={{ fontSize: { xs: '1.9rem', sm: '2.2rem' }, lineHeight: 1 }}>
                   {weather?.conditionIcon || '🌤️'}
                 </Typography>
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.8 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1 }}>
+                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1, fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
                       {weather ? `${weather.temp}°` : '29°'}
                     </Typography>
-                    <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: { xs: '0.82rem', sm: '0.9rem' } }}>
                       {weather ? weather.conditionText : 'साफ मौसम'}
                     </Typography>
                   </Box>
@@ -1865,7 +1879,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => onNavigate('doctor')
                 },
                 {
-                  title: 'खाद कैलकु.',
+                  title: 'खाद NPK',
                   icon: <CalculateIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e8f5e9',
                   border: '#c8e6c9',
@@ -1883,11 +1897,11 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => onNavigate('mandi')
                 },
                 {
-                  title: 'धान योजना',
+                  title: 'धान ₹3,100',
                   icon: <MonetizationOnIcon sx={{ color: '#f57f17', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#fff8e1',
                   border: '#ffe082',
-                  badge: '₹3,100',
+                  badge: 'बोनस',
                   badgeBg: '#e65100',
                   action: () => onNavigate('schemes')
                 },
@@ -1896,7 +1910,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   icon: <DirectionsWalkIcon sx={{ color: '#00897b', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e0f2f1',
                   border: '#b2dfdb',
-                  badge: 'GPS',
+                  badge: 'मापक',
                   badgeBg: '#00897b',
                   action: () => setOpenGpsTracker(true)
                 },
@@ -1928,7 +1942,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                   action: () => handleRequireLogin('khet')
                 }
               ].map((tool, idx) => (
-                <Grid item xs={3} sm={3} md={3} lg={1.5} key={idx}>
+                <Grid item xs={3} sm={3} md={3} lg={3} key={idx}>
                   <Box
                     className="touch-card"
                     onClick={() => { stopSpeech(); tool.action(); }}
@@ -2023,13 +2037,82 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
             </Typography>
           </Box>
 
-          {/* Dropdown Selector */}
+          {/* 6-Stage Progress Stepper Bar (Visual Segmented Pills on md+, Numbered Dots on xs) */}
           <Box sx={{ mb: 1.5 }}>
+            {/* Desktop / Tablet Segmented Capsules */}
+            <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8, mb: 1 }}>
+              {LIFECYCLE_STEPS.map((item) => {
+                const isActive = item.step === expandedStep;
+                return (
+                  <Box
+                    key={item.step}
+                    onClick={() => {
+                      stopSpeech();
+                      setExpandedStep(item.step);
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      p: 0.8,
+                      borderRadius: 2,
+                      textAlign: 'center',
+                      bgcolor: isActive ? item.color : '#ffffff',
+                      color: isActive ? '#ffffff' : '#475569',
+                      border: isActive ? `1.5px solid ${item.color}` : '1px solid #e2e8f0',
+                      boxShadow: isActive ? `0 3px 10px ${item.color}35` : 'none',
+                      transition: 'all 0.18s ease',
+                      '&:hover': {
+                        bgcolor: isActive ? item.color : '#f8fafc',
+                        borderColor: item.color
+                      }
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.68rem', display: 'block', opacity: isActive ? 0.9 : 0.7 }}>
+                      चरण {item.step}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.74rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {item.tag}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {/* Mobile Numbered Step Pills (1 to 6) */}
+            <Box sx={{ display: { xs: 'grid', sm: 'none' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.6, mb: 1.2 }}>
+              {LIFECYCLE_STEPS.map((item) => {
+                const isActive = item.step === expandedStep;
+                return (
+                  <Box
+                    key={item.step}
+                    onClick={() => {
+                      stopSpeech();
+                      setExpandedStep(item.step);
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      py: 0.6,
+                      borderRadius: 2,
+                      textAlign: 'center',
+                      bgcolor: isActive ? item.color : '#ffffff',
+                      color: isActive ? '#ffffff' : item.color,
+                      border: `1.5px solid ${item.color}`,
+                      boxShadow: isActive ? `0 2px 6px ${item.color}40` : 'none',
+                      fontWeight: 900,
+                      fontSize: '0.78rem'
+                    }}
+                  >
+                    {item.step}
+                  </Box>
+                );
+              })}
+            </Box>
+
+            {/* Dropdown Selector for Complete Detail */}
             <TextField
               select
               fullWidth
               size="small"
-              label="🌱 कृषि यात्रा चरण चुनें (Select Lifecycle Stage)"
+              label="🌱 कृषि यात्रा चरण (Current Stage)"
               value={expandedStep}
               onChange={(e) => {
                 stopSpeech();
@@ -2136,24 +2219,70 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
                 </Typography>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <Button
-                    size="small"
-                    startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-                    onClick={(e) => handleReadStep(e, currentStep)}
-                    sx={{
-                      color: currentStep.color,
-                      bgcolor: `${currentStep.color}12`,
-                      fontWeight: 700,
-                      fontSize: '0.75rem',
-                      borderRadius: 2,
-                      px: 1.5,
-                      py: 0.4,
-                      '&:hover': { bgcolor: `${currentStep.color}25` }
-                    }}
-                  >
-                    आवाज में सुनें
-                  </Button>
+                  {/* Prev/Next Stepper & Voice Controls */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Button
+                      size="small"
+                      disabled={currentStep.step <= 1}
+                      onClick={() => {
+                        stopSpeech();
+                        setExpandedStep((prev) => Math.max(1, prev - 1));
+                      }}
+                      sx={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        py: 0.3,
+                        px: 1,
+                        borderRadius: 2,
+                        border: '1px solid #cbd5e1',
+                        color: '#475569',
+                        minWidth: 0,
+                        '&.Mui-disabled': { opacity: 0.4 }
+                      }}
+                    >
+                      ⬅️ पिछला
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={currentStep.step >= 6}
+                      onClick={() => {
+                        stopSpeech();
+                        setExpandedStep((prev) => Math.min(6, prev + 1));
+                      }}
+                      sx={{
+                        fontSize: '0.72rem',
+                        fontWeight: 700,
+                        py: 0.3,
+                        px: 1,
+                        borderRadius: 2,
+                        border: '1px solid #cbd5e1',
+                        color: '#475569',
+                        minWidth: 0,
+                        '&.Mui-disabled': { opacity: 0.4 }
+                      }}
+                    >
+                      अगला ➡️
+                    </Button>
+                    <Button
+                      size="small"
+                      startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
+                      onClick={(e) => handleReadStep(e, currentStep)}
+                      sx={{
+                        color: currentStep.color,
+                        bgcolor: `${currentStep.color}12`,
+                        fontWeight: 700,
+                        fontSize: '0.74rem',
+                        borderRadius: 2,
+                        px: 1.2,
+                        py: 0.3,
+                        '&:hover': { bgcolor: `${currentStep.color}25` }
+                      }}
+                    >
+                      सुनें
+                    </Button>
+                  </Box>
 
+                  {/* Deep Navigation Module Buttons */}
                   {currentStep.step === 3 && (
                     <Button
                       size="small"
@@ -2213,7 +2342,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict }) => {
   );
 
   return (
-    <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
+    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {renderFarmerDashboard()}
 
       {/* Modals & Dialogs */}

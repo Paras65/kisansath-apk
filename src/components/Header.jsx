@@ -155,46 +155,57 @@ export const Header = ({
           sx={{
             maxWidth: '1280px',
             mx: 'auto',
-            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
-            py: 0.6,
+            px: { xs: 1.2, sm: 2, md: 3, lg: 4 },
+            py: 0.4,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            fontSize: '0.75rem',
+            fontSize: '0.74rem',
             color: '#dcedc8'
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <AgricultureIcon sx={{ fontSize: 16, color: '#fbc02d' }} />
-            <Typography variant="caption" sx={{ fontWeight: 600, color: '#e2f5d5', fontSize: '0.74rem' }}>
-              {appConfig.stateName} किसान कल्याण एवं कृषि विकास मंच
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, minWidth: 0 }}>
+            <AgricultureIcon sx={{ fontSize: 15, color: '#fbc02d', flexShrink: 0 }} />
+            <Typography
+              variant="caption"
+              sx={{
+                fontWeight: 700,
+                color: '#e2f5d5',
+                fontSize: { xs: '0.68rem', sm: '0.74rem' },
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {appConfig.stateName} किसान कल्याण मंच
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexShrink: 0 }}>
             {!isOnline && (
               <Chip
-                icon={<WifiOffIcon sx={{ fontSize: '13px !important', color: '#ffcc80' }} />}
+                icon={<WifiOffIcon sx={{ fontSize: '12px !important', color: '#ffcc80' }} />}
                 label="ऑफ़लाइन"
                 size="small"
-                sx={{ bgcolor: '#d84315', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                sx={{ bgcolor: '#d84315', color: '#fff', height: 18, fontSize: '0.64rem', fontWeight: 700 }}
               />
             )}
             <Button
               size="small"
-              startIcon={<PhoneInTalkIcon sx={{ fontSize: 13 }} />}
+              startIcon={<PhoneInTalkIcon sx={{ fontSize: 12 }} />}
               onClick={handleCallHelpline}
               sx={{
                 color: '#fff',
                 bgcolor: 'rgba(255,255,255,0.12)',
-                py: 0.2,
-                px: 1.2,
-                fontSize: '0.7rem',
+                py: 0.1,
+                px: 1,
+                fontSize: { xs: '0.66rem', sm: '0.7rem' },
                 borderRadius: 4,
                 fontWeight: 700,
+                whiteSpace: 'nowrap',
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
               }}
             >
-              हेल्पलाइन: {appConfig.helpline.label}
+              टोल-फ्री: {appConfig.helpline.label}
             </Button>
           </Box>
         </Box>
@@ -207,9 +218,9 @@ export const Header = ({
           mx: 'auto',
           width: '100%',
           justifyContent: 'space-between',
-          px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
-          minHeight: { xs: 60, md: 68 },
-          gap: { xs: 1, md: 1.5 }
+          px: { xs: 1.2, sm: 2, md: 3, lg: 4 },
+          minHeight: { xs: 56, md: 66 },
+          gap: { xs: 0.6, md: 1.5 }
         }}
       >
         {/* App Logo, Name & Universal Back Button */}
@@ -303,73 +314,98 @@ export const Header = ({
         </Box>
 
         {/* Action Controls */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-          {/* District selector & GPS locator */}
-          <Tooltip title="📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)">
-            <IconButton
-              onClick={handleGpsLocation}
-              disabled={detectingGps}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.14)',
-                color: detectingGps ? '#4ade80' : '#fff',
-                width: 36,
-                height: 36,
-                borderRadius: 2.5,
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
-              }}
-            >
-              <MyLocationIcon sx={{ fontSize: 18 }} />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1 }, flexShrink: 0 }}>
+          {/* Unified District & GPS Pill */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              bgcolor: 'rgba(255,255,255,0.14)',
+              border: '1px solid rgba(255,255,255,0.25)',
+              borderRadius: 2.5,
+              height: { xs: 34, sm: 36 },
+              px: { xs: 0.3, sm: 0.5 },
+              transition: 'all 0.2s',
+              '&:hover': {
+                bgcolor: 'rgba(255,255,255,0.2)',
+                borderColor: 'rgba(255,255,255,0.4)'
+              }
+            }}
+          >
+            <Tooltip title="📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)">
+              <span>
+                <IconButton
+                  onClick={handleGpsLocation}
+                  disabled={detectingGps}
+                  size="small"
+                  aria-label="GPS द्वारा जिला पहचानें"
+                  sx={{
+                    color: detectingGps ? '#4ade80' : '#ffffff',
+                    p: { xs: 0.4, sm: 0.6 },
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                  }}
+                >
+                  <MyLocationIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
+                </IconButton>
+              </span>
+            </Tooltip>
 
-          <FormControl size="small" sx={{ minWidth: { xs: 110, sm: 135 } }}>
-            <Select
-              value={selectedDistrict}
-              onChange={(e) => onDistrictChange(e.target.value)}
-              sx={{
-                color: '#fff',
-                fontSize: '0.8rem',
-                fontWeight: 700,
-                bgcolor: 'rgba(255,255,255,0.14)',
-                borderRadius: 2.5,
-                '.MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.25)' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#fff' },
-                '.MuiSvgIcon-root': { color: '#fff' },
-                height: 36
-              }}
-            >
-              <MenuItem value="रायपुर">रायपुर (Raipur)</MenuItem>
-              <MenuItem value="बिलासपुर">बिलासपुर (Bilaspur)</MenuItem>
-              <MenuItem value="दुर्ग">दुर्ग (Durg)</MenuItem>
-              <MenuItem value="राजनांदगांव">राजनांदगांव (Rajnandgaon)</MenuItem>
-              <MenuItem value="धमतरी">धमतरी (Dhamtari)</MenuItem>
-              <MenuItem value="कवर्धा">कबीरधाम / कवर्धा</MenuItem>
-              <MenuItem value="बलौदाबाजार">बलौदाबाजार</MenuItem>
-              <MenuItem value="जगदलपुर">बस्तर / जगदलपुर</MenuItem>
-              <MenuItem value="महासमुंद">महासमुंद (Mahasamund)</MenuItem>
-              <MenuItem value="जांजगीर-चांपा">जांजगीर-चांपा</MenuItem>
-              <MenuItem value="रायगढ़">रायगढ़ (Raigarh)</MenuItem>
-              <MenuItem value="कोरबा">कोरबा (Korba)</MenuItem>
-              <MenuItem value="अंबिकापुर">सरगुजा / अंबिकापुर</MenuItem>
-              <MenuItem value="कांकेर">उत्तर बस्तर कांकेर</MenuItem>
-              <MenuItem value="बेमेतरा">बेमेतरा (Bemetara)</MenuItem>
-              <MenuItem value="बालोद">बालोद (Balod)</MenuItem>
-              <MenuItem value="गरियाबंद">गरियाबंद (Gariaband)</MenuItem>
-              <MenuItem value="मुंगेली">मुंगेली (Mungeli)</MenuItem>
-            </Select>
-          </FormControl>
+            <FormControl size="small" variant="standard" sx={{ minWidth: { xs: 75, sm: 110, md: 125 } }}>
+              <Select
+                value={selectedDistrict}
+                onChange={(e) => onDistrictChange(e.target.value)}
+                disableUnderline
+                aria-label="जिला चुनें"
+                sx={{
+                  color: '#ffffff',
+                  fontSize: { xs: '0.74rem', sm: '0.8rem' },
+                  fontWeight: 700,
+                  '.MuiSelect-select': {
+                    py: 0.5,
+                    pr: '18px !important',
+                    pl: 0.4
+                  },
+                  '.MuiSvgIcon-root': {
+                    color: 'rgba(255,255,255,0.85)',
+                    fontSize: '1.1rem',
+                    right: 0
+                  }
+                }}
+              >
+                <MenuItem value="रायपुर">रायपुर (Raipur)</MenuItem>
+                <MenuItem value="बिलासपुर">बिलासपुर (Bilaspur)</MenuItem>
+                <MenuItem value="दुर्ग">दुर्ग (Durg)</MenuItem>
+                <MenuItem value="राजनांदगांव">राजनांदगांव (Rajnandgaon)</MenuItem>
+                <MenuItem value="धमतरी">धमतरी (Dhamtari)</MenuItem>
+                <MenuItem value="कवर्धा">कबीरधाम / कवर्धा</MenuItem>
+                <MenuItem value="बलौदाबाजार">बलौदाबाजार</MenuItem>
+                <MenuItem value="जगदलपुर">बस्तर / जगदलपुर</MenuItem>
+                <MenuItem value="महासमुंद">महासमुंद (Mahasamund)</MenuItem>
+                <MenuItem value="जांजगीर-चांपा">जांजगीर-चांपा</MenuItem>
+                <MenuItem value="रायगढ़">रायगढ़ (Raigarh)</MenuItem>
+                <MenuItem value="कोरबा">कोरबा (Korba)</MenuItem>
+                <MenuItem value="अंबिकापुर">सरगुजा / अंबिकापुर</MenuItem>
+                <MenuItem value="कांकेर">उत्तर बस्तर कांकेर</MenuItem>
+                <MenuItem value="बेमेतरा">बेमेतरा (Bemetara)</MenuItem>
+                <MenuItem value="बालोद">बालोद (Balod)</MenuItem>
+                <MenuItem value="गरियाबंद">गरियाबंद (Gariaband)</MenuItem>
+                <MenuItem value="मुंगेली">मुंगेली (Mungeli)</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
 
-          {/* Smart Centralized Device Hub Button */}
+          {/* Smart Centralized Device Hub Button (Tablet & Desktop Only) */}
           <Tooltip title="स्मार्ट डिवाइस व ब्लूटूथ हब">
             <IconButton
               onClick={onOpenDeviceHub}
+              aria-label="स्मार्ट डिवाइस हब"
               sx={{
                 bgcolor: 'rgba(255,255,255,0.14)',
                 color: '#fff',
-                width: 36,
-                height: 36,
+                width: { xs: 34, sm: 36 },
+                height: { xs: 34, sm: 36 },
                 borderRadius: 2.5,
+                display: { xs: 'none', md: 'inline-flex' },
                 transition: 'all 0.2s',
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
               }}
@@ -401,16 +437,18 @@ export const Header = ({
             </Button>
           </Tooltip>
 
-          {/* Voice Assistance Button */}
+          {/* Voice Assistance Button (Tablet & Desktop Only to avoid Mobile Header Crowding) */}
           <Tooltip title={speaking ? 'आवाज बंद करें' : 'हिंदी में आवाज में सुनें'}>
             <IconButton
               onClick={handleVoiceWelcome}
+              aria-label="आवाज सहायता"
               sx={{
                 bgcolor: speaking ? '#f59e0b' : 'rgba(255,255,255,0.14)',
                 color: '#fff',
-                width: 36,
-                height: 36,
+                width: { xs: 34, sm: 36 },
+                height: { xs: 34, sm: 36 },
                 borderRadius: 2.5,
+                display: { xs: 'none', sm: 'inline-flex' },
                 boxShadow: speaking ? '0 0 12px rgba(245,158,11,0.6)' : 'none',
                 transition: 'all 0.2s',
                 '&:hover': { bgcolor: speaking ? '#d97706' : 'rgba(255,255,255,0.25)' }
@@ -420,7 +458,7 @@ export const Header = ({
             </IconButton>
           </Tooltip>
 
-          {/* Compact APK Download Icon (Suppressed in Native APK & Hidden on Mobile xs) */}
+          {/* Compact APK Download Icon (Suppressed in Native APK & Hidden on Mobile) */}
           {appConfig.apkDownloadUrl && !isNativePlatform() && (
             <Tooltip title={`Android APK डाउनलोड करें (v${appConfig.appVersion})`}>
               <IconButton
@@ -432,8 +470,8 @@ export const Header = ({
                 sx={{
                   bgcolor: 'rgba(255,235,59,0.18)',
                   color: '#ffeb3b',
-                  width: 36,
-                  height: 36,
+                  width: { xs: 34, sm: 36 },
+                  height: { xs: 34, sm: 36 },
                   borderRadius: 2.5,
                   border: '1px solid rgba(255,235,59,0.38)',
                   display: { xs: 'none', md: 'inline-flex' },
@@ -450,16 +488,18 @@ export const Header = ({
             </Tooltip>
           )}
 
-          {/* Share App Button */}
+          {/* Share App Button (Universal on all screens) */}
           <Tooltip title="किसान भाइयों को ऐप शेयर करें">
             <IconButton
               onClick={() => setShareModalOpen(true)}
+              aria-label="ऐप शेयर करें"
               sx={{
                 bgcolor: 'rgba(255,255,255,0.14)',
                 color: '#fff',
-                width: 36,
-                height: 36,
+                width: { xs: 34, sm: 36 },
+                height: { xs: 34, sm: 36 },
                 borderRadius: 2.5,
+                transition: 'all 0.2s',
                 '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
               }}
             >

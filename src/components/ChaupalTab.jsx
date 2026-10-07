@@ -280,7 +280,7 @@ export const ChaupalTab = () => {
   };
 
   return (
-    <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
+    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {/* Modern Capsule Tab Switcher */}
       <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
         {[
@@ -471,7 +471,7 @@ export const ChaupalTab = () => {
                           size="small"
                           sx={{ bgcolor: '#f1f8e9', color: '#2e7d32', fontWeight: 800, fontSize: '0.7rem', height: 22, borderRadius: '6px' }}
                         />
-                        <Box sx={{ display: 'flex', gap: 0.8 }}>
+                        <Box sx={{ display: 'flex', gap: 1, width: { xs: '100%', sm: 'auto' }, mt: { xs: 0.5, sm: 0 } }}>
                           <Button
                             variant="outlined"
                             size="small"
@@ -483,15 +483,17 @@ export const ChaupalTab = () => {
                             sx={{
                               borderColor: '#25D366',
                               color: '#128C7E',
-                              fontSize: '0.72rem',
+                              fontSize: '0.74rem',
                               fontWeight: 800,
-                              borderRadius: '8px',
-                              py: 0.4,
-                              px: 1,
+                              borderRadius: '10px',
+                              minHeight: 38,
+                              py: 0.5,
+                              px: 1.2,
+                              flex: { xs: 1, sm: 'initial' },
                               '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
                             }}
                           >
-                            मार्गदर्शन
+                            मार्गदर्शन 💬
                           </Button>
                           <Button
                             variant="contained"
@@ -501,15 +503,17 @@ export const ChaupalTab = () => {
                             sx={{
                               bgcolor: '#1b5e20',
                               color: '#ffffff',
-                              fontSize: '0.72rem',
+                              fontSize: '0.74rem',
                               fontWeight: 800,
-                              borderRadius: '8px',
-                              py: 0.4,
-                              px: 1.2,
+                              borderRadius: '10px',
+                              minHeight: 38,
+                              py: 0.5,
+                              px: 1.4,
+                              flex: { xs: 1, sm: 'initial' },
                               '&:hover': { bgcolor: '#125420' }
                             }}
                           >
-                            {item.isHelpline ? '1800-180-1551 (टोल-फ्री)' : 'कॉल'}
+                            {item.isHelpline ? '1800-180-1551' : 'कॉल करें 📞'}
                           </Button>
                         </Box>
                       </Box>
@@ -633,7 +637,7 @@ export const ChaupalTab = () => {
                       <Paper
                         elevation={0}
                         sx={{
-                          p: 1.5,
+                          p: { xs: 1.2, sm: 1.5 },
                           bgcolor: '#f1f8e9',
                           border: '1px solid #c8e6c9',
                           borderRadius: '12px',
@@ -648,7 +652,7 @@ export const ChaupalTab = () => {
                             </Typography>
                           </Box>
                         </Box>
-                        <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: '0.82rem', lineHeight: 1.45 }}>
+                        <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: { xs: '0.8rem', sm: '0.84rem' }, lineHeight: 1.45 }}>
                           {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || 'समाधान प्रक्रियाधीन है।'}
                         </Typography>
 
@@ -656,7 +660,7 @@ export const ChaupalTab = () => {
                         {q.replies && q.replies.length > 1 && (
                           <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #a5d6a7' }}>
                             {q.replies.slice(-2).map((rep) => (
-                              <Box key={rep.id || rep._id} sx={{ mb: 0.6, fontSize: '0.74rem', color: '#1b5e20' }}>
+                              <Box key={rep.id || rep._id} sx={{ mb: 0.5, p: 0.6, bgcolor: 'rgba(255,255,255,0.7)', borderRadius: '6px', fontSize: '0.72rem', color: '#1b5e20' }}>
                                 <strong>{rep.author}</strong> ({rep.role || 'किसान भाई'}): {rep.text}
                               </Box>
                             ))}
@@ -667,6 +671,7 @@ export const ChaupalTab = () => {
                       <Button
                         size="small"
                         variant="outlined"
+                        fullWidth
                         startIcon={<ReplyIcon sx={{ fontSize: 16 }} />}
                         onClick={() => {
                           setSelectedQuestionForReply(q);
@@ -683,7 +688,8 @@ export const ChaupalTab = () => {
                           fontSize: '0.74rem',
                           fontWeight: 800,
                           borderRadius: 2,
-                          py: 0.3,
+                          py: 0.6,
+                          minHeight: 36,
                           textTransform: 'none',
                           '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
                         }}

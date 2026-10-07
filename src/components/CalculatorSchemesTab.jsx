@@ -135,7 +135,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
   };
 
   return (
-    <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
+    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {/* Sub Header Tabs */}
       {/* Modern Capsule Tab Switcher */}
       <Box sx={{ mb: 2.5, display: 'flex', gap: 1, p: 0.6, bgcolor: '#f1f5f9', borderRadius: '14px', maxWidth: { xs: '100%', md: 680 }, mx: 'auto' }}>
@@ -233,6 +233,44 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 </TextField>
               </Grid>
             </Grid>
+
+            {/* Quick Acre Selector Buttons */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
+                ⚡ त्वरित रकबा चुनें:
+              </Typography>
+              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
+                {[0.5, 1, 2, 3, 5].map((val) => {
+                  const isSelected = parseFloat(fertAcres) === val;
+                  return (
+                    <Button
+                      key={val}
+                      size="small"
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      onClick={() => setFertAcres(val)}
+                      sx={{
+                        py: 0.4,
+                        px: 0.5,
+                        fontSize: { xs: '0.72rem', sm: '0.78rem' },
+                        fontWeight: isSelected ? 800 : 600,
+                        bgcolor: isSelected ? '#1b5e20' : '#fff',
+                        color: isSelected ? '#fff' : '#1b5e20',
+                        borderColor: '#a5d6a7',
+                        minWidth: 0,
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        '&:hover': {
+                          bgcolor: isSelected ? '#144a19' : '#e8f5e9',
+                          borderColor: '#2e7d32'
+                        }
+                      }}
+                    >
+                      {val} एकड़
+                    </Button>
+                  );
+                })}
+              </Box>
+            </Box>
 
             {/* Smart Soil IoT Sensor Integration */}
             <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#e0f2f1', p: 1.3, borderRadius: 2.5, border: '1.2px solid #80cbc4', flexWrap: 'wrap', gap: 1 }}>
@@ -433,7 +471,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       elevation={0}
                       className="touch-card"
                       sx={{
-                        p: 1.5,
+                        p: { xs: 1.2, sm: 1.5 },
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
@@ -445,8 +483,8 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         boxShadow: '0 2px 8px rgba(46, 125, 50, 0.06)'
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.82rem' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.4 }}>
+                        <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, fontSize: { xs: '0.78rem', sm: '0.82rem' } }}>
                           यूरिया (Urea)
                         </Typography>
                         <Chip
@@ -482,7 +520,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       elevation={0}
                       className="touch-card"
                       sx={{
-                        p: 1.5,
+                        p: { xs: 1.2, sm: 1.5 },
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
@@ -494,8 +532,8 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         boxShadow: '0 2px 8px rgba(21, 101, 192, 0.06)'
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 800, fontSize: '0.82rem' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.4 }}>
+                        <Typography variant="caption" sx={{ color: '#0d47a1', fontWeight: 800, fontSize: { xs: '0.78rem', sm: '0.82rem' } }}>
                           डीएपी (DAP)
                         </Typography>
                         <Chip
@@ -531,7 +569,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       elevation={0}
                       className="touch-card"
                       sx={{
-                        p: 1.5,
+                        p: { xs: 1.2, sm: 1.5 },
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
@@ -543,8 +581,8 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         boxShadow: '0 2px 8px rgba(230, 81, 0, 0.06)'
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="caption" sx={{ color: '#bf360c', fontWeight: 800, fontSize: '0.82rem' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.4 }}>
+                        <Typography variant="caption" sx={{ color: '#bf360c', fontWeight: 800, fontSize: { xs: '0.78rem', sm: '0.82rem' } }}>
                           पोटाश (MOP)
                         </Typography>
                         <Chip
@@ -580,7 +618,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       elevation={0}
                       className="touch-card"
                       sx={{
-                        p: 1.5,
+                        p: { xs: 1.2, sm: 1.5 },
                         width: '100%',
                         display: 'flex',
                         flexDirection: 'column',
@@ -592,8 +630,8 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                         boxShadow: '0 2px 8px rgba(123, 31, 162, 0.06)'
                       }}
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                        <Typography variant="caption" sx={{ color: '#4a148c', fontWeight: 800, fontSize: '0.82rem' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.4 }}>
+                        <Typography variant="caption" sx={{ color: '#4a148c', fontWeight: 800, fontSize: { xs: '0.78rem', sm: '0.82rem' } }}>
                           जिंक सल्फेट
                         </Typography>
                         <Chip
@@ -722,12 +760,48 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 size="small"
                 label="अपनी जमीन का रकबा डालें (एकड़ में)"
                 type="number"
-                inputProps={{ min: 0.1, step: 0.1 }}
+                inputProps={{ min: 0.1, step: 0.1, style: { fontSize: '1.05rem', fontWeight: 800 } }}
                 value={paddyAcres}
                 onChange={(e) => setPaddyAcres(e.target.value)}
                 helperText="उदाहरण: 1 एकड़, 2.5 एकड़, 5 एकड़"
                 sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
               />
+              <Box sx={{ mt: 1.2 }}>
+                <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
+                  ⚡ त्वरित रकबा चुनें:
+                </Typography>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
+                  {[1, 2, 2.5, 5, 10].map((val) => {
+                    const isSelected = parseFloat(paddyAcres) === val;
+                    return (
+                      <Button
+                        key={val}
+                        size="small"
+                        variant={isSelected ? 'contained' : 'outlined'}
+                        onClick={() => setPaddyAcres(val)}
+                        sx={{
+                          py: 0.4,
+                          px: 0.5,
+                          fontSize: { xs: '0.72rem', sm: '0.78rem' },
+                          fontWeight: isSelected ? 800 : 600,
+                          bgcolor: isSelected ? '#1b5e20' : '#fff',
+                          color: isSelected ? '#fff' : '#1b5e20',
+                          borderColor: '#a5d6a7',
+                          minWidth: 0,
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          '&:hover': {
+                            bgcolor: isSelected ? '#144a19' : '#e8f5e9',
+                            borderColor: '#2e7d32'
+                          }
+                        }}
+                      >
+                        {val} एकड़
+                      </Button>
+                    );
+                  })}
+                </Box>
+              </Box>
             </Box>
 
             {/* Official Passbook / Procurement Receipt Card */}

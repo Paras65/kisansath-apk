@@ -241,7 +241,9 @@ export const DeviceHubModal = ({
         sx={{
           bgcolor: '#1b5e20',
           color: '#ffffff',
-          p: { xs: 1.5, sm: 2 },
+          pt: { xs: 'calc(12px + env(safe-area-inset-top, 0px))', sm: 2 },
+          px: { xs: 1.5, sm: 2 },
+          pb: { xs: 1.5, sm: 2 },
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',

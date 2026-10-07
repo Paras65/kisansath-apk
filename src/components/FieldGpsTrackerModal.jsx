@@ -325,7 +325,18 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'рд
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3.5, overflow: 'hidden' } }}>
-      <DialogTitle sx={{ bgcolor: '#1b5e20', color: '#fff', py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <DialogTitle
+        sx={{
+          bgcolor: '#1b5e20',
+          color: '#fff',
+          pt: { xs: 'calc(12px + env(safe-area-inset-top, 0px))', sm: 1.5 },
+          px: 2,
+          pb: 1.5,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}
+      >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <DirectionsWalkIcon sx={{ color: '#ffeb3b', fontSize: 26 }} />
           <Box>

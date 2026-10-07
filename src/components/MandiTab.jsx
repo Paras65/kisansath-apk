@@ -306,7 +306,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     : 0;
 
   return (
-    <Box sx={{ pb: 3, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
+    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {/* Title & Post button */}
       <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -682,82 +682,97 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </Paper>
       )}
 
-      {/* Zero Horizontal Scroll Commodity Dropdown & District Filter */}
-      <Grid container spacing={1.5} sx={{ mb: 1.5 }} alignItems="center">
-        <Grid item xs={12} sm={6}>
-          <TextField
-            select
-            fullWidth
-            size="small"
-            label="🌾 फसल / जिंस चुनें (Commodity Filter)"
-            value={selectedCropFilter}
-            onChange={(e) => setSelectedCropFilter(e.target.value)}
-            sx={{
-              bgcolor: '#fff',
-              borderRadius: 2,
-              '& .MuiOutlinedInput-root': { borderRadius: 2 }
-            }}
-          >
-            <MenuItem value="all">🌾 सभी जिंसें (All Commodities)</MenuItem>
-            <MenuItem value="धान">🌾 धान (Paddy - ₹3,100 उपार्जन)</MenuItem>
-            <MenuItem value="चना">🟤 चना (Gram / Chickpea)</MenuItem>
-            <MenuItem value="सोयाबीन">🟡 सोयाबीन (Soybean)</MenuItem>
-            <MenuItem value="मक्का">🌽 मक्का (Maize)</MenuItem>
-            <MenuItem value="कोदो">🌾 मिलेट्स / कोदो-कुटकी</MenuItem>
-            <MenuItem value="गेहूं">🌾 गेहूं (Wheat)</MenuItem>
-            <MenuItem value="सरसों">🌻 सरसों / तिलहन</MenuItem>
-          </TextField>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <Button
-            fullWidth
-            size="small"
-            variant={districtFilterOnly ? 'contained' : 'outlined'}
-            color={districtFilterOnly ? 'success' : 'inherit'}
-            onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
-            startIcon={<LocationOnIcon sx={{ fontSize: 18 }} />}
-            sx={{
-              py: 0.9,
-              borderRadius: 2,
-              fontWeight: 800,
-              fontSize: '0.78rem',
-              borderColor: districtFilterOnly ? '#2e7d32' : '#cbd5e1',
-              bgcolor: districtFilterOnly ? '#2e7d32' : '#fff',
-              color: districtFilterOnly ? '#fff' : '#334155',
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: districtFilterOnly ? '#1b5e20' : '#f8fafc',
-                borderColor: '#2e7d32'
-              }
-            }}
-          >
-            {districtFilterOnly
-              ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)`
-              : `📍 केवल ${selectedDistrict} की दरें देखें`}
-          </Button>
-        </Grid>
-      </Grid>
-
-      {/* Search Input */}
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="मंडी या फसल का नाम खोजें (जैसे: रायपुर, धमतरी, धान...)"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon sx={{ color: '#888', fontSize: 20 }} />
-            </InputAdornment>
-          ),
-        }}
+      {/* Sticky Search & Commodity Filter Sub-Header */}
+      <Box
         sx={{
-          mb: 2,
-          bgcolor: '#fff',
-          '& .MuiOutlinedInput-root': { borderRadius: 2.5 }
+          position: 'sticky',
+          top: { xs: 80, sm: 88 },
+          zIndex: 5,
+          bgcolor: 'rgba(255, 255, 255, 0.96)',
+          backdropFilter: 'blur(8px)',
+          pt: 1,
+          pb: 1,
+          mb: 1.5,
+          borderRadius: 2.5,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
         }}
-      />
+      >
+        {/* Zero Horizontal Scroll Commodity Dropdown & District Filter */}
+        <Grid container spacing={1.5} sx={{ mb: 1.2 }} alignItems="center">
+          <Grid item xs={12} sm={6}>
+            <TextField
+              select
+              fullWidth
+              size="small"
+              label="🌾 फसल / जिंस चुनें (Commodity Filter)"
+              value={selectedCropFilter}
+              onChange={(e) => setSelectedCropFilter(e.target.value)}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: 2,
+                '& .MuiOutlinedInput-root': { borderRadius: 2 }
+              }}
+            >
+              <MenuItem value="all">🌾 सभी जिंसें (All Commodities)</MenuItem>
+              <MenuItem value="धान">🌾 धान (Paddy - ₹3,100 उपार्जन)</MenuItem>
+              <MenuItem value="चना">🟤 चना (Gram / Chickpea)</MenuItem>
+              <MenuItem value="सोयाबीन">🟡 सोयाबीन (Soybean)</MenuItem>
+              <MenuItem value="मक्का">🌽 मक्का (Maize)</MenuItem>
+              <MenuItem value="कोदो">🌾 मिलेट्स / कोदो-कुटकी</MenuItem>
+              <MenuItem value="गेहूं">🌾 गेहूं (Wheat)</MenuItem>
+              <MenuItem value="सरसों">🌻 सरसों / तिलहन</MenuItem>
+            </TextField>
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <Button
+              fullWidth
+              size="small"
+              variant={districtFilterOnly ? 'contained' : 'outlined'}
+              color={districtFilterOnly ? 'success' : 'inherit'}
+              onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
+              startIcon={<LocationOnIcon sx={{ fontSize: 18 }} />}
+              sx={{
+                py: 0.9,
+                borderRadius: 2,
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                borderColor: districtFilterOnly ? '#2e7d32' : '#cbd5e1',
+                bgcolor: districtFilterOnly ? '#2e7d32' : '#fff',
+                color: districtFilterOnly ? '#fff' : '#334155',
+                textTransform: 'none',
+                '&:hover': {
+                  bgcolor: districtFilterOnly ? '#1b5e20' : '#f8fafc',
+                  borderColor: '#2e7d32'
+                }
+              }}
+            >
+              {districtFilterOnly
+                ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)`
+                : `📍 केवल ${selectedDistrict} की दरें देखें`}
+            </Button>
+          </Grid>
+        </Grid>
+
+        {/* Search Input */}
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="मंडी या फसल का नाम खोजें (जैसे: रायपुर, धमतरी, धान...)"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: '#888', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            bgcolor: '#fff',
+            '& .MuiOutlinedInput-root': { borderRadius: 2 }
+          }}
+        />
+      </Box>
 
       {/* Mandi Rate Cards */}
       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1.5, fontSize: '0.9rem' }}>
@@ -872,37 +887,37 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                       </Box>
 
                       <Grid container spacing={1} sx={{ mt: 0.5, mb: 1.5 }}>
-                        <Grid item xs={4}>
-                          <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>
-                              न्यूनतम भाव
+                        <Grid item xs={3.5}>
+                          <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
+                              न्यूनतम
                             </Typography>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.9rem' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.minRate}
                             </Typography>
                           </Paper>
                         </Grid>
 
-                        <Grid item xs={4}>
-                          <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '1.5px solid #a5d6a7', borderRadius: '10px', textAlign: 'center', boxShadow: '0 1px 4px rgba(46,125,50,0.08)' }}>
-                            <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 800, display: 'block', fontSize: '0.68rem' }}>
-                              मॉडल भाव
+                        <Grid item xs={5}>
+                          <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '2px solid #66bb6a', borderRadius: '12px', textAlign: 'center', boxShadow: '0 2px 6px rgba(46,125,50,0.12)' }}>
+                            <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 900, display: 'block', fontSize: '0.7rem', letterSpacing: 0.3 }}>
+                              ⭐ मुख्य मॉडल भाव
                             </Typography>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.15rem', sm: '1.25rem' }, lineHeight: 1.1, my: 0.2 }}>
                               ₹{rate.modalRate}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.62rem', fontWeight: 700 }}>
+                            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.65rem', fontWeight: 700 }}>
                               /क्विंटल
                             </Typography>
                           </Paper>
                         </Grid>
 
-                        <Grid item xs={4}>
-                          <Paper elevation={0} sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.68rem' }}>
-                              अधिकतम भाव
+                        <Grid item xs={3.5}>
+                          <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
+                              अधिकतम
                             </Typography>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.9rem' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.maxRate}
                             </Typography>
                           </Paper>

@@ -468,6 +468,16 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     }
   };
 
+  // Process all queued offline scans sequentially (1-Click Batch Diagnostic)
+  const handleProcessAllQueuedScans = async () => {
+    const queued = getOfflineScans();
+    if (!queued || queued.length === 0) return;
+    notify.info(`⚡ सभी ${queued.length} सुरक्षित स्कैन की जांच शुरू की जा रही है...`);
+    for (const scan of queued) {
+      await handleProcessQueuedScan(scan);
+    }
+  };
+
   // Auto-sync pending offline scans when connectivity is restored
   useEffect(() => {
     const handleOnline = () => {
@@ -542,7 +552,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   };
 
   return (
-    <Box sx={{ pb: 4, pt: 1, px: { xs: 1.5, sm: 2 } }} className="fade-in">
+    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {/* 1. Header Banner */}
       <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
@@ -679,17 +689,41 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   📥 ऑफ़लाइन सुरक्षित प्रश्न ({pendingScans.length})
                 </Typography>
               </Box>
-              <Chip
-                label={navigator.onLine ? '🟢 इंटरनेट उपलब्ध' : '🟠 इंटरनेट की प्रतीक्षा'}
-                size="small"
-                sx={{
-                  bgcolor: navigator.onLine ? '#c8e6c9' : '#ffe0b2',
-                  color: navigator.onLine ? '#1b5e20' : '#e65100',
-                  fontWeight: 800,
-                  fontSize: '0.68rem',
-                  height: 20
-                }}
-              />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                {pendingScans.length > 1 && (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    disabled={isSyncingPending || !navigator.onLine}
+                    onClick={handleProcessAllQueuedScans}
+                    sx={{
+                      bgcolor: '#2e7d32',
+                      color: '#fff',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      py: 0.2,
+                      px: 1,
+                      minHeight: 22,
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#1b5e20' }
+                    }}
+                  >
+                    ⚡ सभी जांचें ({pendingScans.length})
+                  </Button>
+                )}
+                <Chip
+                  label={navigator.onLine ? '🟢 इंटरनेट उपलब्ध' : '🟠 इंटरनेट की प्रतीक्षा'}
+                  size="small"
+                  sx={{
+                    bgcolor: navigator.onLine ? '#c8e6c9' : '#ffe0b2',
+                    color: navigator.onLine ? '#1b5e20' : '#e65100',
+                    fontWeight: 800,
+                    fontSize: '0.68rem',
+                    height: 20
+                  }}
+                />
+              </Box>
             </Box>
 
             <Typography variant="caption" sx={{ color: '#2e7d32', display: 'block', mb: 1, fontSize: '0.74rem' }}>
@@ -827,7 +861,61 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           </label>
         </Box>
 
-        {analyzing && (
+        {analyzing && uploadedImage && (
+          <Box
+            sx={{
+              mt: 2,
+              mx: 'auto',
+              maxWidth: 360,
+              position: 'relative',
+              borderRadius: 3,
+              overflow: 'hidden',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+              border: '2px solid #ffb74d'
+            }}
+          >
+            <Box
+              component="img"
+              src={uploadedImage}
+              alt="Scanned Plant"
+              sx={{
+                width: '100%',
+                maxHeight: { xs: 200, sm: 240 },
+                objectFit: 'cover',
+                display: 'block',
+                filter: 'brightness(0.85)'
+              }}
+            />
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                bgcolor: 'rgba(0,0,0,0.5)',
+                backdropFilter: 'blur(2px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                p: 2,
+                color: '#fff'
+              }}
+            >
+              <CircularProgress size={32} sx={{ color: '#ffb74d' }} />
+              <Typography variant="body2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.85rem', textAlign: 'center' }}>
+                🔍 एआई फसल व पत्ती का विश्लेषण कर रहा है...
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#ffe082', fontSize: '0.72rem' }}>
+                कृपया कुछ सेकंड प्रतीक्षा करें
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {analyzing && !uploadedImage && (
           <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.2 }}>
             <CircularProgress size={22} sx={{ color: '#e65100' }} />
             <Typography variant="body2" sx={{ fontWeight: 700, color: '#e65100', fontSize: '0.82rem' }}>
@@ -1344,7 +1432,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             <Box
               sx={{
                 mb: 2,
-                p: 1.8,
+                p: { xs: 1.5, sm: 1.8 },
                 borderRadius: 3,
                 bgcolor: '#fff8e1',
                 border: '2px solid #ffd54f',
@@ -1352,19 +1440,19 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
-                <Typography sx={{ fontSize: '1.25rem' }}>🎒</Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.92rem' }}>
+                <Typography sx={{ fontSize: { xs: '1.15rem', sm: '1.25rem' } }}>🎒</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: { xs: '0.86rem', sm: '0.92rem' } }}>
                   15 लीटर स्प्रे पंप (टंकी) हेतु सटीक नाप (Knapsack Pump Dose):
                 </Typography>
               </Box>
 
-              <Box sx={{ p: 1.2, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082', mb: 1 }}>
-                <Typography variant="body1" sx={{ fontWeight: 900, color: '#bf360c', fontSize: '1.02rem' }}>
+              <Box sx={{ p: { xs: 1, sm: 1.2 }, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082', mb: 1 }}>
+                <Typography variant="body1" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '0.94rem', sm: '1.02rem' } }}>
                   👉 {activeDisease.pumpDose || '15-20 ग्राम प्रति 15 लीटर पंप'}
                 </Typography>
               </Box>
 
-              <Typography variant="caption" sx={{ color: '#6d4c41', fontSize: '0.75rem', lineHeight: 1.45, display: 'block' }}>
+              <Typography variant="caption" sx={{ color: '#6d4c41', fontSize: { xs: '0.72rem', sm: '0.75rem' }, lineHeight: 1.45, display: 'block' }}>
                 💧 <strong>एकड़ नाप:</strong> 1 एकड़ हेतु 150-200 लीटर पानी (लगभग 10-12 टंकी)। हमेशा साफ पानी का उपयोग करें और सुबह (8-11 बजे) या शाम (4-6 बजे) शांत मौसम में छिड़काव करें।
               </Typography>
             </Box>
