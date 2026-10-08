@@ -173,6 +173,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [openMotorModal, setOpenMotorModal] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
   const [weather, setWeather] = useState(() => getCachedWeather(selectedDistrict));
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
