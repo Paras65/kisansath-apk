@@ -1,8 +1,8 @@
 {
-  "version": "1.0.30",
+  "version": "1.0.31",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.30",
-  "releaseNotes": "होम टैब में आकाशीय बिजली व गंभीर आंधी-तूफान आपातकालीन सुरक्षा अलर्ट (Severe Lightning & Squall Alert), 72-घंटे सुरक्षित कटाई व धूप में सुखाने की खिड़की (Safe Harvest & Sun-Drying Window), 'आज खेत में 1 मुख्य काम' (Today's Single Actionable Farm Task Engine), तथा संकुचित 6-चरणीय कृषि यात्रा (Collapsible Lifecycle Stepper) का सफल समावेश।",
+  "releaseName": "किसान साथी v1.0.31",
+  "releaseNotes": "ICAR व IGKV 3-कृषि-जलवायु क्षेत्र आधारित सामान्य बुआई कैलेंडर, जिला-वार पारदर्शिता बैज, तथा शून्य-कागज़ात सुरक्षित बुआई तारीख व किस्म चयन का भय-मुक्त समाधान।",
   "updatedAt": "2026-10-08"
 }

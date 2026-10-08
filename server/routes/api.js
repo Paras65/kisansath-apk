@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.30';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.31';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'होम टैब में आकाशीय बिजली व गंभीर आंधी-तूफान आपातकालीन सुरक्षा अलर्ट (Severe Lightning & Squall Alert), 72-घंटे सुरक्षित कटाई व धूप में सुखाने की खिड़की (Safe Harvest & Sun-Drying Window), आज खेत में 1 मुख्य काम (Today\'s Single Actionable Farm Task Engine), तथा संकुचित 6-चरणीय कृषि यात्रा (Collapsible Lifecycle Stepper) का सफल समावेश।',
+    releaseNotes: 'ICAR व IGKV 3-कृषि-जलवायु क्षेत्र आधारित सामान्य बुआई कैलेंडर, जिला-वार पारदर्शिता बैज, तथा शून्य-कागज़ात सुरक्षित बुआई तारीख व किस्म चयन का भय-मुक्त समाधान।',
     updatedAt: new Date().toISOString()
   });
 });

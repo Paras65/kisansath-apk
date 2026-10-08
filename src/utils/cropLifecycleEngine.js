@@ -219,7 +219,27 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
   const isHarvested = plot.status === 'harvested' || daysElapsed > cropRule.totalDays + 15;
 
   let currentStage = cropRule.stages[0];
-  if (!isPlanned) {
+  if (isHarvested) {
+    currentStage = {
+      minDay: cropRule.totalDays,
+      maxDay: cropRule.totalDays + 999,
+      stageName: 'कटाई पूर्ण व मंडी बिक्री (Post-Harvest & Mandi)',
+      statusColor: '#059669',
+      task: 'फसल की कटाई पूर्ण हो चुकी है। टोकन तुंहर हाथ से टोकन काटकर ₹3,100 समर्थन मूल्य पर धान बेचें या मंडी में बिक्री करें। खाली खेत में अगली रबी (चना/गेहूं) की तैयारी करें।',
+      taskCg: 'फसल के कटाई पूरा होगे हे। टोकन तुंहर हाथ ले टोकन कटाके ₹3,100 भाव म धान बेचव। खाली खेत म रबी चना/गेहूं के तैयारी करव।',
+      warning: 'उपज को 12-14% सुरक्षित नमी पर ही भंडारित करें या समिति में ले जाएं।',
+    };
+  } else if (isPlanned) {
+    currentStage = {
+      minDay: -999,
+      maxDay: -1,
+      stageName: 'बुआई पूर्व खेत तैयारी व बीजोपचार (Pre-Sowing)',
+      statusColor: '#8d6e63',
+      task: 'खेत की गहरी जुताई करें और 3-4 ट्रॉली सड़ी गोबर खाद मिलाएं। बुआई से पूर्व बीज को ट्राइकोडर्मा या कार्बेन्डाजिम से उपचारित अवश्य करें।',
+      taskCg: 'खेत के गहिर जुताई करव अऊ 3-4 ट्राली गोबर खाद डारव। बोवाई ले पहिली बीज के ट्राइकोडर्मा ले बीजोपचार जरूर करव।',
+      warning: 'मानसून व खेत में पानी की स्थिति देखकर ही बुआई/रोपाई शुरू करें।',
+    };
+  } else {
     for (const stage of cropRule.stages) {
       if (daysElapsed >= stage.minDay && daysElapsed <= stage.maxDay) {
         currentStage = stage;
@@ -234,7 +254,22 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
   // Progress percentage (0 - 100%)
   const progressPercent = isPlanned
     ? 0
-    : Math.min(100, Math.max(5, Math.round((daysElapsed / cropRule.totalDays) * 100)));
+    : isHarvested
+      ? 100
+      : Math.min(100, Math.max(5, Math.round((daysElapsed / cropRule.totalDays) * 100)));
+
+  // Friendly Human Day Labels (No negative numbers, zero robotic phrasing)
+  const dayLabel = isPlanned
+    ? `बुआई से ${Math.abs(daysElapsed)} दिन पूर्व`
+    : (daysElapsed === 0
+        ? 'आज बुआई का दिन'
+        : (isHarvested ? 'कटाई पूर्ण' : `${daysElapsed} दिन हुए`));
+
+  const dayLabelCg = isPlanned
+    ? `बोवाई ले ${Math.abs(daysElapsed)} दिन पहिली`
+    : (daysElapsed === 0
+        ? 'आज बोवाई के दिन'
+        : (isHarvested ? 'कटाई पूरा' : `${daysElapsed} दिन होगे`));
 
   // Dynamic Weather Override Evaluation
   let weatherAlert = null;
@@ -275,6 +310,8 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
     daysElapsed,
     isPlanned,
     isHarvested,
+    dayLabel,
+    dayLabelCg,
     currentStage,
     progressPercent,
     weatherAlert,
@@ -410,48 +447,173 @@ export const getSeasonalFarmAction = (monthIndex = new Date().getMonth(), isChha
     },
   };
 
-  return actions[monthIndex] || actions[9];
+  const baseAction = actions[monthIndex] || actions[9];
+
+  // Agro-Climatic Zone Specific Seasonal Overrides
+  if (zoneKey === 'northern_hills' && (monthIndex === 0 || monthIndex === 11)) {
+    return {
+      ...baseAction,
+      warning: isChhattisgarhi
+        ? '❄️ उत्तरी पहाड़ी पाला (तुषार) चेतवनी: रात म जादा पाला परे के संका म खेत के मेड़ म शाम के धुआं करव या हल्का पानी चलावव।'
+        : '❄️ उत्तरी पहाड़ी क्षेत्र पाला (तुषार) चेतावनी: रात में तापमान 4°C से कम होने पर खेत की मेड़ों पर शाम को धुआं करें या हल्की सिंचाई करें ताकि चना व सरसों पाले से बच सके।',
+    };
+  }
+  if (zoneKey === 'bastar' && monthIndex === 5) {
+    return {
+      ...baseAction,
+      task: isChhattisgarhi
+        ? '🌧️ बस्तर पठार म मानसून 10-15 जून म आथे। टिकरा माटी म पानी गिरते च खुर्रा बोवाई अऊ थरहा काम तुरते सुरू करव। बीजोपचार जरूर करव।'
+        : '🌧️ बस्तर पठार विशेष: मानसून 10-15 जून के मध्य सक्रिय होता है। लाल-पीली टिकरा भूमि में हल्की वर्षा पर धान की सीधी बुआई (खुर्रा बोनी) व थरहा तत्काल पूरा करें।',
+    };
+  }
+
+  return baseAction;
+};
+
+/**
+ * Official ICAR & IGKV Agro-Climatic Zones of Chhattisgarh
+ */
+export const CG_AGRO_CLIMATIC_ZONES = {
+  BASTAR_PLATEAU: {
+    key: 'bastar',
+    name: 'बस्तर का पठार (Bastar Plateau)',
+    nameCg: 'बस्तर पठार क्षेत्र',
+    normalKharifPaddySowDay: 175, // approx June 24
+    districts: ['बस्तर', 'दंतेवाड़ा', 'कांकेर', 'कोंडागांव', 'सुकमा', 'बीजापुर', 'नारायणपुर'],
+    characteristics: 'लाल-पीली टिकरा व रेतीली मिट्टी, समय पूर्व मानसून (10-15 जून)',
+  },
+  NORTHERN_HILLS: {
+    key: 'northern_hills',
+    name: 'उत्तरी पहाड़ी क्षेत्र (Northern Hills)',
+    nameCg: 'उत्तरी पहाड़ी क्षेत्र',
+    normalKharifPaddySowDay: 190, // approx July 9
+    districts: ['सरगुजा', 'जशपुर', 'कोरिया', 'सूरजपुर', 'बलरामपुर', 'मनेंद्रगढ़', 'गौरेला-पेंड्रा-मरवाही'],
+    characteristics: 'ऊंचाई अधिक, ठंडी जलवायु, पाला/शीत लहर जोखिम, मानसून (22-26 जून)',
+  },
+  PLAINS: {
+    key: 'plains',
+    name: 'छत्तीसगढ़ का मैदानी क्षेत्र (Chhattisgarh Plains)',
+    nameCg: 'छत्तीसगढ़ मैदानी क्षेत्र',
+    normalKharifPaddySowDay: 182, // approx July 1
+    districts: [
+      'रायपुर', 'दुर्ग', 'बिलासपुर', 'बेमेतरा', 'राजनांदगांव', 'बलौदाबाजार',
+      'जांजगीर-चांपा', 'रायगढ़', 'महासमुंद', 'धमतरी', 'कवर्धा', 'मुंगेली',
+      'बालोद', 'गरियाबंद', 'सक्ती', 'सारंगढ़-बिलाईगढ़', 'खैरागढ़',
+      'मोहला-मानपुर'
+    ],
+    characteristics: 'कन्हार/डोरसा काली व मटासी मिट्टी, सघन नलकूप व नहर सिंचाई',
+  },
+};
+
+/**
+ * Returns the Agro-Climatic Zone for a given district in Chhattisgarh
+ * Resilient to English names, newly carved districts, and abbreviations.
+ */
+export const getZoneForDistrict = (districtName = 'रायपुर') => {
+  const d = (districtName || '').trim().toLowerCase();
+
+  const isBastar =
+    CG_AGRO_CLIMATIC_ZONES.BASTAR_PLATEAU.districts.some((name) => d.includes(name.toLowerCase())) ||
+    ['bastar', 'dantewada', 'kanker', 'kondagaon', 'sukma', 'bijapur', 'narayanpur'].some((k) => d.includes(k));
+  if (isBastar) return CG_AGRO_CLIMATIC_ZONES.BASTAR_PLATEAU;
+
+  const isHills =
+    CG_AGRO_CLIMATIC_ZONES.NORTHERN_HILLS.districts.some((name) => d.includes(name.toLowerCase())) ||
+    ['surguja', 'ambikapur', 'jashpur', 'koriya', 'surajpur', 'balrampur', 'manendragarh', 'mcb', 'gaurela', 'pendra', 'marwahi', 'gpm'].some((k) => d.includes(k));
+  if (isHills) return CG_AGRO_CLIMATIC_ZONES.NORTHERN_HILLS;
+
+  return CG_AGRO_CLIMATIC_ZONES.PLAINS;
 };
 
 /**
  * High-Impact Today's Farm Action Evaluator
- * If farmer has active plot -> returns plot-specific real-time task.
- * Otherwise -> returns high-accuracy regional seasonal task.
+ * If farmer has active plot -> returns plot-specific real-time task with multi-plot priority.
+ * If guest has local crop preference -> returns personalized task fear-free.
+ * Otherwise -> returns district & zone-aware ICAR/IGKV Normal Benchmark Window task.
  */
-export const getTodayActionableFarmTask = ({ activeFarmer, farmerPlots = [], weather = {}, isChhattisgarhi = false }) => {
-  if (activeFarmer && farmerPlots.length > 0) {
-    const primaryPlot = farmerPlots[0];
+export const getTodayActionableFarmTask = ({
+  activeFarmer,
+  farmerPlots = [],
+  weather = {},
+  selectedDistrict = 'रायपुर',
+  isChhattisgarhi = false,
+}) => {
+  // Check logged-in plots OR guest local crop preference (Zero-Login Support)
+  let effectivePlots = farmerPlots || [];
+  let isGuestCustom = false;
+
+  if (effectivePlots.length === 0 && !activeFarmer && typeof window !== 'undefined') {
+    try {
+      const guestPlotRaw = localStorage.getItem('kisan_guest_crop_plot');
+      if (guestPlotRaw) {
+        const guestPlot = JSON.parse(guestPlotRaw);
+        if (guestPlot && guestPlot.sowDate) {
+          effectivePlots = [guestPlot];
+          isGuestCustom = true;
+        }
+      }
+    } catch {}
+  }
+
+  if (effectivePlots.length > 0) {
+    // Multi-Plot Priority: Prioritize active unharvested plot, then first plot
+    const primaryPlot = effectivePlots.find((p) => {
+      const a = analyzePlotLifecycle(p, weather);
+      return !a.isHarvested;
+    }) || effectivePlots[0];
+
     const analysis = analyzePlotLifecycle(primaryPlot, weather);
     const cropName = primaryPlot.cropName || analysis.cropRule?.name || 'धान';
     const stageName = analysis.currentStage?.stageName?.split('(')[0] || 'सक्रिय अवस्था';
     const task = analysis.currentStage?.task || 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।';
     const days = analysis.daysElapsed || 0;
+    const dayLabel = isChhattisgarhi ? (analysis.dayLabelCg || analysis.dayLabel) : analysis.dayLabel;
 
     return {
-      source: 'plot',
+      source: isGuestCustom ? 'guest_custom' : 'plot',
+      isGuestCustom,
       cropName,
-      plotName: primaryPlot.plotName || primaryPlot.name || 'खेत 1',
+      plotName: primaryPlot.plotName || primaryPlot.name || (isChhattisgarhi ? 'मोर फसल' : 'मेरी फसल'),
       stageName,
       daysElapsed: days,
+      dayLabel,
       title: isChhattisgarhi
-        ? `🌾 आज के जरूरी काम: ${cropName} (${days} दिन - ${stageName})`
-        : `🌾 आज का आवश्यक कार्य: ${cropName} (${days} दिन - ${stageName})`,
+        ? `🌾 आज के जरूरी काम: ${cropName} (${dayLabel} - ${stageName})`
+        : `🌾 आज का आवश्यक कार्य: ${cropName} (${dayLabel} - ${stageName})`,
       task: isChhattisgarhi ? (analysis.currentStage?.taskCg || task) : task,
       warning: analysis.currentStage?.warning || null,
       weatherAlert: analysis.weatherAlert || null,
-      targetTab: analysis.currentStage?.minDay > 90 ? 'mandi' : (analysis.currentStage?.minDay > 40 ? 'doctor' : 'schemes'),
-      actionText: isChhattisgarhi ? 'खेत ब्योरा देखव ➔' : 'खेत विवरण देखें ➔',
+      targetTab: analysis.isHarvested || analysis.currentStage?.minDay > 90 ? 'mandi' : (analysis.currentStage?.minDay > 40 ? 'doctor' : 'schemes'),
+      actionText: analysis.isHarvested
+        ? (isChhattisgarhi ? 'मंडी भाव व टोकन ➔' : 'मंडी भाव व टोकन ➔')
+        : (isChhattisgarhi ? 'खेत ब्योरा देखव ➔' : 'खेत विवरण देखें ➔'),
+      badgeText: isGuestCustom
+        ? (isChhattisgarhi ? `🟢 अपन चुने फसल (${dayLabel})` : `🟢 चुनी हुई फसल (${dayLabel})`)
+        : (isChhattisgarhi ? `🟢 मोर खेत (${dayLabel})` : `🟢 मेरा खेत (${dayLabel})`),
     };
   }
 
-  // Seasonal fallback for guest / new farmer
-  const seasonal = getSeasonalFarmAction(new Date().getMonth(), isChhattisgarhi);
+  // Zone-Aware ICAR / IGKV Normal Benchmark Window for guest / unregistered farmer
+  const zone = getZoneForDistrict(selectedDistrict);
+  const month = new Date().getMonth();
+  const seasonal = getSeasonalFarmAction(month, isChhattisgarhi, zone.key);
+
   return {
-    source: 'seasonal',
+    source: 'seasonal_icar',
+    benchmarkSource: 'ICAR / IGKV',
+    zoneName: isChhattisgarhi ? zone.nameCg : zone.name,
+    district: selectedDistrict,
     season: seasonal.season,
     title: seasonal.title,
     task: seasonal.task,
+    warning: seasonal.warning || null,
     targetTab: seasonal.targetTab,
     actionText: seasonal.actionText,
+    badgeText: isChhattisgarhi
+      ? `🏛️ ICAR/IGKV सामान्य चक्र (${selectedDistrict})`
+      : `🏛️ ICAR/IGKV सामान्य चक्र (${selectedDistrict})`,
+    transparencyNote: isChhattisgarhi
+      ? `🏛️ ICAR व इंदिरा गांधी कृषि वि.वि. (IGKV) सामान्य बुआई कैलेंडर अनुसार (${selectedDistrict})। अपन फसल के सही तारीख सेट करे बर अपन बोवाई तारीख चुनव।`
+      : `🏛️ ICAR व इंदिरा गांधी कृषि वि.वि. (IGKV) सामान्य बुआई कैलेंडर अनुसार (${selectedDistrict})। अपने खेत की सटीक तारीख सेट करने हेतु अपनी बुआई तारीख चुनें।`,
   };
 };

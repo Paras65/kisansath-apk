@@ -651,7 +651,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                       '&:hover': { bgcolor: '#1b5e20' },
                     }}
                   >
-                    {isChhattisgarhi ? '+ नवा खेत / फसल जोड़व' : '+ नया खेत / फसल जोड़ें'}
+                    {isChhattisgarhi ? '📅 नवा फसल तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
                   </Button>
                 </Grid>
               </Grid>
@@ -661,10 +661,10 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                 <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 3, bgcolor: '#ffffff', my: 2 }}>
                   <AgricultureIcon sx={{ fontSize: 52, color: '#81c784', mb: 1 }} />
                   <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20' }}>
-                    {isChhattisgarhi ? 'अभी कोनो खेत नइये जोड़े गे हे' : 'अभी कोई खेत नहीं जोड़ा गया है'}
+                    {isChhattisgarhi ? 'अभी कोनो फसल कैलेंडर नइये जोड़े गे हे' : 'अभी कोई फसल कैलेंडर नहीं जोड़ा गया है'}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#666', mb: 2, maxWidth: 420, mx: 'auto' }}>
-                    {isChhattisgarhi ? 'अपन खेत अउ फसल (जइसे धान, चना, गेहूं या साग-भाजी) ल इहां जोड़व अउ बुआई ले लेके कटाई तक खाद, पानी अउ मौसम के सटीक हिसाब रखव।' : 'अपने खेतों व फसलों (जैसे धान, चना, गेहूं या सब्जी) को यहां जोड़ें और प्रत्येक का बुआई से लेकर कटाई तक का खाद, पानी व मौसम का सटीक हिसाब रखें।'}
+                    {isChhattisgarhi ? 'अपन फसल (जइसे धान, चना, गेहूं या साग-भाजी) अऊ बोवाई तारीख चुनव अऊ कटाई तक खाद, पानी के हिसाब रखव। (कोनो कागजात नइ लगे • 100% सुरक्छित)' : 'अपनी फसलों (जैसे धान, चना, गेहूं या सब्जी) व बुआई तारीख चुनें और बुआई से लेकर कटाई तक खाद, पानी व मौसम का सटीक हिसाब रखें। (शून्य कागज़ात • 100% सुरक्षित)'}
                   </Typography>
                   <Button
                     variant="contained"
@@ -672,7 +672,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                     onClick={() => setOpenAddPlotDialog(true)}
                     sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800 }}
                   >
-                    {isChhattisgarhi ? 'पहिला खेत जोड़व' : 'पहला खेत जोड़ें'}
+                    {isChhattisgarhi ? '📅 पहिली फसल तारीख चुनव' : '📅 पहली फसल की तारीख चुनें'}
                   </Button>
                 </Paper>
               ) : activePlot && plotAnalysis ? (
@@ -751,7 +751,9 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                     <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
                         <Typography variant="caption" sx={{ fontWeight: 700, color: '#1b5e20' }}>
-                          {isChhattisgarhi ? `दिन: ${plotAnalysis.daysElapsed} / ${plotAnalysis.cropRule.totalDays} दिन` : `दिन: ${plotAnalysis.daysElapsed} / ${plotAnalysis.cropRule.totalDays} दिन`}
+                          {isChhattisgarhi
+                            ? `अवस्था: ${plotAnalysis.dayLabelCg || plotAnalysis.dayLabel} (${plotAnalysis.cropRule.totalDays} दिन चक्र)`
+                            : `अवस्था: ${plotAnalysis.dayLabel} (${plotAnalysis.cropRule.totalDays} दिन चक्र)`}
                         </Typography>
                         <Typography variant="caption" sx={{ fontWeight: 800, color: '#2e7d32' }}>
                           {isChhattisgarhi ? `${plotAnalysis.progressPercent}% पूरा` : `${plotAnalysis.progressPercent}% पूर्ण`}
@@ -1054,17 +1056,25 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle sx={{ bgcolor: '#1b5e20', color: '#fff', py: 1.5 }}>
-          {isChhattisgarhi ? '🌾 नवा खेत / फसल जोड़व' : '🌾 नया खेत / फसल जोड़ें'}
+          {isChhattisgarhi ? '📅 नवा फसल अऊ बोवाई तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
         </DialogTitle>
         <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Box sx={{ p: 1.2, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+            <Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>🔒</Typography>
+            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '0.72rem', lineHeight: 1.35 }}>
+              {isChhattisgarhi
+                ? '100% सुरक्छित • कोनो कागजात या खसरा नइ लगे। ये केवल तुंहर फसल के दिन-वार सलाह बर हे।'
+                : '100% सुरक्षित • कोई कागज़ात, खसरा या ज़मीन का ब्यौरा नहीं चाहिए। यह केवल सटीक दिन-वार फसल सलाह हेतु है।'}
+            </Typography>
+          </Box>
+
           <TextField
-            label={isChhattisgarhi ? 'खेत के नाव / पहचान' : 'खेत का नाम / पहचान'}
-            placeholder="उदा. खेत 1 - नहर पार"
+            label={isChhattisgarhi ? 'खेत / फसल के नाव (पहचान बर)' : 'खेत / फसल का नाम (पहचान हेतु)'}
+            placeholder="उदा. धान - घर के पीछे / खेत 1"
             fullWidth
             size="small"
             value={newPlot.plotName}
             onChange={(e) => setNewPlot({ ...newPlot, plotName: e.target.value })}
-            sx={{ mt: 1 }}
           />
 
           <TextField
@@ -1142,7 +1152,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
             onClick={handleAddPlot}
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800 }}
           >
-            {isChhattisgarhi ? 'खेत सहेजव' : 'खेत सहेजें'}
+            {isChhattisgarhi ? '📅 फसल कैलेंडर सहेजव' : '📅 फसल व तारीख सहेजें'}
           </Button>
         </DialogActions>
       </Dialog>

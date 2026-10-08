@@ -1711,7 +1711,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
             onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.4, py: 0.3 }}
           >
-            {isChhattisgarhi ? '➕ नवां खेत जोड़व' : '➕ नया खेत जोड़ें'}
+            {isChhattisgarhi ? '📅 नवा फसल तारीख जोड़व' : '📅 फसल बुआई तारीख जोड़ें'}
           </Button>
         </Box>
       </Box>
@@ -1747,7 +1747,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                       <Chip
-                        label={`⏱️ ${analysis.daysElapsed} ${isChhattisgarhi ? 'दिन होगे' : 'दिन हुए'}`}
+                        label={`⏱️ ${isChhattisgarhi ? (analysis.dayLabelCg || analysis.dayLabel) : analysis.dayLabel}`}
                         size="small"
                         sx={{ bgcolor: '#eff6ff', color: '#1d4ed8', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
                       />
@@ -1769,7 +1769,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   {/* Sowing & Acreage Info */}
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block', mb: 1 }}>
                     {isChhattisgarhi ? 'रकबा:' : 'रकबा:'} <strong>{plot.areaAcres || '1.0'} {isChhattisgarhi ? 'एकड़' : 'एकड़'}</strong> • {isChhattisgarhi ? 'बोवाई तारीख:' : 'बुआई तिथि:'} {plot.sowDate || (isChhattisgarhi ? 'दर्ज नइ हे' : 'दर्ज नहीं')}
-                    {plot.khasraNo ? ` • खसरा नं: ${plot.khasraNo}` : ''}
                   </Typography>
 
                   {/* Progress Bar */}
@@ -2473,7 +2472,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
 
           {/* High-Impact Today's Farm Action Card (🌾 आज खेत में 1 मुख्य काम) */}
           {(() => {
-            const todayTask = getTodayActionableFarmTask({ activeFarmer, farmerPlots, weather, isChhattisgarhi });
+            const todayTask = getTodayActionableFarmTask({ activeFarmer, farmerPlots, weather, selectedDistrict, isChhattisgarhi });
             if (!todayTask) return null;
             return (
               <Card
@@ -2510,17 +2509,26 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
                         {todayTask.source === 'plot'
-                          ? (isChhattisgarhi ? `तुंहर खेत: ${todayTask.plotName} (${todayTask.cropName})` : `आपका खेत: ${todayTask.plotName} (${todayTask.cropName})`)
-                          : (isChhattisgarhi ? `मौसम चक्र: ${todayTask.season}` : `कृषि मौसम चक्र: ${todayTask.season}`)}
+                          ? (isChhattisgarhi ? `तुंहर खेत: ${todayTask.plotName} (${todayTask.cropName})` : `आपका पंजीकृत खेत: ${todayTask.plotName} (${todayTask.cropName})`)
+                          : (isChhattisgarhi ? `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)` : `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)`)}
                       </Typography>
                     </Box>
                   </Box>
 
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                     <Chip
-                      label={todayTask.source === 'plot' ? (isChhattisgarhi ? 'खेत अनुसार' : 'खेत आधारित') : (isChhattisgarhi ? 'मासिक सलाह' : 'ऋतु आधारित')}
+                      label={todayTask.source === 'plot'
+                        ? (isChhattisgarhi ? `🟢 मोर खेत (${todayTask.daysElapsed} दिन)` : `🟢 मेरा खेत (${todayTask.daysElapsed} दिन)`)
+                        : (isChhattisgarhi ? `🏛️ ICAR/IGKV सामान्य चक्र` : `🏛️ ICAR/IGKV सामान्य चक्र`)}
                       size="small"
-                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                      sx={{
+                        bgcolor: todayTask.source === 'plot' ? '#e8f5e9' : '#f0fdf4',
+                        color: '#1b5e20',
+                        border: '1px solid #a5d6a7',
+                        fontWeight: 800,
+                        fontSize: '0.68rem',
+                        height: 22
+                      }}
                     />
                     <IconButton
                       size="small"
@@ -2536,9 +2544,76 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   {todayTask.title}
                 </Typography>
 
-                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.5, mb: 1.2 }}>
+                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.5, mb: 1 }}>
                   {todayTask.task}
                 </Typography>
+
+                {/* Transparency & Personalized Plot Onboarding CTA Box (When in ICAR Normal Window Mode) */}
+                {todayTask.source !== 'plot' && (
+                  <Box
+                    sx={{
+                      p: 1.3,
+                      mt: 0.8,
+                      mb: 1.2,
+                      borderRadius: 2.5,
+                      bgcolor: '#f0fdf4',
+                      border: '1.2px dashed #86efac',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1.2
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, minWidth: 200, flex: 1 }}>
+                      <Typography sx={{ fontSize: '1.2rem', lineHeight: 1, mt: 0.2 }}>📅</Typography>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#166534', fontSize: '0.78rem', lineHeight: 1.35, fontWeight: 800, display: 'block' }}>
+                          {isChhattisgarhi
+                            ? 'का तुंहर बोवाई तारीख अलग हे?'
+                            : 'क्या आपकी बुआई तारीख अलग है?'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.7rem', lineHeight: 1.35, display: 'block' }}>
+                          {isChhattisgarhi
+                            ? 'केवल अपन फसल अऊ बोवाई तारीख चुनव — सही दिन-वार काम पाव।'
+                            : 'केवल अपनी फसल व बुआई तारीख चुनें — सही दिन-वार सलाह पाएं।'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.66rem', lineHeight: 1.3, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.4, mt: 0.3, bgcolor: '#dcfce7', px: 0.8, py: 0.2, borderRadius: 1 }}>
+                          <span>🔒</span>
+                          {isChhattisgarhi
+                            ? '100% सुरक्छित • कोनो कागजात या खसरा नइ लगे'
+                            : '100% सुरक्षित • कोई कागज़ात या खसरा नहीं चाहिए'}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => {
+                        stopSpeech();
+                        if (activeFarmer) setOpenMeraKhet(true);
+                        else {
+                          setPendingToolAction('khet');
+                          setOpenQuickLogin(true);
+                        }
+                      }}
+                      sx={{
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
+                        borderRadius: 2,
+                        px: 1.6,
+                        py: 0.6,
+                        textTransform: 'none',
+                        boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                        '&:hover': { bgcolor: '#15803d' }
+                      }}
+                    >
+                      {isChhattisgarhi ? '📅 अपन बोवाई तारीख चुनव ➔' : '📅 अपनी बुआई तारीख चुनें ➔'}
+                    </Button>
+                  </Box>
+                )}
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #cbd5e1', flexWrap: 'wrap', gap: 1 }}>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
