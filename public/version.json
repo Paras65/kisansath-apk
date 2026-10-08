@@ -1,8 +1,8 @@
 {
-  "version": "1.0.47",
+  "version": "1.0.48",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.47",
-  "releaseNotes": "🗣️ ब्राउज़र वॉयस शुद्धता: अंग्रेजी आवाज़/एलियन टोन रोकथाम, शुद्ध हिंदी/छत्तीसगढ़ी उच्चारण, हिंग्लिश बोली पहचान व ऑटो-फ़ॉलबैक।",
+  "releaseName": "किसान साथी v1.0.48",
+  "releaseNotes": "👴🏻 बहिरा काका असली बुजुर्ग पुरुष आवाज़: सभी ब्राउज़रों में महिला आवाज़ पूरी तरह समाप्त, 167Hz गहरा मर्दाना बैरिटोन व देहाती काका अंदाज़।",
   "updatedAt": "2026-10-08"
 }

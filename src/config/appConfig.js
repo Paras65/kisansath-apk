@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.47',
+  appVersion: env.VITE_APP_VERSION || '1.0.48',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
