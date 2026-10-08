@@ -14,17 +14,13 @@ import {
   IconButton,
   TextField,
   MenuItem,
-  Alert,
-  Divider,
   InputAdornment,
-  LinearProgress,
-  Collapse
+  LinearProgress
 } from '@mui/material';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AddIcon from '@mui/icons-material/Add';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
@@ -43,18 +39,15 @@ import MenuBookIcon from '@mui/icons-material/MenuBook';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import SystemUpdateIcon from '@mui/icons-material/SystemUpdate';
 import SyncIcon from '@mui/icons-material/Sync';
-import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import LogoutIcon from '@mui/icons-material/Logout';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CloseIcon from '@mui/icons-material/Close';
 import PinDropIcon from '@mui/icons-material/PinDrop';
-import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import FlashOnIcon from '@mui/icons-material/FlashOn';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { speakText, stopSpeech } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
@@ -66,7 +59,7 @@ import {
   getFarmerPlots
 } from '../services/farmerService';
 import { notify } from '../services/notificationService';
-import { CROP_LIFECYCLE_RULES, analyzePlotLifecycle, getTodayActionableFarmTask } from '../utils/cropLifecycleEngine';
+import { analyzePlotLifecycle, getTodayActionableFarmTask } from '../utils/cropLifecycleEngine';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { shareOnWhatsApp } from '../utils/shareUtils';
 import { checkForAppUpdate } from '../services/updateService';
@@ -81,93 +74,86 @@ import { ShareModal } from './ShareModal';
 import { getMandiRates, getCachedModuleData } from '../services/apiService';
 import { fetchVillagesByPincode } from '../services/pincodeService';
 
-export const getLifecycleSteps = (isChhattisgarhi = false) => [
-  {
-    step: 1,
-    title: isChhattisgarhi ? 'खेत तैयारी अऊ माटी सेहत' : 'खेत तैयारी व मृदा स्वास्थ्य',
-    short: isChhattisgarhi ? 'माटी जांच अऊ घाम म गहिर जुताई' : 'मृदा परीक्षण व ग्रीष्मकालीन गहरी जुताई',
-    tag: isChhattisgarhi ? 'खेत तैयारी' : 'खेत तैयारी',
-    color: '#5d4037',
-    desc: isChhattisgarhi
-      ? 'घाम के दिन म नागर ले गहिर जुताई करव ताकि कीड़ा-मकोड़ा के अंडा अऊ खरपतवार जल के मर जावय। सड़े गोबर खाद 4-5 ट्राली प्रति एकड़ डारव अऊ नजदीकी केवीके म माटी के जांच जरूर करवाव (आदर्श pH: 6.0-7.0)।'
-      : 'गर्मियों में गहरी जुताई करें ताकि हानिकारक कीटों के अंडे व खरपतवार नष्ट हो जाएं। गोबर की सड़ी खाद 4-5 टन प्रति एकड़ डालें और नजदीकी कृषि विज्ञान केंद्र से मिट्टी की जांच कराएं (आदर्श pH: 6.0-7.0)।',
-    voice: isChhattisgarhi
-      ? 'पहिला चरण: खेत तैयारी अऊ माटी सेहत। खेत के गहिर जुताई करव। 4 ले 5 ट्राली गोबर खाद प्रति एकड़ डारव अऊ माटी के पीएच टेस्ट करवाव।'
-      : 'पहला चरण: खेत तैयारी और मृदा स्वास्थ्य। खेत की गहरी जुताई करें। 4 से 5 टन गोबर खाद प्रति एकड़ डालें और मिट्टी का पीएच टेस्ट कराएं।'
-  },
-  {
-    step: 2,
-    title: isChhattisgarhi ? 'बीज चुनाव अऊ बीजोपचार' : 'बीज चयन व बीजोपचार',
-    short: isChhattisgarhi ? 'प्रमाणित बीज अऊ फफूंदनाशक उपचार' : 'प्रमाणित रोगरोधी बीज व फफूंदनाशी उपचार',
-    tag: isChhattisgarhi ? 'बीजोपचार' : 'बीजोपचार',
-    color: '#2e7d32',
-    desc: isChhattisgarhi
-      ? 'प्रमाणित किस्म (जैसे सरना, महामाया, एचएमटी) के बीज चुनव। बोए ले पहिली बीजोपचार जरूर करव: 1 किलो बीज म 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिला के 24 घंटा रखव। एकर ले उकठा अऊ झुलसा रोग नइ लगय।'
-      : 'प्रमाणित किस्मों (जैसे धान में सरना, महामाया, एचएमटी) का चुनाव करें। बुआई से पूर्व बीजोपचार अवश्य करें: 1 कि.ग्रा. बीज में 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिलाकर 24 घंटे रखें। इससे उकठा व झुलसा रोग नहीं लगता।',
-    voice: isChhattisgarhi
-      ? 'दूसरा चरण: बीज चुनाव अऊ बीजोपचार। हमेशा प्रमाणित बीज चुनव अऊ बोए ले पहिली ट्राइकोडर्मा या बाविस्टिन ले बीजोपचार जरूर करव।'
-      : 'दूसरा चरण: बीज चयन और बीजोपचार। हमेशा प्रमाणित बीज का उपयोग करें और बुआई से पहले ट्राइकोडर्मा या बाविस्टिन से बीजोपचार जरूर करें।'
-  },
-  {
-    step: 3,
-    title: isChhattisgarhi ? 'संतुलित पोषण अऊ खाद हिसाब' : 'संतुलित पोषण व खाद प्रबंधन',
-    short: isChhattisgarhi ? 'यूरिया, डीएपी अऊ पोटाश के सही बेरा' : 'यूरिया, डीएपी व पोटाश का सही समय',
-    tag: isChhattisgarhi ? 'खाद प्रबंधन' : 'खाद प्रबंधन',
-    color: '#00796b',
-    desc: isChhattisgarhi
-      ? 'बोवाई के बेरा पूरा डीएपी अऊ पोटाश डारव। यूरिया ला तीन बराबर भाग म बांट के देवव (बोवाई, कल्ला फूटत 25 दिन म, अऊ बाली निकलत ले पहिली 45 दिन म)। जिंक सल्फेट ला कभू भी डीएपी संग मिला के झन डारव।'
-      : 'बुआई के समय पूरी डीएपी और पोटाश डालें। यूरिया को तीन बराबर भागों में बांटकर दें (बुआई, कल्ले फूटने पर 25 दिन बाद, और बालियां आने से पहले 45 दिन बाद)। जिंक सल्फेट कभी भी डीएपी के साथ मिलाकर न डालें।',
-    voice: isChhattisgarhi
-      ? 'तीसरा चरण: पोषण अऊ खाद हिसाब। डीएपी अऊ पोटाश बोवाई के बेरा डारव। यूरिया ला तीन भाग म देवव। जिंक अऊ डीएपी ला कभू मिला के झन डारव।'
-      : 'तीसरा चरण: पोषण और खाद प्रबंधन। डीएपी और पोटाश बुआई के समय डालें। यूरिया को तीन भागों में दें। जिंक और डीएपी को कभी मिलाकर न डालें।'
-  },
-  {
-    step: 4,
-    title: isChhattisgarhi ? 'फसल रक्षा अऊ रोग निदान' : 'फसल सुरक्षा व रोग निदान',
-    short: isChhattisgarhi ? 'कीड़ा अऊ बीमारी के सही समय म रोकथाम' : 'कीट व बीमारी का समय पर नियंत्रण',
-    tag: isChhattisgarhi ? 'फसल रक्षा' : 'फसल सुरक्षा',
-    color: '#c62828',
-    desc: isChhattisgarhi
-      ? 'खेत म रोज निगरानी करव। गाभा कीट (तना छेदक) बर फेरोमोन ट्रैप लगाव। भूरा माहू दिखे ले खेत के पानी 2 दिन निकाल देवव अऊ नीम तेल या पाइमेट्रोज़िन के छिड़काव तना म करव। पत्ती म धब्बा दिखे ले ट्राइसाइक्लाजोल छिड़कव।'
-      : 'खेत में नियमित निगरानी करें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं। भूरा माहू होने पर खेत का पानी 2 दिन निकालें और नीम तेल या पाइमेट्रोज़िन का छिड़काव तनों पर करें। पत्तियों पर धब्बे दिखने पर ट्राईसाइक्लाजोल का छिड़काव करें।',
-    voice: isChhattisgarhi
-      ? 'चौथा चरण: फसल रक्षा अऊ रोग निदान। पत्ती अऊ तना के रोज निरिक्षण करव। लक्षण दिखते ही फसल डॉक्टर टैब म फोटो जांच के सही दवाई छिड़कव।'
-      : 'चौथा चरण: फसल सुरक्षा और रोग निदान। पत्तियों और तनों का नियमित निरीक्षण करें। लक्षण दिखते ही फसल डॉक्टर टैब में फोटो या लक्षण जांचकर सही दवा छिड़कें।'
-  },
-  {
-    step: 5,
-    title: isChhattisgarhi ? 'कटाई, सुखाई अऊ मिझाई' : 'कटाई, सुखाना व थ्रेशिंग',
-    short: isChhattisgarhi ? '14-17% नमी म कटाई अऊ सुरक्षित रखाई' : '14-17% नमी पर कटाई व सुरक्षित भंडारण',
-    tag: isChhattisgarhi ? 'कटाई' : 'कटाई',
-    color: '#f57f17',
-    desc: isChhattisgarhi
-      ? 'जब बाली के 85-90% दाना पियर (सुनहरा) हो जावय तब कटाई करव। कटाई के बाद फसल ला घाम म बने सुखाव। खरीदी केंद्र ले जाए ले पहिली अनाज म नमी 14-17% ले जादा नइ होना चाही ताकि तौल म कटौती झन होवय।'
-      : 'जब बालियों के 85-90% दाने सुनहरे हो जाएं तब कटाई करें। कटाई के बाद फसल को धूप में अच्छी तरह सुखाएं। उपार्जन केंद्र ले जाने से पहले अनाज में नमी 14-17% से अधिक नहीं होनी चाहिए ताकि वजन में कटौती न हो।',
-    voice: isChhattisgarhi
-      ? 'पांचवां चरण: कटाई अऊ सुखाई। जब 85 ले 90 प्रतिशत दाना सुनहरा हो जावय तब कटाई करव अऊ अनाज ला सुखा के नमी 14 ले 17 प्रतिशत तक लाव।'
-      : 'पांचवां चरण: कटाई और सुखाना। जब 85 से 90 प्रतिशत दाने सुनहरे हो जाएं तब कटाई करें और अनाज को सुखाकर नमी 14 से 17 प्रतिशत तक लाएं।'
-  },
-  {
-    step: 6,
-    title: isChhattisgarhi ? `मंडी भाव अऊ ₹${appConfig.paddyScheme.totalRate} धान खरीदी` : `मंडी भाव व ₹${appConfig.paddyScheme.totalRate} बिक्री`,
-    short: isChhattisgarhi ? 'टोकन तुंहर हाथ अऊ कृषक उन्नति योजना' : 'टोकन तुंहर हाथ व कृषक उन्नति योजना',
-    tag: isChhattisgarhi ? 'बिक्री ₹3,100' : 'बिक्री ₹3,100',
-    color: '#1565c0',
-    desc: isChhattisgarhi
-      ? `${appConfig.stateName} कृषक उन्नति योजना म ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल के भुगतान होथे (प्रति एकड़ ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)। टोकन तुंहर हाथ ऐप ले घर बैठे टोकन कटाव, उपार्जन केंद्र म तौल कराव अऊ सीधा बैंक खाता म पइसा पाव।`
-      : `${appConfig.stateName} कृषक उन्नति योजना के तहत ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} प्रति क्विंटल का भुगतान होता है (प्रति एकड़ ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल)। टोकन तुंहर हाथ ऐप से घर बैठे टोकन काटें, उपार्जन केंद्र में तौल कराएं और सीधे बैंक खाते में भुगतान प्राप्त करें।`,
-    voice: isChhattisgarhi
-      ? `छठवां चरण: मंडी भाव अऊ सरकारी खरीदी। ${appConfig.stateName} सरकार के कृषक उन्नति योजना म ${appConfig.paddyScheme.totalRate} रुपया प्रति क्विंटल के भाव ले टोकन तुंहर हाथ द्वारा आसानी ले धान बेचव।`
-      : `छठा चरण: मंडी भाव और सरकारी बिक्री। ${appConfig.stateName} सरकार की कृषक उन्नति योजना में ${appConfig.paddyScheme.totalRate} रुपये प्रति क्विंटल के भाव से टोकन तुंहर हाथ द्वारा आसानी से धान बेचें।`
+// IGKV Raipur Agro-Scientist Seasonal Advisory Engine (Dynamic by Month)
+const getIgkvSeasonalAdvisory = (isChhattisgarhi) => {
+  const currentMonth = new Date().getMonth(); // 0 to 11
+  if (currentMonth === 9 || currentMonth === 10) {
+    // Oct - Nov
+    return {
+      seasonBadge: isChhattisgarhi ? '🌾 खरीफ कटाई अऊ रबी बोआई' : '🌾 खरीफ कटाई व रबी बुआई तैयारी',
+      monthTitle: isChhattisgarhi ? 'कार्तिक-अगहन सामयिक कृषि बुलेटिन' : 'अक्टूबर-नवंबर सामयिक कृषि बुलेटिन',
+      headline: isChhattisgarhi
+        ? 'धान कटाई, पैरा प्रबंधन अऊ रबी चना/गेहूं/सरसों के उन्नत तैयारी'
+        : 'धान कटाई, पराली (पैरा) प्रबंधन व रबी चना/गेहूं/सरसों बुआई तैयारी',
+      advisoryText: isChhattisgarhi
+        ? 'धान के 80-85% बाली पियरियाए पर कटाई करव। नमी 14% तक सुखा के उपार्जन केंद्र ले जाव। पैरा कभू झन जलाव — खेत म सड़ा के जैविक खाद बनाव। रबी चना (राधे/JG-11) अऊ गेहूं बोआई बर खेत जुताई करव, बीजोपचार ट्राइकोडर्मा ले जरूर करव।'
+        : 'धान की बालियां 80-85% सुनहरी होने पर कटाई करें। कटाई उपरांत दानों को 14% नमी तक धूप में सुखाकर ही उपार्जन केंद्र लाएं। पैरा (पराली) खेतों में कदापि न जलाएं। रबी दलहन (चना JG-11, तीवरा) व गेहूं बुआई हेतु खेत तैयार कर ट्राइकोडर्मा व राइजोबियम से बीजोपचार अवश्य करें।',
+      actionAlert: isChhattisgarhi
+        ? '⚠️ पराली जलाना दंडनीय हे — रोटावेटर ले माटी म मिलाव।'
+        : '⚠️ पराली जलाना दंडनीय है — रोटावेटर से मिट्टी में मिलाएं।',
+      voiceText: isChhattisgarhi
+        ? `इंदिरा गांधी कृषि विश्वविद्यालय रायपुर के सामयिक सलाह: धान के 80 प्रतिशत बाली पियरियाए पर कटाई करव अऊ 14 प्रतिशत नमी तक सुखाव। पैरा कभू झन जलाव। रबी चना अऊ गेहूं बोआई बर खेत तैयार करव।`
+        : `इंदिरा गांधी कृषि विश्वविद्यालय रायपुर की सामयिक सलाह: धान की बालियां 80 प्रतिशत सुनहरी होने पर कटाई करें और 14 प्रतिशत नमी तक सुखाएं। पराली कदापि न जलाएं। रबी चना व गेहूं हेतु खेत तैयार कर बीजोपचार करें।`
+    };
+  } else if (currentMonth === 11 || currentMonth === 0) {
+    // Dec - Jan
+    return {
+      seasonBadge: isChhattisgarhi ? '🌱 रबी फसल बढ़वार अऊ पाला सुरक्षा' : '🌱 रबी फसल वृद्धि व पाला सुरक्षा',
+      monthTitle: isChhattisgarhi ? 'पूस-माघ सामयिक कृषि बुलेटिन' : 'दिसंबर-जनवरी सामयिक कृषि बुलेटिन',
+      headline: isChhattisgarhi
+        ? 'गेहूं म ताज जड़ (CRI) सिंचाई अऊ चना म इल्ली निगरानी'
+        : 'गेहूं में प्रथम सिंचाई (CRI अवस्था) व दलहन में कीट सुरक्षा',
+      advisoryText: isChhattisgarhi
+        ? 'गेहूं बोआई के 21वें दिन पहिली सिंचाई (CRI) जरूर करव। चना म फूल आवत बेरा पानी झन देव, केवल घेंटी बनत बेरा पानी देव। पाला के संका होए पर खेत के मेड़ म शाम के धुआं करव अऊ हल्की सिंचाई करव।'
+        : 'गेहूं बुआई के 21 दिन बाद ताज जड़ (CRI) अवस्था में प्रथम सिंचाई अनिवार्य है। चने में फूल आते समय सिंचाई न करें, केवल घेंटी बनते समय पानी दें। पाला/शीतलहर से बचाव हेतु खेत की मेड़ों पर शाम को धुआं करें और हल्की सिंचाई दें।',
+      actionAlert: isChhattisgarhi
+        ? '❄️ शीतलहर अलर्ट: पाला से बचाव बर मेड़ म शाम के धुआं करव।'
+        : '❄️ शीतलहर अलर्ट: पाले से बचाव हेतु शाम को मेड़ों पर धुआं करें।',
+      voiceText: isChhattisgarhi
+        ? `IGKV रायपुर सलाह: गेहूं म 21वें दिन पहिली सिंचाई अनिवार्य हे। चना म फूल आवत बेरा पानी झन देव। पाला ले बांचे बर शाम के धुआं करव।`
+        : `IGKV रायपुर सलाह: गेहूं में 21वें दिन ताज जड़ अवस्था में प्रथम सिंचाई करें। चने में फूल के समय पानी न दें। पाले से बचाव हेतु शाम को धुआं करें।`
+    };
+  } else if (currentMonth >= 1 && currentMonth <= 4) {
+    // Feb - May
+    return {
+      seasonBadge: isChhattisgarhi ? '☀️ जायद / गरमी फसल प्रबंधन' : '☀️ जायद व ग्रीष्मकालीन फसल प्रबंधन',
+      monthTitle: isChhattisgarhi ? 'फागुन-बैसाख सामयिक कृषि बुलेटिन' : 'फरवरी-मई सामयिक कृषि बुलेटिन',
+      headline: isChhattisgarhi
+        ? 'गरमी मूंग, उड़द अऊ सब्जी फसल म सूक्ष्म सिंचाई'
+        : 'ग्रीष्मकालीन मूंग, उड़द व सब्जी फसलों में सिंचाई व कीट प्रबंधन',
+      advisoryText: isChhattisgarhi
+        ? 'गरमी धान या मूंग-उड़द म पानी के बचत बर स्प्रिंकलर या ड्रिप के उपयोग करव। सब्जी फसल म रस चूसक कीरा बर नीम तेल के छिड़काव करव। गरमी के गहरी जुताई ले माटी म धूप लगाके हानिकारक फफूंद नष्ट करव।'
+        : 'ग्रीष्मकालीन मूंग/उड़द व सब्जियों में जल संरक्षण हेतु स्प्रिंकलर या ड्रिप सिंचाई अपनाएं। रस चूसक कीटों से बचाव हेतु नीम तेल का छिड़काव करें। ग्रीष्मकालीन गहरी जुताई से कीटों के अंडों व खरपतवार बीजों को नष्ट करें।',
+      actionAlert: isChhattisgarhi
+        ? '💧 जल संरक्षण: स्प्रिंकलर या ड्रिप ले सिंचाई करव।'
+        : '💧 जल संरक्षण: स्प्रिंकलर या ड्रिप से सिंचाई करें।',
+      voiceText: isChhattisgarhi
+        ? `IGKV रायपुर सलाह: गरमी फसल म जल संरक्षण बर ड्रिप या स्प्रिंकलर अपनाव। सब्जी फसल म रस चूसक कीरा बर नीम तेल छिड़कव।`
+        : `IGKV रायपुर सलाह: ग्रीष्मकालीन फसलों में ड्रिप या स्प्रिंकलर अपनाएं। सब्जियों में रस चूसक कीटों हेतु नीम तेल छिड़कें।`
+    };
+  } else {
+    // June - Sep
+    return {
+      seasonBadge: isChhattisgarhi ? '🌧️ खरीफ धान रोपाई अऊ पोषण' : '🌧️ खरीफ धान रोपाई व पोषण प्रबंधन',
+      monthTitle: isChhattisgarhi ? 'आषाढ़-क्वार सामयिक कृषि बुलेटिन' : 'जून-सितंबर सामयिक कृषि बुलेटिन',
+      headline: isChhattisgarhi
+        ? 'धान रोपाई, संतुलित NPK खाद अऊ तनाछेदक कीरा ले बचाव'
+        : 'धान रोपाई, संतुलित NPK उर्वरक व तनाछेदक कीट नियंत्रण',
+      advisoryText: isChhattisgarhi
+        ? 'रोपाई के समय डीएपी अऊ पोटाश के पूरा मात्रा खेत म मिलाव। यूरिया के 3 भाग म देव — रोपाई, कल्ला फूटत अऊ गाभा बेरा। खेत म 2-3 सेमी पानी बना के रखव। तनाछेदक बर प्रकाश प्रपंच या फेरोमोन ट्रैप लगाव।'
+        : 'रोपाई के समय डीएपी व पोटाश की संपूर्ण बेसल मात्रा दें। यूरिया को 3 भागों में बांटकर दें — रोपाई, कल्ले फूटते व गभोट अवस्था में। तनाछेदक व माहू कीट से बचाव हेतु फेरोमोन ट्रैप लगाएं।',
+      actionAlert: isChhattisgarhi
+        ? '🌾 संतुलित खाद: यूरिया एक बार म झन डारव, 3 किस्त म देव।'
+        : '🌾 संतुलित पोषण: यूरिया एक बार में न डालें, 3 किस्तों में दें।',
+      voiceText: isChhattisgarhi
+        ? `IGKV रायपुर सलाह: धान म संतुलित खाद लगाव। डीएपी अऊ पोटाश रोपाई बेरा देव। यूरिया के 3 किस्त म उपयोग करव।`
+        : `IGKV रायपुर सलाह: धान में संतुलित पोषण दें। रोपाई के समय डीएपी व पोटाश दें और यूरिया को 3 किस्तों में बांटकर डालें।`
+    };
   }
-];
-
-export const LIFECYCLE_STEPS = getLifecycleSteps(false);
+};
 
 export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false }) => {
-  const { isChhattisgarhi, t, tCg, tPlural } = useLanguage();
-  const lifecycleSteps = getLifecycleSteps(isChhattisgarhi);
-  const [expandedStep, setExpandedStep] = useState(1);
+  const { isChhattisgarhi } = useLanguage();
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
   const [openSoilIot, setOpenSoilIot] = useState(false);
@@ -220,7 +206,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   // 1-Click Quick Login Modal & Pending Tool Action State
   const [openQuickLogin, setOpenQuickLogin] = useState(false);
   const [pendingToolAction, setPendingToolAction] = useState(null);
-  const [showLifecycleJourney, setShowLifecycleJourney] = useState(false);
   const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
   const [loginForm, setLoginForm] = useState({
     phone: '',
@@ -333,10 +318,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
     notify.info(tCg('सफलतापूर्वक लॉगआउट। आपके सबो डेटा सुरक्षित हे।', 'सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।'));
   };
 
-  // Public Instant Crop & Quick Acre Advisor State (Zero Login Required)
-  const [selectedCropKey, setSelectedCropKey] = useState('paddy');
-  const [quickAcre, setQuickAcre] = useState(2.0);
-
   const [updateInfo, setUpdateInfo] = useState(null);
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
@@ -417,11 +398,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
 
     const fullText = parts.length > 0 ? parts.join(' ') : fallbackText;
     speakText(fullText.trim());
-  };
-
-  const handleReadStep = (e, step) => {
-    e.stopPropagation();
-    speakText(step.voice);
   };
 
   const [liveMandiRates, setLiveMandiRates] = useState(() => {
@@ -1008,255 +984,306 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
     </Card>
   );
 
-  // 3. Public Crop Advisor & Quick Acre Estimator (100% Free & Open, Zero Login Required)
-  const renderPublicCropAdvisor = () => {
-    const CROP_BENCHMARKS = {
-      paddy: {
-        name: 'धान (Paddy)',
-        rate: appConfig.paddyScheme.totalRate,
-        rateLabel: `₹${appConfig.paddyScheme.totalRate}/क्विं. (समर्थन मूल्य + बोनस)`,
-        yieldPerAcre: 21,
-        dapPerAcre: 50,
-        ureaPerAcre: 90,
-        potashPerAcre: 30,
-        season: 'खरीफ / रबी धान',
-        seasonCg: 'खरीफ / रबी धान',
-        advisory: 'कल्ले फूटते समय 2-3 सेमी पानी बनाए रखें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं।',
-        advisoryCg: 'कल्ला फूटत बेरा खेत म 2-3 सेमी पानी राखव। तना छेदक कीरा बर फेरोमोन ट्रैप लगाव।',
-        voice: `धान हेतु ₹${appConfig.paddyScheme.totalRate} समर्थन मूल्य गारंटी है। 21 क्विंटल प्रति एकड़ तक सरकारी खरीद होती है।`,
-        voiceCg: `धान बर ₹${appConfig.paddyScheme.totalRate} समर्थन मूल्य गारंटी हे। 21 क्विंटल प्रति एकड़ तक सरकारी खरीदी होथे।`
-      },
-      chana: {
-        name: 'चना (Gram)',
-        rate: 5440,
-        rateLabel: '₹5,440/क्विं. (राष्ट्रीय MSP)',
-        yieldPerAcre: 10,
-        dapPerAcre: 40,
-        ureaPerAcre: 15,
-        potashPerAcre: 20,
-        season: 'रबी दलहन (दलहन विविधीकरण)',
-        seasonCg: 'रबी दलहन फसल',
-        advisory: 'चने में अधिक यूरिया न डालें। फूल आते समय कभी सिंचाई न करें, केवल घेंटी बनते समय पानी दें।',
-        advisoryCg: 'चना म जादा यूरिया झन लगाव। फूल आवत बेरा पानी कभू झन देव, केवल घेंटी बनत बेरा पानी देव।',
-        voice: 'चना समर्थन मूल्य ₹5,440 प्रति क्विंटल है। दलहन फसल में अतिरिक्त यूरिया डालने से बचें।',
-        voiceCg: 'चना के समर्थन मूल्य ₹5,440 प्रति क्विंटल हे। दलहन फसल म जादा यूरिया डाले ले बचव।'
-      },
-      wheat: {
-        name: 'गेहूं (Wheat)',
-        rate: 2425,
-        rateLabel: '₹2,425/क्विं. (राष्ट्रीय MSP)',
-        yieldPerAcre: 20,
-        dapPerAcre: 50,
-        ureaPerAcre: 100,
-        potashPerAcre: 25,
-        season: 'रबी गेहूं',
-        seasonCg: 'रबी गेहूं',
-        advisory: 'बुआई के 21वें दिन ताज जड़ (CRI) अवस्था में पहली सिंचाई अनिवार्य है। पीला रतुआ पर नजर रखें।',
-        advisoryCg: 'बोवाई के 21वें दिन मुकुट जड़ बेरा पहिली सिंचाई जरूरी हे। पीला रतुआ रोग म नजर राखव।',
-        voice: 'गेहूं का समर्थन मूल्य ₹2,425 प्रति क्विंटल है। 21वें दिन पहली सिंचाई अवश्य करें।',
-        voiceCg: 'गेहूं के समर्थन मूल्य ₹2,425 प्रति क्विंटल हे। 21वें दिन पहिली सिंचाई जरूर करव।'
-      },
-      maize: {
-        name: 'मक्का (Maize)',
-        rate: 2225,
-        rateLabel: '₹2,225/क्विं. (राष्ट्रीय MSP)',
-        yieldPerAcre: 26,
-        dapPerAcre: 45,
-        ureaPerAcre: 85,
-        potashPerAcre: 20,
-        season: 'खरीफ / जायद मक्का',
-        seasonCg: 'खरीफ / जायद मक्का',
-        advisory: 'फॉल आर्मीवर्म कीट के प्रकोप से बचाव हेतु नीम अर्क या अनुशंसित कीटनाशक का गोभ में छिड़काव करें।',
-        advisoryCg: 'फॉल आर्मीवर्म कीरा के परकोप ले बांचे बर नीम के काढ़ा या अनुशंसित कीटनाशक गोभ म छिड़कव।',
-        voice: 'मक्का का समर्थन मूल्य ₹2,225 प्रति क्विंटल है। भुट्टे बनते समय खेत में नमी रखें।',
-        voiceCg: 'मक्का के समर्थन मूल्य ₹2,225 प्रति क्विंटल हे। भुट्टा बनत बेरा खेत म नमी राखव।'
-      },
-      tomato: {
-        name: 'टमाटर / सब्जी (Tomato)',
-        rate: 1500,
-        rateLabel: '₹1,500/क्विं. (मंडी औसत दर)',
-        yieldPerAcre: 180,
-        dapPerAcre: 60,
-        ureaPerAcre: 75,
-        potashPerAcre: 50,
-        season: 'सब्जी नकदी फसल',
-        seasonCg: 'भाजी / नकदी फसल',
-        advisory: 'डैम्पिंग ऑफ व पत्ती मरोड़ रोग से बचाव रखें। नियमित तुड़ाई से 3 दिन पहले रासायनिक कीटनाशक न डालें।',
-        advisoryCg: 'डैम्पिंग ऑफ अउ पाना मुर्रा रोग ले बचा के राखव। फल तोड़े के 3 दिन पहिली दवाई झन छिड़कव।',
-        voice: 'टमाटर नकदी फसल है। फलों की चमक व वजन बढ़ाने हेतु पोटाश का संतुलित छिड़काव करें।',
-        voiceCg: 'टमाटर नकदी फसल हे। फल के चमक अउ वजन बढ़ाय बर पोटाश खाद के संतुलित छिड़काव करव।'
-      }
-    };
+  // 3. Smart Chhattisgarh Farmer Assistance & Procurement Hub (धान उपार्जन + IGKV बुलेटिन)
+  const renderCgAssistanceHubCard = () => {
+    const advisory = getIgkvSeasonalAdvisory(isChhattisgarhi);
 
-    const currentCrop = CROP_BENCHMARKS[selectedCropKey] || CROP_BENCHMARKS.paddy;
-    const estYield = Math.round(currentCrop.yieldPerAcre * quickAcre * 10) / 10;
-    const estIncome = Math.round(estYield * currentCrop.rate);
-    const estDap = Math.round(currentCrop.dapPerAcre * quickAcre);
-    const estUrea = Math.round(currentCrop.ureaPerAcre * quickAcre);
-    const estPotash = Math.round(currentCrop.potashPerAcre * quickAcre);
+    const handleReadHub = () => {
+      const fullSpeech = isChhattisgarhi
+        ? `छत्तीसगढ़ धान उपार्जन अऊ IGKV रायपुर कृषि बुलेटिन। धान समर्थन मूल्य ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल, 21 क्विंटल प्रति एकड़ सरकारी खरीदी गारंटी हे। टोकन तुंहर हाथ ऑनलाइन बुकिंग ले घर बैठे टोकन कटाव। ${advisory.voiceText}`
+        : `छत्तीसगढ़ धान उपार्जन एवं IGKV रायपुर कृषि बुलेटिन। धान समर्थन मूल्य ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल, 21 क्विंटल प्रति एकड़ उपार्जन गारंटी है। टोकन तुंहर हाथ ऑनलाइन पोर्टल से घर बैठे टोकन प्राप्त करें। ${advisory.voiceText}`;
+      speakText(fullSpeech);
+    };
 
     return (
       <Card
         sx={{
-          p: { xs: 1.8, sm: 2 },
           borderRadius: 3.5,
           bgcolor: '#ffffff',
-          border: '1.2px solid #e2e8f0',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-          mb: 2.2
+          border: '1.5px solid #81c784',
+          boxShadow: '0 4px 20px rgba(46, 125, 50, 0.08)',
+          overflow: 'hidden',
+          mb: 2.5
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <CalculateIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
+        {/* Hub Header Strip */}
+        <Box
+          sx={{
+            p: 1.5,
+            px: 2,
+            background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+            color: '#ffffff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 1
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+            <Box
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.18)',
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <AgricultureIcon sx={{ color: '#ffeb3b', fontSize: 22 }} />
+            </Box>
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
-                {isChhattisgarhi ? '🌾 तुरंत फसल, खाद अऊ आमदनी हिसाब' : '🌾 त्वरित फसल, खाद व आय सलाहकार (Open Calculator)'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                {isChhattisgarhi ? 'शून्य-लॉगिन • केवल फसल अऊ एकड़ चुनव अऊ तुरंत हिसाब पाव' : 'शून्य-लॉगिन • केवल फसल व एकड़ चुनें और तुरंत हिसाब पाएं'}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 900, fontSize: '0.94rem', color: '#ffffff' }}>
+                  {isChhattisgarhi ? '🌾 धान उपार्जन एवं सामयिक किसानी हब' : '🌾 धान उपार्जन एवं सामयिक कृषि हब'}
+                </Typography>
+                <Chip
+                  label={isChhattisgarhi ? '🏛️ छ.ग. शासन व IGKV अधिकृत' : '🏛️ छ.ग. शासन व IGKV अधिकृत'}
+                  size="small"
+                  sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 900, height: 20, fontSize: '0.64rem' }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.72rem', display: 'block' }}>
+                {isChhattisgarhi
+                  ? 'टोकन तुंहर हाथ • ₹3,100 समर्थन मूल्य • रायपुर कृषि वैज्ञानिक सलाह'
+                  : 'टोकन तुंहर हाथ • ₹3,100 उपार्जन • रायपुर कृषि वैज्ञानिक परामर्श'}
               </Typography>
             </Box>
           </Box>
+
           <IconButton
             size="small"
-            onClick={() => speakText(isChhattisgarhi
-              ? `${currentCrop.name} के हिसाब: ${quickAcre} एकड़ म अनुमानित उपज ${estYield} क्विंटल अऊ आमदनी लगभग ₹${estIncome.toLocaleString('en-IN')} होही। ${currentCrop.voiceCg || currentCrop.voice}`
-              : `${currentCrop.name} का हिसाब: ${quickAcre} एकड़ में अनुमानित पैदावार ${estYield} क्विंटल और आय लगभग ${estIncome} रुपये होगी। ${currentCrop.voice}`)}
-            sx={{ bgcolor: '#f1f8e9', color: '#1b5e20' }}
+            onClick={handleReadHub}
+            sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#ffffff', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
           >
             <VolumeUpIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        {/* 1. Crop Switcher Pills */}
-        <Box sx={{ display: 'flex', gap: 0.8, flexWrap: { xs: 'nowrap', sm: 'wrap' }, overflowX: 'auto', pb: 1, mb: 1.2, '::-webkit-scrollbar': { display: 'none' } }}>
-          {[
-            { key: 'paddy', label: '🌾 धान (Paddy)' },
-            { key: 'chana', label: '🌱 चना (Gram)' },
-            { key: 'wheat', label: '🌾 गेहूं (Wheat)' },
-            { key: 'maize', label: '🌽 मक्का (Maize)' },
-            { key: 'tomato', label: isChhattisgarhi ? '🍅 टमाटर / भाजी' : '🍅 टमाटर / सब्जी' },
-          ].map((c) => (
-            <Chip
-              key={c.key}
-              label={c.label}
-              clickable
-              onClick={() => setSelectedCropKey(c.key)}
+        {/* Part 1: Paddy Procurement & Token Tuhar Hath Live Cards */}
+        <Box sx={{ p: { xs: 1.8, sm: 2 } }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 2 }}>
+            {/* KPI 1: ₹3,100 Rate & 21 Quintals */}
+            <Box
               sx={{
-                fontWeight: 800,
-                fontSize: { xs: '0.72rem', sm: '0.76rem' },
-                flexShrink: 0,
-                bgcolor: selectedCropKey === c.key ? '#1b5e20' : '#f1f5f9',
-                color: selectedCropKey === c.key ? '#ffffff' : '#334155',
-                border: selectedCropKey === c.key ? '1px solid #1b5e20' : '1px solid #e2e8f0',
-                '&:hover': { bgcolor: selectedCropKey === c.key ? '#125420' : '#e2e8f0' }
+                p: 1.5,
+                borderRadius: 2.5,
+                bgcolor: '#f0fdf4',
+                border: '1.5px solid #86efac',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: 1
               }}
-            />
-          ))}
-        </Box>
+            >
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.74rem' }}>
+                    💰 {isChhattisgarhi ? 'धान खरीदी दर (कृषक उन्नति योजना)' : 'धान उपार्जन दर (कृषक उन्नति योजना)'}
+                  </Typography>
+                  <Chip
+                    label={isChhattisgarhi ? '21 क्विंटल/एकड़' : '21 क्विंटल/एकड़'}
+                    size="small"
+                    sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 900, fontSize: '0.66rem', height: 20 }}
+                  />
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 900, color: '#14532d', fontSize: '1.45rem', lineHeight: 1.2 }}>
+                  ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}{' '}
+                  <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#166534' }}>/ क्विंटल धान</span>
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', mt: 0.4 }}>
+                  {isChhattisgarhi
+                    ? `समर्थन मूल्य ₹${appConfig.paddyScheme.mspRate} + इनपुट सब्सिडी ₹${appConfig.paddyScheme.bonusRate} सीधे बैंक खाता म`
+                    : `समर्थन मूल्य ₹${appConfig.paddyScheme.mspRate} + आदान सहायता ₹${appConfig.paddyScheme.bonusRate} सीधे बैंक खाते में`}
+                </Typography>
+              </Box>
 
-        {/* 2. Acre Quick Selector - Segmented Balanced Grid */}
-        <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, mb: 1.5, border: '1px solid #e2e8f0' }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', fontSize: '0.76rem' }}>
-              🌾 {isChhattisgarhi ? 'रकबा' : 'रकबा'} (Acre): <strong>{quickAcre} {isChhattisgarhi ? 'एकड़' : 'एकड़'}</strong>
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#166534', fontWeight: 700, fontSize: '0.72rem' }}>
-              {selectedCropKey === 'paddy' ? `₹${appConfig.paddyScheme.totalRate}/क्विं. ${isChhattisgarhi ? 'समर्थन मूल्य' : 'समर्थन मूल्य'}` : (isChhattisgarhi ? 'अनुमानित आमदनी अऊ खाद हिसाब' : 'अनुमानित आय व खाद गणना')}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: { xs: 0.5, sm: 0.8 } }}>
-            {[0.5, 1.0, 2.0, 3.0, 5.0].map((ac) => (
               <Button
-                key={ac}
                 size="small"
-                onClick={() => setQuickAcre(ac)}
+                variant="outlined"
+                onClick={() => { stopSpeech(); onNavigate('schemes'); }}
+                endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
                 sx={{
-                  minWidth: 0,
-                  py: 0.5,
-                  px: 0.3,
+                  borderColor: '#16a34a',
+                  color: '#15803d',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
                   borderRadius: 2,
-                  fontSize: { xs: '0.7rem', sm: '0.76rem' },
-                  fontWeight: quickAcre === ac ? 900 : 700,
-                  bgcolor: quickAcre === ac ? '#2e7d32' : '#ffffff',
-                  color: quickAcre === ac ? '#ffffff' : '#334155',
-                  border: quickAcre === ac ? '1.5px solid #1b5e20' : '1px solid #cbd5e1',
-                  boxShadow: quickAcre === ac ? '0 2px 6px rgba(46,125,50,0.22)' : 'none',
-                  transition: 'all 0.15s ease',
-                  '&:hover': {
-                    bgcolor: quickAcre === ac ? '#1b5e20' : '#f1f5f9'
-                  }
+                  py: 0.4,
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#dcfce7' }
                 }}
               >
-                {ac} {isChhattisgarhi ? 'एकड़' : 'एकड़'}
+                {isChhattisgarhi ? 'रुपया हिसाब कैलकुलेटर देखव' : 'योजना व आय कैलकुलेटर देखें'}
               </Button>
-            ))}
-          </Box>
-        </Box>
+            </Box>
 
-        {/* 3. Calculations 4-KPI Grid */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1, mb: 1.5 }}>
-          <Box sx={{ p: 1, bgcolor: '#f1f8e9', borderRadius: 2, border: '1px solid #c8e6c9', textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-              {isChhattisgarhi ? 'सरकारी / मंडी भाव' : 'सरकारी / मंडी दर'}
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
-              ₹{currentCrop.rate.toLocaleString('en-IN')}<span style={{ fontSize: '0.66rem', fontWeight: 600 }}>/क्विं.</span>
-            </Typography>
-          </Box>
-          <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0', textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-              {isChhattisgarhi ? 'अनुमानित उपज' : 'अनुमानित पैदावार'}
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#15803d', fontSize: '0.92rem' }}>
-              {estYield} {isChhattisgarhi ? 'क्विंटल' : 'क्विंटल'}
-            </Typography>
-          </Box>
-          <Box sx={{ p: 1, bgcolor: '#fffbeb', borderRadius: 2, border: '1px solid #fde68a', textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-              {isChhattisgarhi ? 'अनुमानित आमदनी' : 'अनुमानित आय'}
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.92rem' }}>
-              ₹{estIncome.toLocaleString('en-IN')}
-            </Typography>
-          </Box>
-          <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
-            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-              {isChhattisgarhi ? 'खाद जरूरत (DAP/यूरिया)' : 'खाद डोज (DAP/यूरिया)'}
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.85rem' }}>
-              {estDap}k / {estUrea}k
-            </Typography>
-          </Box>
-        </Box>
+            {/* KPI 2: Token Tuhar Hath Online Booking */}
+            <Box
+              sx={{
+                p: 1.5,
+                borderRadius: 2.5,
+                bgcolor: '#eff6ff',
+                border: '1.5px solid #93c5fd',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                gap: 1
+              }}
+            >
+              <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#1d4ed8', fontWeight: 800, fontSize: '0.74rem' }}>
+                    📱 {isChhattisgarhi ? 'टोकन तुंहर हाथ (ऑनलाइन उपार्जन)' : 'टोकन तुंहर हाथ (ऑनलाइन उपार्जन)'}
+                  </Typography>
+                  <Chip
+                    label={isChhattisgarhi ? 'घर बैठे टोकन' : 'घर बैठे टोकन'}
+                    size="small"
+                    sx={{ bgcolor: '#dbeafe', color: '#1e40af', fontWeight: 900, fontSize: '0.66rem', height: 20 }}
+                  />
+                </Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1e3a8a', fontSize: '1.05rem', lineHeight: 1.2 }}>
+                  {isChhattisgarhi ? 'समिति टोकन ऑनलाइन कटाव' : 'समिति धान उपार्जन टोकन'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', mt: 0.4 }}>
+                  {isChhattisgarhi
+                    ? 'PACS/लैम्प्स सहकारी समिति म धान बेचे के दिन चुनव अऊ लाइन ले बांचव।'
+                    : 'PACS/LAMPS प्राथमिक कृषि साख समिति में धान विक्रय हेतु ऑनलाइन टोकन बुक करें।'}
+                </Typography>
+              </Box>
 
-        {/* 4. Advisory Snippet */}
-        <Box sx={{ p: 1.2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>💡</Typography>
-          <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.74rem', lineHeight: 1.4 }}>
-            <strong>{isChhattisgarhi ? (currentCrop.seasonCg || currentCrop.season) : currentCrop.season}:</strong> {isChhattisgarhi ? (currentCrop.advisoryCg || currentCrop.advisory) : currentCrop.advisory}
-          </Typography>
-        </Box>
+              <Button
+                size="small"
+                variant="contained"
+                href={appConfig.portals.tokenTuharHathUrl || appConfig.portals.tokenUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
+                sx={{
+                  bgcolor: '#1d4ed8',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  borderRadius: 2,
+                  py: 0.5,
+                  alignSelf: 'flex-start',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#1e40af' }
+                }}
+              >
+                {isChhattisgarhi ? 'टोकन पोर्टल खोलव (kisan.cg.nic.in)' : 'टोकन पोर्टल खोलें (kisan.cg.nic.in)'}
+              </Button>
+            </Box>
+          </Box>
 
-        {/* 5. Deep Navigation CTA Buttons */}
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => onNavigate('schemes')}
-            sx={{ bgcolor: '#2e7d32', color: '#fff', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#1b5e20' } }}
+          {/* Part 2: IGKV Raipur Agro-Scientist Weekly Bulletin */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 1.5,
+              borderRadius: 2.5,
+              bgcolor: '#f8fafc',
+              border: '1.2px solid #e2e8f0'
+            }}
           >
-            {isChhattisgarhi ? 'पूरा N:P:K कैलकुलेटर खोलव' : 'विस्तृत N:P:K कैलकुलेटर खोलें'}
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => onNavigate('doctor')}
-            sx={{ borderColor: '#d32f2f', color: '#d32f2f', fontSize: '0.74rem', fontWeight: 800, borderRadius: 2, px: 1.5, py: 0.5, flex: 1, '&:hover': { bgcolor: '#ffebee' } }}
-          >
-            {isChhattisgarhi ? 'फसल बीमारी जांचव (Doctor)' : 'फसल रोग जांचें (Doctor)'}
-          </Button>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 0.8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MenuBookIcon sx={{ color: '#1b5e20', fontSize: 20 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                  🏛️ {advisory.monthTitle}
+                </Typography>
+              </Box>
+              <Chip
+                label={advisory.seasonBadge}
+                size="small"
+                sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+              />
+            </Box>
+
+            <Typography variant="body2" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.84rem', mb: 0.6 }}>
+              {advisory.headline}
+            </Typography>
+
+            <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.76rem', lineHeight: 1.5, display: 'block', mb: 1.2 }}>
+              {advisory.advisoryText}
+            </Typography>
+
+            <Box
+              sx={{
+                p: 1,
+                borderRadius: 2,
+                bgcolor: '#fffbeb',
+                border: '1px solid #fde68a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1,
+                mb: 1.2
+              }}
+            >
+              <Typography variant="caption" sx={{ color: '#92400e', fontWeight: 800, fontSize: '0.72rem' }}>
+                {advisory.actionAlert}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#78350f', fontSize: '0.68rem' }}>
+                📞 {isChhattisgarhi ? 'किसान कॉल सेंटर:' : 'किसान कॉल सेंटर:'} <strong>{appConfig.helpline.label}</strong> (टोल-फ्री)
+              </Typography>
+            </Box>
+
+            {/* Quick Action Navigation Buttons */}
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => { stopSpeech(); onNavigate('doctor'); }}
+                sx={{
+                  borderColor: '#dc2626',
+                  color: '#dc2626',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  borderRadius: 2,
+                  py: 0.4,
+                  flex: 1,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#fef2f2' }
+                }}
+              >
+                {isChhattisgarhi ? '🔍 फसल रोग व कीट जांचव' : '🔍 फसल रोग व कीट जांचें'}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+                sx={{
+                  borderColor: '#2563eb',
+                  color: '#2563eb',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  borderRadius: 2,
+                  py: 0.4,
+                  flex: 1,
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#eff6ff' }
+                }}
+              >
+                {isChhattisgarhi ? '📊 आज के मंडी भाव देखव' : '📊 आज के मंडी भाव देखें'}
+              </Button>
+            </Box>
+          </Paper>
+
+          {/* Reassurance Footer Badge */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.2, pt: 1, borderTop: '1px dashed #e2e8f0' }}>
+            <CheckCircleIcon sx={{ fontSize: 13, color: '#16a34a' }} />
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+              {isChhattisgarhi
+                ? '🔒 100% सुरक्षित • शून्य कागज़ात • खाद्य विभाग टोल-फ्री: 1800-233-3663'
+                : '🔒 100% सुरक्षित • शून्य कागज़ात • खाद्य विभाग टोल-फ्री: 1800-233-3663'}
+            </Typography>
+          </Box>
         </Box>
       </Card>
     );
@@ -1362,172 +1389,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           onClick={() => onNavigate('schemes')}
           sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, height: 20, fontSize: '0.65rem', cursor: 'pointer' }}
         />
-      </Box>
-    </Card>
-  );
-
-  // 4B. Locked Private Services Preview Card (When !activeFarmer)
-  const renderLockedPrivateToolsCard = () => (
-    <Card
-      sx={{
-        borderRadius: 3.5,
-        bgcolor: '#ffffff',
-        border: '1.5px solid #cbd5e1',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
-        overflow: 'hidden',
-        mb: 2.5
-      }}
-    >
-      <Box
-        sx={{
-          p: 1.5,
-          px: 2,
-          bgcolor: '#f8fafc',
-          borderBottom: '1px solid #e2e8f0',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: 1
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LockIcon sx={{ color: '#059669', fontSize: 22 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>
-            {isChhattisgarhi ? '🔒 किसान निजी सेवा मन (1-क्लिक लॉगिन ले तुरंत चालू करव)' : '🔒 किसान निजी सेवाएं (1-क्लिक लॉगिन से तुरंत सक्रिय करें)'}
-          </Typography>
-        </Box>
-        <Button
-          size="small"
-          variant="contained"
-          startIcon={<LockOpenIcon sx={{ fontSize: 14 }} />}
-          onClick={() => setOpenQuickLogin(true)}
-          sx={{ bgcolor: '#166534', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.4, py: 0.4 }}
-        >
-          {isChhattisgarhi ? 'मुफ्त खाता बनाव' : 'मुफ्त खाता बनाएं'}
-        </Button>
-      </Box>
-
-      <Box sx={{ p: 2 }}>
-        <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.76rem', display: 'block', mb: 1.5, lineHeight: 1.4 }}>
-          💡 <strong>{isChhattisgarhi ? 'सार्वजनिक खुला मंच:' : 'सार्वजनिक खुला मंच:'}</strong> {isChhattisgarhi ? 'मौसम अऊ मंडी भाव बिना लॉगिन खुले हे। अपन खेत के रकबा, रोज के काम, बोर मोटर मोबाइल ले चालू/बंद करे अऊ खर्च डायरी बर मोबाइल नंबर ले लॉगिन करव:' : 'मौसम व मंडी भाव बिना लॉगिन खुले हैं। अपने खेत का रकबा, दिन-वार कार्य, ट्यूबवेल मोटर मोबाइल से चालू/बंद करने व खर्च डायरी चलाने हेतु केवल मोबाइल नंबर से लॉगिन करें:'}
-        </Typography>
-
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
-            gap: 1.2
-          }}
-        >
-          {/* Tool 1: Motor */}
-          <Box>
-            <Box
-              onClick={() => handleRequireLogin('motor')}
-              sx={{
-                p: 1.2,
-                borderRadius: 2.5,
-                bgcolor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#e0f2fe', borderColor: '#7dd3fc', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 22 }} />
-                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                {isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                {isChhattisgarhi ? 'मोबाइल ले मोटर चालू/बंद' : 'GSM स्टार्टर रिमोट ऑन/ऑफ'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 2: Mera Khet & Diary */}
-          <Box>
-            <Box
-              onClick={() => handleRequireLogin('khet')}
-              sx={{
-                p: 1.2,
-                borderRadius: 2.5,
-                bgcolor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#f0fdf4', borderColor: '#86efac', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <MenuBookIcon sx={{ color: '#2e7d32', fontSize: 22 }} />
-                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                {isChhattisgarhi ? 'मोर खेत अऊ डायरी' : 'मेरा खेत व डायरी'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                {isChhattisgarhi ? 'फसल चक्र अऊ खर्च बहीखाता' : 'फसल चक्र व खर्च बहीखाता'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 3: Soil IoT */}
-          <Box>
-            <Box
-              onClick={() => handleRequireLogin('soil')}
-              sx={{
-                p: 1.2,
-                borderRadius: 2.5,
-                bgcolor: '#f8fafc',
-                border: '1px solid #e2e8f0',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#f0fdfa', borderColor: '#99f6e4', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <ScienceIcon sx={{ color: '#00796b', fontSize: 22 }} />
-                <Chip label={isChhattisgarhi ? '🔒 लॉगिन' : '🔒 लॉगिन'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#f1f5f9', color: '#64748b' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                {isChhattisgarhi ? 'माटी सेंसर (IoT)' : 'मिट्टी सेंसर (IoT)'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                {isChhattisgarhi ? 'माटी pH अऊ NPK जांच' : 'pH व NPK प्रोब जांच'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 4: Field GPS (Always Open!) */}
-          <Box>
-            <Box
-              onClick={() => setOpenGpsTracker(true)}
-              sx={{
-                p: 1.2,
-                borderRadius: 2.5,
-                bgcolor: '#fefce8',
-                border: '1px solid #fef08a',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#fef9c3', borderColor: '#fde047', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                <DirectionsWalkIcon sx={{ color: '#d97706', fontSize: 22 }} />
-                <Chip label={isChhattisgarhi ? '⚡ खुला' : '⚡ खुला'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef3c7', color: '#b45309' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.78rem' }}>
-                {isChhattisgarhi ? 'खेत GPS नाप' : 'खेत GPS मापक'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem' }}>
-                {isChhattisgarhi ? 'मेड़ म रेंग के नापव' : 'मेड़ों पर चलकर नापें'}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
       </Box>
     </Card>
   );
@@ -1661,7 +1522,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               🌾 {isChhattisgarhi ? 'कुल दर्ज रकबा' : 'कुल पंजीकृत रकबा'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
-              {activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} {isChhattisgarhi ? 'एकड़ जमीन' : 'एकड़ भूमि'}
+              {(activeFarmer.totalAcres || activeFarmer.totalLandAcres) ? `${activeFarmer.totalAcres || activeFarmer.totalLandAcres} ${isChhattisgarhi ? 'एकड़ जमीन' : 'एकड़ भूमि'}` : (isChhattisgarhi ? 'अघोषित' : 'अघोषित')}
             </Typography>
           </Box>
           <Box>
@@ -1904,158 +1765,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
     </Card>
   );
 
-  // 4E. Personal Farm Command Center Bar (When activeFarmer)
-  const renderPersonalCommandBar = () => (
-    <Card
-      sx={{
-        borderRadius: 3.5,
-        bgcolor: '#ffffff',
-        border: '1.5px solid #81c784',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.05)',
-        overflow: 'hidden',
-        mb: 2.5
-      }}
-    >
-      <Box
-        sx={{
-          p: 1.4,
-          px: 2,
-          bgcolor: '#f1f8e9',
-          borderBottom: '1px solid #c8e6c9',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <SensorsIcon sx={{ color: '#1b5e20', fontSize: 22 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.9rem' }}>
-            🌾 {isChhattisgarhi ? 'किसान त्वरित कमांड सेंटर' : 'किसान त्वरित कमांड सेंटर (Personal Farm Tools)'}
-          </Typography>
-        </Box>
-        <Chip label={isChhattisgarhi ? 'सक्रिय' : 'सक्रिय'} size="small" color="success" sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }} />
-      </Box>
-
-      <Box sx={{ p: 1.8 }}>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
-            gap: 1.2
-          }}
-        >
-          {/* Tool 1: Tubewell Motor */}
-          <Box>
-            <Box
-              onClick={() => setOpenMotorModal(true)}
-              sx={{
-                p: 1.4,
-                borderRadius: 2.5,
-                bgcolor: '#f0f9ff',
-                border: '1px solid #bae6fd',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#e0f2fe', borderColor: '#7dd3fc', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: 24 }} />
-                <Chip label={isChhattisgarhi ? 'रिमोट' : 'रिमोट'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#e0f2fe', color: '#0288d1' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                {isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                {isChhattisgarhi ? 'GSM स्टार्टर चालू/बंद' : 'GSM स्टार्टर ऑन/ऑफ'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 2: Mera Khet & Diary */}
-          <Box>
-            <Box
-              onClick={() => setOpenMeraKhet(true)}
-              sx={{
-                p: 1.4,
-                borderRadius: 2.5,
-                bgcolor: '#f0fdf4',
-                border: '1px solid #bbf7d0',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#dcfce7', borderColor: '#86efac', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                <MenuBookIcon sx={{ color: '#16a34a', fontSize: 24 }} />
-                <Chip label={isChhattisgarhi ? 'डायरी' : 'डायरी'} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#dcfce7', color: '#15803d' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                {isChhattisgarhi ? 'किसान डायरी' : 'किसान डायरी'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                {isChhattisgarhi ? 'खर्चा अऊ आमदनी बहीखाता' : 'खर्च व आय बहीखाता'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 3: Field GPS Tracker */}
-          <Box>
-            <Box
-              onClick={() => setOpenGpsTracker(true)}
-              sx={{
-                p: 1.4,
-                borderRadius: 2.5,
-                bgcolor: '#fefce8',
-                border: '1px solid #fef08a',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#fef9c3', borderColor: '#fde047', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                <DirectionsWalkIcon sx={{ color: '#d97706', fontSize: 24 }} />
-                <Chip label="GPS" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#fef3c7', color: '#b45309' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                {isChhattisgarhi ? 'खेत GPS नाप-जोख' : 'खेत GPS मापक'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                {isChhattisgarhi ? 'मेड़ म रेंगत नापव' : 'मेड़ों पर चलकर नापें'}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Tool 4: Soil IoT */}
-          <Box>
-            <Box
-              onClick={() => setOpenSoilIot(true)}
-              sx={{
-                p: 1.4,
-                borderRadius: 2.5,
-                bgcolor: '#f0fdfa',
-                border: '1px solid #99f6e4',
-                cursor: 'pointer',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#ccfbf1', borderColor: '#5eead4', transform: 'translateY(-2px)' }
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                <ScienceIcon sx={{ color: '#0d9488', fontSize: 24 }} />
-                <Chip label="IoT" size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800, bgcolor: '#ccfbf1', color: '#0f766e' }} />
-              </Box>
-              <Typography variant="caption" sx={{ fontWeight: 800, color: '#0f172a', display: 'block', fontSize: '0.8rem' }}>
-                {isChhattisgarhi ? 'माटी सेंसर (IoT)' : 'मिट्टी सेंसर (IoT)'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem' }}>
-                {isChhattisgarhi ? 'लाइव pH अऊ NPK स्तर' : 'लाइव pH व NPK स्तर'}
-              </Typography>
-            </Box>
-          </Box>
-        </Box>
-      </Box>
-    </Card>
-  );
-
   // 5. Unified Agritech Command Center Dashboard (Native Mobile App Flow for Guest & Farmer)
   const renderFarmerDashboard = () => (
     <>
@@ -2066,13 +1775,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       ) : (
         /* Unauthenticated Guest: Official Public Gateway Welcome Banner */
         renderPublicWelcomeBanner()
-      )}
-
-      {/* 2. Guest-Only Locked Services Showcase (Mobile only: on Desktop it is in the right sidebar) */}
-      {!activeFarmer && (
-        <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2 }}>
-          {renderLockedPrivateToolsCard()}
-        </Box>
       )}
 
       {/* 2. App Update Alert Banner (if update ready) */}
@@ -2178,13 +1880,6 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
 
           {/* If Logged In: Live Plots Feed & Daily Tasks at Top of Main Column */}
           {activeFarmer && renderActivePlotsAndDailyTasksCard()}
-
-          {/* If Logged In: Personal Quick Command Tools (Mobile only in main column; on desktop shown in right sidebar) */}
-          {activeFarmer && (
-            <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.5 }}>
-              {renderPersonalCommandBar()}
-            </Box>
-          )}
 
           {/* Floating Weather & Spray Card */}
           <Card
@@ -2524,181 +2219,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
             )}
           </Card>
 
-          {/* High-Impact Today's Farm Action Card (🌾 आज खेत में 1 मुख्य काम) */}
-          {(() => {
-            const todayTask = getTodayActionableFarmTask({ activeFarmer, farmerPlots, weather, selectedDistrict, isChhattisgarhi });
-            if (!todayTask) return null;
-            return (
-              <Card
-                sx={{
-                  p: { xs: 1.5, sm: 2 },
-                  mb: 2.2,
-                  borderRadius: 3.5,
-                  bgcolor: '#fafffa',
-                  border: '1.5px solid #86efac',
-                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.08)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box
-                      sx={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: '50%',
-                        bgcolor: '#1b5e20',
-                        color: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <TaskAltIcon sx={{ fontSize: 20 }} />
-                    </Box>
-                    <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#166534', fontSize: '0.92rem', lineHeight: 1.2 }}>
-                        {isChhattisgarhi ? '🌾 आज खेत म 1 मुख्य काम' : '🌾 आज खेत में 1 मुख्य काम'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        {todayTask.source === 'plot'
-                          ? (isChhattisgarhi ? `तुंहर खेत: ${todayTask.plotName} (${todayTask.cropName})` : `आपका पंजीकृत खेत: ${todayTask.plotName} (${todayTask.cropName})`)
-                          : (isChhattisgarhi ? `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)` : `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)`)}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <Chip
-                      label={todayTask.source === 'plot'
-                        ? (isChhattisgarhi ? `🟢 मोर खेत (${todayTask.daysElapsed} दिन)` : `🟢 मेरा खेत (${todayTask.daysElapsed} दिन)`)
-                        : (isChhattisgarhi ? `🏛️ ICAR/IGKV सामान्य चक्र` : `🏛️ ICAR/IGKV सामान्य चक्र`)}
-                      size="small"
-                      sx={{
-                        bgcolor: todayTask.source === 'plot' ? '#e8f5e9' : '#f0fdf4',
-                        color: '#1b5e20',
-                        border: '1px solid #a5d6a7',
-                        fontWeight: 800,
-                        fontSize: '0.68rem',
-                        height: 22
-                      }}
-                    />
-                    <IconButton
-                      size="small"
-                      onClick={() => speakText(`${todayTask.title}। ${todayTask.task}`)}
-                      sx={{ bgcolor: '#f1f8e9', color: '#1b5e20', p: 0.6 }}
-                    >
-                      <VolumeUpIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </Box>
-                </Box>
-
-                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 700, fontSize: '0.86rem', mb: 0.5 }}>
-                  {todayTask.title}
-                </Typography>
-
-                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.5, mb: 1 }}>
-                  {todayTask.task}
-                </Typography>
-
-                {/* Transparency & Personalized Plot Onboarding CTA Box (When in ICAR Normal Window Mode) */}
-                {todayTask.source !== 'plot' && (
-                  <Box
-                    sx={{
-                      p: 1.3,
-                      mt: 0.8,
-                      mb: 1.2,
-                      borderRadius: 2.5,
-                      bgcolor: '#f0fdf4',
-                      border: '1.2px dashed #86efac',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      flexWrap: 'wrap',
-                      gap: 1.2
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, minWidth: 200, flex: 1 }}>
-                      <Typography sx={{ fontSize: '1.2rem', lineHeight: 1, mt: 0.2 }}>📅</Typography>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#166534', fontSize: '0.78rem', lineHeight: 1.35, fontWeight: 800, display: 'block' }}>
-                          {isChhattisgarhi
-                            ? 'का तुंहर बोवाई तारीख अलग हे?'
-                            : 'क्या आपकी बुआई तारीख अलग है?'}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.7rem', lineHeight: 1.35, display: 'block' }}>
-                          {isChhattisgarhi
-                            ? 'केवल अपन फसल अऊ बोवाई तारीख चुनव — सही दिन-वार काम पाव।'
-                            : 'केवल अपनी फसल व बुआई तारीख चुनें — सही दिन-वार सलाह पाएं।'}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.66rem', lineHeight: 1.3, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.4, mt: 0.3, bgcolor: '#dcfce7', px: 0.8, py: 0.2, borderRadius: 1 }}>
-                          <span>🔒</span>
-                          {isChhattisgarhi
-                            ? '100% सुरक्छित • कोनो कागजात या खसरा नइ लगे'
-                            : '100% सुरक्षित • कोई कागज़ात या खसरा नहीं चाहिए'}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      onClick={() => {
-                        stopSpeech();
-                        if (activeFarmer) setOpenMeraKhet(true);
-                        else {
-                          setPendingToolAction('khet');
-                          setOpenQuickLogin(true);
-                        }
-                      }}
-                      sx={{
-                        bgcolor: '#16a34a',
-                        color: '#ffffff',
-                        fontWeight: 800,
-                        fontSize: '0.75rem',
-                        borderRadius: 2,
-                        px: 1.6,
-                        py: 0.6,
-                        textTransform: 'none',
-                        boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
-                        '&:hover': { bgcolor: '#15803d' }
-                      }}
-                    >
-                      {isChhattisgarhi ? '📅 अपन बोवाई तारीख चुनव ➔' : '📅 अपनी बुआई तारीख चुनें ➔'}
-                    </Button>
-                  </Box>
-                )}
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #cbd5e1', flexWrap: 'wrap', gap: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <span>📌</span> {isChhattisgarhi ? 'समय ले काम निपटाव अऊ पैदावार बढ़ाव' : 'समय पर काम पूरा कर भरपूर पैदावार पाएं'}
-                  </Typography>
-                  <Button
-                    size="small"
-                    endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
-                    onClick={() => {
-                      stopSpeech();
-                      if (todayTask.targetTab) onNavigate(todayTask.targetTab);
-                      else if (todayTask.source === 'plot') setOpenMeraKhet(true);
-                    }}
-                    sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.75rem', py: 0.2, px: 1 }}
-                  >
-                    {todayTask.actionText || (isChhattisgarhi ? 'आगे देखव ➔' : 'आगे देखें ➔')}
-                  </Button>
-                </Box>
-              </Card>
-            );
-          })()}
-
-          {/* Public Crop Advisor & Quick Acre Estimator (Shown prominently on Public Mode) */}
-          {!activeFarmer && renderPublicCropAdvisor()}
-
-          {/* Mandi Rates Pulse (Mobile Only: xs & sm) */}
-          <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.5 }}>
-            {renderMandiPulseCard()}
-          </Box>
-
-          {/* Unified 8-Tile Modern App Launcher Grid */}
+          {/* Unified 8-Tile Modern App Launcher Grid (Prominently Placed Under Weather) */}
           <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 0.8 }}>
               {isChhattisgarhi ? '⚡ मुख्य कृषि सेवा अऊ स्मार्ट टूल्स' : '⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स'}
@@ -2729,7 +2250,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           <Card
             sx={{
               p: { xs: 1.2, sm: 1.8 },
-              mb: 3,
+              mb: 2.2,
               borderRadius: '16px',
               bgcolor: '#ffffff',
               border: '1px solid #e2e8f0',
@@ -2901,344 +2422,179 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
             </Box>
           </Card>
 
-          {/* Public Crop Advisor & Quick Acre Estimator (For Logged-in Farmers Reference) */}
-          {activeFarmer && renderPublicCropAdvisor()}
-
-          {/* Interactive 6-Stage Agricultural Lifecycle Stepper (Collapsible) */}
-          <Card
-            sx={{
-              mb: 2.5,
-              borderRadius: 3.5,
-              bgcolor: '#ffffff',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
-            }}
-          >
-            <Box
-              onClick={() => setShowLifecycleJourney((prev) => !prev)}
-              sx={{
-                p: 1.5,
-                px: 2,
-                cursor: 'pointer',
-                bgcolor: showLifecycleJourney ? '#f8fafc' : '#ffffff',
-                borderBottom: showLifecycleJourney ? '1px solid #e2e8f0' : 'none',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                transition: 'all 0.18s ease',
-                '&:hover': { bgcolor: '#f8fafc' }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>🌱</Typography>
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
-                    {isChhattisgarhi ? 'फसल ले लेके बिक्री तक (6 चरणीय किसानी यात्रा)' : 'फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)'}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                    {isChhattisgarhi ? 'बुआई पूर्व ले मंडी बिक्री तक के 6 चरण' : 'बुआई पूर्व से मंडी बिक्री तक के 6 चरण'}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                <Chip
-                  label={showLifecycleJourney ? (isChhattisgarhi ? 'समेटव' : 'समेटें') : (isChhattisgarhi ? 'विस्तार देखव' : 'विस्तार देखें')}
-                  size="small"
-                  sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
-                />
-                <IconButton size="small" sx={{ color: '#64748b', p: 0.3 }}>
-                  {showLifecycleJourney ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-                </IconButton>
-              </Box>
-            </Box>
-
-            <Collapse in={showLifecycleJourney} timeout="auto" unmountOnExit>
-              <Box sx={{ p: 2, pt: 1.5 }}>
-
-          {/* 6-Stage Progress Stepper Bar (Visual Segmented Pills on md+, Numbered Dots on xs) */}
-          <Box sx={{ mb: 1.5 }}>
-            {/* Desktop / Tablet Segmented Capsules */}
-            <Box sx={{ display: { xs: 'none', sm: 'grid' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.8, mb: 1 }}>
-              {lifecycleSteps.map((item) => {
-                const isActive = item.step === expandedStep;
-                return (
-                  <Box
-                    key={item.step}
-                    onClick={() => {
-                      stopSpeech();
-                      setExpandedStep(item.step);
-                    }}
-                    sx={{
-                      cursor: 'pointer',
-                      p: 0.8,
-                      borderRadius: 2,
-                      textAlign: 'center',
-                      bgcolor: isActive ? item.color : '#ffffff',
-                      color: isActive ? '#ffffff' : '#475569',
-                      border: isActive ? `1.5px solid ${item.color}` : '1px solid #e2e8f0',
-                      boxShadow: isActive ? `0 3px 10px ${item.color}35` : 'none',
-                      transition: 'all 0.18s ease',
-                      '&:hover': {
-                        bgcolor: isActive ? item.color : '#f8fafc',
-                        borderColor: item.color
-                      }
-                    }}
-                  >
-                    <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.68rem', display: 'block', opacity: isActive ? 0.9 : 0.7 }}>
-                      {isChhattisgarhi ? 'चरण' : 'चरण'} {item.step}
-                    </Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.74rem', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {item.tag}
-                    </Typography>
-                  </Box>
-                );
-              })}
-            </Box>
-
-            {/* Mobile Numbered Step Pills (1 to 6) */}
-            <Box sx={{ display: { xs: 'grid', sm: 'none' }, gridTemplateColumns: 'repeat(6, 1fr)', gap: 0.6, mb: 1.2 }}>
-              {lifecycleSteps.map((item) => {
-                const isActive = item.step === expandedStep;
-                return (
-                  <Box
-                    key={item.step}
-                    onClick={() => {
-                      stopSpeech();
-                      setExpandedStep(item.step);
-                    }}
-                    sx={{
-                      cursor: 'pointer',
-                      py: 0.6,
-                      borderRadius: 2,
-                      textAlign: 'center',
-                      bgcolor: isActive ? item.color : '#ffffff',
-                      color: isActive ? '#ffffff' : item.color,
-                      border: `1.5px solid ${item.color}`,
-                      boxShadow: isActive ? `0 2px 6px ${item.color}40` : 'none',
-                      fontWeight: 900,
-                      fontSize: '0.78rem'
-                    }}
-                  >
-                    {item.step}
-                  </Box>
-                );
-              })}
-            </Box>
-
-            {/* Dropdown Selector for Complete Detail */}
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label={isChhattisgarhi ? '🌱 कृषि यात्रा चरण (Current Stage)' : '🌱 कृषि यात्रा चरण (Current Stage)'}
-              value={expandedStep}
-              onChange={(e) => {
-                stopSpeech();
-                setExpandedStep(Number(e.target.value));
-              }}
-              sx={{
-                bgcolor: '#ffffff',
-                borderRadius: 2.5,
-                '& .MuiOutlinedInput-root': { borderRadius: 2.5 }
-              }}
-            >
-              {lifecycleSteps.map((item) => (
-                <MenuItem key={item.step} value={item.step}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: '100%' }}>
-                    <Box
-                      sx={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: '50%',
-                        bgcolor: item.color,
-                        color: '#fff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '0.72rem',
-                        fontWeight: 800,
-                        flexShrink: 0
-                      }}
-                    >
-                      {item.step}
-                    </Box>
-                    <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.84rem', color: '#1e293b' }}>
-                      {item.title}
-                    </Typography>
-                    <Chip
-                      label={item.tag}
-                      size="small"
-                      sx={{
-                        ml: 'auto',
-                        height: 20,
-                        fontSize: '0.66rem',
-                        fontWeight: 800,
-                        bgcolor: `${item.color}15`,
-                        color: item.color
-                      }}
-                    />
-                  </Box>
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
-
-          {/* Focused Active Stage Card */}
+          {/* High-Impact Today's Farm Action Card (🌾 आज खेत में 1 मुख्य काम) */}
           {(() => {
-            const currentStep = lifecycleSteps.find((s) => s.step === expandedStep) || lifecycleSteps[0];
+            const todayTask = getTodayActionableFarmTask({ activeFarmer, farmerPlots, weather, selectedDistrict, isChhattisgarhi });
+            if (!todayTask) return null;
             return (
               <Card
                 sx={{
-                  mb: 0.5,
-                  p: 2,
+                  p: { xs: 1.5, sm: 2 },
+                  mb: 2.2,
                   borderRadius: 3.5,
-                  bgcolor: '#ffffff',
-                  border: `1.5px solid ${currentStep.color}30`,
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+                  bgcolor: '#fafffa',
+                  border: '1.5px solid #86efac',
+                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.08)',
+                  position: 'relative',
+                  overflow: 'hidden'
                 }}
               >
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
                       sx={{
-                        width: 32,
-                        height: 32,
+                        width: 36,
+                        height: 36,
                         borderRadius: '50%',
-                        bgcolor: currentStep.color,
+                        bgcolor: '#1b5e20',
                         color: '#fff',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '0.9rem'
+                        justifyContent: 'center'
                       }}
                     >
-                      {currentStep.step}
+                      <TaskAltIcon sx={{ fontSize: 20 }} />
                     </Box>
                     <Box>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: currentStep.color, fontSize: '0.92rem' }}>
-                        {currentStep.title}
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#166534', fontSize: '0.92rem', lineHeight: 1.2 }}>
+                        {isChhattisgarhi ? '🌾 आज खेत म 1 मुख्य काम' : '🌾 आज खेत में 1 मुख्य काम'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        {currentStep.short}
+                        {todayTask.source === 'plot'
+                          ? (isChhattisgarhi ? `तुंहर खेत: ${todayTask.plotName} (${todayTask.cropName})` : `आपका पंजीकृत खेत: ${todayTask.plotName} (${todayTask.cropName})`)
+                          : (isChhattisgarhi ? `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)` : `📍 ${selectedDistrict} • ${todayTask.zoneName || 'मैदानी क्षेत्र'} (सामान्य कृषि अनुमान)`)}
                       </Typography>
                     </Box>
                   </Box>
 
-                  <Chip
-                    label={currentStep.tag}
-                    size="small"
-                    sx={{ bgcolor: `${currentStep.color}15`, color: currentStep.color, fontWeight: 800, fontSize: '0.68rem', height: 22 }}
-                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Chip
+                      label={todayTask.source === 'plot'
+                        ? (isChhattisgarhi ? `🟢 मोर खेत (${todayTask.daysElapsed} दिन)` : `🟢 मेरा खेत (${todayTask.daysElapsed} दिन)`)
+                        : (isChhattisgarhi ? `🏛️ ICAR/IGKV सामान्य चक्र` : `🏛️ ICAR/IGKV सामान्य चक्र`)}
+                      size="small"
+                      sx={{
+                        bgcolor: todayTask.source === 'plot' ? '#e8f5e9' : '#f0fdf4',
+                        color: '#1b5e20',
+                        border: '1px solid #a5d6a7',
+                        fontWeight: 800,
+                        fontSize: '0.68rem',
+                        height: 22
+                      }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => speakText(`${todayTask.title}। ${todayTask.task}`)}
+                      sx={{ bgcolor: '#f1f8e9', color: '#1b5e20', p: 0.6 }}
+                    >
+                      <VolumeUpIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Box>
                 </Box>
 
-                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.84rem', lineHeight: 1.6, mb: 1.5 }}>
-                  {currentStep.desc}
+                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 700, fontSize: '0.86rem', mb: 0.5 }}>
+                  {todayTask.title}
                 </Typography>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  {/* Prev/Next Stepper & Voice Controls */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.5, mb: 1 }}>
+                  {todayTask.task}
+                </Typography>
+
+                {/* Transparency & Personalized Plot Onboarding CTA Box (When in ICAR Normal Window Mode) */}
+                {todayTask.source !== 'plot' && (
+                  <Box
+                    sx={{
+                      p: 1.3,
+                      mt: 0.8,
+                      mb: 1.2,
+                      borderRadius: 2.5,
+                      bgcolor: '#f0fdf4',
+                      border: '1.2px dashed #86efac',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: 1.2
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, minWidth: 200, flex: 1 }}>
+                      <Typography sx={{ fontSize: '1.2rem', lineHeight: 1, mt: 0.2 }}>📅</Typography>
+                      <Box>
+                        <Typography variant="caption" sx={{ color: '#166534', fontSize: '0.78rem', lineHeight: 1.35, fontWeight: 800, display: 'block' }}>
+                          {isChhattisgarhi
+                            ? 'का तुंहर बोवाई तारीख अलग हे?'
+                            : 'क्या आपकी बुआई तारीख अलग है?'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.7rem', lineHeight: 1.35, display: 'block' }}>
+                          {isChhattisgarhi
+                            ? 'केवल अपन फसल अऊ बोवाई तारीख चुनव — सही दिन-वार काम पाव।'
+                            : 'केवल अपनी फसल व बुआई तारीख चुनें — सही दिन-वार सलाह पाएं।'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.66rem', lineHeight: 1.3, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.4, mt: 0.3, bgcolor: '#dcfce7', px: 0.8, py: 0.2, borderRadius: 1 }}>
+                          <span>🔒</span>
+                          {isChhattisgarhi
+                            ? '100% सुरक्छित • कोनो कागजात या खसरा नइ लगे'
+                            : '100% सुरक्षित • कोई कागज़ात या खसरा नहीं चाहिए'}
+                        </Typography>
+                      </Box>
+                    </Box>
                     <Button
                       size="small"
-                      disabled={currentStep.step <= 1}
+                      variant="contained"
                       onClick={() => {
                         stopSpeech();
-                        setExpandedStep((prev) => Math.max(1, prev - 1));
+                        if (activeFarmer) setOpenMeraKhet(true);
+                        else {
+                          setPendingToolAction('khet');
+                          setOpenQuickLogin(true);
+                        }
                       }}
                       sx={{
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        py: 0.3,
-                        px: 1,
+                        bgcolor: '#16a34a',
+                        color: '#ffffff',
+                        fontWeight: 800,
+                        fontSize: '0.75rem',
                         borderRadius: 2,
-                        border: '1px solid #cbd5e1',
-                        color: '#475569',
-                        minWidth: 0,
-                        '&.Mui-disabled': { opacity: 0.4 }
+                        px: 1.6,
+                        py: 0.6,
+                        textTransform: 'none',
+                        boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)',
+                        '&:hover': { bgcolor: '#15803d' }
                       }}
                     >
-                      {isChhattisgarhi ? '⬅️ पिछला' : '⬅️ पिछला'}
-                    </Button>
-                    <Button
-                      size="small"
-                      disabled={currentStep.step >= 6}
-                      onClick={() => {
-                        stopSpeech();
-                        setExpandedStep((prev) => Math.min(6, prev + 1));
-                      }}
-                      sx={{
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        py: 0.3,
-                        px: 1,
-                        borderRadius: 2,
-                        border: '1px solid #cbd5e1',
-                        color: '#475569',
-                        minWidth: 0,
-                        '&.Mui-disabled': { opacity: 0.4 }
-                      }}
-                    >
-                      {isChhattisgarhi ? 'अगला ➡️' : 'अगला ➡️'}
-                    </Button>
-                    <Button
-                      size="small"
-                      startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-                      onClick={(e) => handleReadStep(e, currentStep)}
-                      sx={{
-                        color: currentStep.color,
-                        bgcolor: `${currentStep.color}12`,
-                        fontWeight: 700,
-                        fontSize: '0.74rem',
-                        borderRadius: 2,
-                        px: 1.2,
-                        py: 0.3,
-                        '&:hover': { bgcolor: `${currentStep.color}25` }
-                      }}
-                    >
-                      {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                      {isChhattisgarhi ? '📅 अपन बोवाई तारीख चुनव ➔' : '📅 अपनी बुआई तारीख चुनें ➔'}
                     </Button>
                   </Box>
+                )}
 
-                  {/* Deep Navigation Module Buttons */}
-                  {currentStep.step === 3 && (
-                    <Button
-                      size="small"
-                      endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => { stopSpeech(); onNavigate('schemes'); }}
-                      sx={{ color: '#2e7d32', fontSize: '0.75rem', fontWeight: 800 }}
-                    >
-                      {isChhattisgarhi ? 'खाद हिसाब खोलव' : 'खाद कैलकुलेटर खोलें'}
-                    </Button>
-                  )}
-                  {currentStep.step === 4 && (
-                    <Button
-                      size="small"
-                      endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => { stopSpeech(); onNavigate('doctor'); }}
-                      sx={{ color: '#c62828', fontSize: '0.75rem', fontWeight: 800 }}
-                    >
-                      {isChhattisgarhi ? 'फसल डॉक्टर खोलव' : 'फसल डॉक्टर खोलें'}
-                    </Button>
-                  )}
-                  {currentStep.step === 6 && (
-                    <Button
-                      size="small"
-                      endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
-                      onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-                      sx={{ color: '#1565c0', fontSize: '0.75rem', fontWeight: 800 }}
-                    >
-                      {isChhattisgarhi ? 'मंडी भाव देखव' : 'मंडी भाव देखें'}
-                    </Button>
-                  )}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #cbd5e1', flexWrap: 'wrap', gap: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <span>📌</span> {isChhattisgarhi ? 'समय ले काम निपटाव अऊ पैदावार बढ़ाव' : 'समय पर काम पूरा कर भरपूर पैदावार पाएं'}
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
+                    onClick={() => {
+                      stopSpeech();
+                      if (todayTask.targetTab) onNavigate(todayTask.targetTab);
+                      else if (todayTask.source === 'plot') setOpenMeraKhet(true);
+                    }}
+                    sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.75rem', py: 0.2, px: 1 }}
+                  >
+                    {todayTask.actionText || (isChhattisgarhi ? 'आगे देखव ➔' : 'आगे देखें ➔')}
+                  </Button>
                 </Box>
               </Card>
             );
           })()}
-              </Box>
-            </Collapse>
-          </Card>
+
+          {/* Mandi Rates Pulse (Mobile Only: xs & sm) */}
+          <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.2 }}>
+            {renderMandiPulseCard()}
+          </Box>
+
+          {/* Smart Chhattisgarh Farmer Assistance & Procurement Hub */}
+          {renderCgAssistanceHubCard()}
 
           {/* Platform APK & Share Footer (Mobile Only: xs & sm) */}
           <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
@@ -3261,10 +2617,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           {/* 1. Mandi Rates Pulse Widget */}
           {renderMandiPulseCard()}
 
-          {/* 2. Tools Hub & Farmer Command Card */}
-          {activeFarmer ? renderPersonalCommandBar() : renderLockedPrivateToolsCard()}
-
-          {/* 3. Platform APK & Share Card */}
+          {/* 2. Platform APK & Share Card */}
           {renderApkFooterCard()}
         </Box>
       </Box>

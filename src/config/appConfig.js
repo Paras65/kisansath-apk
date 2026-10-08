@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.36',
+  appVersion: env.VITE_APP_VERSION || '1.0.37',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -35,6 +35,8 @@ export const appConfig = {
   portals: {
     agristackUrl: env.VITE_PORTAL_AGRISTACK_URL || 'https://cgfr.agristack.gov.in/',
     tokenUrl: env.VITE_PORTAL_TOKEN_URL || 'http://khadya.cg.nic.in/',
+    tokenTuharHathUrl: env.VITE_PORTAL_TOKEN_TUHAR_HATH_URL || 'https://kisan.cg.nic.in/',
+    igkvUrl: env.VITE_PORTAL_IGKV_URL || 'https://igkv.ac.in/',
     bhuiyanUrl: env.VITE_PORTAL_BHUIYAN_URL || 'https://bhuiyan.cg.nic.in/',
     credaUrl: env.VITE_PORTAL_CREDA_URL || 'https://creda.cgstate.gov.in/',
     pmKisanUrl: env.VITE_PORTAL_PMKISAN_URL || 'https://pmkisan.gov.in/',

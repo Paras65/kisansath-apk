@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.36';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.37';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'वाक्य-दर-वाक्य निर्बाध वॉयस कतार (Zero 15s Cutoff), कोष्ठक/स्लैश/नई लाइन शुद्धिकरण एवं प्राकृतिक देवनागरी दशमलव उच्चारण।',
+    releaseNotes: 'सुव्यवस्थित होम स्क्रीन: शीर्ष 8-टूल लॉन्चर, छत्तीसगढ़ धान ₹3,100 उपार्जन व टोकन तुंहर हाथ हब एवं IGKV रायपुर सामयिक किसानी बुलेटिन।',
     updatedAt: new Date().toISOString()
   });
 });

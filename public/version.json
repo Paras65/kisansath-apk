@@ -1,8 +1,8 @@
 {
-  "version": "1.0.36",
+  "version": "1.0.37",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.36",
-  "releaseNotes": "वाक्य-दर-वाक्य निर्बाध वॉयस कतार (Zero 15s Cutoff), कोष्ठक/स्लैश/नई लाइन शुद्धिकरण एवं प्राकृतिक देवनागरी दशमलव उच्चारण।",
+  "releaseName": "किसान साथी v1.0.37",
+  "releaseNotes": "सुव्यवस्थित होम स्क्रीन: शीर्ष 8-टूल लॉन्चर, छत्तीसगढ़ धान ₹3,100 उपार्जन व टोकन तुंहर हाथ हब एवं IGKV रायपुर सामयिक किसानी बुलेटिन।",
   "updatedAt": "2026-10-08"
 }
