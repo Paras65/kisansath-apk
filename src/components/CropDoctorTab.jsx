@@ -38,10 +38,12 @@ import SyncIcon from '@mui/icons-material/Sync';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MicIcon from '@mui/icons-material/Mic';
 import ClearIcon from '@mui/icons-material/Clear';
+import SendIcon from '@mui/icons-material/Send';
+import ChatIcon from '@mui/icons-material/Chat';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { useLanguage } from '../utils/i18n';
 import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
-import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides } from '../services/apiService';
+import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides, chatWithCropDoctor } from '../services/apiService';
 import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
@@ -92,6 +94,18 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [pendingScans, setPendingScans] = useState(() => getOfflineScans());
   const [isSyncingPending, setIsSyncingPending] = useState(false);
 
+  // Multi-Turn Plant Doctor Follow-Up Chat State
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [isChatListening, setIsChatListening] = useState(false);
+
+  // Reset follow-up chat when active disease changes
+  useEffect(() => {
+    setChatMessages([]);
+    setChatInput('');
+  }, [activeDisease?.id, activeDisease?.diseaseName]);
+
   // Live Weather Spray Advisory State
   const [sprayAdvisory, setSprayAdvisory] = useState(null);
   const [isVoicePlaying, setIsVoicePlaying] = useState(false);
@@ -108,7 +122,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     };
   }, []);
 
-  // Voice recognition mic toggle
+  // Voice recognition mic toggle for search
   const handleToggleVoiceSearch = () => {
     if (isVoiceListening) {
       stopVoiceRecognition();
@@ -126,6 +140,84 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           setIsVoiceListening(false);
         }
       });
+    }
+  };
+
+  // Voice recognition mic toggle for Doctor Chat
+  const handleToggleVoiceChat = () => {
+    if (isChatListening) {
+      stopVoiceRecognition();
+      setIsChatListening(false);
+    } else {
+      startVoiceRecognition({
+        onResult: (normalized, raw) => {
+          const spoken = normalized || raw;
+          setChatInput(spoken);
+          setIsChatListening(false);
+        },
+        onListeningChange: (listening) => {
+          setIsChatListening(listening);
+        },
+        onError: (msg) => {
+          notify.info(msg);
+          setIsChatListening(false);
+        }
+      });
+    }
+  };
+
+  // Send message to Gemini Plant Doctor
+  const handleSendChatMessage = async (customText = null) => {
+    const textToSend = (customText !== null ? customText : chatInput).trim();
+    if (!textToSend || !activeDisease) return;
+
+    const userMsg = { sender: 'user', text: textToSend };
+    setChatMessages((prev) => [...prev, userMsg]);
+    if (customText === null) setChatInput('');
+    setChatLoading(true);
+
+    try {
+      const history = chatMessages.slice(-6).map((m) => ({
+        role: m.sender === 'doctor' ? 'model' : 'user',
+        text: m.text
+      }));
+
+      const res = await chatWithCropDoctor({
+        question: textToSend,
+        cropName: activeDisease.cropName || (selectedCrop === 'paddy' ? 'धान' : selectedCrop),
+        diseaseName: activeDisease.diseaseName,
+        chemicalRemedy: activeDisease.chemicalRemedy,
+        organicRemedy: activeDisease.organicRemedy,
+        district: selectedDistrict,
+        history
+      });
+
+      if (res && res.success) {
+        const docMsg = {
+          sender: 'doctor',
+          text: res.answer,
+          voiceAdvice: res.voiceAdvice,
+          quickTips: res.quickTips || []
+        };
+        setChatMessages((prev) => [...prev, docMsg]);
+        if (res.voiceAdvice) {
+          speakText(res.voiceAdvice);
+        }
+      } else {
+        const errorMsg = {
+          sender: 'doctor',
+          text: res?.error || 'सलाह प्राप्त करने में समस्या आई। कृपया पुनः प्रयास करें।',
+          isError: true
+        };
+        setChatMessages((prev) => [...prev, errorMsg]);
+      }
+    } catch (err) {
+      setChatMessages((prev) => [
+        ...prev,
+        { sender: 'doctor', text: 'नेटवर्क में समस्या आई। कृपया इंटरनेट कनेक्शन जांचें।', isError: true }
+      ]);
+    } finally {
+      setChatLoading(false);
     }
   };
 
@@ -1041,33 +1133,94 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         )}
 
         {nonPlantWarning && (
-          <Alert
-            severity="warning"
+          <Paper
+            elevation={0}
             sx={{
               mt: 2,
-              borderRadius: 2.5,
+              p: 2,
+              borderRadius: 3,
               bgcolor: '#fffde7',
-              border: '1.5px solid #ffe082',
+              border: '2px solid #fbc02d',
               textAlign: 'left'
             }}
           >
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#f57f17', fontSize: '0.86rem' }}>
-              {isChhattisgarhi ? '⚠️ पौधा या पाना के साफ फोटो नइ मिलिस (Unclear Photo)' : '⚠️ पौधे या पत्ती की स्पष्ट फोटो नहीं मिली (Unclear/Non-Plant Photo)'}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#5d4037', fontSize: '0.78rem', mt: 0.4 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, mb: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontSize: '1.4rem', lineHeight: 1 }}>📷</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.92rem' }}>
+                  {isChhattisgarhi ? 'साफ फोटो खींचे के 3 सरल नियम (Smart Re-capture)' : 'साफ फोटो खींचने के 3 सरल नियम (Smart Re-capture Guide)'}
+                </Typography>
+              </Box>
+              <Chip
+                label={isChhattisgarhi ? 'धुंधला या दूर फोटो' : 'अस्पष्ट या दूर से फोटो'}
+                size="small"
+                sx={{ bgcolor: '#ffe082', color: '#b78103', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+              />
+            </Box>
+
+            <Typography variant="body2" sx={{ color: '#5d4037', fontSize: '0.8rem', mb: 1.2 }}>
               {isChhattisgarhi
-                ? 'फोटो म पौधा या फसल के बीमार भाग साफ नइ दिखत हे। सही देसी/रासायनिक दवाई जाने बर खेत म जाके बीमार पाना के अंजोर म साफ फोटो खींचव।'
-                : 'अपलोड की गई तस्वीर में पौधे या फसल के रोगग्रस्त भाग साफ़ दिखाई नहीं दे रहे हैं। सही और सटीक रासायनिक/जैविक इलाज जानने के लिए कृपया खेत में जाकर बीमार पत्ती की अच्छी रोशनी में साफ़ फोटो लें।'}
+                ? 'फोटो म पत्ती बहुत दूर हे या कोहरा/छाया हे। सटीक दवाई के पर्ची पाए बर ये 3 बात ध्यान राखव:'
+                : 'अपलोड की गई फोटो में पत्ती बहुत दूर है या धुंधली है। सटीक रासायनिक व जैविक पर्ची पाने के लिए इन 3 बातों का ध्यान रखें:'}
             </Typography>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={handleResetScan}
-              sx={{ mt: 1, color: '#e65100', borderColor: '#ffb74d', borderRadius: 2, fontSize: '0.74rem' }}
-            >
-              {isChhattisgarhi ? '🔄 फेर फोटो खींचव' : '🔄 पुनः फोटो खींचें'}
-            </Button>
-          </Alert>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 1, mb: 1.5 }}>
+              <Box sx={{ p: 1, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#e65100', display: 'block', mb: 0.2 }}>
+                  1. 🎯 {isChhattisgarhi ? 'क्लोज-अप (10-15 सेमी)' : 'क्लोज-अप (10-15 सेमी)'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.72rem', lineHeight: 1.3, display: 'block' }}>
+                  {isChhattisgarhi ? 'बीमार भाग या धब्बा के एकदम पास ले जाके फोटो खींचव।' : 'रोगग्रस्त भाग या धब्बे के बिल्कुल पास ले जाकर फोटो लें।'}
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: 1, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#e65100', display: 'block', mb: 0.2 }}>
+                  2. ☀️ {isChhattisgarhi ? 'बने दिन के अंजोर' : 'उचित दिन की रोशनी'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.72rem', lineHeight: 1.3, display: 'block' }}>
+                  {isChhattisgarhi ? 'घाम या दिन के अंजोर म खींचव, मोबाइल के परछाई झन पड़य।' : 'दिन के उजाले में फोटो लें, मोबाइल या हाथ की परछाई से बचें।'}
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: 1, bgcolor: '#ffffff', borderRadius: 2, border: '1px solid #ffe082' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#e65100', display: 'block', mb: 0.2 }}>
+                  3. ✋ {isChhattisgarhi ? 'हाथ थिर (फोकस)' : 'हाथ स्थिर व फोकस'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#666', fontSize: '0.72rem', lineHeight: 1.3, display: 'block' }}>
+                  {isChhattisgarhi ? 'हाथ ला हिलाव मत, पत्ती म टच करके फोकस करव।' : 'हाथ को स्थिर रखें और पत्ती पर उंगली टच करके फोकस करें।'}
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<PhotoCameraIcon sx={{ fontSize: 16 }} />}
+                onClick={() => document.getElementById('crop-camera-capture')?.click()}
+                sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, borderRadius: 2, fontSize: '0.75rem', '&:hover': { bgcolor: '#1b5e20' } }}
+              >
+                {isChhattisgarhi ? '📸 फेर कैमरा खोलव' : '📸 दोबारा कैमरा खोलें'}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<PhotoLibraryIcon sx={{ fontSize: 16 }} />}
+                onClick={() => document.getElementById('crop-gallery-upload')?.click()}
+                sx={{ borderColor: '#e65100', color: '#e65100', fontWeight: 800, borderRadius: 2, fontSize: '0.75rem' }}
+              >
+                {isChhattisgarhi ? '🖼️ गैलरी ले चुनव' : '🖼️ गैलरी से चुनें'}
+              </Button>
+              <Button
+                size="small"
+                onClick={handleResetScan}
+                sx={{ color: '#666', fontSize: '0.75rem', textTransform: 'none' }}
+              >
+                {isChhattisgarhi ? 'रीसेट' : 'रीसेट'}
+              </Button>
+            </Box>
+          </Paper>
         )}
 
         {scanError && (
@@ -1751,6 +1904,200 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 </Box>
               </Grid>
             </Grid>
+
+            {/* 9. Conversational Multi-Turn Follow-Up Chat Box (Google Gemini AI Doctor) */}
+            <Paper
+              elevation={0}
+              sx={{
+                mt: 2.5,
+                mb: 2,
+                p: { xs: 1.5, sm: 2 },
+                borderRadius: 3,
+                bgcolor: '#f8fafc',
+                border: '1.5px solid #cbd5e1',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ChatIcon sx={{ color: '#1565c0', fontSize: 22 }} />
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
+                      {isChhattisgarhi ? '👨‍⚕️ डॉक्टर ले अउ पूछव (Follow-up Chat)' : '👨‍⚕️ डॉक्टर से और पूछें (Follow-up Question & Advice)'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.73rem' }}>
+                      {isChhattisgarhi ? 'दवाई, छिड़काव बेरा, खाद मिलाना या जैविक काढ़ा संबंधी कोनो सवाल पूछव' : 'दवा, छिड़काव समय, खाद मिश्रण या जैविक काढ़ा संबंधी कोई भी सवाल पूछें'}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Chip
+                  label="⚡ 100% लाइव AI परामर्श"
+                  size="small"
+                  sx={{ bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                />
+              </Box>
+
+              {/* 4 Zero-Typing Quick Question Chips for Rural Farmers */}
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.72rem', display: 'block', mb: 0.6 }}>
+                  {isChhattisgarhi ? '⚡ 1-टच त्वरित सवाल (टाइप करे के जरूरत नइये):' : '⚡ 1-टच त्वरित सवाल (टाइप करने की आवश्यकता नहीं):'}
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                  {[
+                    { label: isChhattisgarhi ? '💊 दूसरी या सस्ती दवाई बताव' : '💊 दूसरी या सस्ती दवा बताएं', text: `${activeDisease.diseaseName} के लिए कोई दूसरी या सस्ती अनुमोदित दवा और 15L पंप की खुराक बताएं` },
+                    { label: isChhattisgarhi ? '🌿 जैविक / देसी काढ़ा उपाय' : '🌿 जैविक / देसी काढ़ा उपचार', text: `${activeDisease.diseaseName} की रोकथाम हेतु देसी काढ़ा या जैविक घरेलू उपचार कैसे तैयार करें?` },
+                    { label: isChhattisgarhi ? '⏰ स्प्रे करे के सही बेरा' : '⏰ स्प्रे का सबसे सही समय', text: 'इस दवा का छिड़काव सुबह करना चाहिए या शाम को, और कितने दिन बाद दोबारा छिड़कें?' },
+                    { label: isChhattisgarhi ? '🌧️ स्प्रे बाद पानी गिर जाए त?' : '🌧️ स्प्रे के बाद बारिश हो जाए तो?', text: 'कीटनाशक छिड़कने के कितने घंटे बाद बारिश होने पर दवा काम करेगी?' }
+                  ].map((chip, idx) => (
+                    <Chip
+                      key={idx}
+                      label={chip.label}
+                      clickable
+                      disabled={chatLoading}
+                      onClick={() => handleSendChatMessage(chip.text)}
+                      sx={{
+                        bgcolor: '#ffffff',
+                        border: '1px solid #94a3b8',
+                        color: '#1e293b',
+                        fontWeight: 700,
+                        fontSize: '0.74rem',
+                        borderRadius: '16px',
+                        '&:hover': { bgcolor: '#f1f5f9', borderColor: '#1565c0' }
+                      }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Message Transcript Area */}
+              {chatMessages.length > 0 && (
+                <Box
+                  sx={{
+                    maxHeight: 260,
+                    overflowY: 'auto',
+                    mb: 1.5,
+                    p: 1.2,
+                    bgcolor: '#ffffff',
+                    borderRadius: 2,
+                    border: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1
+                  }}
+                >
+                  {chatMessages.map((msg, idx) => (
+                    <Box
+                      key={idx}
+                      sx={{
+                        alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                        maxWidth: '90%',
+                        p: 1.2,
+                        borderRadius: msg.sender === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                        bgcolor: msg.sender === 'user' ? '#1565c0' : msg.isError ? '#ffebee' : '#f0fdf4',
+                        color: msg.sender === 'user' ? '#ffffff' : msg.isError ? '#c62828' : '#0f172a',
+                        border: msg.sender === 'user' ? 'none' : msg.isError ? '1px solid #ffcdd2' : '1px solid #bbf7d0'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.3 }}>
+                        <Typography variant="caption" sx={{ fontWeight: 800, fontSize: '0.72rem', color: msg.sender === 'user' ? '#bbdefb' : '#15803d' }}>
+                          {msg.sender === 'user' ? (isChhattisgarhi ? 'आप:' : 'आप:') : (isChhattisgarhi ? '👨‍⚕️ कृषि वैज्ञानिक (IGKV):' : '👨‍⚕️ कृषि वैज्ञानिक (IGKV परामर्श):')}
+                        </Typography>
+                        {msg.sender === 'doctor' && !msg.isError && (
+                          <IconButton
+                            size="small"
+                            onClick={() => speakText(msg.voiceAdvice || msg.text)}
+                            sx={{ p: 0.2, color: '#15803d' }}
+                          >
+                            <VolumeUpIcon sx={{ fontSize: 14 }} />
+                          </IconButton>
+                        )}
+                      </Box>
+                      <Typography variant="body2" sx={{ fontSize: '0.82rem', lineHeight: 1.45 }}>
+                        {msg.text}
+                      </Typography>
+                      {msg.quickTips && msg.quickTips.length > 0 && (
+                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.8 }}>
+                          {msg.quickTips.map((tip, tIdx) => (
+                            <Chip
+                              key={tIdx}
+                              label={`💡 ${tip}`}
+                              size="small"
+                              sx={{ bgcolor: '#ffffff', color: '#1b5e20', fontSize: '0.68rem', height: 20, border: '1px solid #86efac' }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  ))}
+
+                  {chatLoading && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                      <CircularProgress size={16} sx={{ color: '#1565c0' }} />
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
+                        {isChhattisgarhi ? 'डॉक्टर सलाह लिखत हवय...' : 'डॉक्टर सलाह तैयार कर रहे हैं...'}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {/* Chat Input Field + Voice + Send Button */}
+              <Box sx={{ display: 'flex', gap: 0.8, alignItems: 'center' }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder={isChhattisgarhi ? "अपन सवाल लिखव या माइक दबा के बोलव..." : "अपना सवाल लिखें या माइक दबाकर बोलें..."}
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendChatMessage();
+                    }
+                  }}
+                  disabled={chatLoading}
+                  sx={{
+                    bgcolor: '#ffffff',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-root': { borderRadius: 2 }
+                  }}
+                />
+
+                <Tooltip title={isChatListening ? (isChhattisgarhi ? "माइक बंद करव" : "माइक बंद करें") : (isChhattisgarhi ? "बोल के सवाल पूछव" : "बोलकर सवाल पूछें")}>
+                  <IconButton
+                    onClick={handleToggleVoiceChat}
+                    disabled={chatLoading}
+                    sx={{
+                      bgcolor: isChatListening ? '#c62828' : '#e0f2fe',
+                      color: isChatListening ? '#fff' : '#0284c7',
+                      p: 1,
+                      borderRadius: 2,
+                      '&:hover': { bgcolor: isChatListening ? '#b71c1c' : '#bae6fd' }
+                    }}
+                  >
+                    <MicIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </Tooltip>
+
+                <Button
+                  variant="contained"
+                  disabled={chatLoading || !chatInput.trim()}
+                  onClick={() => handleSendChatMessage()}
+                  sx={{
+                    bgcolor: '#1565c0',
+                    color: '#fff',
+                    fontWeight: 800,
+                    px: 2,
+                    py: 0.9,
+                    borderRadius: 2,
+                    minWidth: 'auto',
+                    '&:hover': { bgcolor: '#0d47a1' }
+                  }}
+                >
+                  <SendIcon sx={{ fontSize: 18 }} />
+                </Button>
+              </Box>
+            </Paper>
 
             {/* Scientific Disclaimer & GODL Attribution Footer */}
             <Box

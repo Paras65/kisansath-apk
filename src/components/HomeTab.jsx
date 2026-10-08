@@ -368,10 +368,17 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       'आज के किसानी सलाह: मौसम साफ अऊ बने रहिही। यूरिया खाद अऊ दवाई छिड़काव बर बने समय हे।',
       'आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।'
     );
-    const advisoryVoice = isChhattisgarhi
+    let advisoryVoice = isChhattisgarhi
       ? (weather?.sprayAdvisory?.voiceCg || weather?.sprayAdvisory?.voice)
       : weather?.sprayAdvisory?.voice;
-    speakText(advisoryVoice || fallbackText);
+
+    if (weather?.soilMoisture) {
+      advisoryVoice = `${advisoryVoice || ''} ${isChhattisgarhi ? weather.soilMoisture.adviceCg : weather.soilMoisture.advice}`;
+    }
+    if (weather?.diseaseRisk && weather.diseaseRisk.riskLevel === 'high') {
+      advisoryVoice = `${advisoryVoice || ''} ${isChhattisgarhi ? weather.diseaseRisk.adviceCg : weather.diseaseRisk.advice}`;
+    }
+    speakText(advisoryVoice ? advisoryVoice.trim() : fallbackText);
   };
 
   const handleReadStep = (e, step) => {
@@ -2225,6 +2232,113 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 </Typography>
               </Box>
             </Box>
+
+            {/* Satellite Soil Moisture & Smart Irrigation Meter (0-9cm root zone) */}
+            {weather?.soilMoisture && (
+              <Box
+                sx={{
+                  p: 1.2,
+                  mb: 1.5,
+                  borderRadius: 2.5,
+                  bgcolor: weather.soilMoisture.bg || '#f0fdf4',
+                  border: `1px solid ${weather.soilMoisture.color || '#2e7d32'}40`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: 1
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 200 }}>
+                  <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>🌱</Typography>
+                  <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.3 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: weather.soilMoisture.color || '#166534', fontSize: '0.8rem' }}>
+                        {isChhattisgarhi ? 'खेत माटी नमी (0-9 सेमी जड़ क्षेत्र):' : 'खेत मिट्टी नमी (0-9 सेमी जड़ क्षेत्र):'} <strong>{weather.soilMoisture.percentage}%</strong>
+                      </Typography>
+                      <Chip
+                        label={isChhattisgarhi ? weather.soilMoisture.labelCg : weather.soilMoisture.label}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: '0.64rem',
+                          fontWeight: 800,
+                          bgcolor: '#ffffff',
+                          color: weather.soilMoisture.color || '#166534',
+                          border: `1px solid ${weather.soilMoisture.color || '#166534'}`,
+                          borderRadius: '6px'
+                        }}
+                      />
+                    </Box>
+                    <LinearProgress
+                      variant="determinate"
+                      value={weather.soilMoisture.percentage}
+                      sx={{
+                        height: 6,
+                        borderRadius: 3,
+                        bgcolor: 'rgba(0,0,0,0.06)',
+                        '& .MuiLinearProgress-bar': {
+                          bgcolor: weather.soilMoisture.color || '#166534',
+                          borderRadius: 3
+                        },
+                        mb: 0.4
+                      }}
+                    />
+                    <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', lineHeight: 1.3 }}>
+                      {isChhattisgarhi ? weather.soilMoisture.adviceCg : weather.soilMoisture.advice}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+
+            {/* 48-Hour Fungal / Blast Disease Outbreak Early Warning Banner */}
+            {weather?.diseaseRisk && weather.diseaseRisk.riskLevel !== 'low' && (
+              <Box
+                sx={{
+                  p: 1.2,
+                  mb: 1.5,
+                  borderRadius: 2.5,
+                  bgcolor: weather.diseaseRisk.riskLevel === 'high' ? '#fff1f2' : '#fffbeb',
+                  border: `1.5px solid ${weather.diseaseRisk.riskLevel === 'high' ? '#fda4af' : '#fde68a'}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.6
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.8 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>
+                      {weather.diseaseRisk.riskLevel === 'high' ? '⚠️' : '🟡'}
+                    </Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: weather.diseaseRisk.riskLevel === 'high' ? '#be123c' : '#b45309', fontSize: '0.82rem' }}>
+                      {isChhattisgarhi ? weather.diseaseRisk.titleCg : weather.diseaseRisk.title}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={isChhattisgarhi ? weather.diseaseRisk.badgeCg : weather.diseaseRisk.badge}
+                    size="small"
+                    color={weather.diseaseRisk.riskLevel === 'high' ? 'error' : 'warning'}
+                    sx={{ fontWeight: 800, fontSize: '0.66rem', height: 20 }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.74rem', lineHeight: 1.35 }}>
+                  {isChhattisgarhi ? weather.diseaseRisk.adviceCg : weather.diseaseRisk.advice}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.4, borderTop: '1px dashed rgba(0,0,0,0.1)' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: weather.diseaseRisk.riskLevel === 'high' ? '#9f1239' : '#92400e', fontSize: '0.71rem' }}>
+                    👉 {isChhattisgarhi ? weather.diseaseRisk.recommendedActionCg : weather.diseaseRisk.recommendedAction}
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={() => { stopSpeech(); onNavigate('doctor'); }}
+                    sx={{ fontSize: '0.7rem', py: 0.2, px: 1, color: '#d32f2f', fontWeight: 800, textTransform: 'none' }}
+                  >
+                    {isChhattisgarhi ? 'दवाई जांचव ➔' : 'दवा जांचें ➔'}
+                  </Button>
+                </Box>
+              </Box>
+            )}
 
             {/* Advisory line */}
             <Box sx={{ p: 1.2, bgcolor: '#f1f8e9', borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 1.5, border: '1px solid #dcedc8' }}>

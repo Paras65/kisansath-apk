@@ -195,6 +195,132 @@ export const getSprayAdvisory = (weather) => {
 };
 
 /**
+ * Evaluate 48-Hour Fungal / Blast Disease Outbreak Risk Score
+ * Based on ICAR/IGKV Plant Pathology criteria:
+ * Fungal spore germination peaks when Relative Humidity >= 80% & Temp 20-29°C for prolonged hours.
+ */
+export const calculateDiseaseOutbreakRisk = (hourly = {}) => {
+  const humidities = hourly.relative_humidity_2m || [];
+  const temps = hourly.temperature_2m || [];
+  const limit = Math.min(48, Math.min(humidities.length, temps.length));
+
+  let highRiskHours = 0;
+  for (let i = 0; i < limit; i++) {
+    const h = humidities[i];
+    const t = temps[i];
+    if (h >= 80 && t >= 20 && t <= 29) {
+      highRiskHours++;
+    }
+  }
+
+  if (highRiskHours >= 12) {
+    return {
+      riskLevel: 'high',
+      riskScoreHours: highRiskHours,
+      badge: '⚠️ उच्च फफूंद जोखिम (48h)',
+      badgeCg: '⚠️ झुलसा/केंचुली के जादा खतरा',
+      title: '48 घंटे में फफूंद / झुलसा रोग की पूर्व-चेतावनी',
+      titleCg: '48 घंटा म झुलसा / केंचुली रोग के जादा संका',
+      advice: `आगामी 48 घंटों में ${highRiskHours} घंटे अत्यधिक नमी (>80%) और अनुकूल तापमान रहेगा। धान में शीथ ब्लाइट व ब्लास्ट (झुलसा) का तीव्र प्रकोप हो सकता है। खेत में यूरिया न डालें और तुरंत ट्राइसाइक्लाजोल या हेक्साकोनाजोल का छिड़काव तैयार रखें।`,
+      adviceCg: `आवत 48 घंटा म ${highRiskHours} घंटा जादा उमस अऊ मौसम अनुकूल रहिही। धान म केंचुली अऊ झुलसा रोग बढ़ सकथे। खेत म यूरिया झन लगाव, दवाई छिड़काव बर तियार रहव।`,
+      recommendedAction: 'यूरिया रोकें • फफूंदनाशक स्प्रे तैयार रखें',
+      recommendedActionCg: 'यूरिया रोक्व • दवाई स्प्रे तियार राखव',
+      canSprayWindow: 'दोपहर बाद शांत हवा में स्प्रे करें',
+      canSprayWindowCg: 'मंझनिया बाद शांत हवा म स्प्रे करव'
+    };
+  }
+
+  if (highRiskHours >= 5) {
+    return {
+      riskLevel: 'moderate',
+      riskScoreHours: highRiskHours,
+      badge: '🟡 मध्यम रोग निगरानी',
+      badgeCg: '🟡 फफूंद निगरानी जरूरी',
+      title: 'मौसम में नमी वृद्धि: कीट व रोग निगरानी आवश्यक',
+      titleCg: 'मौसम म उमस बढ़त हे: कीरा-बीमारी म नजर राखव',
+      advice: `आगामी 48 घंटों में नमी बढ़ने से फसलों में कीट व फफूंद का फैलाव हो सकता है। खेत की मेड़ों पर जाकर निचली पत्तियों व तनों का नियमित निरीक्षण करें।`,
+      adviceCg: `आवत 48 घंटा म उमस बढ़े ले फसल म कीरा अऊ फफूंद फैल सकथे। खेत के मेड़-मेड़ घुमके निचला पाना अऊ तना के जांच करव।`,
+      recommendedAction: 'खेत की मेड़ों पर नियमित निरीक्षण करें',
+      recommendedActionCg: 'खेत म नियमित जांच करव',
+      canSprayWindow: 'मौसम अनुकूल रहने पर स्प्रे करें',
+      canSprayWindowCg: 'मौसम साफ रहे म स्प्रे करव'
+    };
+  }
+
+  return {
+    riskLevel: 'low',
+    riskScoreHours: highRiskHours,
+    badge: '✅ रोग जोखिम सामान्य',
+    badgeCg: '✅ बीमारी के संका कम',
+    title: 'फसल स्वास्थ्य अनुकूल: फफूंद संक्रमण का खतरा न्यूनतम',
+    titleCg: 'फसल बने रहिही: कोनो भारी बीमारी के संका नइये',
+    advice: 'आगामी 48 घंटों में मौसम साफ और फफूंद रोगों के अनुकूल नहीं है। फसल की नियमित देखरेख व पोषण प्रबंधन जारी रखें।',
+    adviceCg: 'आवत 48 घंटा म मौसम बने हे, कोनो बीमारी के खतरा नइये। फसल के सामान्य देखरेख जारी राखव।',
+    recommendedAction: 'सामान्य कृषि कार्य जारी रखें',
+    recommendedActionCg: 'सामान्य किसानी काम जारी राखव',
+    canSprayWindow: 'सामान्य अनुकूल समय',
+    canSprayWindowCg: 'अनुकूल समय'
+  };
+};
+
+/**
+ * Evaluate Satellite Soil Moisture (0-9cm depth) into Farmer-Intuitive Zones
+ * Volumetric capacity standard for clay-loam / matasi soil in CG: ~0.40 m³/m³
+ */
+export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMoisture = 0.28) => {
+  // Weighted moisture across topsoil (0-1cm) and active rootzone (3-9cm)
+  const effectiveVolumetric = (Number(currentMoisture) * 0.4) + (Number(rootZoneMoisture) * 0.6);
+  // Normalize to farmer percentage (0 to 100%) against field capacity (~0.40 m³/m³)
+  const percentage = Math.min(100, Math.max(8, Math.round((effectiveVolumetric / 0.40) * 100)));
+
+  if (percentage < 35) {
+    return {
+      percentage,
+      volumetric: Number(effectiveVolumetric.toFixed(3)),
+      status: 'dry',
+      label: 'सूखी मिट्टी (सिंचाई आवश्यक)',
+      labelCg: 'सूखी भुइयां (पानी के कमी)',
+      color: '#d32f2f',
+      bg: '#ffebee',
+      advice: 'जड़ क्षेत्र (0-9 सेमी) में नमी कम हो गई है। फसल को तनाव से बचाने हेतु अगले 24 घंटों में हल्की सिंचाई करें।',
+      adviceCg: 'जड़ क्षेत्र (0-9 सेमी) म माटी सुखावत हे। फसल म जोर झन पड़े तेकर सेती 24 घंटा म पानी देवव।',
+      irrigationNeeded: true,
+      badge: '🔴 पानी की कमी'
+    };
+  }
+
+  if (percentage <= 80) {
+    return {
+      percentage,
+      volumetric: Number(effectiveVolumetric.toFixed(3)),
+      status: 'optimal',
+      label: 'उत्तम नमी (अनुकूल)',
+      labelCg: 'बने नमी (पूरव पानी)',
+      color: '#2e7d32',
+      bg: '#e8f5e9',
+      advice: 'खेत के जड़ क्षेत्र (0-9 सेमी) में पर्याप्त नमी उपलब्ध है। अभी सिंचाई की आवश्यकता नहीं है, पानी और बिजली की बचत करें।',
+      adviceCg: 'खेत के जड़ क्षेत्र (0-9 सेमी) म बने नमी हे। अभी पानी देहे के जरूरत नइ हे, पानी अऊ बिजली बचावहू।',
+      irrigationNeeded: false,
+      badge: '🟢 पर्याप्त नमी'
+    };
+  }
+
+  return {
+    percentage,
+    volumetric: Number(effectiveVolumetric.toFixed(3)),
+    status: 'wet',
+    label: 'अत्यधिक गीली (जलभराव जोखिम)',
+    labelCg: 'जादा गीला (जलभराव के खतरा)',
+    color: '#ed6c02',
+    bg: '#fff3e0',
+    advice: 'खेत में पानी की मात्रा अधिक है। जलभराव से जड़ों को सड़ने से बचाने के लिए खेत की मेड़ों से अतिरिक्त पानी निकासी की व्यवस्था रखें।',
+    adviceCg: 'खेत म जादा पानी भरे हे। जड़ झन सड़य तेकर सेती मेड़ ले अतिरिक्त पानी निकास के बेवस्था करव।',
+    irrigationNeeded: false,
+    badge: '🟡 अधिक गीली'
+  };
+};
+
+/**
  * Fetch Live Weather from Open-Meteo (Zero Key, Free)
  */
 export const fetchLiveWeather = async (districtName = 'रायपुर') => {
@@ -202,19 +328,23 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
   const cacheKey = `kisan_weather_${districtName}`;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,soil_temperature_0cm,soil_moisture_0_to_1cm&hourly=soil_moisture_0_to_1cm,soil_moisture_3_to_9cm,relative_humidity_2m,temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata&forecast_days=3`;
 
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       const current = data.current || {};
       const daily = data.daily || {};
+      const hourly = data.hourly || {};
 
       const weatherCode = current.weather_code ?? 0;
       const wmoInfo = WMO_CODE_MAP[weatherCode] || WMO_CODE_MAP[0];
       const rainProbability = daily.precipitation_probability_max?.[0] ?? Math.round((current.precipitation || 0) * 40);
       const tempMax = daily.temperature_2m_max?.[0] ? Math.round(daily.temperature_2m_max[0]) : Math.round(current.temperature_2m || 30);
       const tempMin = daily.temperature_2m_min?.[0] ? Math.round(daily.temperature_2m_min[0]) : Math.round((current.temperature_2m || 30) - 6);
+
+      const currentMoisture = current.soil_moisture_0_to_1cm ?? 0.26;
+      const rootZoneMoisture = hourly.soil_moisture_3_to_9cm?.[0] ?? currentMoisture;
 
       const parsedWeather = {
         district: districtName,
@@ -230,6 +360,9 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
         conditionTextCg: wmoInfo.textCg || wmoInfo.text,
         conditionIcon: wmoInfo.icon,
         conditionName: wmoInfo.condition,
+        soilTemperature: current.soil_temperature_0cm ? Math.round(current.soil_temperature_0cm) : null,
+        soilMoisture: calculateSoilMoistureAdvisory(currentMoisture, rootZoneMoisture),
+        diseaseRisk: calculateDiseaseOutbreakRisk(hourly),
         updatedAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }),
         isLive: true,
       };
@@ -289,6 +422,8 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       const parsed = JSON.parse(cached);
       parsed.isLive = false;
       parsed.sprayAdvisory = getSprayAdvisory(parsed);
+      if (!parsed.soilMoisture) parsed.soilMoisture = calculateSoilMoistureAdvisory(0.26, 0.28);
+      if (!parsed.diseaseRisk) parsed.diseaseRisk = calculateDiseaseOutbreakRisk();
       return parsed;
     } catch (e) {}
   }
@@ -310,6 +445,9 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     conditionName: 'Sunny',
     updatedAt: 'ऑफ़लाइन सुरक्षित डेटा',
     isLive: false,
+    soilTemperature: 28,
+    soilMoisture: calculateSoilMoistureAdvisory(0.26, 0.28),
+    diseaseRisk: calculateDiseaseOutbreakRisk(),
     forecast3Days: [
       { day: 'आज (Today)', dayCg: 'आज', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप', conditionCg: 'बने घाम' },
       { day: 'कल (Tomorrow)', dayCg: 'बिहान', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल', conditionCg: 'घाम अउ बादर' },
@@ -327,19 +465,23 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
   const cacheKey = `kisan_weather_gps_${Number(lat).toFixed(2)}_${Number(lon).toFixed(2)}`;
 
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,soil_temperature_0cm,soil_moisture_0_to_1cm&hourly=soil_moisture_0_to_1cm,soil_moisture_3_to_9cm,relative_humidity_2m,temperature_2m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata&forecast_days=3`;
 
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
       const current = data.current || {};
       const daily = data.daily || {};
+      const hourly = data.hourly || {};
 
       const weatherCode = current.weather_code ?? 0;
       const wmoInfo = WMO_CODE_MAP[weatherCode] || WMO_CODE_MAP[0];
       const rainProbability = daily.precipitation_probability_max?.[0] ?? Math.round((current.precipitation || 0) * 40);
       const tempMax = daily.temperature_2m_max?.[0] ? Math.round(daily.temperature_2m_max[0]) : Math.round(current.temperature_2m || 30);
       const tempMin = daily.temperature_2m_min?.[0] ? Math.round(daily.temperature_2m_min[0]) : Math.round((current.temperature_2m || 30) - 6);
+
+      const currentMoisture = current.soil_moisture_0_to_1cm ?? 0.26;
+      const rootZoneMoisture = hourly.soil_moisture_3_to_9cm?.[0] ?? currentMoisture;
 
       const parsedWeather = {
         district: label,
@@ -358,6 +500,9 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
         conditionTextCg: wmoInfo.textCg || wmoInfo.text,
         conditionIcon: wmoInfo.icon,
         conditionName: wmoInfo.condition,
+        soilTemperature: current.soil_temperature_0cm ? Math.round(current.soil_temperature_0cm) : null,
+        soilMoisture: calculateSoilMoistureAdvisory(currentMoisture, rootZoneMoisture),
+        diseaseRisk: calculateDiseaseOutbreakRisk(hourly),
         updatedAt: new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }),
         isLive: true,
       };

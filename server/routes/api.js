@@ -11,7 +11,7 @@ import FarmerProfile from '../models/FarmerProfile.js';
 import BroadcastAdvisory from '../models/BroadcastAdvisory.js';
 import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
-import { diagnoseWithGeminiVision } from '../services/geminiVisionService.js';
+import { diagnoseWithGeminiVision, chatWithGeminiCropDoctor } from '../services/geminiVisionService.js';
 import { getOrFetchLiveMandiRates } from '../services/mandiLiveService.js';
 import { externalApisConfig } from '../config/externalApis.js';
 import {
@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.28';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.29';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'प्राकृतिक न्यूरल वॉयस इंजन (Zero-API-Key TTS) व जेनेरिक भाषा प्रणाली: कटी-फटी रोबोटिक आवाज़ को हटाकर स्टूडियो-ग्रेड न्यूरल वॉयस (Microsoft Swara / Google WaveNet) लागू की गई है। 0.92x शांत गति, कृषि व मुद्रा चिह्नों (₹3100, %, NPK, खाद) का सटीक उच्चारण और छत्तीसगढ़ी-हिंदी का जेनेरिक तीव्र रूपांतरण अब पूरी तरह सक्रिय है।',
+    releaseNotes: 'सैटेलाइट जड़ क्षेत्र मृदा नमी मीटर (0-9 सेमी) व स्मार्ट सिंचाई सलाह, 48-घंटे ब्लास्ट/फफूंद रोग पूर्व-चेतावनी, एआई फसल डॉक्टर मल्टी-टर्न संवाद परामर्श चैट व फोटो सुधार गाइड, तथा एगमार्कनेट मंडी दोहरी दर (क्विंटल व किलो भाव) एवं अंतर-मंडी मूल्य तुलना पट्टी का सफल समावेश।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -195,6 +195,69 @@ router.post('/crop-doctor/diagnose', validateBody('CropDoctorDiagnoseRequest', S
     res.status(500).json({
       success: false,
       error: 'एआई जांच में समस्या आई। कृपया पुनः प्रयास करें।',
+      technicalError: err.message
+    });
+  }
+});
+
+// 3b. Crop Doctor Follow-Up Multi-Turn Chat (Conversational Plant Pathologist)
+router.post('/crop-doctor/chat', validateBody('CropDoctorChatRequest', Schemas.CropDoctorChatRequest), async (req, res) => {
+  try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`crop-chat:${clientIp}`, 20, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({
+        success: false,
+        error: 'कृपया थोड़ा रुकें। प्रति मिनट अधिकतम 20 सवाल पूछे जा सकते हैं।'
+      });
+    }
+
+    const { question, cropName, diseaseName, chemicalRemedy, organicRemedy, district, history } = req.body || {};
+    const cleanQuestion = sanitize(question || '', 500);
+
+    if (!cleanQuestion || cleanQuestion.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'कृपया अपना सवाल लिखें या बोलें।'
+      });
+    }
+
+    const cleanCrop = sanitize(cropName || 'फसल', 60);
+    const cleanDisease = sanitize(diseaseName || '', 100);
+    const cleanChemical = sanitize(chemicalRemedy || '', 200);
+    const cleanOrganic = sanitize(organicRemedy || '', 200);
+    const cleanDistrict = sanitize(district || 'रायपुर', 50);
+
+    const safeHistory = Array.isArray(history)
+      ? history.slice(-6).map((item) => ({
+          role: item.role === 'model' ? 'model' : 'user',
+          text: sanitize(item.text || '', 500)
+        }))
+      : [];
+
+    const chatResponse = await chatWithGeminiCropDoctor({
+      question: cleanQuestion,
+      cropName: cleanCrop,
+      diseaseName: cleanDisease,
+      chemicalRemedy: cleanChemical,
+      organicRemedy: cleanOrganic,
+      district: cleanDistrict,
+      history: safeHistory
+    });
+
+    if (!chatResponse.success) {
+      logApiError('POST /crop-doctor/chat', req, {
+        message: chatResponse.technicalError || chatResponse.error,
+        modelErrors: chatResponse.modelErrors,
+      });
+    }
+
+    res.json(chatResponse);
+  } catch (err) {
+    logApiError('POST /crop-doctor/chat', req, err);
+    res.status(500).json({
+      success: false,
+      error: 'सलाह प्राप्त करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
       technicalError: err.message
     });
   }

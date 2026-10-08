@@ -329,9 +329,28 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     return 0;
   });
 
+  // Inter-mandi comparison: Group by unique mandi for current crop, sort by modalRate desc
+  const comparisonItems = React.useMemo(() => {
+    const map = new Map();
+    (filteredRates || []).forEach((r) => {
+      const rateNum = Number(r.modalRate || r.maxRate || 0);
+      if (rateNum > 0 && !map.has(r.mandi)) {
+        map.set(r.mandi, { mandi: r.mandi, modalRate: rateNum, crop: r.crop });
+      }
+    });
+    return Array.from(map.values())
+      .sort((a, b) => b.modalRate - a.modalRate)
+      .slice(0, 4);
+  }, [filteredRates]);
+
+  const isWeekend = [0, 6].includes(new Date().getDay());
+
   const handleReadMandiRates = (item) => {
     if (!item) return;
-    const text = `${item.mandi || 'मंडी'} में ${item.crop || 'फसल'} का मॉडल भाव ₹${item.modalRate || 0} प्रति क्विंटल है। न्यूनतम भाव ₹${item.minRate || 0} और अधिकतम भाव ₹${item.maxRate || 0} है।`;
+    const perKg = (Number(item.modalRate || 0) / 100).toFixed(1);
+    const text = isChhattisgarhi
+      ? `${item.mandi || 'मंडी'} म ${item.crop || 'फसल'} के मुख्य भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपया किलो हे।`
+      : `${item.mandi || 'मंडी'} में ${item.crop || 'फसल'} का मुख्य मॉडल भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपये प्रति किलो है। न्यूनतम भाव ₹${item.minRate || 0} और अधिकतम भाव ₹${item.maxRate || 0} है।`;
     speakText(text);
   };
 
@@ -892,6 +911,83 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </Box>
       </Box>
 
+      {/* Mandi Weekend / Holiday Notice */}
+      {isWeekend && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.2,
+            px: 1.8,
+            mb: 2,
+            borderRadius: 2.5,
+            bgcolor: '#eff6ff',
+            border: '1.2px solid #bfdbfe',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.2
+          }}
+        >
+          <StorefrontIcon sx={{ color: '#2563eb', fontSize: 22 }} />
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1d4ed8', fontSize: '0.84rem' }}>
+              {isChhattisgarhi ? '🏛️ आज सप्ताहांत / मंडी अवकाश हो सकत हे' : '🏛️ आज सप्ताहांत / मंडी अवकाश (Mandi Holiday Notice)'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#1e40af', fontSize: '0.73rem', display: 'block' }}>
+              {isChhattisgarhi
+                ? 'सप्ताहांत म मंडी म नीलामी बंद रहिथे। स्क्रीन म अंतिम कार्यदिवस के सत्यापित नीलामी भाव प्रदर्शित हे।'
+                : 'सप्ताहांत या अवकाश में APMC नीलामी स्थगित रहती है। स्क्रीन पर अंतिम कार्यदिवस के सत्यापित आधिकारिक भाव प्रदर्शित हैं।'}
+            </Typography>
+          </Box>
+        </Paper>
+      )}
+
+      {/* Inter-Mandi Price Comparison Strip (High-Profit Mandi Discovery) */}
+      {comparisonItems.length > 1 && (
+        <Paper
+          elevation={0}
+          sx={{
+            p: 1.4,
+            mb: 2,
+            borderRadius: 2.5,
+            bgcolor: '#f0fdf4',
+            border: '1.2px solid #86efac',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 1
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <TrendingUpIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+            <Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.84rem' }}>
+                {isChhattisgarhi ? '📊 मंडी भाव तुलना (किहां जादा भाव मिलत हे):' : '📊 अंतर-मंडी मूल्य तुलना (कहां मिल रहा सबसे अधिक भाव):'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.7rem' }}>
+                {isChhattisgarhi ? 'नजदीक के मंडी मन म आज के मुख्य भाव' : 'आसपास की मंडियों में आज के मुख्य मॉडल भाव'}
+              </Typography>
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+            {comparisonItems.map((comp, cIdx) => (
+              <Chip
+                key={cIdx}
+                label={`${comp.mandi}: ₹${comp.modalRate}/क्विं. (₹${(comp.modalRate / 100).toFixed(1)}/किग्रा)`}
+                size="small"
+                sx={{
+                  bgcolor: cIdx === 0 ? '#dcfce7' : '#ffffff',
+                  color: cIdx === 0 ? '#15803d' : '#334155',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  border: cIdx === 0 ? '1.5px solid #22c55e' : '1px solid #cbd5e1'
+                }}
+              />
+            ))}
+          </Box>
+        </Paper>
+      )}
+
       {/* Mandi Rate Cards */}
       <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1.5, fontSize: '0.9rem' }}>
         {isChhattisgarhi ? `ताजा मंडी भाव (${filteredRates.length}):` : `ताजा मंडी भाव दरें (${filteredRates.length}):`}
@@ -1019,6 +1115,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.minRate}
                             </Typography>
+                            <Typography variant="caption" sx={{ color: '#0284c7', fontSize: '0.64rem', fontWeight: 700, display: 'block' }}>
+                              ₹{(Number(rate.minRate || 0) / 100).toFixed(1)}/किग्रा
+                            </Typography>
                           </Paper>
                         </Grid>
 
@@ -1033,6 +1132,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                             <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.65rem', fontWeight: 700 }}>
                               /क्विंटल
                             </Typography>
+                            <Typography variant="caption" sx={{ color: '#166534', fontSize: '0.72rem', fontWeight: 900, display: 'block', bgcolor: '#dcfce7', borderRadius: '4px', px: 0.5, py: 0.1, mt: 0.3 }}>
+                              ₹{(Number(rate.modalRate || 0) / 100).toFixed(1)} / किलो
+                            </Typography>
                           </Paper>
                         </Grid>
 
@@ -1043,6 +1145,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                             </Typography>
                             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
                               ₹{rate.maxRate}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: '#0284c7', fontSize: '0.64rem', fontWeight: 700, display: 'block' }}>
+                              ₹{(Number(rate.maxRate || 0) / 100).toFixed(1)}/किग्रा
                             </Typography>
                           </Paper>
                         </Grid>

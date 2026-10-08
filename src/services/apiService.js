@@ -442,3 +442,52 @@ export const diagnoseCropWithLiveAi = async ({ imageBase64, cropId = '', distric
     );
   }
 };
+
+/**
+ * 11b. Crop Doctor Follow-Up Multi-Turn Chat
+ */
+export const chatWithCropDoctor = async ({
+  question,
+  cropName = 'फसल',
+  diseaseName = '',
+  chemicalRemedy = '',
+  organicRemedy = '',
+  district = 'रायपुर',
+  history = []
+}) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/crop-doctor/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        question,
+        cropName,
+        diseaseName,
+        chemicalRemedy,
+        organicRemedy,
+        district,
+        history
+      }),
+    });
+
+    if (res.ok) {
+      return await res.json();
+    } else {
+      const errPayload = await parseErrorPayload(res);
+      logClientApiError('/crop-doctor/chat', res, errPayload, { method: 'POST' });
+      return {
+        success: false,
+        error: errPayload.error || 'डॉक्टर से परामर्श प्राप्त नहीं हो सका।',
+        technicalError: errPayload.technicalError || `HTTP ${res.status}: ${res.statusText}`
+      };
+    }
+  } catch (err) {
+    logClientNetworkError('/crop-doctor/chat', err, { method: 'POST' });
+    return {
+      success: false,
+      error: 'इंटरनेट कनेक्शन नहीं है। कृपया इंटरनेट चालू करें।',
+      technicalError: err.message
+    };
+  }
+};
+

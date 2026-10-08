@@ -78,8 +78,17 @@ STRICT INSTRUCTIONS:
    - Exact 15-Litre spray tank (टंकी) dose: Specify exact grams (g) or milliliters (ml) per 15L water pump tank.
    - Chemical remedy: Technical chemical name and formulation (e.g., ट्राईसाइक्लाजोल 75% WP, इमिडाक्लोप्रिड 17.8% SL, क्लोरेंट्रानिलिप्रोल 18.5% SC).
    - Organic/Bio remedy: Desi/organic option (e.g., नीम का तेल, ट्राइकोडर्मा, दसपर्णी अर्क).
-   - Precautions & agronomic tips: Irrigation, nitrogen adjustment, wind speed advice.
-   - Voice advice: 2-3 concise, caring spoken Hindi sentences for farmers.
+    - Precautions & agronomic tips: Irrigation, nitrogen adjustment, wind speed advice.
+    - Voice advice: 2-3 concise, caring spoken Hindi sentences for farmers.
+3. If the image is blurry, out of focus, too dark, or not a recognizable plant, set "isPlant": false, and provide "reCaptureGuide":
+   {
+     "title": "साफ फोटो खींचने के सुझाव",
+     "tips": [
+       "रोगग्रस्त पत्ती या धब्बे के एकदम करीब (10-15 सेमी) कैमरा ले जाएं",
+       "पर्याप्त दिन की रोशनी में फोटो खींचें, छाया से बचें",
+       "हाथ स्थिर रखें ताकि फोटो साफ व फोकस में आए"
+     ]
+   }
 
 Return ONLY a valid JSON object with NO extra text or markdown code fences:
 {
@@ -195,5 +204,149 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
     error: 'AI सर्वर से संपर्क नहीं हो सका। किसान भाइयों की सुरक्षा हेतु कोई भी अनुमानित (Dummy) रोग नहीं दिखाया जा रहा है। कृपया इंटरनेट कनेक्शन जांचें या नीचे दी गई सूची से अपनी फसल के दृश्य लक्षण चुनकर सटीक इलाज देखें।',
     technicalError: allErrorsSummary,
     modelErrors,
+  };
+};
+
+/**
+ * Conversational Multi-Turn Follow-Up Chat with Plant Doctor
+ * Zero Image Payload: Uses previously established diagnostic context to deliver sub-second rural responses.
+ */
+export const chatWithGeminiCropDoctor = async ({
+  question,
+  cropName = 'फसल',
+  diseaseName = '',
+  chemicalRemedy = '',
+  organicRemedy = '',
+  district = 'रायपुर',
+  history = []
+}) => {
+  const { apiKey, baseUrl, models, timeoutMs } = externalApisConfig.gemini;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      error: 'AI चैट सेवा सक्रिय नहीं है (API कुंजी उपलब्ध नहीं है)।',
+      technicalError: 'GEMINI_API_KEY is not configured in .env',
+      modelErrors: ['API key missing']
+    };
+  }
+
+  const systemInstruction = `You are a Senior Indian Agricultural Scientist and Plant Pathologist (वरिष्ठ पादप रोग विशेषज्ञ) at Indira Gandhi Krishi Vishwavidyalaya (IGKV) Raipur and ICAR.
+You are advising an Indian farmer from Chhattisgarh (district: ${district}) who is asking follow-up questions about their crop diagnosis.
+
+CURRENT DIAGNOSIS CONTEXT:
+- Crop: ${cropName}
+- Diagnosed Disease/Pest: ${diseaseName || 'सामान्य फसल स्वास्थ्य'}
+- Prescribed Chemical Remedy: ${chemicalRemedy || 'मानक अनुशंसित कीटनाशक'}
+- Prescribed Bio/Organic Remedy: ${organicRemedy || 'नीम तेल / ट्राइकोडर्मा'}
+
+STRICT RULES:
+1. Answer strictly in clear, practical, caring Hindi (Devanagari script) with farmer-friendly language.
+2. Be concise and actionable (2 to 4 sentences or short bullet points).
+3. If asking for alternative or cheaper medicine, provide exact CIBRC/IGKV approved chemicals and 15-Litre spray tank doses (e.g. ग्राम या मिली प्रति 15 लीटर पंप टंकी).
+4. If asking about weather, rain-fastness, or mixing with fertilizers, state clear do's and don'ts.
+5. Return ONLY a valid JSON object with NO extra text or markdown code fences:
+{
+  "answer": "विस्तृत स्पष्ट व्यावहारिक सलाह हिंदी में...",
+  "voiceAdvice": "किसानों के लिए 1-2 पंक्तियों की बोलकर सुनाने योग्य संक्षिप्त सलाह...",
+  "quickTips": ["महत्वपूर्ण बिंदु 1", "महत्वपूर्ण बिंदु 2"]
+}`;
+
+  const defaultModels = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+  const modelsToTry = models.length > 0 ? Array.from(new Set([...models, ...defaultModels])) : defaultModels;
+
+  const modelErrors = [];
+  const redactSecret = (str) => {
+    if (!str || typeof str !== 'string' || !apiKey) return str;
+    return str.split(apiKey).join('[REDACTED_API_KEY]');
+  };
+
+  const contents = [
+    {
+      role: 'user',
+      parts: [{ text: `${systemInstruction}\n\nFarmer says hello.` }]
+    },
+    {
+      role: 'model',
+      parts: [{ text: JSON.stringify({ answer: "जय जोहार किसान भाई! मैं आपकी फसल डॉक्टर टीम से हूँ। अपनी दवा, स्प्रे समय या किसी भी शंका के बारे में पूछें।" }) }]
+    }
+  ];
+
+  if (Array.isArray(history)) {
+    history.slice(-6).forEach((h) => {
+      if (h && h.text && (h.role === 'user' || h.role === 'model')) {
+        contents.push({
+          role: h.role,
+          parts: [{ text: h.text }]
+        });
+      }
+    });
+  }
+
+  contents.push({
+    role: 'user',
+    parts: [{ text: `Farmer asks: "${question}"` }]
+  });
+
+  for (const model of modelsToTry) {
+    try {
+      const url = `${baseUrl}/${model}:generateContent?key=${apiKey}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents,
+          generationConfig: {
+            temperature: 0.25,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        const errDetail = redactSecret(`[Model ${model}] HTTP ${res.status}: ${errorText.slice(0, 300)}`);
+        modelErrors.push(errDetail);
+        continue;
+      }
+
+      const json = await res.json();
+      const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) {
+        modelErrors.push(`[Model ${model}] Empty content`);
+        continue;
+      }
+
+      const cleanedText = rawText.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+      const parsed = JSON.parse(cleanedText);
+
+      return {
+        success: true,
+        isLiveAi: true,
+        source: `gemini-chat (${model})`,
+        answer: parsed.answer || 'सलाह उपलब्ध नहीं है।',
+        voiceAdvice: parsed.voiceAdvice || parsed.answer,
+        quickTips: parsed.quickTips || []
+      };
+    } catch (err) {
+      const errDetail = redactSecret(`[Model ${model}] Exception: ${err.message}`);
+      modelErrors.push(errDetail);
+    }
+  }
+
+  return {
+    success: false,
+    error: 'AI डॉक्टर से संपर्क नहीं हो सका। कृपया पुनः प्रयास करें।',
+    technicalError: modelErrors.join(' | ') || 'All models failed',
+    modelErrors
   };
 };

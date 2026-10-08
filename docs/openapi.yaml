@@ -173,6 +173,29 @@ paths:
         '429':
           $ref: '#/components/responses/429RateLimited'
 
+  /crop-doctor/chat:
+    post:
+      tags: [AI Crop Doctor]
+      summary: Conversational multi-turn follow-up chat with Crop Doctor
+      description: Contextual agronomic Q&A following an initial crop diagnosis without re-uploading leaf imagery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropDoctorChatRequest'
+      responses:
+        '200':
+          description: Contextual consultation response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropDoctorChatResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
   /mandi-rates:
     get:
       tags: [Mandi & Marketplace]
@@ -1094,6 +1117,52 @@ components:
         organicControl: { type: string }
         preventiveMeasures: { type: array, items: { type: string } }
         sprayRecommendation: { type: string }
+
+    CropDoctorChatRequest:
+      type: object
+      required: [question]
+      additionalProperties: false
+      properties:
+        question:
+          type: string
+          minLength: 2
+          maxLength: 500
+          description: Follow-up question asked by farmer
+        cropName:
+          type: string
+          maxLength: 80
+        diseaseName:
+          type: string
+          maxLength: 100
+        chemicalRemedy:
+          type: string
+          maxLength: 200
+        organicRemedy:
+          type: string
+          maxLength: 200
+        district:
+          type: string
+          maxLength: 80
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [farmer, doctor]
+              text:
+                type: string
+
+    CropDoctorChatResponse:
+      type: object
+      required: [success, answer]
+      properties:
+        success:
+          type: boolean
+        answer:
+          type: string
+          description: Contextual agronomic response from Gemini Crop Doctor
 
     MandiRatesResponse:
       type: object

@@ -429,6 +429,23 @@ export const Schemas = {
     },
   },
 
+  CropDoctorChatRequest: {
+    required: ['question'],
+    additionalProperties: false,
+    properties: {
+      question: { type: 'string', minLength: 2, maxLength: 500 },
+      cropName: { type: 'string', maxLength: 80 },
+      diseaseName: { type: 'string', maxLength: 100 },
+      chemicalRemedy: { type: 'string', maxLength: 200 },
+      organicRemedy: { type: 'string', maxLength: 200 },
+      district: { type: 'string', maxLength: 80 },
+      history: { type: 'array' },
+    },
+    customMessages: {
+      question: 'कृपया अपना कृषि या रोग संबंधी प्रश्न दर्ज करें।',
+    },
+  },
+
   OfflineMandiQueryRequest: {
     required: ['crop'],
     additionalProperties: false,
