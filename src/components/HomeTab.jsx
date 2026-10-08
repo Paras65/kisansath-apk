@@ -48,6 +48,7 @@ import FlashOnIcon from '@mui/icons-material/FlashOn';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PublicIcon from '@mui/icons-material/Public';
 import { speakText, stopSpeech } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
@@ -899,92 +900,218 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
     );
   };
 
-  // 2. Platform-Aware Native APK & Share Footer
-  const renderApkFooterCard = () => (
-    <Card
-      sx={{
-        p: { xs: 1.8, sm: 2 },
-        borderRadius: 3.5,
-        background: 'linear-gradient(135deg, #1b5e20 0%, #0d3d12 100%)',
-        color: '#ffffff',
-        boxShadow: '0 4px 16px rgba(27,94,32,0.2)',
-        border: '1px solid #81c784'
-      }}
-    >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Box sx={{ bgcolor: 'rgba(255,255,255,0.15)', p: 1, borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <AndroidIcon sx={{ fontSize: 28, color: '#ffeb3b' }} />
+  // 2. Platform-Aware Native APK & Share Footer (Matching User Reference Image 1 & Image 2)
+  const renderApkFooterCard = () => {
+    // When running inside Native Android TWA / APK: Show Image 1 compact pill + WhatsApp share
+    if (isNativePlatform()) {
+      return (
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5, my: 1.5 }}>
+          <Box
+            onClick={handleManualCheckUpdate}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1.2,
+              bgcolor: '#1c1917',
+              border: '1.2px solid #3f3f46',
+              borderRadius: '9999px',
+              px: 2.2,
+              py: 0.7,
+              cursor: 'pointer',
+              color: '#ffffff',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+              '&:hover': { bgcolor: '#27272a', borderColor: '#71717a' }
+            }}
+          >
+            <PublicIcon sx={{ fontSize: 18, color: '#38bdf8' }} />
+            <Typography sx={{ fontSize: '0.84rem', fontWeight: 800, color: '#ffffff' }}>
+              v{appConfig.appVersion}
+            </Typography>
+            <SyncIcon
+              sx={{
+                fontSize: 16,
+                color: '#f59e0b',
+                animation: checkingUpdate ? 'spin 1s linear infinite' : 'none',
+                '@keyframes spin': {
+                  '0%': { transform: 'rotate(0deg)' },
+                  '100%': { transform: 'rotate(360deg)' }
+                }
+              }}
+            />
+            <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#ffffff' }}>
+              {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
+            </Typography>
           </Box>
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.92rem' }}>
-                {isNativePlatform() ? (isChhattisgarhi ? 'किसान साथी Android App' : 'किसान साथी Android App') : (isChhattisgarhi ? 'किसान साथी Android App (APK)' : 'किसान साथी Android App (APK)')}
-              </Typography>
-              <Chip
-                label={`v${appConfig.appVersion}`}
-                size="small"
-                sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.65rem' }}
-              />
+
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<WhatsAppIcon />}
+            onClick={() => shareOnWhatsApp()}
+            sx={{
+              bgcolor: '#25D366',
+              color: '#fff',
+              fontWeight: 800,
+              borderRadius: '9999px',
+              px: 2.5,
+              py: 0.7,
+              fontSize: '0.8rem',
+              '&:hover': { bgcolor: '#128C7E' }
+            }}
+          >
+            {isChhattisgarhi ? 'व्हाट्सएप म शेयर करव' : 'व्हाट्सएप पर शेयर करें'}
+          </Button>
+        </Box>
+      );
+    }
+
+    // When on Web/PWA (User can download the Android APK): Show exact Image 2 Green Stadium Card
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Card
+          sx={{
+            p: { xs: 1.8, sm: 2.2 },
+            borderRadius: { xs: '32px', sm: '40px' },
+            bgcolor: '#134e18',
+            color: '#ffffff',
+            boxShadow: '0 6px 20px rgba(18,71,22,0.22)',
+            border: '1px solid #2e7d32',
+            overflow: 'hidden'
+          }}
+        >
+          {/* Top Row: Circular Avatar + Title + Badge + Subtitle */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box
+              sx={{
+                bgcolor: 'rgba(255,255,255,0.12)',
+                width: { xs: 46, sm: 50 },
+                height: { xs: 46, sm: 50 },
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <AndroidIcon sx={{ fontSize: { xs: 26, sm: 28 }, color: '#a3e635' }} />
             </Box>
-            <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
-              {isNativePlatform() ? (isChhattisgarhi ? 'नवां संस्करण फोन म चालू हे' : 'नवीनतम संस्करण फोन में सक्रिय है') : (isChhattisgarhi ? '1.5 MB हल्का • बिना इंटरनेट चलही' : '1.5 MB लाइटवेट • बिना इंटरनेट चलेगा')}
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#ffffff', fontSize: { xs: '0.94rem', sm: '1.02rem' }, lineHeight: 1.2 }}>
+                  {isChhattisgarhi ? 'किसान साथी Android App (APK)' : 'किसान साथी Android App (APK)'}
+                </Typography>
+                <Chip
+                  label={`v${appConfig.appVersion}`}
+                  size="small"
+                  sx={{
+                    bgcolor: '#ffd600',
+                    color: '#144d18',
+                    fontWeight: 900,
+                    height: 20,
+                    fontSize: '0.66rem',
+                    borderRadius: '9999px',
+                    px: 0.4
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: '#dcfce7', fontSize: '0.74rem', mt: 0.3, display: 'block', fontWeight: 500 }}>
+                {isChhattisgarhi ? '1.5 MB हल्का • बिना इंटरनेट चलही' : '1.5 MB हल्का • बिना इंटरनेट चलेगा'}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Bottom Row: Pill Action Buttons */}
+          <Box sx={{ mt: 1.8, display: 'flex', alignItems: 'center', gap: 1.2, flexWrap: 'wrap' }}>
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<GetAppIcon sx={{ fontSize: 18 }} />}
+              href={appConfig.apkDownloadUrl}
+              target="_blank"
+              download
+              sx={{
+                bgcolor: '#ffd600',
+                color: '#144d18',
+                fontWeight: 900,
+                fontSize: '0.8rem',
+                borderRadius: '9999px',
+                px: 2.4,
+                py: 0.75,
+                textTransform: 'none',
+                boxShadow: 'none',
+                '&:hover': { bgcolor: '#ffe033', boxShadow: '0 2px 8px rgba(0,0,0,0.2)' }
+              }}
+            >
+              {isChhattisgarhi ? 'APK डाउनलोड करव' : 'APK डाउनलोड करव'}
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={checkingUpdate}
+              onClick={handleManualCheckUpdate}
+              startIcon={checkingUpdate ? <CircularProgress size={14} color="inherit" /> : <SyncIcon sx={{ fontSize: 18, color: '#ffffff' }} />}
+              sx={{
+                border: '1.5px solid rgba(255,255,255,0.6)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.8rem',
+                borderRadius: '9999px',
+                px: 2,
+                py: 0.75,
+                textTransform: 'none',
+                '&:hover': { border: '1.5px solid #ffffff', bgcolor: 'rgba(255,255,255,0.08)' }
+              }}
+            >
+              {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचव')}
+            </Button>
+          </Box>
+        </Card>
+
+        {/* Image 1 Compact Dark Pill for Web Footer */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 0.5 }}>
+          <Box
+            onClick={handleManualCheckUpdate}
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 1.2,
+              bgcolor: '#1c1917',
+              border: '1.2px solid #3f3f46',
+              borderRadius: '9999px',
+              px: 2,
+              py: 0.6,
+              cursor: 'pointer',
+              color: '#ffffff',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
+              '&:hover': { bgcolor: '#27272a', borderColor: '#71717a' }
+            }}
+          >
+            <PublicIcon sx={{ fontSize: 17, color: '#38bdf8' }} />
+            <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff' }}>
+              v{appConfig.appVersion}
+            </Typography>
+            <SyncIcon
+              sx={{
+                fontSize: 16,
+                color: '#f59e0b',
+                animation: checkingUpdate ? 'spin 1s linear infinite' : 'none',
+                '@keyframes spin': {
+                  '0%': { transform: 'rotate(0deg)' },
+                  '100%': { transform: 'rotate(360deg)' }
+                }
+              }}
+            />
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#ffffff' }}>
+              {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
             </Typography>
           </Box>
         </Box>
-
-        <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
-          {isNativePlatform() ? (
-            <>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<WhatsAppIcon />}
-                onClick={() => shareOnWhatsApp()}
-                sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#128C7E' } }}
-              >
-                व्हाट्सएप
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
-                disabled={checkingUpdate}
-                onClick={handleManualCheckUpdate}
-                sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
-              >
-                {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={<GetAppIcon />}
-                href={appConfig.apkDownloadUrl}
-                target="_blank"
-                download
-                sx={{ bgcolor: '#ffeb3b', color: '#1b5e20', fontWeight: 800, borderRadius: 2, px: 1.5, fontSize: '0.75rem', '&:hover': { bgcolor: '#fff' } }}
-              >
-                {isChhattisgarhi ? 'APK डाउनलोड करव' : 'APK डाउनलोड'}
-              </Button>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={checkingUpdate ? <CircularProgress size={12} color="inherit" /> : <SyncIcon />}
-                disabled={checkingUpdate}
-                onClick={handleManualCheckUpdate}
-                sx={{ borderColor: 'rgba(255,255,255,0.6)', color: '#fff', fontWeight: 800, borderRadius: 2, px: 1.2, fontSize: '0.75rem' }}
-              >
-                {checkingUpdate ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...') : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
-              </Button>
-            </>
-          )}
-        </Box>
       </Box>
-    </Card>
-  );
+    );
+  };
 
   // 3. Smart Chhattisgarh Farmer Assistance & Procurement Hub (धान उपार्जन + IGKV बुलेटिन)
   const renderCgAssistanceHubCard = () => {

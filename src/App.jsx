@@ -41,6 +41,9 @@ import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import SecurityIcon from '@mui/icons-material/Security';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
+import PublicIcon from '@mui/icons-material/Public';
+import SyncIcon from '@mui/icons-material/Sync';
+import { checkForAppUpdate } from './services/updateService';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -143,6 +146,24 @@ function App() {
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
+  const [globalCheckingUpdate, setGlobalCheckingUpdate] = useState(false);
+
+  const handleGlobalCheckUpdate = async () => {
+    setGlobalCheckingUpdate(true);
+    try {
+      const info = await checkForAppUpdate(true);
+      if (info && info.hasUpdate) {
+        notify.success(`🎉 नया अपडेट उपलब्ध है: v${info.latestVersion}!`);
+      } else {
+        notify.info(`आप पहले से ही नवीनतम संस्करण (v${appConfig.appVersion}) चला रहे हैं।`);
+      }
+    } catch {
+      notify.info(`वर्तमान संस्करण v${appConfig.appVersion} सक्रिय है।`);
+    } finally {
+      setGlobalCheckingUpdate(false);
+    }
+  };
+
   const [portalMode, setPortalMode] = useState(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -378,9 +399,52 @@ function App() {
                 {appConfig.appName} • {appConfig.appTagline}
               </Typography>
             </Box>
-            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', mb: 1 }}>
-              {appConfig.stateName} के किसानों का भरोसेमंद डिजिटल मंच • v{appConfig.appVersion}
+            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', mb: 0.8 }}>
+              {appConfig.stateName} के किसानों का भरोसेमंद डिजिटल मंच
             </Typography>
+
+            {/* User Reference Image 1: Compact Dark Capsule Pill */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', my: 1 }}>
+              <Box
+                onClick={handleGlobalCheckUpdate}
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 1.2,
+                  bgcolor: '#1c1917',
+                  border: '1.2px solid #3f3f46',
+                  borderRadius: '9999px',
+                  px: 2,
+                  py: 0.55,
+                  cursor: 'pointer',
+                  color: '#ffffff',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                  '&:hover': { bgcolor: '#27272a', borderColor: '#71717a' }
+                }}
+              >
+                <PublicIcon sx={{ fontSize: 17, color: '#38bdf8' }} />
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#ffffff' }}>
+                  v{appConfig.appVersion}
+                </Typography>
+                <SyncIcon
+                  sx={{
+                    fontSize: 15,
+                    color: '#f59e0b',
+                    animation: globalCheckingUpdate ? 'spin 1s linear infinite' : 'none',
+                    '@keyframes spin': {
+                      '0%': { transform: 'rotate(0deg)' },
+                      '100%': { transform: 'rotate(360deg)' }
+                    }
+                  }}
+                />
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#ffffff' }}>
+                  {globalCheckingUpdate
+                    ? (isChhattisgarhi ? 'जांचत हन...' : 'जांच...')
+                    : (isChhattisgarhi ? 'अपडेट जांचव' : 'अपडेट जांचें')}
+                </Typography>
+              </Box>
+            </Box>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap', pt: 0.8, borderTop: '1px dashed #e2e8f0' }}>
               <Typography
                 component="a"

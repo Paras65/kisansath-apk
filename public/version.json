@@ -1,8 +1,8 @@
 {
-  "version": "1.0.39",
+  "version": "1.0.40",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.39",
-  "releaseNotes": "खाद्य विभाग हेल्पलाइन एवं टोकन तुंहर हाथ सुरक्षित विन्यास (appConfig.helpline bulletproof fix)।",
+  "releaseName": "किसान साथी v1.0.40",
+  "releaseNotes": "प्लेटफ़ॉर्म-अनुकूल आधुनिक फुटर: वेब कॉम्पैक्ट डार्क पिल कैप्सूल (v1.0.40 अपडेट जांचें) एवं Android APK ग्रीन स्टेडियम कार्ड।",
   "updatedAt": "2026-10-08"
 }
