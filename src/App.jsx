@@ -7,8 +7,7 @@ import {
   Paper,
   Typography,
   Button,
-  CssBaseline,
-  Fab
+  CssBaseline
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
@@ -34,7 +33,9 @@ import {
   stopVoiceRecognition,
   subscribeVoiceState,
   isVoiceSupported,
+  extractAcreage,
 } from './utils/voiceRecognition';
+import { DraggableVoiceButton } from './components/DraggableVoiceButton';
 import { useLanguage } from './utils/i18n';
 import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS } from './services/weatherService';
 import { getActiveFarmer } from './services/farmerService';
@@ -264,6 +265,32 @@ function App() {
     startVoiceRecognition(
       (transcript, route) => {
         if (route) {
+          // In-Modal Action 1: Close active modal
+          if (route.type === 'modal_action' && route.action === 'close') {
+            closeAllActiveModals();
+            notify.info(isChhattisgarhi ? 'डायलॉग बंद होगे' : 'डायलॉग बंद किया गया');
+            speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
+            return;
+          }
+
+          // In-Modal Action 2: Save / Submit active modal form
+          if (route.type === 'modal_action' && route.action === 'save') {
+            const openDialog = document.querySelector('.MuiDialog-root');
+            if (openDialog) {
+              const submitBtn =
+                openDialog.querySelector('button[type="submit"]') ||
+                Array.from(openDialog.querySelectorAll('button')).find((b) =>
+                  /सहेजें|सबमिट|save|submit|जोड़ें/i.test(b.textContent || '')
+                );
+              if (submitBtn) {
+                submitBtn.click();
+                notify.success(isChhattisgarhi ? '💾 सहेजे के आदेश पूरा होगे' : '💾 जानकारी सहेज दी गई');
+                speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
+                return;
+              }
+            }
+          }
+
           closeAllActiveModals();
           notify.success(`${route.icon} "${transcript}" — ${route.label}`);
 
@@ -283,6 +310,24 @@ function App() {
             window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: route.target } }));
           }
         } else if (transcript) {
+          // In-Modal Action 3: Acreage fill inside active modal
+          const acreVal = extractAcreage(transcript);
+          const openDialog = document.querySelector('.MuiDialog-root');
+          if (acreVal && openDialog) {
+            const acreInput = openDialog.querySelector('input[type="number"], input[name*="acre"], input[id*="acre"]');
+            if (acreInput) {
+              const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+              if (nativeSetter) {
+                nativeSetter.call(acreInput, acreVal);
+                acreInput.dispatchEvent(new Event('input', { bubbles: true }));
+                acreInput.dispatchEvent(new Event('change', { bubbles: true }));
+                notify.success(isChhattisgarhi ? `🌾 ${acreVal} एकड़ सेट होगे` : `🌾 ${acreVal} एकड़ सेट हो गया`);
+                speakText(isChhattisgarhi ? `${acreVal} एकड़ सेट होगे संगी` : `${acreVal} एकड़ सेट हो गया`);
+                return;
+              }
+            }
+          }
+
           const fallbackMsg = isChhattisgarhi
             ? 'माफ करव संगी, समझ नई आइस। फिर से बोलव — जैसे धान के भाव या फसल बीमारी।'
             : 'माफ कीजिए, समझ नहीं आया। फिर से बोलें — जैसे धान का भाव या फसल की बीमारी।';
@@ -824,62 +869,17 @@ function App() {
           </Box>
         </Paper>
 
-        {/* ── Smart Green Voice Pill FAB ──
-            Idle      → 🎤 बोलकर पूछें  (starts voice recognition)
-            Listening → 🎙️ सुन रहा हूँ… (tap stops recognition)
-            TTS On    → 🛑 बंद करें       (tap stops TTS)
+        {/* ── Adaptive & Draggable Smart Voice Assistant (Option 2 + Option 3) ──
+            • Mobile touch & Desktop draggable so it never blocks any button
+            • In-Modal/Form mode: Automatically transforms into a compact 48px floating bubble
+            • In-Modal Smart Actions: Speaks "सहेजें", "बंद करव", "2 एकड़" to interact directly with forms
         */}
-        <Fab
-          variant="extended"
-          onClick={handleVoiceFab}
-          aria-label={
-            isSpeakingActive
-              ? 'बोलना बंद करें'
-              : isVoiceListening
-              ? 'सुनना बंद करें'
-              : 'बोलकर पूछें'
-          }
-          sx={{
-            position: 'fixed',
-            bottom: 74,
-            right: 16,
-            zIndex: 3000,
-            bgcolor: isSpeakingActive
-              ? '#c62828'
-              : isVoiceListening
-              ? '#1565c0'
-              : '#2e7d32',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: '0.84rem',
-            letterSpacing: '0.3px',
-            boxShadow: isVoiceListening
-              ? '0 0 0 4px rgba(21,101,192,0.35), 0 6px 20px rgba(21,101,192,0.5)'
-              : isSpeakingActive
-              ? '0 6px 20px rgba(198,40,40,0.5)'
-              : '0 6px 20px rgba(46,125,50,0.45)',
-            px: 2,
-            py: 0.9,
-            minWidth: 0,
-            borderRadius: '28px',
-            textTransform: 'none',
-            transition: 'background-color 0.25s, box-shadow 0.25s',
-            animation: isVoiceListening ? 'kisanVoicePulse 1.2s infinite' : 'none',
-            '@keyframes kisanVoicePulse': {
-              '0%, 100%': { boxShadow: '0 0 0 4px rgba(21,101,192,0.35), 0 6px 20px rgba(21,101,192,0.5)' },
-              '50%': { boxShadow: '0 0 0 10px rgba(21,101,192,0.15), 0 8px 28px rgba(21,101,192,0.6)' },
-            },
-            '&:hover': {
-              bgcolor: isSpeakingActive ? '#b71c1c' : isVoiceListening ? '#0d47a1' : '#1b5e20',
-            },
-          }}
-        >
-          {isSpeakingActive
-            ? '🛑 बंद करें'
-            : isVoiceListening
-            ? '🎙️ सुन रहा हूँ…'
-            : '🎤 बोलकर पूछें'}
-        </Fab>
+        <DraggableVoiceButton
+          isSpeakingActive={isSpeakingActive}
+          isVoiceListening={isVoiceListening}
+          onVoiceClick={handleVoiceFab}
+          isChhattisgarhi={isChhattisgarhi}
+        />
         {/* Centralized Smart Device & Hardware Hub */}
         <DeviceHubModal
           open={openDeviceHub}

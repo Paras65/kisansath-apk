@@ -195,7 +195,53 @@ export const KEYWORD_ROUTES = [
       'hello', 'hi',
     ],
   },
+
+  // ── 10. मोडल इन-फॉर्म कार्य (Smart In-Modal Save & Close) ──
+  {
+    target: 'modal_close',
+    type: 'modal_action',
+    action: 'close',
+    label: 'डायलॉग बंद',
+    icon: '❌',
+    spokenHi: 'डायलॉग बंद कर दिया गया।',
+    spokenCg: 'डायलॉग बंद कर दिए हन संगी।',
+    keywords: [
+      'बंद करो', 'बंद करव', 'काटो', 'हटाओ', 'हटाव', 'रद्द करो', 'रद्द करव',
+      'वापस जाओ', 'वापस जाव', 'पीछे जाओ', 'close', 'cancel', 'back'
+    ],
+  },
+  {
+    target: 'modal_save',
+    type: 'modal_action',
+    action: 'save',
+    label: 'जानकारी सहेजें',
+    icon: '💾',
+    spokenHi: 'जानकारी सहेजी जा रही है।',
+    spokenCg: 'जानकारी सहेजे जावत हे संगी।',
+    keywords: [
+      'सहेजें', 'सहेजो', 'सहेजव', 'सेव करो', 'सेव करव', 'सबमिट करो', 'सबमिट करव',
+      'जमा करो', 'जमा करव', 'आगे बढ़ो', 'आगे बढ़व', 'save', 'submit'
+    ],
+  },
 ];
+
+/** Extract acre number from speech e.g. "2 एकड़", "डेढ़ एकड़" */
+export const extractAcreage = (transcript) => {
+  if (!transcript) return null;
+  const match = transcript.match(/(\d+(?:\.\d+)?)\s*(?:एकड़|एकड|acre)/i);
+  if (match) return parseFloat(match[1]);
+  const wordMap = {
+    'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5,
+    'छह': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10,
+    'डेढ़': 1.5, 'ढाई': 2.5
+  };
+  for (const [word, val] of Object.entries(wordMap)) {
+    if (transcript.includes(word) && transcript.includes('एकड़')) {
+      return val;
+    }
+  }
+  return null;
+};
 
 /**
  * Match spoken transcript against all vernacular routes.
