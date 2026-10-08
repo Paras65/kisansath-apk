@@ -9,29 +9,72 @@
  */
 
 import { notify } from '../services/notificationService';
+import { stopSpeech } from './speech';
 
-// स्थानीय छत्तीसगढ़ी उपनाम मैपिंग (Dialect Synonym Mapping)
+// स्थानीय छत्तीसगढ़ी उपनाम मैपिंग (Comprehensive CG Dialect & Produce Synonym Mapping)
 export const CROP_SYNONYMS = {
+  // 1. धान / चावल (Paddy / Rice)
   'चांउर': 'धान',
   'चांवर': 'धान',
   'चावल': 'धान',
   'dhan': 'धान',
   'paddy': 'धान',
+
+  // 2. चना (Gram / Chickpea)
   'बूट': 'चना',
   'chana': 'चना',
   'gram': 'चना',
+
+  // 3. मक्का (Maize / Corn)
   'जुनहरी': 'मक्का',
   'मक्कई': 'मक्का',
   'भुट्टा': 'मक्का',
   'maize': 'मक्का',
+
+  // 4. अरहर (Pigeon Pea)
   'रहर': 'अरहर',
   'तुअर': 'अरहर',
+
+  // 5. तीवड़ा / खेसरी (Grass Pea)
   'लाखड़ी': 'तीवड़ा',
   'खेसरी': 'तीवड़ा',
   'तिवड़ा': 'तीवड़ा',
+
+  // 6. अलसी व तिलहन (Linseed / Mustard)
   'तीसी': 'अलसी',
   'तिलहन': 'अलसी',
-  'सोया': 'सोयाबीन'
+  'तोरिया': 'सरसों',
+  'राई': 'सरसों',
+
+  // 7. सोयाबीन
+  'सोया': 'सोयाबीन',
+
+  // 8. स्थानीय सब्जियां (Regional CG Vegetables)
+  'पताल': 'टमाटर',
+  'पाताल': 'टमाटर',
+  'भांटा': 'बैंगन',
+  'भाटा': 'बैंगन',
+  'गोंदली': 'प्याज',
+  'गोंदलि': 'प्याज',
+  'कंदा': 'आलू',
+  'मिर्चा': 'मिर्च',
+  'मिरचा': 'मिर्च',
+
+  // 9. दलहन (Pulses)
+  'उरद': 'उड़द',
+  'मूंग': 'मूँग',
+
+  // 10. मिलेट्स (Shree Anna / CG Millets)
+  'कोदो': 'कोदो',
+  'कुटकी': 'कुटकी',
+  'मड़िया': 'रागी',
+  'मंडिया': 'रागी',
+
+  // 11. कीट, व्याधि व खाद (Pests, Diseases & Fertilizers)
+  'माहो': 'माहू',
+  'लाही': 'माहू',
+  'कीरा': 'कीट',
+  'खातू': 'खाद'
 };
 
 /**
@@ -44,6 +87,7 @@ export const isSpeechRecognitionSupported = () => {
 
 let activeRecognizer = null;
 let silenceTimer = null;
+let isStartingRecognizer = false;
 
 /**
  * बोले गए शब्द को मानक रूप में सामान्यीकृत करें (Normalize spoken dialect terms)
@@ -83,7 +127,21 @@ export const startVoiceRecognition = ({
     return null;
   }
 
-  // Stop any existing session
+  // Double-tap race condition guard: If recognizer is currently in the process of starting, ignore
+  if (isStartingRecognizer) {
+    return activeRecognizer;
+  }
+  isStartingRecognizer = true;
+
+  // 1. CRITICAL: Halt any active TTS speech playback immediately
+  // Prevents the microphone from picking up the phone speaker's own echo
+  try {
+    stopSpeech();
+  } catch (e) {
+    // quiet
+  }
+
+  // 2. Stop and release any existing microphone session
   stopVoiceRecognition();
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -102,6 +160,7 @@ export const startVoiceRecognition = ({
   };
 
   recognizer.onstart = () => {
+    isStartingRecognizer = false;
     if (onListeningChange) onListeningChange(true);
     resetSilenceTimer();
   };
@@ -128,15 +187,16 @@ export const startVoiceRecognition = ({
   };
 
   recognizer.onerror = (event) => {
+    isStartingRecognizer = false;
     console.warn('[SpeechRecognition] Error:', event.error);
     let userMsg = 'माइक से आवाज़ नहीं सुनी जा सकी।';
 
     if (event.error === 'not-allowed') {
-      userMsg = 'कृपया माइक की अनुमति (Permission) दें।';
+      userMsg = 'माइक की अनुमति नहीं मिली। कृपया ब्राउज़र या फोन सेटिंग्स में माइक को "Allow" करें।';
     } else if (event.error === 'no-speech') {
       userMsg = 'कोई आवाज़ सुनाई नहीं दी। कृपया माइक दबाकर दोबारा बोलें।';
     } else if (event.error === 'network') {
-      userMsg = 'वॉइस पहचान हेतु नेटवर्क धीमा है। नीचे दिए गए बटन छुएं।';
+      userMsg = 'वॉइस पहचान हेतु इंटरनेट धीमा है। नीचे दिए गए 1-टैप फसल बटन से चुनें।';
     }
 
     if (onError) onError(userMsg);
@@ -144,6 +204,7 @@ export const startVoiceRecognition = ({
   };
 
   recognizer.onend = () => {
+    isStartingRecognizer = false;
     if (silenceTimer) clearTimeout(silenceTimer);
     if (onListeningChange) onListeningChange(false);
     activeRecognizer = null;
@@ -153,6 +214,7 @@ export const startVoiceRecognition = ({
     recognizer.start();
     activeRecognizer = recognizer;
   } catch (err) {
+    isStartingRecognizer = false;
     console.warn('[SpeechRecognition] Start error:', err);
     if (onListeningChange) onListeningChange(false);
   }
@@ -164,17 +226,28 @@ export const startVoiceRecognition = ({
  * माइक बंद करें (Stop Voice Recognition)
  */
 export const stopVoiceRecognition = () => {
+  isStartingRecognizer = false;
   if (silenceTimer) {
     clearTimeout(silenceTimer);
     silenceTimer = null;
   }
   if (activeRecognizer) {
     try {
-      activeRecognizer.stop();
+      // abort() releases hardware audio capture immediately, avoiding InvalidStateError on quick re-start
+      if (typeof activeRecognizer.abort === 'function') {
+        activeRecognizer.abort();
+      } else {
+        activeRecognizer.stop();
+      }
     } catch (e) {
       // ignore
     }
     activeRecognizer = null;
   }
 };
+
+// Global hook for cross-module audio coordination
+if (typeof window !== 'undefined') {
+  window._kisanStopVoiceRecognition = stopVoiceRecognition;
+}
 

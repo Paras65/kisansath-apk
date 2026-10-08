@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.34';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.35';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'त्वरित हॉटफिक्स: होम स्क्रीन शेयर मॉडल संदर्भ त्रुटि (shareModalOpen ReferenceError) का त्वरित समाधान एवं सुदृढ़ रेंडर।',
+    releaseNotes: 'आवाज़ मॉड्यूल संवर्धन: द्विदिशी ऑडियो टकराव मुक्ति, छत्तीसगढ़ी शब्दावली (पताल, भांटा, गोंदली, कोदो) विस्तार एवं ₹3,100 संख्या ध्वनिविज्ञान सुधार।',
     updatedAt: new Date().toISOString()
   });
 });

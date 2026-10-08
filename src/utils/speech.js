@@ -13,6 +13,7 @@ let isAudioQueueActive = false;
 let activeUtterance = null;
 let cachedVoices = [];
 let resumeInterval = null;
+let androidTtsTimer = null;
 const listeners = new Set();
 
 const notifyListeners = () => {
@@ -108,7 +109,20 @@ const scoreVoice = (v) => {
  * Selects the highest quality natural voice available on the user device.
  */
 const selectBestVoice = () => {
-  const voices = (cachedVoices && cachedVoices.length > 0) ? cachedVoices : loadVoices();
+  let voices = (cachedVoices && cachedVoices.length > 0) ? cachedVoices : loadVoices();
+  // Cold-start safeguard: Query directly from window.speechSynthesis if cachedVoices is empty
+  if (!voices || voices.length === 0) {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      try {
+        const live = window.speechSynthesis.getVoices() || [];
+        if (live.length > 0) {
+          cachedVoices = live;
+          voices = live;
+        }
+      } catch (e) {}
+    }
+  }
+
   if (!voices || voices.length === 0) {
     return { voice: null, lang: 'hi-IN' };
   }
@@ -161,6 +175,12 @@ const stopWatchdog = () => {
  * Immediately stops all active speech playback across all engines
  */
 export const stopSpeech = () => {
+  // Clear Android TTS duration timer if active
+  if (androidTtsTimer) {
+    clearTimeout(androidTtsTimer);
+    androidTtsTimer = null;
+  }
+
   // 0. Native Android APK TTS
   if (typeof window !== 'undefined' && window.AndroidTTS && typeof window.AndroidTTS.stop === 'function') {
     try {
@@ -212,8 +232,12 @@ export const stopSpeech = () => {
 export const cleanSpeechText = (raw) => {
   if (!raw) return '';
   return String(raw)
+    // 0. Remove internal commas inside numbers (e.g. 3,100 -> 3100, 1,50,000 -> 150000)
+    // Indian TTS voices skip 'हज़ार' or mispronounce when numbers contain commas
+    .replace(/(\d+),(\d+)/g, '$1$2')
+    .replace(/(\d+),(\d+)/g, '$1$2')
     // 1. Currency & Prices
-    .replace(/₹\s*([\d,]+)/g, '$1 रुपये')
+    .replace(/₹\s*(\d+)/g, '$1 रुपये')
     .replace(/₹/g, 'रुपये ')
     // 2. Weather & Scientific Units
     .replace(/([\d\.]+)\s*%/g, '$1 प्रतिशत')
@@ -236,6 +260,8 @@ export const cleanSpeechText = (raw) => {
     .replace(/\bPIN\b/gi, 'पिन')
     .replace(/\bha\b/gi, 'हेक्टेयर')
     // 4. Chhattisgarhi Phonetic Enhancements for Standard Devanagari TTS
+    .replace(/\s+म\s+/g, ' मां ') // Standalone postposition "म" (in/में) pronounced as natural "मां"
+    .replace(/अऊ/g, 'अउ') // Phonetic smoothing of diphthong
     .replace(/नइ\s+हे/g, 'नई हे')
     .replace(/नइ\s+हो/g, 'नई हो')
     // 5. Clean Markdown, Punctuation & Emojis
@@ -279,9 +305,11 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
   }
 
   try {
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
     }
   } catch (e) {}
 
@@ -294,7 +322,18 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
   const { voice, lang } = selectBestVoice();
   if (voice) {
     utterance.voice = voice;
+  } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    // Chrome cold-start listener: attach best voice as soon as voices finish populating
+    const handleVoicesReady = () => {
+      const refreshed = selectBestVoice();
+      if (refreshed.voice && activeUtterance === utterance) {
+        utterance.voice = refreshed.voice;
+      }
+      window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesReady);
+    };
+    window.speechSynthesis.addEventListener('voiceschanged', handleVoicesReady);
   }
+
   utterance.lang = lang;
   utterance.rate = 0.92; // Calm, respectful pace for rural elders and clarity
   utterance.pitch = 1.0; // Natural conversational pitch
@@ -378,7 +417,7 @@ const fallbackAudioStream = (cleanText, onEndCallback) => {
     try {
       const audio = new Audio();
       audio.referrerPolicy = 'no-referrer';
-      audio.crossOrigin = 'anonymous';
+      // Do NOT set crossOrigin = 'anonymous' to prevent CORS rejection on direct audio streams
       audio.src = url;
       currentAudio = audio;
       audio.playbackRate = 0.95;
@@ -420,6 +459,14 @@ export const speakText = (text, onEndCallback) => {
   const clean = cleanSpeechText(text);
   if (!clean) return false;
 
+  // CRITICAL: Stop any active microphone / speech recognition session immediately
+  // to prevent the microphone from picking up and transcribing the speaker
+  if (typeof window !== 'undefined' && typeof window._kisanStopVoiceRecognition === 'function') {
+    try {
+      window._kisanStopVoiceRecognition();
+    } catch (e) {}
+  }
+
   // TOGGLE: If user clicks the same speech button while it's playing, STOP it.
   if (speakingState) {
     if (currentText === text || currentText === clean) {
@@ -434,12 +481,17 @@ export const speakText = (text, onEndCallback) => {
   // TIER 0: NATIVE ANDROID HARDWARE TTS (100% Native OS Engine for Android APK)
   if (typeof window !== 'undefined' && window.AndroidTTS && typeof window.AndroidTTS.speak === 'function') {
     try {
+      if (androidTtsTimer) {
+        clearTimeout(androidTtsTimer);
+        androidTtsTimer = null;
+      }
       window.AndroidTTS.speak(clean);
       speakingState = true;
       notifyListeners();
 
       const durationMs = Math.max(2500, Math.min(30000, (clean.length / 13) * 1000));
-      setTimeout(() => {
+      androidTtsTimer = setTimeout(() => {
+        androidTtsTimer = null;
         if (speakingState && (currentText === text || currentText === clean)) {
           speakingState = false;
           currentText = null;
