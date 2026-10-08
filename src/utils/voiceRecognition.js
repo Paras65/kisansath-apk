@@ -1,0 +1,370 @@
+// किसान साथी — Voice Recognition & Voice-First Interaction (बोलकर पूछें)
+// High-Fidelity Vernacular Audio Assistant (Hindi + Chhattisgarhi)
+// Addresses 25+ Field & Edge Cases (Mic-TTS collision, 2G fallback, dialect phonetics, haptics)
+
+import { stopSpeech, isSpeaking } from './speech';
+
+let recognitionInstance = null;
+let isListening = false;
+let isStarting = false;
+let watchdogTimer = null;
+const stateListeners = new Set();
+
+const notifyListeners = (state) => {
+  stateListeners.forEach((fn) => {
+    try {
+      fn(state);
+    } catch {
+      // safe observer pattern
+    }
+  });
+};
+
+/**
+ * Subscribe to recognition state changes.
+ * state = { listening: bool, transcript: string, error: string|null }
+ */
+export const subscribeVoiceState = (fn) => {
+  stateListeners.add(fn);
+  fn({ listening: isListening, transcript: '', error: null });
+  return () => stateListeners.delete(fn);
+};
+
+/** Returns true if browser supports Web Speech Recognition */
+export const isVoiceSupported = () => {
+  return (
+    typeof window !== 'undefined' &&
+    (Boolean(window.SpeechRecognition) || Boolean(window.webkitSpeechRecognition))
+  );
+};
+
+// Safe Haptic feedback helper
+const triggerHaptic = (pattern = [40]) => {
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    try {
+      navigator.vibrate(pattern);
+    } catch {
+      // Haptics not allowed or not supported
+    }
+  }
+};
+
+/**
+ * Vernacular Keyword → Navigation & Action Mapping
+ * Carefully calibrated for Chhattisgarh agricultural speech patterns and code-switching
+ */
+export const KEYWORD_ROUTES = [
+  // ── 1. फसल डॉक्टर (रोग, कीट, माहू, दवाई) ──
+  {
+    target: 'doctor',
+    type: 'tab',
+    label: 'फसल डॉक्टर',
+    icon: '🌿',
+    spokenHi: 'फसल डॉक्टर खोल रहे हैं, रोग और दवा की सलाह देखें।',
+    spokenCg: 'फसल डॉक्टर खोलत हन संगी, रोग अऊ दवाई के सलाह देखव।',
+    keywords: [
+      'फसल', 'बीमारी', 'कीड़ा', 'कीरा', 'पत्ती', 'पीला', 'पीलापन', 'सूखा', 'झुलसा',
+      'कवक', 'फफूंद', 'रोग', 'खेत में समस्या', 'दवाई', 'कीटनाशक', 'स्प्रे', 'दवा',
+      'धान में', 'मक्का में', 'सोयाबीन में', 'doctor', 'डॉक्टर', 'इल्ली', 'टिड्डी',
+      'तना छेदक', 'सड़न', 'उकठा', 'ब्लास्ट', 'शीथ ब्लाइट', 'पत्ता मरोड़', 'दवा छिड़काव', 'टंकी',
+      // Chhattisgarhi
+      'माहू', 'माहुर', 'पाना पीयर', 'खेत के रोग', 'फसल खराब', 'दवाई बताव', 'का डारूँ',
+      'का छिड़काव', 'गाभा छेदक', 'सुंडी', 'चेपा', 'दवाई कौन',
+    ],
+  },
+
+  // ── 2. मंडी भाव एवं धान खरीदी (MSP, 3100, टोकन) ──
+  {
+    target: 'mandi',
+    type: 'tab',
+    label: 'मंडी भाव',
+    icon: '🏪',
+    spokenHi: 'मंडी भाव और समर्थन मूल्य खोल रहे हैं।',
+    spokenCg: 'मंडी भाव अऊ समर्थन मूल्य खोलत हन।',
+    keywords: [
+      'मंडी', 'भाव', 'दाम', 'कीमत', 'बेचना', 'बिक्री', 'मार्केट', 'धान का भाव',
+      'msp', 'समर्थन मूल्य', 'रेट', 'धान खरीदी', 'उपार्जन', 'तौल', 'बोनस',
+      '3100', '३१००', 'कृषक उन्नति', 'सोसायटी', 'मंडी भाव',
+      // Chhattisgarhi
+      'मंडी म', 'धान बेचना', 'बाज़ार भाव', 'पईसा', 'कतना पईसा', 'धान के रेट',
+      '३१०० रुपया', 'धान के पईसा', 'धान बिकाही', 'सोसायटी म',
+    ],
+  },
+
+  // ── 3. टोकन मार्गदर्शिका (टोकन तुंहर हाथ) ──
+  {
+    target: 'token',
+    type: 'modal',
+    label: 'टोकन तुंहर हाथ',
+    icon: '🎫',
+    spokenHi: 'धान टोकन मार्गदर्शिका खोल रहे हैं।',
+    spokenCg: 'धान टोकन तुंहर हाथ जानकारी खोलत हन।',
+    keywords: [
+      'टोकन', 'टोकन तुंहर हाथ', 'टोकन काटना', 'टोकन कइसे', 'token', 'टोकन पर्ची',
+      'टोकन डेट', 'टोकन तारीख',
+    ],
+  },
+
+  // ── 4. खाद कैलकुलेटर एवं सरकारी योजना ──
+  {
+    target: 'schemes',
+    type: 'tab',
+    label: 'खाद व योजना',
+    icon: '🧮',
+    spokenHi: 'खाद कैलकुलेटर और सरकारी योजनाएं खोल रहे हैं।',
+    spokenCg: 'खाद हिसाब अऊ सरकारी योजना खोलत हन।',
+    keywords: [
+      'खाद', 'उर्वरक', 'npk', 'dap', 'यूरिया', 'पोटाश', 'कैलकुलेटर', 'हिसाब',
+      'कितनी खाद', 'calculator', 'योजना', 'सरकारी', 'pm kisan', 'पीएम किसान',
+      'किसान क्रेडिट', 'kcc', 'लोन', 'सब्सिडी', 'किस्त', 'ऋण', 'बीमा', 'फसल बीमा',
+      // Chhattisgarhi
+      'खाद कतना', 'सरकारी योजना', 'पैसा कब', 'खाद हिसाब', 'पैसा कब आही', 'किस्त कब',
+    ],
+  },
+
+  // ── 5. मोटर / ट्यूबवेल / पंप नियंत्रक ──
+  {
+    target: 'motor',
+    type: 'modal',
+    label: 'मोटर कंट्रोलर',
+    icon: '⚙️',
+    spokenHi: 'खेत की मोटर नियंत्रक खोल रहे हैं।',
+    spokenCg: 'खेत के मोटर कंट्रोलर खोलत हन।',
+    keywords: [
+      'मोटर', 'पंप', 'ट्यूबवेल', 'बोर', 'बोरवेल', 'पानी चलाना', 'सिंचाई मोटर',
+      'मोटर चालू', 'मोटर बंद', 'लाइट', 'बिजली', 'motor', 'pump',
+    ],
+  },
+
+  // ── 6. मेरा खेत / फसल कैलेंडर ──
+  {
+    target: 'khet',
+    type: 'modal',
+    label: 'मेरा खेत',
+    icon: '📅',
+    spokenHi: 'मेरा खेत फसल कैलेंडर खोल रहे हैं।',
+    spokenCg: 'अपन खेत फसल कैलेंडर खोलत हन।',
+    keywords: [
+      'मेरा खेत', 'अपन खेत', 'खेत का हाल', 'बुआई', 'बोवाई', 'रोपाई',
+      'फसल चक्र', 'कैलेंडर', 'फसल के दिन', 'khet',
+    ],
+  },
+
+  // ── 7. किसान चौपाल (समुदाय एवं चर्चा) ──
+  {
+    target: 'chaupal',
+    type: 'tab',
+    label: 'किसान चौपाल',
+    icon: '💬',
+    spokenHi: 'किसान चौपाल मंच खोल रहे हैं।',
+    spokenCg: 'किसान चौपाल खोलत हन, गोठ-बात करव।',
+    keywords: [
+      'चौपाल', 'सवाल', 'पूछना', 'दूसरे किसान', 'community', 'forum', 'सलाह',
+      'बात करना', 'चर्चा', 'मदद', 'समुदाय',
+      // Chhattisgarhi
+      'चौपाल म', 'किसान भाई', 'गोठ बात', 'गोठ-बात',
+    ],
+  },
+
+  // ── 8. मौसम एवं मुख्य पृष्ठ ──
+  {
+    target: 'home',
+    type: 'tab',
+    label: 'मुख्य पृष्ठ व मौसम',
+    icon: '🏠',
+    spokenHi: 'मौसम और मुख्य पृष्ठ खोल रहे हैं।',
+    spokenCg: 'मौसम अऊ मुख्य पेज खोलत हन।',
+    keywords: [
+      'मौसम', 'बारिश', 'आंधी', 'तूफान', 'धूप', 'तापमान', 'weather', 'कल कैसा',
+      'आज का मौसम', 'घर', 'होम', 'home', 'मुख्य',
+      // Chhattisgarhi
+      'बरसात', 'पानी कब', 'मौसम कइसन हे', 'बादल', 'हवा',
+    ],
+  },
+
+  // ── 9. आदरणीय अभिवादन (Greetings & Friendly Fallback) ──
+  {
+    target: 'greeting',
+    type: 'action',
+    label: 'नमस्ते / जोहार',
+    icon: '🙏',
+    spokenHi: 'नमस्ते किसान भाई! क्या जानना चाहते हैं — धान का भाव या फसल की बीमारी?',
+    spokenCg: 'जय जोहार संगी! का जानना चाहत हव — धान के भाव या फसल बीमारी?',
+    keywords: [
+      'जय जोहार', 'राम राम', 'नमस्ते', 'नमस्कार', 'प्रणाम', 'हेलो', 'जोहार',
+      'hello', 'hi',
+    ],
+  },
+];
+
+/**
+ * Match spoken transcript against all vernacular routes.
+ * Case-insensitive, whitespace sanitized.
+ */
+export const matchVoiceRoute = (transcript) => {
+  if (!transcript) return null;
+  const clean = transcript.toLowerCase().trim();
+
+  // Try exact keyword containment
+  for (const route of KEYWORD_ROUTES) {
+    for (const kw of route.keywords) {
+      if (clean.includes(kw.toLowerCase())) {
+        return route;
+      }
+    }
+  }
+  return null;
+};
+
+// Automatic cleanup on app backgrounding (lock phone / incoming call)
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && isListening) {
+      stopVoiceRecognition();
+    }
+  });
+}
+
+/**
+ * Start voice recognition with comprehensive edge case protections:
+ * - Cancels active TTS beforehand to prevent echo feedback loop (E01)
+ * - Rapid tap debouncing (E02)
+ * - 8-second ambient noise watchdog timer (E08)
+ * - Haptic feedback (E25)
+ * - Friendly vernacular error responses (E05, E06, E07)
+ */
+export const startVoiceRecognition = (onResult, onError) => {
+  if (!isVoiceSupported()) {
+    if (onError) onError('आपका ब्राउज़र आवाज़ पहचान को सपोर्ट नहीं करता।');
+    return;
+  }
+
+  // E02: Prevent duplicate calls if already starting
+  if (isStarting) return;
+  isStarting = true;
+
+  // E01: Stop all active TTS immediately so mic doesn't hear the speaker!
+  if (isSpeaking()) {
+    stopSpeech();
+  }
+
+  // Stop any lingering session
+  stopVoiceRecognition();
+
+  const clearWatchdog = () => {
+    if (watchdogTimer) {
+      clearTimeout(watchdogTimer);
+      watchdogTimer = null;
+    }
+  };
+
+  try {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SR();
+
+    recognition.lang = 'hi-IN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 3;
+
+    recognition.onstart = () => {
+      isStarting = false;
+      isListening = true;
+      triggerHaptic([45]);
+
+      // E08: 8-second safety watchdog against tractor / wind ambient noise
+      clearWatchdog();
+      watchdogTimer = setTimeout(() => {
+        if (isListening) {
+          stopVoiceRecognition();
+          if (onError) onError('समय समाप्त हुआ। शांत जगह पर फिर से बोलें।', 'timeout');
+        }
+      }, 8500);
+
+      window._kisanStopVoiceRecognition = stopVoiceRecognition;
+      notifyListeners({ listening: true, transcript: '', error: null });
+    };
+
+    recognition.onresult = (event) => {
+      clearWatchdog();
+      triggerHaptic([30, 40, 30]);
+
+      let best = '';
+      if (event.results && event.results[0]) {
+        for (let i = 0; i < event.results[0].length; i++) {
+          const alt = event.results[0][i].transcript || '';
+          if (alt.length > best.length) best = alt;
+        }
+      }
+
+      const matched = matchVoiceRoute(best);
+      notifyListeners({ listening: false, transcript: best, error: null });
+
+      isListening = false;
+      isStarting = false;
+
+      // Small sequence buffer to let OS release microphone before any TTS response
+      setTimeout(() => {
+        if (onResult) onResult(best, matched);
+      }, 150);
+    };
+
+    recognition.onerror = (event) => {
+      clearWatchdog();
+      isListening = false;
+      isStarting = false;
+      notifyListeners({ listening: false, transcript: '', error: event.error });
+
+      let friendly = 'आवाज़ पहचान में समस्या आई।';
+      if (event.error === 'not-allowed') {
+        friendly = '🎤 माइक्रोफ़ोन की अनुमति बंद है। कृपया ब्राउज़र सेटिंग से चालू करें।';
+      } else if (event.error === 'no-speech') {
+        friendly = 'कुछ सुनाई नहीं दिया। कृपया फिर से बोलें।';
+      } else if (event.error === 'network') {
+        friendly = 'इंटरनेट धीमा है, थोड़ा इंतज़ार करके दोबारा बोलें।';
+      }
+
+      if (onError) onError(friendly, event.error);
+    };
+
+    recognition.onend = () => {
+      clearWatchdog();
+      isStarting = false;
+      if (isListening) {
+        isListening = false;
+        notifyListeners({ listening: false, transcript: '', error: null });
+      }
+    };
+
+    recognition.start();
+    recognitionInstance = recognition;
+  } catch (err) {
+    clearWatchdog();
+    isStarting = false;
+    isListening = false;
+    if (onError) onError('माइक्रोफ़ोन शुरू करने में समस्या आई।', err?.message);
+  }
+};
+
+/** Stop the active recognition session cleanly */
+export const stopVoiceRecognition = () => {
+  if (watchdogTimer) {
+    clearTimeout(watchdogTimer);
+    watchdogTimer = null;
+  }
+  if (recognitionInstance) {
+    try {
+      recognitionInstance.abort();
+    } catch {
+      // safe abort
+    }
+    recognitionInstance = null;
+  }
+  isStarting = false;
+  if (isListening) {
+    isListening = false;
+    notifyListeners({ listening: false, transcript: '', error: null });
+  }
+};
+
+export const isRecognitionActive = () => isListening;

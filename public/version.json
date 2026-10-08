@@ -1,8 +1,8 @@
 {
-  "version": "1.0.40",
+  "version": "1.0.41",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.40",
-  "releaseNotes": "प्लेटफ़ॉर्म-अनुकूल आधुनिक फुटर: वेब कॉम्पैक्ट डार्क पिल कैप्सूल (v1.0.40 अपडेट जांचें) एवं Android APK ग्रीन स्टेडियम कार्ड।",
+  "releaseName": "किसान साथी v1.0.41",
+  "releaseNotes": "हरा floating voice pill button जोड़ा गया — हिंदी/छत्तीसगढ़ी में बोलें, App अपने आप सही section में ले जाएगा (v1.0.41)।",
   "updatedAt": "2026-10-08"
 }

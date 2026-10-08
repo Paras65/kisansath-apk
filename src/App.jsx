@@ -15,7 +15,6 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 
 import { theme } from './theme';
 import { Header } from './components/Header';
@@ -29,7 +28,13 @@ import { GlobalNotification } from './components/GlobalNotification';
 import { notify } from './services/notificationService';
 import { appConfig } from './config/appConfig';
 import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
-import { stopSpeech, subscribeSpeechState } from './utils/speech';
+import { speakText, stopSpeech, subscribeSpeechState } from './utils/speech';
+import {
+  startVoiceRecognition,
+  stopVoiceRecognition,
+  subscribeVoiceState,
+  isVoiceSupported,
+} from './utils/voiceRecognition';
 import { useLanguage } from './utils/i18n';
 import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS } from './services/weatherService';
 import { getActiveFarmer } from './services/farmerService';
@@ -144,6 +149,7 @@ function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
+  const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
   const [globalCheckingUpdate, setGlobalCheckingUpdate] = useState(false);
@@ -215,6 +221,87 @@ function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  // Synchronize voice recognition listening state
+  useEffect(() => {
+    const unsubscribe = subscribeVoiceState(({ listening }) => {
+      setIsVoiceListening(listening);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Safe modal dismissal before voice navigation
+  const closeAllActiveModals = () => {
+    setOpenDeviceHub(false);
+    setOpenAdminModal(false);
+    if (typeof document !== 'undefined') {
+      const openDialog = document.querySelector('.MuiDialog-root');
+      if (openDialog) {
+        const closeBtn =
+          openDialog.querySelector('button[aria-label="close"]') ||
+          openDialog.querySelector('button[aria-label="Close"]') ||
+          openDialog.querySelector('button[data-action="close"]');
+        if (closeBtn) {
+          try { closeBtn.click(); } catch {}
+        }
+      }
+    }
+  };
+
+  // Green pill FAB handler:
+  // • If TTS is speaking → stop it
+  // • If voice is listening → stop it
+  // • Otherwise → start voice recognition and route on result with spoken audio feedback
+  const handleVoiceFab = () => {
+    if (isSpeakingActive) { stopSpeech(); return; }
+    if (isVoiceListening) { stopVoiceRecognition(); return; }
+    if (!isVoiceSupported()) {
+      notify.warning('आपका browser आवाज़ पहचान support नहीं करता।');
+      speakText(isChhattisgarhi ? 'फोन म आवाज़ पहचान सुविधा नई हे।' : 'फोन में आवाज़ पहचान की सुविधा उपलब्ध नहीं है।');
+      return;
+    }
+
+    startVoiceRecognition(
+      (transcript, route) => {
+        if (route) {
+          closeAllActiveModals();
+          notify.success(`${route.icon} "${transcript}" — ${route.label}`);
+
+          // Spoken Audio Confirmation for Illiterate Farmers (Zero-Text UX)
+          const spoken = isChhattisgarhi ? route.spokenCg : route.spokenHi;
+          if (spoken) {
+            speakText(spoken);
+          }
+
+          if (route.type === 'tab') {
+            handleTabChange(route.target);
+          } else if (route.target === 'token') {
+            handleTabChange('mandi');
+            window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
+          } else if (route.target === 'motor' || route.target === 'khet') {
+            handleTabChange('home');
+            window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: route.target } }));
+          }
+        } else if (transcript) {
+          const fallbackMsg = isChhattisgarhi
+            ? 'माफ करव संगी, समझ नई आइस। फिर से बोलव — जैसे धान के भाव या फसल बीमारी।'
+            : 'माफ कीजिए, समझ नहीं आया। फिर से बोलें — जैसे धान का भाव या फसल की बीमारी।';
+          notify.info(`🎤 "${transcript}"`);
+          speakText(fallbackMsg);
+        }
+      },
+      (errMsg, errCode) => {
+        notify.warning(errMsg);
+        if (errCode === 'not-allowed') {
+          speakText(isChhattisgarhi ? 'माइक बंद हे संगी, फोन के सेटिंग ले चालू करव।' : 'माइक्रोफ़ोन बंद है, फोन की सेटिंग से चालू करें।');
+        } else if (errCode === 'network') {
+          speakText(isChhattisgarhi ? 'इंटरनेट धीमा हे, थोड़ा रुक के बोलव।' : 'इंटरनेट धीमा है, कृपया प्रतीक्षा करें।');
+        } else if (errCode === 'no-speech' || errCode === 'timeout') {
+          speakText(isChhattisgarhi ? 'कछु बोलव भइया, जैसे धान के भाव।' : 'कृपया कुछ बोलें, जैसे धान का भाव।');
+        }
+      }
+    );
+  };
 
   // Read URL query param if opened from PWA shortcut
   useEffect(() => {
@@ -736,33 +823,62 @@ function App() {
           </Box>
         </Paper>
 
-        {/* Floating Global Stop Voice Button (बोलना बंद करें) */}
-        {isSpeakingActive && (
-          <Fab
-            variant="extended"
-            onClick={stopSpeech}
-            sx={{
-              position: 'fixed',
-              bottom: 74,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              zIndex: 3000,
-              bgcolor: '#c62828',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.86rem',
-              boxShadow: '0 6px 22px rgba(198, 40, 40, 0.55)',
-              px: 2.5,
-              py: 1,
-              '&:hover': { bgcolor: '#b71c1c' },
-              border: '2px solid #ffffff',
-              textTransform: 'none'
-            }}
-          >
-            <VolumeOffIcon sx={{ mr: 1, fontSize: 20 }} />
-            {isChhattisgarhi ? '🛑 बोलना बंद करव (Stop Voice)' : '🛑 बोलना बंद करें (Stop Voice)'}
-          </Fab>
-        )}
+        {/* ── Smart Green Voice Pill FAB ──
+            Idle      → 🎤 बोलकर पूछें  (starts voice recognition)
+            Listening → 🎙️ सुन रहा हूँ… (tap stops recognition)
+            TTS On    → 🛑 बंद करें       (tap stops TTS)
+        */}
+        <Fab
+          variant="extended"
+          onClick={handleVoiceFab}
+          aria-label={
+            isSpeakingActive
+              ? 'बोलना बंद करें'
+              : isVoiceListening
+              ? 'सुनना बंद करें'
+              : 'बोलकर पूछें'
+          }
+          sx={{
+            position: 'fixed',
+            bottom: 74,
+            right: 16,
+            zIndex: 3000,
+            bgcolor: isSpeakingActive
+              ? '#c62828'
+              : isVoiceListening
+              ? '#1565c0'
+              : '#2e7d32',
+            color: '#ffffff',
+            fontWeight: 800,
+            fontSize: '0.84rem',
+            letterSpacing: '0.3px',
+            boxShadow: isVoiceListening
+              ? '0 0 0 4px rgba(21,101,192,0.35), 0 6px 20px rgba(21,101,192,0.5)'
+              : isSpeakingActive
+              ? '0 6px 20px rgba(198,40,40,0.5)'
+              : '0 6px 20px rgba(46,125,50,0.45)',
+            px: 2,
+            py: 0.9,
+            minWidth: 0,
+            borderRadius: '28px',
+            textTransform: 'none',
+            transition: 'background-color 0.25s, box-shadow 0.25s',
+            animation: isVoiceListening ? 'kisanVoicePulse 1.2s infinite' : 'none',
+            '@keyframes kisanVoicePulse': {
+              '0%, 100%': { boxShadow: '0 0 0 4px rgba(21,101,192,0.35), 0 6px 20px rgba(21,101,192,0.5)' },
+              '50%': { boxShadow: '0 0 0 10px rgba(21,101,192,0.15), 0 8px 28px rgba(21,101,192,0.6)' },
+            },
+            '&:hover': {
+              bgcolor: isSpeakingActive ? '#b71c1c' : isVoiceListening ? '#0d47a1' : '#1b5e20',
+            },
+          }}
+        >
+          {isSpeakingActive
+            ? '🛑 बंद करें'
+            : isVoiceListening
+            ? '🎙️ सुन रहा हूँ…'
+            : '🎤 बोलकर पूछें'}
+        </Fab>
         {/* Centralized Smart Device & Hardware Hub */}
         <DeviceHubModal
           open={openDeviceHub}

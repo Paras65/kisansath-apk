@@ -161,6 +161,18 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
   const [activeBroadcasts, setActiveBroadcasts] = useState([]);
 
+  // Voice Navigation Modal Trigger Listener
+  useEffect(() => {
+    const handleVoiceModal = (e) => {
+      const modal = e?.detail?.modal;
+      if (modal === 'motor') setOpenMotorModal(true);
+      else if (modal === 'khet') setOpenMeraKhet(true);
+      else if (modal === 'token') setOpenTokenGuide(true);
+    };
+    window.addEventListener('kisan-open-modal', handleVoiceModal);
+    return () => window.removeEventListener('kisan-open-modal', handleVoiceModal);
+  }, []);
+
   // Fetch active department broadcasts
   useEffect(() => {
     let isMounted = true;
