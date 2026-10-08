@@ -3,7 +3,6 @@ import {
   Box,
   Typography,
   Card,
-  Grid,
   Button,
   Chip,
   Paper,
@@ -826,44 +825,43 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
         </Box>
 
         <Box sx={{ p: 1.5 }}>
-          <Grid container spacing={1}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: displayRates.length === 1 ? '1fr' : 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' }, gap: 1 }}>
             {displayRates.map((item, idx) => (
-              <Grid item xs={6} sm={displayRates.length === 1 ? 12 : 3} md={displayRates.length === 1 ? 12 : 6} key={idx}>
-                <Box
-                  onClick={() => { stopSpeech(); onNavigate('mandi'); }}
-                  sx={{
-                    p: 1.2,
-                    borderRadius: 2.5,
-                    bgcolor: '#fafafa',
-                    border: '1px solid #f1f5f9',
-                    cursor: 'pointer',
-                    transition: 'all 0.18s ease',
-                    '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
-                  }}
-                >
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
-                      {item.crop.split(' ')[0]}
-                    </Typography>
-                    <Chip
-                      label={item.badge}
-                      size="small"
-                      sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
-                    />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
-                    {item.rate}
-                    <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
-                      /क्विं.
-                    </Typography>
+              <Box
+                key={idx}
+                onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+                sx={{
+                  p: 1.2,
+                  borderRadius: 2.5,
+                  bgcolor: '#fafafa',
+                  border: '1px solid #f1f5f9',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                  '&:hover': { bgcolor: '#f0f9ff', borderColor: '#bae6fd' }
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.3 }}>
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.76rem' }}>
+                    {item.crop.split(' ')[0]}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
-                    {item.type.split(' ')[0]}
-                  </Typography>
+                  <Chip
+                    label={item.badge}
+                    size="small"
+                    sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800, bgcolor: `${item.color}15`, color: item.color }}
+                  />
                 </Box>
-              </Grid>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: item.color, fontSize: '1.05rem', lineHeight: 1.2 }}>
+                  {item.rate}
+                  <Typography component="span" variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', ml: 0.2 }}>
+                    /क्विं.
+                  </Typography>
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', display: 'block', mt: 0.2 }}>
+                  {item.type.split(' ')[0]}
+                </Typography>
+              </Box>
             ))}
-          </Grid>
+          </Box>
           {liveMandiRates.length === 0 && (
             <Box sx={{ mt: 1, p: 0.8, bgcolor: '#f8fafc', borderRadius: 2, textAlign: 'center', border: '1px dashed #cbd5e1' }}>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
@@ -1151,48 +1149,40 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
         </Box>
 
         {/* 3. Calculations 4-KPI Grid */}
-        <Grid container spacing={1} sx={{ mb: 1.5 }}>
-          <Grid item xs={6} sm={3}>
-            <Box sx={{ p: 1, bgcolor: '#f1f8e9', borderRadius: 2, border: '1px solid #c8e6c9', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                {isChhattisgarhi ? 'सरकारी / मंडी भाव' : 'सरकारी / मंडी दर'}
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
-                ₹{currentCrop.rate.toLocaleString('en-IN')}<span style={{ fontSize: '0.66rem', fontWeight: 600 }}>/क्विं.</span>
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                {isChhattisgarhi ? 'अनुमानित उपज' : 'अनुमानित पैदावार'}
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#15803d', fontSize: '0.92rem' }}>
-                {estYield} {isChhattisgarhi ? 'क्विंटल' : 'क्विंटल'}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Box sx={{ p: 1, bgcolor: '#fffbeb', borderRadius: 2, border: '1px solid #fde68a', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                {isChhattisgarhi ? 'अनुमानित आमदनी' : 'अनुमानित आय'}
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.92rem' }}>
-                ₹{estIncome.toLocaleString('en-IN')}
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={6} sm={3}>
-            <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
-              <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
-                {isChhattisgarhi ? 'खाद जरूरत (DAP/यूरिया)' : 'खाद डोज (DAP/यूरिया)'}
-              </Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.85rem' }}>
-                {estDap}k / {estUrea}k
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1, mb: 1.5 }}>
+          <Box sx={{ p: 1, bgcolor: '#f1f8e9', borderRadius: 2, border: '1px solid #c8e6c9', textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+              {isChhattisgarhi ? 'सरकारी / मंडी भाव' : 'सरकारी / मंडी दर'}
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
+              ₹{currentCrop.rate.toLocaleString('en-IN')}<span style={{ fontSize: '0.66rem', fontWeight: 600 }}>/क्विं.</span>
+            </Typography>
+          </Box>
+          <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #bbf7d0', textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+              {isChhattisgarhi ? 'अनुमानित उपज' : 'अनुमानित पैदावार'}
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#15803d', fontSize: '0.92rem' }}>
+              {estYield} {isChhattisgarhi ? 'क्विंटल' : 'क्विंटल'}
+            </Typography>
+          </Box>
+          <Box sx={{ p: 1, bgcolor: '#fffbeb', borderRadius: 2, border: '1px solid #fde68a', textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#b45309', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+              {isChhattisgarhi ? 'अनुमानित आमदनी' : 'अनुमानित आय'}
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309', fontSize: '0.92rem' }}>
+              ₹{estIncome.toLocaleString('en-IN')}
+            </Typography>
+          </Box>
+          <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', textAlign: 'center' }}>
+            <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.68rem', display: 'block', fontWeight: 700 }}>
+              {isChhattisgarhi ? 'खाद जरूरत (DAP/यूरिया)' : 'खाद डोज (DAP/यूरिया)'}
+            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.85rem' }}>
+              {estDap}k / {estUrea}k
+            </Typography>
+          </Box>
+        </Box>
 
         {/* 4. Advisory Snippet */}
         <Box sx={{ p: 1.2, bgcolor: '#f8fafc', borderRadius: 2, border: '1px solid #e2e8f0', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -1376,9 +1366,15 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           💡 <strong>{isChhattisgarhi ? 'सार्वजनिक खुला मंच:' : 'सार्वजनिक खुला मंच:'}</strong> {isChhattisgarhi ? 'मौसम अऊ मंडी भाव बिना लॉगिन खुले हे। अपन खेत के रकबा, रोज के काम, बोर मोटर मोबाइल ले चालू/बंद करे अऊ खर्च डायरी बर मोबाइल नंबर ले लॉगिन करव:' : 'मौसम व मंडी भाव बिना लॉगिन खुले हैं। अपने खेत का रकबा, दिन-वार कार्य, ट्यूबवेल मोटर मोबाइल से चालू/बंद करने व खर्च डायरी चलाने हेतु केवल मोबाइल नंबर से लॉगिन करें:'}
         </Typography>
 
-        <Grid container spacing={1.2}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
+            gap: 1.2
+          }}
+        >
           {/* Tool 1: Motor */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => handleRequireLogin('motor')}
               sx={{
@@ -1402,10 +1398,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'मोबाइल ले मोटर चालू/बंद' : 'GSM स्टार्टर रिमोट ऑन/ऑफ'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 2: Mera Khet & Diary */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => handleRequireLogin('khet')}
               sx={{
@@ -1429,10 +1425,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'फसल चक्र अऊ खर्च बहीखाता' : 'फसल चक्र व खर्च बहीखाता'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 3: Soil IoT */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => handleRequireLogin('soil')}
               sx={{
@@ -1456,10 +1452,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'माटी pH अऊ NPK जांच' : 'pH व NPK प्रोब जांच'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 4: Field GPS (Always Open!) */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => setOpenGpsTracker(true)}
               sx={{
@@ -1483,8 +1479,8 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'मेड़ म रेंग के नापव' : 'मेड़ों पर चलकर नापें'}
               </Typography>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Card>
   );
@@ -1594,40 +1590,50 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
         </Box>
 
         {/* 4-Item Details Strip */}
-        <Grid container spacing={1} sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
-          <Grid item xs={6} sm={3}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
+            gap: 1,
+            bgcolor: '#f8fafc',
+            p: 1.2,
+            borderRadius: 2.5,
+            border: '1px solid #e2e8f0'
+          }}
+        >
+          <Box>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
               📍 {isChhattisgarhi ? 'गांव / ब्लॉक' : 'ग्राम / ब्लॉक'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem' }}>
               {activeFarmer.village || (isChhattisgarhi ? 'दर्ज' : 'पंजीकृत')}, {activeFarmer.district || selectedDistrict}
             </Typography>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
               🌾 {isChhattisgarhi ? 'कुल दर्ज रकबा' : 'कुल पंजीकृत रकबा'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.86rem' }}>
               {activeFarmer.totalAcres || activeFarmer.totalLandAcres || '3.0'} {isChhattisgarhi ? 'एकड़ जमीन' : 'एकड़ भूमि'}
             </Typography>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
               🌱 {isChhattisgarhi ? 'दर्ज खेत' : 'पंजीकृत खेत'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem' }}>
               {(farmerPlots || []).length} {isChhattisgarhi ? 'खेत चालू हे' : 'खेत सक्रिय'}
             </Typography>
-          </Grid>
-          <Grid item xs={6} sm={3}>
+          </Box>
+          <Box>
             <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'block' }}>
               💰 {isChhattisgarhi ? 'समर्थन मूल्य भाव' : 'समर्थन मूल्य दर'}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
               ₹{appConfig.paddyScheme.totalRate}/क्विंटल धान
             </Typography>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Card>
   );
@@ -1885,9 +1891,15 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       </Box>
 
       <Box sx={{ p: 1.8 }}>
-        <Grid container spacing={1.2}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)', md: 'repeat(2, 1fr)' },
+            gap: 1.2
+          }}
+        >
           {/* Tool 1: Tubewell Motor */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => setOpenMotorModal(true)}
               sx={{
@@ -1911,10 +1923,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'GSM स्टार्टर चालू/बंद' : 'GSM स्टार्टर ऑन/ऑफ'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 2: Mera Khet & Diary */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => setOpenMeraKhet(true)}
               sx={{
@@ -1938,10 +1950,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'खर्चा अऊ आमदनी बहीखाता' : 'खर्च व आय बहीखाता'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 3: Field GPS Tracker */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => setOpenGpsTracker(true)}
               sx={{
@@ -1965,10 +1977,10 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'मेड़ म रेंगत नापव' : 'मेड़ों पर चलकर नापें'}
               </Typography>
             </Box>
-          </Grid>
+          </Box>
 
           {/* Tool 4: Soil IoT */}
-          <Grid item xs={6} sm={3}>
+          <Box>
             <Box
               onClick={() => setOpenSoilIot(true)}
               sx={{
@@ -1992,8 +2004,8 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 {isChhattisgarhi ? 'लाइव pH अऊ NPK स्तर' : 'लाइव pH व NPK स्तर'}
               </Typography>
             </Box>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
     </Card>
   );
@@ -2010,8 +2022,12 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
         renderPublicWelcomeBanner()
       )}
 
-      {/* 2. Guest-Only Locked Services Showcase (Only on Public Mode) */}
-      {!activeFarmer && renderLockedPrivateToolsCard()}
+      {/* 2. Guest-Only Locked Services Showcase (Mobile only: on Desktop it is in the right sidebar) */}
+      {!activeFarmer && (
+        <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2 }}>
+          {renderLockedPrivateToolsCard()}
+        </Box>
+      )}
 
       {/* 2. App Update Alert Banner (if update ready) */}
       {updateInfo?.hasUpdate && (
@@ -2057,9 +2073,16 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       )}
 
       {/* Responsive 2-Column Agritech Command Center Layout on Desktop */}
-      <Grid container spacing={{ xs: 2, md: 2.5, lg: 3 }}>
-        {/* Left / Main Column (xs=12, md=8) */}
-        <Grid item xs={12} md={8}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.8fr) minmax(0, 1fr)' },
+          gap: { xs: 2, md: 2.5, lg: 3 },
+          alignItems: 'start'
+        }}
+      >
+        {/* Left / Main Column (Mobile: full width, Desktop: ~64%) */}
+        <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
           {/* Official Department Emergency Broadcast Banner */}
           {activeBroadcasts && activeBroadcasts.length > 0 && (
             <Paper
@@ -2174,38 +2197,32 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
             </Box>
 
             {/* Metrics Strip */}
-            <Grid container spacing={1} sx={{ mb: 1.5 }}>
-              <Grid item xs={4}>
-                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> {isChhattisgarhi ? 'पानी (बरसात)' : 'वर्षा'}
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                    {weather ? `${weather.rainProbability}%` : '10%'}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={4}>
-                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> {isChhattisgarhi ? 'हवा के गति' : 'हवा'}
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                    {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
-                  </Typography>
-                </Box>
-              </Grid>
-              <Grid item xs={4}>
-                <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                    💧 {isChhattisgarhi ? 'उमस (नमी)' : 'आर्द्रता'}
-                  </Typography>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                    {weather ? `${weather.humidity}%` : '62%'}
-                  </Typography>
-                </Box>
-              </Grid>
-            </Grid>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 1.5 }}>
+              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                  <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> {isChhattisgarhi ? 'पानी (बरसात)' : 'वर्षा'}
+                </Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                  {weather ? `${weather.rainProbability}%` : '10%'}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                  <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> {isChhattisgarhi ? 'हवा के गति' : 'हवा'}
+                </Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                  {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
+                </Typography>
+              </Box>
+              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
+                  💧 {isChhattisgarhi ? 'उमस (नमी)' : 'आर्द्रता'}
+                </Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
+                  {weather ? `${weather.humidity}%` : '62%'}
+                </Typography>
+              </Box>
+            </Box>
 
             {/* Advisory line */}
             <Box sx={{ p: 1.2, bgcolor: '#f1f8e9', borderRadius: 2, display: 'flex', alignItems: 'flex-start', gap: 0.8, mb: 1.5, border: '1px solid #dcedc8' }}>
@@ -2223,24 +2240,22 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                     <CalendarMonthIcon sx={{ fontSize: 14, color: '#2e7d32' }} /> {isChhattisgarhi ? '3 दिन के मौसम अनुमान:' : '3-दिवसीय मौसम अनुमान:'}
                   </Typography>
                 </Box>
-                <Grid container spacing={1}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1 }}>
                   {weather.forecast3Days.map((f, idx) => (
-                    <Grid item xs={4} key={idx}>
-                      <Box sx={{ p: 0.8, bgcolor: idx === 0 ? '#e8f5e9' : '#fafafa', borderRadius: 2, textAlign: 'center', border: idx === 0 ? '1px solid #c8e6c9' : '1px solid #f1f5f9' }}>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: idx === 0 ? '#1b5e20' : '#64748b', fontSize: '0.7rem', display: 'block' }}>
-                          {isChhattisgarhi ? (f.dayCg || (idx === 0 ? 'आज' : idx === 1 ? 'बिहान' : 'पर्सों')) : f.day.split(' ')[0]}
-                        </Typography>
-                        <Typography sx={{ fontSize: '1.1rem', my: 0.2 }}>{f.icon}</Typography>
-                        <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.75rem', display: 'block' }}>
-                          {f.tempMax}° / {f.tempMin}°
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: f.rainProb > 40 ? '#d32f2f' : '#0288d1', fontSize: '0.64rem', fontWeight: 700 }}>
-                          {isChhattisgarhi ? 'पानी' : 'वर्षा'} {f.rainProb}%
-                        </Typography>
-                      </Box>
-                    </Grid>
+                    <Box key={idx} sx={{ p: 0.8, bgcolor: idx === 0 ? '#e8f5e9' : '#fafafa', borderRadius: 2, textAlign: 'center', border: idx === 0 ? '1px solid #c8e6c9' : '1px solid #f1f5f9' }}>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: idx === 0 ? '#1b5e20' : '#64748b', fontSize: '0.7rem', display: 'block' }}>
+                        {isChhattisgarhi ? (f.dayCg || (idx === 0 ? 'आज' : idx === 1 ? 'बिहान' : 'पर्सों')) : f.day.split(' ')[0]}
+                      </Typography>
+                      <Typography sx={{ fontSize: '1.1rem', my: 0.2 }}>{f.icon}</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.75rem', display: 'block' }}>
+                        {f.tempMax}° / {f.tempMin}°
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: f.rainProb > 40 ? '#d32f2f' : '#0288d1', fontSize: '0.64rem', fontWeight: 700 }}>
+                        {isChhattisgarhi ? 'पानी' : 'वर्षा'} {f.rainProb}%
+                      </Typography>
+                    </Box>
                   ))}
-                </Grid>
+                </Box>
               </Box>
             )}
           </Card>
@@ -2291,7 +2306,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               boxShadow: '0 2px 10px rgba(15, 23, 42, 0.04)'
             }}
           >
-            <Grid container spacing={{ xs: 1, sm: 1.5 }}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 1fr)',
+                gap: { xs: 1, sm: 1.5 }
+              }}
+            >
               {[
                 {
                   title: isChhattisgarhi ? 'रोग निदान' : 'फसल डॉक्टर',
@@ -2366,89 +2387,88 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   action: () => handleRequireLogin('khet')
                 }
               ].map((tool, idx) => (
-                <Grid item xs={3} sm={3} md={3} lg={3} key={idx}>
-                  <Box
-                    className="touch-card"
-                    onClick={() => { stopSpeech(); tool.action(); }}
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      py: { xs: 0.6, sm: 1 },
-                      px: 0.3,
-                      borderRadius: '12px',
-                      transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
-                      '&:hover': {
-                        bgcolor: '#f8fafc',
-                        transform: 'translateY(-2px)'
-                      },
-                      '&:active': {
-                        transform: 'scale(0.94)'
-                      }
-                    }}
-                  >
-                    <Box sx={{ position: 'relative', mb: 0.8 }}>
-                      <Box
-                        sx={{
-                          bgcolor: tool.bg,
-                          width: { xs: 46, sm: 52 },
-                          height: { xs: 46, sm: 52 },
-                          borderRadius: '14px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          border: `1px solid ${tool.border}`,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
-                        }}
-                      >
-                        {tool.icon}
-                      </Box>
-                      {tool.badge && (
-                        <Box
-                          sx={{
-                            position: 'absolute',
-                            top: -5,
-                            right: -5,
-                            bgcolor: tool.badgeBg,
-                            color: '#ffffff',
-                            fontSize: { xs: '0.54rem', sm: '0.6rem' },
-                            fontWeight: 800,
-                            px: 0.6,
-                            py: 0.1,
-                            borderRadius: '6px',
-                            border: '1.5px solid #ffffff',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                            lineHeight: 1.15,
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {tool.badge}
-                        </Box>
-                      )}
-                    </Box>
-                    <Typography
-                      variant="caption"
+                <Box
+                  key={idx}
+                  className="touch-card"
+                  onClick={() => { stopSpeech(); tool.action(); }}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    py: { xs: 0.6, sm: 1 },
+                    px: 0.3,
+                    borderRadius: '12px',
+                    transition: 'all 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                    '&:hover': {
+                      bgcolor: '#f8fafc',
+                      transform: 'translateY(-2px)'
+                    },
+                    '&:active': {
+                      transform: 'scale(0.94)'
+                    }
+                  }}
+                >
+                  <Box sx={{ position: 'relative', mb: 0.8 }}>
+                    <Box
                       sx={{
-                        fontWeight: 700,
-                        fontSize: { xs: '0.74rem', sm: '0.8rem' },
-                        color: '#0f172a',
-                        lineHeight: 1.25,
-                        textAlign: 'center',
-                        minHeight: { xs: 28, sm: 30 },
+                        bgcolor: tool.bg,
+                        width: { xs: 46, sm: 52 },
+                        height: { xs: 46, sm: 52 },
+                        borderRadius: '14px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        wordBreak: 'break-word'
+                        border: `1px solid ${tool.border}`,
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
                       }}
                     >
-                      {tool.title}
-                    </Typography>
+                      {tool.icon}
+                    </Box>
+                    {tool.badge && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -5,
+                          right: -5,
+                          bgcolor: tool.badgeBg,
+                          color: '#ffffff',
+                          fontSize: { xs: '0.54rem', sm: '0.6rem' },
+                          fontWeight: 800,
+                          px: 0.6,
+                          py: 0.1,
+                          borderRadius: '6px',
+                          border: '1.5px solid #ffffff',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                          lineHeight: 1.15,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {tool.badge}
+                      </Box>
+                    )}
                   </Box>
-                </Grid>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: { xs: '0.74rem', sm: '0.8rem' },
+                      color: '#0f172a',
+                      lineHeight: 1.25,
+                      textAlign: 'center',
+                      minHeight: { xs: 28, sm: 30 },
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      wordBreak: 'break-word'
+                    }}
+                  >
+                    {tool.title}
+                  </Typography>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           </Card>
 
           {/* Public Crop Advisor & Quick Acre Estimator (For Logged-in Farmers Reference) */}
@@ -2749,22 +2769,30 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>
             {renderApkFooterCard()}
           </Box>
-        </Grid>
+        </Box>
 
-        {/* Right / Sidebar Column (Desktop Command Center: md and up) */}
-        <Grid item xs={12} md={4} sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            {/* 1. Mandi Rates Pulse Widget */}
-            {renderMandiPulseCard()}
+        {/* Right / Sidebar Column (Desktop Command Center: md and up, ~36%, sticky) */}
+        <Box
+          component="aside"
+          sx={{
+            display: { xs: 'none', md: 'flex' },
+            flexDirection: 'column',
+            gap: 2.5,
+            minWidth: 0,
+            position: { md: 'sticky' },
+            top: { md: '80px' }
+          }}
+        >
+          {/* 1. Mandi Rates Pulse Widget */}
+          {renderMandiPulseCard()}
 
-            {/* 2. Tools Hub & Farmer Command Card */}
-            {activeFarmer ? renderPersonalCommandBar() : renderLockedPrivateToolsCard()}
+          {/* 2. Tools Hub & Farmer Command Card */}
+          {activeFarmer ? renderPersonalCommandBar() : renderLockedPrivateToolsCard()}
 
-            {/* 3. Platform APK & Share Card */}
-            {renderApkFooterCard()}
-          </Box>
-        </Grid>
-      </Grid>
+          {/* 3. Platform APK & Share Card */}
+          {renderApkFooterCard()}
+        </Box>
+      </Box>
     </>
   );
 
