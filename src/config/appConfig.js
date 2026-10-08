@@ -8,7 +8,7 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.38',
+  appVersion: env.VITE_APP_VERSION || '1.0.39',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -25,6 +25,12 @@ export const appConfig = {
 
   // 2. Helpline & Contacts
   helpline: {
+    phone: env.VITE_HELPLINE_PHONE || '18001801551',
+    label: env.VITE_HELPLINE_LABEL || '1800-180-1551',
+    kisanCallCenter: env.VITE_KISAN_CALL_CENTER || '1800-180-1551',
+    foodDeptHelpline: env.VITE_FOOD_DEPT_HELPLINE || '1800-233-3663',
+  },
+  contacts: {
     phone: env.VITE_HELPLINE_PHONE || '18001801551',
     label: env.VITE_HELPLINE_LABEL || '1800-180-1551',
     kisanCallCenter: env.VITE_KISAN_CALL_CENTER || '1800-180-1551',

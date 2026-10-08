@@ -49,7 +49,7 @@ export const TokenGuideModal = ({
   }, [initialAcres, open]);
 
   // Real-time CG Procurement Calculation from centralized unitConverter
-  const proc = calculatePaddyProcurement(acres, appConfig.paddyScheme.maxQuintalsPerAcre || 21);
+  const proc = calculatePaddyProcurement(acres, appConfig.paddyScheme?.maxQuintalsPerAcre || 21);
 
   // Voice speech synthesizer for calculator result
   const handleSpeakCalculation = () => {
@@ -69,10 +69,13 @@ export const TokenGuideModal = ({
   };
 
   const tokenPortalUrl =
-    appConfig.portals.tokenTuharHathUrl ||
-    appConfig.portals.tokenUrl ||
+    appConfig.portals?.tokenTuharHathUrl ||
+    appConfig.portals?.tokenUrl ||
     'https://kisan.cg.nic.in/';
-  const foodHelpline = appConfig.contacts.foodDeptHelpline || '1800-233-3663';
+  const foodHelpline =
+    appConfig.helpline?.foodDeptHelpline ||
+    appConfig.contacts?.foodDeptHelpline ||
+    '1800-233-3663';
 
   return (
     <Dialog

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.38",
+  "version": "1.0.39",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.38",
-  "releaseNotes": "टोकन तुंहर हाथ: धान उपार्जन पात्रता, बारदाना बोरी (40kg) कैलकुलेटर एवं 4-चरण ऑनलाइन टोकन जनरेशन गाइड।",
+  "releaseName": "किसान साथी v1.0.39",
+  "releaseNotes": "खाद्य विभाग हेल्पलाइन एवं टोकन तुंहर हाथ सुरक्षित विन्यास (appConfig.helpline bulletproof fix)।",
   "updatedAt": "2026-10-08"
 }
