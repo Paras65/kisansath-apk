@@ -1,0 +1,1439 @@
+openapi: 3.0.3
+info:
+  title: किसान साथी (Kisan Saathi) Enterprise Agricultural API
+  version: 1.0.28
+  description: |
+    Comprehensive, enterprise-secure Agricultural API for Kisan Saathi (किसान साथी: फसल से लेकर बिक्री तक).
+    Powers PWA and Android TWA (in.co.init65.kisan).
+    Supports offline-first synchronization, zero-fake-data OGD India engine, AI Crop Doctor, Mandi live pricing, Community Chaupal, Farm Diary, and Super Admin Command Center.
+  contact:
+    name: Kisan Saathi Technical Operations
+    url: https://kisan.init65.co.in
+  license:
+    name: Proprietary & Open Government Data Compliant
+servers:
+  - url: https://kisan.init65.co.in/api
+    description: Production Canonical API Gateway
+  - url: https://kisan-saathi-api-4sdo.onrender.com/api
+    description: Production Cloud API (Render Cloud)
+  - url: http://localhost:5000/api
+    description: Local Development Server (Port 5000)
+  - url: http://localhost:8000/api
+    description: Alternative Local Server (Port 8000)
+
+tags:
+  - name: Core & Advisory
+    description: Versioning, crops catalog, scientific NPK fertilizers, disease library, and government schemes
+  - name: Mandi & Marketplace
+    description: Real-time Agmarknet mandi rates, offline sync, CIBRC pesticides, soil survey, and direct marketplace
+  - name: Farm Machinery & Chaupal
+    description: Equipment rentals, community Q&A discussions, and farmer answers
+  - name: AI Crop Doctor
+    description: Google Gemini multimodal vision diagnosis and crop symptom analysis
+  - name: Farmer & Farm Diary
+    description: 1-Click JWT auth, multi-plot lifecycle management, task toggles, and cloud farm diary
+  - name: Super Admin Command Center
+    description: Platform usage telemetry, moderation, emergency broadcasts, and security audit logs
+  - name: External & OGD APIs
+    description: Reference definitions for Open Government Data, Open-Meteo, and India Post APIs
+
+paths:
+  /version:
+    get:
+      tags: [Core & Advisory]
+      summary: Get application version & integrity metadata
+      description: Returns current running version, release notes, and integrity status for in-app update checks.
+      responses:
+        '200':
+          description: Version metadata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppVersionResponse'
+
+  /crops:
+    get:
+      tags: [Core & Advisory]
+      summary: Fetch crop catalog
+      description: Returns master agronomic catalog of crops, varieties, sowing windows, and season information.
+      parameters:
+        - name: season
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, खरीफ, रबी, जायद]
+          description: Optional season filter
+      responses:
+        '200':
+          description: List of crops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CropItem'
+
+  /fertilizers:
+    get:
+      tags: [Core & Advisory]
+      summary: Scientific NPK fertilizer dosages
+      description: Retrieves ICAR/IGKV recommended nitrogen, phosphorus, and potassium dosages per acre.
+      responses:
+        '200':
+          description: Dictionary of crop dosage recommendations
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  $ref: '#/components/schemas/FertilizerDoseItem'
+
+  /diseases:
+    get:
+      tags: [Core & Advisory]
+      summary: Crop disease & pest encyclopedia
+      description: Returns known crop diseases, symptoms, chemical treatments, and organic remedies.
+      parameters:
+        - name: cropId
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 50
+          description: Filter diseases by crop ID (e.g., paddy, wheat)
+      responses:
+        '200':
+          description: List of crop diseases
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DiseaseItem'
+
+  /schemes:
+    get:
+      tags: [Core & Advisory]
+      summary: Government agricultural schemes & procurement rates
+      description: Lists state and central government subsidies (e.g. ₹3,100/क्विंटल धान उपार्जन, PM-Kisan).
+      responses:
+        '200':
+          description: Active government schemes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SchemeItem'
+
+  /broadcasts:
+    get:
+      tags: [Core & Advisory]
+      summary: Public emergency broadcasts & weather advisories
+      description: Fetches active departmental alerts, weather warnings, and pest advisories for farmers.
+      parameters:
+        - name: district
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 50
+          description: Filter alerts by district (e.g., Raipur, Bilaspur, Bastar)
+      responses:
+        '200':
+          description: Active advisories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BroadcastItem'
+
+  /crop-doctor/diagnose:
+    post:
+      tags: [AI Crop Doctor]
+      summary: Multimodal AI diagnosis of crop leaf image or symptoms
+      description: Evaluates uploaded leaf photo (base64) or textual symptom description using Gemini Vision AI.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CropDoctorDiagnoseRequest'
+      responses:
+        '200':
+          description: Detailed diagnosis report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CropDoctorDiagnosisResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /mandi-rates:
+    get:
+      tags: [Mandi & Marketplace]
+      summary: Live APMC mandi rates
+      description: Real-time agricultural arrival volumes and modal prices per quintal from data.gov.in.
+      parameters:
+        - name: district
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 50
+          description: Filter rates by APMC district
+        - name: force
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Force refresh cache from data.gov.in upstream
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [json, raw]
+          description: Output format (raw array or structured envelope)
+      responses:
+        '200':
+          description: Current mandi rates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MandiRatesResponse'
+
+  /mandi-rates/refresh:
+    post:
+      tags: [Mandi & Marketplace]
+      summary: Force cache refresh of mandi rates
+      description: Evicts in-memory cache and initiates an upstream fetch from OGD India Agmarknet.
+      responses:
+        '200':
+          description: Refreshed mandi rates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MandiRatesResponse'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /mandi-rates/offline-query:
+    post:
+      tags: [Mandi & Marketplace]
+      summary: Resolve offline mandi search query
+      description: Resolves cached rates for queries recorded when the farmer's device was offline.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfflineMandiQueryRequest'
+      responses:
+        '200':
+          description: Matched rate or closest fallback
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+
+  /mandi-rates/pesticides:
+    get:
+      tags: [Mandi & Marketplace]
+      summary: CIB&RC approved safe pesticides
+      description: Returns safe agro-chemical registrations and approved dosages.
+      responses:
+        '200':
+          description: Registered pesticide formulations
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /mandi-rates/soil-health:
+    get:
+      tags: [Mandi & Marketplace]
+      summary: District soil health survey baseline
+      description: Provides soil macro and micronutrient benchmarks for Chhattisgarh districts.
+      parameters:
+        - name: district
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 50
+      responses:
+        '200':
+          description: Soil health survey metrics
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /mandi-rates/msp-benchmarks:
+    get:
+      tags: [Mandi & Marketplace]
+      summary: CACP Minimum Support Price benchmarks
+      description: Central Government official MSP benchmarks across Kharif and Rabi crops.
+      responses:
+        '200':
+          description: Official MSP benchmark list
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /marketplace:
+    get:
+      tags: [Mandi & Marketplace]
+      summary: List direct produce listings
+      description: Returns farmer produce sale listings with contact details and expected rates.
+      responses:
+        '200':
+          description: Active marketplace listings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MarketListingItem'
+    post:
+      tags: [Mandi & Marketplace]
+      summary: Create direct produce listing
+      description: Enables a farmer to list harvested produce for direct buyer inquiries.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMarketListingRequest'
+      responses:
+        '201':
+          description: Listing created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketListingItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /machinery:
+    get:
+      tags: [Farm Machinery & Chaupal]
+      summary: Available farm machinery rentals
+      description: Lists tractors, harvesters, seeders, and drones available for rent.
+      responses:
+        '200':
+          description: Machinery rental directory
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MachineryRentalItem'
+    post:
+      tags: [Farm Machinery & Chaupal]
+      summary: Register farm equipment for rent
+      description: Allows equipment owners to offer tractors, rotavators, or harvesters on rent.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMachineryRentalRequest'
+      responses:
+        '201':
+          description: Machinery listed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MachineryRentalItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /community-qa:
+    get:
+      tags: [Farm Machinery & Chaupal]
+      summary: Community Chaupal discussion feed
+      description: Returns recent farmer questions, agronomic solutions, and expert replies.
+      responses:
+        '200':
+          description: Recent Q&A threads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommunityQAItem'
+    post:
+      tags: [Farm Machinery & Chaupal]
+      summary: Post a question to Kisan Chaupal
+      description: Submits a new crop problem or agronomy query to the community.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommunityQARequest'
+      responses:
+        '201':
+          description: Question published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityQAItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+
+  /community-qa/{id}/reply:
+    post:
+      tags: [Farm Machinery & Chaupal]
+      summary: Reply to a community question
+      description: Adds a farmer solution or agricultural expert advisory to an existing question.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Target question ID (e.g. qa-1712345678)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCommunityReplyRequest'
+      responses:
+        '200':
+          description: Reply recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommunityQAItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /farmer/auth:
+    post:
+      tags: [Farmer & Farm Diary]
+      summary: Farmer 1-Click login or auto-registration
+      description: Authenticates existing farmer via 4-digit PIN or registers a new profile with JWT session.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FarmerAuthRequest'
+      responses:
+        '200':
+          description: Existing farmer login success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmerAuthResponse'
+        '201':
+          description: New farmer registration success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmerAuthResponse'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /farmer/profile/{phone}:
+    get:
+      tags: [Farmer & Farm Diary]
+      summary: Fetch farmer profile & registered plots
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+          description: 10-digit Indian phone number
+      responses:
+        '200':
+          description: Farmer profile and plots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmerProfile'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /farmer/plots/{phone}:
+    post:
+      tags: [Farmer & Farm Diary]
+      summary: Add or update farm plot
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SavePlotRequest'
+      responses:
+        '200':
+          description: Updated list of plots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlotItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /farmer/plots/{phone}/{plotId}:
+    delete:
+      tags: [Farmer & Farm Diary]
+      summary: Remove farm plot
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+        - name: plotId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Plot removed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlotItem'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /farmer/tasks/{phone}:
+    post:
+      tags: [Farmer & Farm Diary]
+      summary: Toggle lifecycle task completion for a plot
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToggleTaskRequest'
+      responses:
+        '200':
+          description: Task completion status updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plotId: { type: string }
+                  completedTasks: { type: array, items: { type: string } }
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /farmer/diary/{phone}:
+    get:
+      tags: [Farmer & Farm Diary]
+      summary: Fetch farm diary financial and field records
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+      responses:
+        '200':
+          description: Farm diary entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FarmDiaryEntry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+    post:
+      tags: [Farmer & Farm Diary]
+      summary: Record new expense, income, or crop action in diary
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFarmDiaryRequest'
+      responses:
+        '201':
+          description: Diary entry recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FarmDiaryEntry'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /farmer/diary/{phone}/{entryId}:
+    delete:
+      tags: [Farmer & Farm Diary]
+      summary: Delete diary entry
+      security:
+        - FarmerBearerAuth: []
+      parameters:
+        - name: phone
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[6-9]\d{9}$'
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Updated list of diary entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FarmDiaryEntry'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
+  /admin/login:
+    post:
+      tags: [Super Admin Command Center]
+      summary: Super admin passkey login
+      description: Verifies administrative passkey with constant-time equality and issues 2-hour Admin JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminLoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminLoginResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+        '429':
+          $ref: '#/components/responses/429RateLimited'
+
+  /admin/stats:
+    get:
+      tags: [Super Admin Command Center]
+      summary: Command center platform statistics
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Platform aggregations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStatsResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/farmers:
+    get:
+      tags: [Super Admin Command Center]
+      summary: Farmer registry audit (Zero-PII Masked)
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Masked farmer registry records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MaskedFarmerRecord'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/broadcasts:
+    get:
+      tags: [Super Admin Command Center]
+      summary: List all broadcasts (active & inactive)
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: All system broadcasts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BroadcastItem'
+    post:
+      tags: [Super Admin Command Center]
+      summary: Publish emergency advisory alert
+      security:
+        - AdminBearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBroadcastRequest'
+      responses:
+        '201':
+          description: Advisory published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BroadcastItem'
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/broadcasts/{id}:
+    delete:
+      tags: [Super Admin Command Center]
+      summary: Delete or expire broadcast
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Broadcast deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/marketplace/{id}/status:
+    patch:
+      tags: [Super Admin Command Center]
+      summary: Moderate produce marketplace listing
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, sold, flagged, rejected]
+      responses:
+        '200':
+          description: Status updated
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/community-qa/{id}/status:
+    patch:
+      tags: [Super Admin Command Center]
+      summary: Moderate community Chaupal question
+      security:
+        - AdminBearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [approved, hidden, flagged]
+      responses:
+        '200':
+          description: Question status updated
+        '400':
+          $ref: '#/components/responses/400BadRequest'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/health:
+    get:
+      tags: [Super Admin Command Center]
+      summary: Diagnostic telemetry probe
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Live server and database telemetry metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TelemetryHealthResponse'
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/external-config:
+    get:
+      tags: [Super Admin Command Center]
+      summary: Inspect external API configuration
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Active endpoints and keys configuration
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+  /admin/audit-logs:
+    get:
+      tags: [Super Admin Command Center]
+      summary: Fetch security audit event trail
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Security logs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logs: { type: array, items: { type: object } }
+                  stats: { type: object }
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+    delete:
+      tags: [Super Admin Command Center]
+      summary: Clear audit log trail
+      security:
+        - AdminBearerAuth: []
+      responses:
+        '200':
+          description: Logs purged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+        '401':
+          $ref: '#/components/responses/401Unauthorized'
+
+components:
+  securitySchemes:
+    FarmerBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 7-day cryptographic farmer session token obtained from /api/farmer/auth.
+    AdminBearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 2-hour administrative session token obtained from /api/admin/login.
+
+  responses:
+    400BadRequest:
+      description: Invalid request parameters or schema validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    401Unauthorized:
+      description: Missing, invalid, or expired authentication credentials
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    404NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    429RateLimited:
+      description: Too many requests. Rate limit cooldown active
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [success, error]
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: 'कृपया 10 अंकों का वैध भारतीय मोबाइल नंबर दर्ज करें।'
+        status:
+          type: integer
+          example: 400
+        field:
+          type: string
+          example: 'phone'
+        technicalError:
+          type: string
+          example: 'Schema constraint violation'
+        timestamp:
+          type: string
+          format: date-time
+
+    AppVersionResponse:
+      type: object
+      required: [version, appName, status]
+      properties:
+        version:
+          type: string
+          example: '1.0.28'
+        appName:
+          type: string
+          example: 'किसान साथी'
+        status:
+          type: string
+          example: 'active'
+        releaseNotes:
+          type: string
+        twaPackage:
+          type: string
+          example: 'in.co.init65.kisan'
+
+    CropItem:
+      type: object
+      required: [id, name, season]
+      properties:
+        id: { type: string, example: 'paddy' }
+        name: { type: string, example: 'धान (Paddy)' }
+        season: { type: string, example: 'खरीफ' }
+        durationDays: { type: integer, example: 125 }
+        idealSoil: { type: string, example: 'मटासी / कन्हार' }
+        targetYieldQuintalsPerAcre: { type: number, example: 21.0 }
+
+    FertilizerDoseItem:
+      type: object
+      properties:
+        ureaKg: { type: number, example: 55.0 }
+        dapKg: { type: number, example: 45.0 }
+        mopKg: { type: number, example: 25.0 }
+        zincKg: { type: number, example: 10.0 }
+        stages:
+          type: array
+          items:
+            type: object
+            properties:
+              stage: { type: string }
+              timing: { type: string }
+              split: { type: string }
+
+    DiseaseItem:
+      type: object
+      required: [id, cropId, name]
+      properties:
+        id: { type: string, example: 'blast-paddy' }
+        cropId: { type: string, example: 'paddy' }
+        name: { type: string, example: 'ब्लास्ट रोग (Blast Disease)' }
+        symptoms: { type: string }
+        chemicalRemedy: { type: string }
+        organicRemedy: { type: string }
+
+    SchemeItem:
+      type: object
+      required: [id, name, rate]
+      properties:
+        id: { type: string, example: 'paddy-procurement' }
+        name: { type: string, example: 'छत्तीसगढ़ धान उपार्जन योजना' }
+        rate: { type: number, example: 3100 }
+        mspRate: { type: number, example: 2300 }
+        bonusRate: { type: number, example: 800 }
+        limitPerAcre: { type: number, example: 21 }
+
+    BroadcastItem:
+      type: object
+      required: [id, title, message, severity]
+      properties:
+        id: { type: string }
+        title: { type: string, example: 'मौसम चेतावनी: भारी वर्षा की संभावना' }
+        message: { type: string }
+        severity: { type: string, enum: [info, warning, emergency] }
+        targetDistrict: { type: string, example: 'all' }
+        active: { type: boolean, example: true }
+        createdAt: { type: string, format: date-time }
+
+    CropDoctorDiagnoseRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        image:
+          type: string
+          maxLength: 15000000
+          description: Base64 data URL of crop leaf photograph
+        symptoms:
+          type: string
+          maxLength: 500
+          description: Observed plant symptoms (Devanagari or English)
+        crop:
+          type: string
+          maxLength: 60
+        cropId:
+          type: string
+          maxLength: 40
+        district:
+          type: string
+          maxLength: 40
+          default: 'रायपुर'
+
+    CropDoctorDiagnosisResponse:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean }
+        disease: { type: string, example: 'लीफ ब्लास्ट (Leaf Blast)' }
+        crop: { type: string, example: 'धान' }
+        confidence: { type: number, example: 0.94 }
+        chemicalControl: { type: string }
+        organicControl: { type: string }
+        preventiveMeasures: { type: array, items: { type: string } }
+        sprayRecommendation: { type: string }
+
+    MandiRatesResponse:
+      type: object
+      required: [source, rates]
+      properties:
+        source: { type: string, example: 'data.gov.in (OGD India Live)' }
+        lastUpdated: { type: string }
+        rates:
+          type: array
+          items:
+            type: object
+            properties:
+              mandi: { type: string, example: 'रायपुर' }
+              crop: { type: string, example: 'धान (Dhan)' }
+              variety: { type: string, example: 'Common' }
+              minPrice: { type: number, example: 2183 }
+              maxPrice: { type: number, example: 2300 }
+              modalPrice: { type: number, example: 2250 }
+              arrivalDate: { type: string }
+
+    OfflineMandiQueryRequest:
+      type: object
+      required: [crop]
+      additionalProperties: false
+      properties:
+        crop: { type: string, minLength: 2, maxLength: 50 }
+        commodity: { type: string, maxLength: 50 }
+        mandi: { type: string, maxLength: 50 }
+        district: { type: string, maxLength: 50, default: 'रायपुर' }
+
+    MarketListingItem:
+      type: object
+      required: [id, crop, quantity, phone]
+      properties:
+        id: { type: string, example: 'list-1712345678' }
+        crop: { type: string, example: 'धान (HMT सुगंधित)' }
+        quantity: { type: string, example: '50 क्विंटल' }
+        expectedPrice: { type: string, example: '₹2,600/क्विंटल' }
+        farmerName: { type: string, example: 'रामेश्वर साहू' }
+        location: { type: string, example: 'आरंग, रायपुर' }
+        phone: { type: string, example: '9876543210' }
+        date: { type: string }
+        status: { type: string, enum: [active, sold, flagged], default: 'active' }
+
+    CreateMarketListingRequest:
+      type: object
+      required: [crop, quantity, phone]
+      additionalProperties: false
+      properties:
+        crop: { type: string, minLength: 2, maxLength: 80, example: 'धान (सरना)' }
+        commodity: { type: string, maxLength: 80 }
+        variety: { type: string, maxLength: 50 }
+        quantity: { type: string, minLength: 1, maxLength: 50, example: '40 क्विंटल' }
+        quantityQuintals: { type: number, minimum: 0.1, maximum: 10000.0 }
+        expectedPrice: { type: string, maxLength: 60, example: '₹2,500/क्विंटल' }
+        pricePerQuintal: { type: number, minimum: 1, maximum: 500000 }
+        farmerName: { type: string, maxLength: 80, example: 'दिनेश वर्मा' }
+        sellerName: { type: string, maxLength: 80 }
+        location: { type: string, maxLength: 100 }
+        village: { type: string, maxLength: 80 }
+        district: { type: string, maxLength: 80 }
+        phone:
+          type: string
+          pattern: '^(\+91[\-\s]?)?[6-9]\d{9}$'
+          example: '9876543210'
+
+    MachineryRentalItem:
+      type: object
+      required: [id, title, rate, phone]
+      properties:
+        id: { type: string }
+        title: { type: string, example: 'महिंद्रा 575 DI ट्रैक्टर मय रोटावेटर' }
+        category: { type: string, example: 'ट्रैक्टर' }
+        rate: { type: string, example: '₹600/घंटा' }
+        operatorIncluded: { type: boolean, example: true }
+        contactName: { type: string, example: 'लक्ष्मण पटेल' }
+        phone: { type: string, example: '9826123456' }
+        location: { type: string, example: 'धरसींवा, रायपुर' }
+        features: { type: array, items: { type: string } }
+
+    CreateMachineryRentalRequest:
+      type: object
+      required: [title, rate, phone]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 3, maxLength: 100 }
+        category: { type: string, maxLength: 50, default: 'कृषि उपकरण' }
+        rate: { type: string, minLength: 2, maxLength: 50, example: '₹700/घंटा' }
+        operatorIncluded: { type: boolean, default: true }
+        contactName: { type: string, maxLength: 60 }
+        phone:
+          type: string
+          pattern: '^(\+91[\-\s]?)?[6-9]\d{9}$'
+          example: '9826123456'
+        location: { type: string, maxLength: 80 }
+        features:
+          type: array
+          maxItems: 5
+          items: { type: string, maxLength: 80 }
+
+    CommunityQAItem:
+      type: object
+      required: [id, author, question]
+      properties:
+        id: { type: string }
+        author: { type: string, example: 'रामकुमार' }
+        crop: { type: string, example: 'धान' }
+        question: { type: string, example: 'पत्तियों पर भूरे धब्बे हैं, क्या छिड़काव करें?' }
+        time: { type: string }
+        answersCount: { type: integer, example: 1 }
+        bestAnswer: { type: string }
+        replies:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              author: { type: string }
+              role: { type: string }
+              text: { type: string }
+              createdAt: { type: string, format: date-time }
+
+    CreateCommunityQARequest:
+      type: object
+      required: [question]
+      additionalProperties: false
+      properties:
+        author: { type: string, maxLength: 60, default: 'किसान भाई' }
+        authorName: { type: string, maxLength: 60 }
+        crop: { type: string, maxLength: 60, default: 'सामान्य' }
+        question:
+          type: string
+          minLength: 5
+          maxLength: 500
+          example: 'धान की फसल में तना छेदक के लिए कौन सी दवा सही है?'
+
+    CreateCommunityReplyRequest:
+      type: object
+      required: [text]
+      additionalProperties: false
+      properties:
+        author: { type: string, maxLength: 60, default: 'किसान साथी' }
+        authorName: { type: string, maxLength: 60 }
+        role: { type: string, maxLength: 40, default: 'कृषि विशेषज्ञ' }
+        text: { type: string, minLength: 3, maxLength: 500, example: 'क्लोरांट्रानिलिप्रोल 18.5% SC का 60 मिली प्रति एकड़ छिड़काव करें।' }
+        reply: { type: string, maxLength: 500 }
+
+    FarmerAuthRequest:
+      type: object
+      required: [phone]
+      additionalProperties: false
+      properties:
+        phone:
+          type: string
+          pattern: '^(\+91[\-\s]?)?[6-9]\d{9}$'
+          example: '9876543210'
+        name:
+          type: string
+          maxLength: 80
+          example: 'रामेश्वर साहू'
+        pin:
+          type: string
+          pattern: '^\d{4,6}$'
+          example: '1234'
+        village:
+          type: string
+          maxLength: 80
+          example: 'आरंग'
+        district:
+          type: string
+          maxLength: 80
+          example: 'रायपुर'
+        totalLandAcres:
+          type: number
+          minimum: 0.0
+          maximum: 5000.0
+          example: 3.5
+
+    FarmerAuthResponse:
+      type: object
+      required: [token, farmer]
+      properties:
+        token:
+          type: string
+          description: Cryptographic HMAC-SHA256 JWT
+        farmer:
+          $ref: '#/components/schemas/FarmerProfile'
+
+    FarmerProfile:
+      type: object
+      required: [phone, name]
+      properties:
+        _id: { type: string }
+        phone: { type: string, example: '9876543210' }
+        name: { type: string, example: 'रामेश्वर साहू' }
+        village: { type: string, example: 'आरंग' }
+        district: { type: string, example: 'रायपुर' }
+        totalLandAcres: { type: number, example: 3.5 }
+        plots:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlotItem'
+
+    PlotItem:
+      type: object
+      required: [plotId, plotName, cropName, areaAcres]
+      properties:
+        plotId: { type: string, example: 'plot-1' }
+        plotName: { type: string, example: 'बड़ा खार (Plot A)' }
+        cropId: { type: string, example: 'paddy' }
+        cropName: { type: string, example: 'धान (सरना)' }
+        areaAcres: { type: number, example: 2.0 }
+        sowDate: { type: string, example: '2026-06-25' }
+        season: { type: string, example: 'खरीफ 2026' }
+        notes: { type: string }
+        completedTasks:
+          type: array
+          items: { type: string }
+
+    SavePlotRequest:
+      type: object
+      required: [plotName, cropName, areaAcres]
+      additionalProperties: false
+      properties:
+        plotId: { type: string, maxLength: 50 }
+        plotName: { type: string, minLength: 2, maxLength: 60, example: 'बड़ा खार (Plot A)' }
+        cropId: { type: string, maxLength: 40, default: 'paddy' }
+        cropName: { type: string, minLength: 2, maxLength: 60, example: 'धान (सरना)' }
+        areaAcres: { type: number, minimum: 0.05, maximum: 1000.0, example: 2.5 }
+        sowDate: { type: string, maxLength: 30 }
+        season: { type: string, maxLength: 40, default: 'खरीफ 2026' }
+        notes: { type: string, maxLength: 200 }
+
+    ToggleTaskRequest:
+      type: object
+      required: [taskId]
+      additionalProperties: false
+      properties:
+        plotId: { type: string, maxLength: 50 }
+        taskId: { type: string, minLength: 2, maxLength: 60, example: 'task-sowing' }
+
+    FarmDiaryEntry:
+      type: object
+      required: [id, date, amount, description]
+      properties:
+        id: { type: string }
+        plotId: { type: string }
+        cropName: { type: string, example: 'धान' }
+        type: { type: string, enum: [expense, income], default: 'expense' }
+        category: { type: string, example: 'खाद-उर्वरक' }
+        amount: { type: number, example: 1450 }
+        description: { type: string, example: 'डीएपी और यूरिया की खरीदी' }
+        date: { type: string, example: '2026-07-10' }
+
+    CreateFarmDiaryRequest:
+      type: object
+      required: [amount, description]
+      additionalProperties: false
+      properties:
+        plotId: { type: string, maxLength: 50 }
+        cropName: { type: string, maxLength: 60 }
+        areaAcres: { type: number, minimum: 0 }
+        sowDate: { type: string, maxLength: 30 }
+        stage: { type: string, maxLength: 50 }
+        nextAction: { type: string, maxLength: 100 }
+        type: { type: string, enum: [expense, income], default: 'expense' }
+        category: { type: string, maxLength: 50, default: 'सामान्य' }
+        amount: { type: number, minimum: 0, maximum: 10000000, example: 1200 }
+        description: { type: string, minLength: 2, maxLength: 200, example: 'निंदाई-गुड़ाई मजदूरी' }
+        date: { type: string, maxLength: 30 }
+
+    AdminLoginRequest:
+      type: object
+      required: [passkey]
+      additionalProperties: false
+      properties:
+        passkey:
+          type: string
+          minLength: 4
+          maxLength: 128
+          description: Super admin master passkey
+        username:
+          type: string
+          maxLength: 60
+
+    AdminLoginResponse:
+      type: object
+      required: [token]
+      properties:
+        token:
+          type: string
+          description: 2-hour HMAC-SHA256 Admin JWT
+        role:
+          type: string
+          example: 'superadmin'
+        expiresIn:
+          type: integer
+          example: 7200
+
+    AdminStatsResponse:
+      type: object
+      properties:
+        totalFarmers: { type: integer, example: 1420 }
+        totalPlots: { type: integer, example: 2890 }
+        totalListings: { type: integer, example: 64 }
+        totalQAQuestions: { type: integer, example: 112 }
+        totalBroadcasts: { type: integer, example: 3 }
+
+    MaskedFarmerRecord:
+      type: object
+      required: [phone, name]
+      properties:
+        _id: { type: string }
+        phone: { type: string, example: '98••••••12' }
+        name: { type: string, example: 'रामेश्वर साहू' }
+        village: { type: string, example: 'आरंग' }
+        district: { type: string, example: 'रायपुर' }
+        totalLandAcres: { type: number, example: 3.5 }
+        plotCount: { type: integer, example: 2 }
+        diaryCount: { type: integer, example: 8 }
+
+    CreateBroadcastRequest:
+      type: object
+      required: [title, message]
+      additionalProperties: false
+      properties:
+        title: { type: string, minLength: 3, maxLength: 120 }
+        message: { type: string, minLength: 5, maxLength: 1000 }
+        severity: { type: string, enum: [info, warning, emergency], default: 'info' }
+        targetDistrict: { type: string, maxLength: 60, default: 'all' }
+        active: { type: boolean, default: true }
+
+    TelemetryHealthResponse:
+      type: object
+      required: [status, service]
+      properties:
+        status: { type: string, example: 'healthy' }
+        service: { type: string, example: 'Kisan Saathi Agricultural API' }
+        database: { type: string, example: 'connected' }
+        uptimeSeconds: { type: integer, example: 34210 }
+        activeConnections: { type: integer, example: 4 }
+        timestamp: { type: string, format: date-time }
+

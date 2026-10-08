@@ -32,6 +32,7 @@ import {
   clearAuditLogs,
   sanitizeLogMessage,
 } from '../middleware/errorHandler.js';
+import { validateBody, validateParams, Schemas } from '../middleware/validate.js';
 
 const router = express.Router();
 
@@ -148,7 +149,7 @@ router.get('/diseases', async (req, res) => {
 });
 
 // 3(b). Crop Doctor Live Multimodal Vision & Symptom AI Diagnosis
-router.post('/crop-doctor/diagnose', async (req, res) => {
+router.post('/crop-doctor/diagnose', validateBody('CropDoctorDiagnoseRequest', Schemas.CropDoctorDiagnoseRequest), async (req, res) => {
   try {
     const { image, symptoms, crop, cropId, district } = req.body || {};
     const hasImage = Boolean(image && typeof image === 'string' && image.length >= 50);
@@ -239,7 +240,7 @@ router.post('/mandi-rates/refresh', async (req, res) => {
 
 // 4c. Offline Mandi Query Sync (Zero-False-Data Policy)
 // Resolves queries saved locally by farmers when they were offline
-router.post('/mandi-rates/offline-query', async (req, res) => {
+router.post('/mandi-rates/offline-query', validateBody('OfflineMandiQueryRequest', Schemas.OfflineMandiQueryRequest), async (req, res) => {
   try {
     const { crop, commodity, mandi, district } = req.body || {};
     const cleanCrop = sanitize(crop || commodity || '', 50);
@@ -332,7 +333,7 @@ router.get('/machinery', async (req, res) => {
   }
 });
 
-router.post('/machinery', async (req, res) => {
+router.post('/machinery', validateBody('CreateMachineryRentalRequest', Schemas.CreateMachineryRentalRequest), async (req, res) => {
   try {
     const { title, equipmentType, category, rate, ratePerHour, operatorIncluded, contactName, ownerName, phone, location, village, district, features } = req.body || {};
     const cleanTitle = sanitize(title || equipmentType || '', 100);
@@ -393,7 +394,7 @@ router.get('/community-qa', async (req, res) => {
   }
 });
 
-router.post('/community-qa', async (req, res) => {
+router.post('/community-qa', validateBody('CreateCommunityQARequest', Schemas.CreateCommunityQARequest), async (req, res) => {
   try {
     const { author, authorName, crop, question } = req.body || {};
     const cleanQuestion = sanitize(question, 500);
@@ -433,7 +434,7 @@ router.post('/community-qa', async (req, res) => {
 });
 
 // 7b. Reply to Community Question
-router.post('/community-qa/:id/reply', async (req, res) => {
+router.post('/community-qa/:id/reply', validateBody('CreateCommunityReplyRequest', Schemas.CreateCommunityReplyRequest), async (req, res) => {
   try {
     const { id } = req.params;
     const { author, authorName, role, text, reply } = req.body || {};
@@ -491,7 +492,7 @@ router.get('/marketplace', async (req, res) => {
   }
 });
 
-router.post('/marketplace', async (req, res) => {
+router.post('/marketplace', validateBody('CreateMarketListingRequest', Schemas.CreateMarketListingRequest), async (req, res) => {
   try {
     const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
     const rateCheck = checkRateLimit(`marketplace-post:${clientIp}`, 15, 60000);
@@ -558,7 +559,7 @@ router.post('/marketplace', async (req, res) => {
 // ==========================================
 
 // 9. Farmer Login / Auto-Registration with 4-Digit PIN
-router.post('/farmer/auth', async (req, res) => {
+router.post('/farmer/auth', validateBody('FarmerAuthRequest', Schemas.FarmerAuthRequest), async (req, res) => {
   try {
     const clientIp = req.ip || req.headers['x-forwarded-for'] || 'farmer_client';
     const rate = checkRateLimit(`farmer_${clientIp}`, 15, 60000); // 15 attempts per minute
@@ -643,7 +644,7 @@ router.get('/farmer/profile/:phone', requireFarmerAuth, async (req, res) => {
 });
 
 // 11. Add / Update Plot for Farmer
-router.post('/farmer/plots/:phone', requireFarmerAuth, async (req, res) => {
+router.post('/farmer/plots/:phone', requireFarmerAuth, validateBody('SavePlotRequest', Schemas.SavePlotRequest), async (req, res) => {
   try {
     const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
     const { plotId, plotName, cropId, cropName, areaAcres, sowDate, season, notes } = req.body;
@@ -719,7 +720,7 @@ router.delete('/farmer/plots/:phone/:plotId', requireFarmerAuth, async (req, res
 });
 
 // 13. Toggle Task Completion for a Plot
-router.post('/farmer/tasks/:phone', requireFarmerAuth, async (req, res) => {
+router.post('/farmer/tasks/:phone', requireFarmerAuth, validateBody('ToggleTaskRequest', Schemas.ToggleTaskRequest), async (req, res) => {
   try {
     const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
     const { plotId, taskId } = req.body || {};
@@ -781,7 +782,7 @@ router.get('/farmer/diary/:phone', requireFarmerAuth, async (req, res) => {
   }
 });
 
-router.post('/farmer/diary/:phone', requireFarmerAuth, async (req, res) => {
+router.post('/farmer/diary/:phone', requireFarmerAuth, validateBody('CreateFarmDiaryRequest', Schemas.CreateFarmDiaryRequest), async (req, res) => {
   try {
     const cleanPhone = (req.params.phone || '').replace(/[\s\-\+]/g, '').slice(-10);
     const {
@@ -903,7 +904,7 @@ router.get('/broadcasts', async (req, res) => {
 });
 
 // 15. Super Admin Passkey Login (Issues Admin JWT with Rate-Limiting & Timing-Safe Security)
-router.post('/admin/login', (req, res) => {
+router.post('/admin/login', validateBody('AdminLoginRequest', Schemas.AdminLoginRequest), (req, res) => {
   try {
     const clientIp = req.ip || req.headers['x-forwarded-for'] || 'admin_client';
     const rate = checkRateLimit(`admin_${clientIp}`, 5, 15 * 60000); // 5 attempts per 15 minutes
@@ -1099,7 +1100,7 @@ router.get('/admin/broadcasts', requireAdminAuth, async (req, res) => {
   }
 });
 
-router.post('/admin/broadcasts', requireAdminAuth, async (req, res) => {
+router.post('/admin/broadcasts', requireAdminAuth, validateBody('CreateBroadcastRequest', Schemas.CreateBroadcastRequest), async (req, res) => {
   try {
     const { title, category, severity, message, targetDistrict, author, validTill } = req.body;
     const cleanTitle = sanitize(title, 200);

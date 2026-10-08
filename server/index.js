@@ -1,11 +1,18 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import connectDB from './config/db.js';
 import apiRoutes from './routes/api.js';
 import { centralizedErrorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const openApiPath = path.resolve(__dirname, '../docs/openapi.yaml');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -96,6 +103,19 @@ const getHealthStatus = () => ({
 app.get('/health', (req, res) => res.json(getHealthStatus()));
 app.get('/api/health', (req, res) => res.json(getHealthStatus()));
 
+// Serve OpenAPI YAML Specification directly
+const serveOpenApiSpec = (req, res) => {
+  if (fs.existsSync(openApiPath)) {
+    res.setHeader('Content-Type', 'text/yaml; charset=utf-8');
+    fs.createReadStream(openApiPath).pipe(res);
+  } else {
+    res.status(404).json({ success: false, error: 'OpenAPI specification file not found' });
+  }
+};
+
+app.get('/openapi.yaml', serveOpenApiSpec);
+app.get('/api/openapi.yaml', serveOpenApiSpec);
+
 // Root service welcome
 app.get('/', (req, res) => {
   res.json({
@@ -103,6 +123,7 @@ app.get('/', (req, res) => {
     status: 'online',
     health: '/health',
     endpoints: '/api',
+    openapi: '/api/openapi.yaml',
   });
 });
 
