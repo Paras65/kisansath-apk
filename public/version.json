@@ -1,8 +1,8 @@
 {
-  "version": "1.0.35",
+  "version": "1.0.36",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.35",
-  "releaseNotes": "आवाज़ मॉड्यूल संवर्धन: द्विदिशी ऑडियो टकराव मुक्ति, छत्तीसगढ़ी शब्दावली (पताल, भांटा, गोंदली, कोदो) विस्तार एवं ₹3,100 संख्या ध्वनिविज्ञान सुधार।",
+  "releaseName": "किसान साथी v1.0.36",
+  "releaseNotes": "वाक्य-दर-वाक्य निर्बाध वॉयस कतार (Zero 15s Cutoff), कोष्ठक/स्लैश/नई लाइन शुद्धिकरण एवं प्राकृतिक देवनागरी दशमलव उच्चारण।",
   "updatedAt": "2026-10-08"
 }

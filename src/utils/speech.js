@@ -10,6 +10,10 @@ let currentAudio = null;
 let audioQueue = [];
 let isAudioQueueActive = false;
 
+let webSpeechQueue = [];
+let isWebSpeechQueueActive = false;
+let currentSpeechSessionId = 0;
+
 let activeUtterance = null;
 let cachedVoices = [];
 let resumeInterval = null;
@@ -175,6 +179,11 @@ const stopWatchdog = () => {
  * Immediately stops all active speech playback across all engines
  */
 export const stopSpeech = () => {
+  // Clear Web Speech sentence queue and invalidate active session
+  currentSpeechSessionId++;
+  isWebSpeechQueueActive = false;
+  webSpeechQueue = [];
+
   // Clear Android TTS duration timer if active
   if (androidTtsTimer) {
     clearTimeout(androidTtsTimer);
@@ -224,7 +233,10 @@ export const stopSpeech = () => {
 /**
  * Sanitizes and formats text for natural, dignified farmer speech:
  * - Translates currency symbols (₹ -> रुपये)
- * - Converts percentages and metric units to Hindi words
+ * - Converts percentages, decimals, and metric units to Hindi words
+ * - Converts rate slashes (/एकड़ -> प्रति एकड़) and options (/ -> या)
+ * - Converts brackets and colons to gentle pauses (commas)
+ * - Converts newlines to full stops (Purna Viram)
  * - Expands agricultural acronyms (NPK, DAP, KCC, MSP)
  * - Harmonizes Chhattisgarhi spellings for clear Devanagari TTS phonetics
  * - Strips Markdown, emojis, and unpronounceable characters
@@ -236,10 +248,12 @@ export const cleanSpeechText = (raw) => {
     // Indian TTS voices skip 'हज़ार' or mispronounce when numbers contain commas
     .replace(/(\d+),(\d+)/g, '$1$2')
     .replace(/(\d+),(\d+)/g, '$1$2')
-    // 1. Currency & Prices
+    // 1. Decimals into natural Hindi 'दशमलव' (e.g. 3.5 -> 3 दशमलव 5, prevents dot from breaking sentence)
+    .replace(/(\d+)\.(\d+)/g, '$1 दशमलव $2')
+    // 2. Currency & Prices
     .replace(/₹\s*(\d+)/g, '$1 रुपये')
     .replace(/₹/g, 'रुपये ')
-    // 2. Weather & Scientific Units
+    // 3. Weather & Scientific Units
     .replace(/([\d\.]+)\s*%/g, '$1 प्रतिशत')
     .replace(/([\d\.]+)\s*km\/h/gi, '$1 किलोमीटर प्रति घंटा')
     .replace(/([\d\.]+)\s*°C/gi, '$1 डिग्री सेल्सियस')
@@ -247,7 +261,18 @@ export const cleanSpeechText = (raw) => {
     .replace(/([\d\.]+)\s*kg/gi, '$1 किलोग्राम')
     .replace(/([\d\.]+)\s*टन/gi, '$1 टन')
     .replace(/([\d\.]+)\s*एकड़/gi, '$1 एकड़')
-    // 3. Technical & Agricultural Acronyms
+    .replace(/([\d\.]+)\s*क्विंटल/gi, '$1 क्विंटल')
+    .replace(/प्रति\s*एकड़/gi, 'प्रति एकड़')
+    // 4. Rate slashes in agricultural units (e.g. किग्रा/एकड़ -> किग्रा प्रति एकड़)
+    .replace(/\/एकड़/gi, ' प्रति एकड़')
+    .replace(/\/हेक्टेयर/gi, ' प्रति हेक्टेयर')
+    .replace(/\/दिन/gi, ' प्रति दिन')
+    .replace(/\/लीटर/gi, ' प्रति लीटर')
+    .replace(/\/किलो(?:ग्राम)?/gi, ' प्रति किलोग्राम')
+    .replace(/\/क्विंटल/gi, ' प्रति क्विंटल')
+    // 5. Remaining slashes: / -> ' या ' (e.g. बुआई/रोपाई -> बुआई या रोपाई)
+    .replace(/\//g, ' या ')
+    // 6. Technical & Agricultural Acronyms
     .replace(/\bN:P:K\b/gi, 'एन पी के')
     .replace(/\bNPK\b/gi, 'एन पी के')
     .replace(/\bDAP\b/gi, 'डी ए पी')
@@ -259,18 +284,93 @@ export const cleanSpeechText = (raw) => {
     .replace(/\bOTP\b/gi, 'ओ टी पी')
     .replace(/\bPIN\b/gi, 'पिन')
     .replace(/\bha\b/gi, 'हेक्टेयर')
-    // 4. Chhattisgarhi Phonetic Enhancements for Standard Devanagari TTS
+    // 7. Chhattisgarhi Phonetic Enhancements for Standard Devanagari TTS
     .replace(/\s+म\s+/g, ' मां ') // Standalone postposition "म" (in/में) pronounced as natural "मां"
     .replace(/अऊ/g, 'अउ') // Phonetic smoothing of diphthong
     .replace(/नइ\s+हे/g, 'नई हे')
     .replace(/नइ\s+हो/g, 'नई हो')
-    // 5. Clean Markdown, Punctuation & Emojis
-    .replace(/[*_~#`]/g, '')
+    // 8. Brackets: () [] {} -> convert to gentle pause with commas
+    .replace(/[\(\[\{]/g, ' , ')
+    .replace(/[\)\]\}]/g, ' , ')
+    // 9. Colons & Semicolons -> commas
+    .replace(/[:;]/g, ' , ')
+    // 10. Newlines -> Purna Viram sentence ends
+    .replace(/[\r\n]+/g, ' । ')
+    // 11. Clean Quotes, Markdown, Bullets & Special symbols
+    .replace(/["'“”‘’]/g, ' ')
+    .replace(/[*_~#`^&+=]/g, ' ')
     .replace(/[•\-\–\—]/g, ' ')
+    .replace(/\|/g, ' । ') // Pipe treated as Purna Viram
     .replace(/https?:\/\/\S+/g, '') // remove URLs
     .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '') // remove emojis
+    // 12. Punctuation deduplication & spacing
+    .replace(/,{2,}/g, ' , ')
+    .replace(/।{2,}/g, ' । ')
+    .replace(/,(\s*।)+/g, ' । ')
+    .replace(/।(\s*,)+/g, ' । ')
     .replace(/\s+/g, ' ')
     .trim();
+};
+
+/**
+ * Splits long text into natural sentence chunks for Web Speech sequential queue.
+ * Each sentence chunk is typically under 110 characters (3-8 seconds of speech),
+ * completely bypassing Chromium's 15s silent timeout bug and eliminating the need
+ * for the buggy mobile pause/resume watchdog.
+ */
+export const splitIntoSentences = (text, maxLen = 110) => {
+  if (!text) return [];
+
+  // Split on Purna Viram (।), double danda (॥), question mark (?), exclamation (!),
+  // and full stop (.)
+  const rawParts = String(text)
+    .split(/[।॥?!.]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const finalSentences = [];
+
+  for (const part of rawParts) {
+    if (part.length <= maxLen) {
+      finalSentences.push(part);
+    } else {
+      // Long sentence without purna viram: split on commas
+      const commaParts = part.split(/[,،]+/).map((s) => s.trim()).filter(Boolean);
+      let buffer = '';
+      for (const cp of commaParts) {
+        if (!buffer) {
+          buffer = cp;
+        } else if ((buffer + ', ' + cp).length <= maxLen) {
+          buffer += ', ' + cp;
+        } else {
+          finalSentences.push(buffer);
+          buffer = cp;
+        }
+      }
+      if (buffer) {
+        if (buffer.length > maxLen) {
+          // Fallback: split on word boundary
+          const words = buffer.split(/\s+/).filter(Boolean);
+          let wordChunk = '';
+          for (const w of words) {
+            if (!wordChunk) {
+              wordChunk = w;
+            } else if ((wordChunk + ' ' + w).length <= maxLen) {
+              wordChunk += ' ' + w;
+            } else {
+              finalSentences.push(wordChunk);
+              wordChunk = w;
+            }
+          }
+          if (wordChunk) finalSentences.push(wordChunk);
+        } else {
+          finalSentences.push(buffer);
+        }
+      }
+    }
+  }
+
+  return finalSentences.length > 0 ? finalSentences : [text.trim()];
 };
 
 /**
@@ -297,7 +397,7 @@ const splitTextIntoChunks = (text, maxLen = 140) => {
 
 /**
  * Tier 1 Primary: High-Fidelity Natural Neural Web Speech API
- * Speaks full sentences fluently with zero 140-char choppy stuttering.
+ * Speaks sentences fluently via a sequential queue with zero 15-second cutoffs.
  */
 const speakViaWebSpeech = (cleanText, onEndCallback) => {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
@@ -313,77 +413,100 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
     }
   } catch (e) {}
 
-  const utterance = new SpeechSynthesisUtterance(cleanText);
-  activeUtterance = utterance;
-  if (typeof window !== 'undefined') {
-    window._kisanActiveUtterance = utterance;
+  const sentences = splitIntoSentences(cleanText);
+  if (!sentences || sentences.length === 0) {
+    return false;
   }
 
+  currentSpeechSessionId++;
+  const sessionId = currentSpeechSessionId;
+  webSpeechQueue = [...sentences];
+  isWebSpeechQueueActive = true;
+
   const { voice, lang } = selectBestVoice();
-  if (voice) {
-    utterance.voice = voice;
-  } else if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    // Chrome cold-start listener: attach best voice as soon as voices finish populating
+  let chosenVoice = voice;
+
+  // Chrome cold-start listener: attach best voice as soon as voices finish populating
+  if (!chosenVoice && typeof window !== 'undefined' && 'speechSynthesis' in window) {
     const handleVoicesReady = () => {
       const refreshed = selectBestVoice();
-      if (refreshed.voice && activeUtterance === utterance) {
-        utterance.voice = refreshed.voice;
+      if (refreshed.voice) {
+        chosenVoice = refreshed.voice;
       }
       window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesReady);
     };
     window.speechSynthesis.addEventListener('voiceschanged', handleVoicesReady);
   }
 
-  utterance.lang = lang;
-  utterance.rate = 0.92; // Calm, respectful pace for rural elders and clarity
-  utterance.pitch = 1.0; // Natural conversational pitch
-
-  utterance.onstart = () => {
-    speakingState = true;
-    notifyListeners();
-    startWatchdog();
-  };
-
-  utterance.onend = () => {
-    stopWatchdog();
-    activeUtterance = null;
-    currentText = null;
-    if (typeof window !== 'undefined') {
-      window._kisanActiveUtterance = null;
+  const playNextSentence = () => {
+    if (!isWebSpeechQueueActive || sessionId !== currentSpeechSessionId) {
+      return;
     }
-    speakingState = false;
-    notifyListeners();
-    if (onEndCallback) onEndCallback();
-  };
 
-  utterance.onerror = (e) => {
-    if (e.error !== 'canceled' && e.error !== 'interrupted') {
+    if (webSpeechQueue.length === 0) {
+      isWebSpeechQueueActive = false;
+      activeUtterance = null;
+      currentText = null;
+      if (typeof window !== 'undefined') {
+        window._kisanActiveUtterance = null;
+      }
+      speakingState = false;
+      notifyListeners();
+      if (onEndCallback) onEndCallback();
+      return;
+    }
+
+    const nextSentence = webSpeechQueue.shift();
+    const utterance = new SpeechSynthesisUtterance(nextSentence);
+    activeUtterance = utterance;
+    if (typeof window !== 'undefined') {
+      window._kisanActiveUtterance = utterance;
+    }
+
+    const voiceToUse = chosenVoice || selectBestVoice().voice;
+    if (voiceToUse) {
+      utterance.voice = voiceToUse;
+    }
+    utterance.lang = lang || 'hi-IN';
+    utterance.rate = 0.92; // Calm, respectful pace for rural elders and clarity
+    utterance.pitch = 1.0; // Natural conversational pitch
+
+    utterance.onstart = () => {
+      if (sessionId !== currentSpeechSessionId) return;
+      speakingState = true;
+      notifyListeners();
+    };
+
+    utterance.onend = () => {
+      if (sessionId !== currentSpeechSessionId || !isWebSpeechQueueActive) return;
+      playNextSentence();
+    };
+
+    utterance.onerror = (e) => {
+      if (sessionId !== currentSpeechSessionId || !isWebSpeechQueueActive) return;
+      if (e.error === 'interrupted' || e.error === 'canceled') {
+        return;
+      }
       console.warn('[WebSpeech Utterance Error]', e.error, e);
+      playNextSentence();
+    };
+
+    try {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+      window.speechSynthesis.speak(utterance);
+      speakingState = true;
+      notifyListeners();
+    } catch (err) {
+      console.error('[WebSpeech Speak Error]', err);
+      stopSpeech();
+      if (onEndCallback) onEndCallback();
     }
-    stopWatchdog();
-    activeUtterance = null;
-    currentText = null;
-    if (typeof window !== 'undefined') {
-      window._kisanActiveUtterance = null;
-    }
-    speakingState = false;
-    notifyListeners();
-    if (onEndCallback) onEndCallback();
   };
 
-  try {
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
-    window.speechSynthesis.speak(utterance);
-    speakingState = true;
-    notifyListeners();
-    return true;
-  } catch (err) {
-    console.error('[WebSpeech Speak Error]', err);
-    stopSpeech();
-    return false;
-  }
+  playNextSentence();
+  return true;
 };
 
 /**
@@ -518,5 +641,5 @@ export const speakText = (text, onEndCallback) => {
 };
 
 export const isSpeaking = () => {
-  return speakingState || (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.speaking : false);
+  return speakingState || isWebSpeechQueueActive || (typeof window !== 'undefined' && window.speechSynthesis ? window.speechSynthesis.speaking : false);
 };

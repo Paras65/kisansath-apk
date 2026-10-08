@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.35';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.36';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'आवाज़ मॉड्यूल संवर्धन: द्विदिशी ऑडियो टकराव मुक्ति, छत्तीसगढ़ी शब्दावली (पताल, भांटा, गोंदली, कोदो) विस्तार एवं ₹3,100 संख्या ध्वनिविज्ञान सुधार।',
+    releaseNotes: 'वाक्य-दर-वाक्य निर्बाध वॉयस कतार (Zero 15s Cutoff), कोष्ठक/स्लैश/नई लाइन शुद्धिकरण एवं प्राकृतिक देवनागरी दशमलव उच्चारण।',
     updatedAt: new Date().toISOString()
   });
 });
