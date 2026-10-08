@@ -330,9 +330,9 @@ function App() {
           sx={{
             flex: 1,
             width: '100%',
-            maxWidth: '1280px',
+            maxWidth: '1536px',
             mx: 'auto',
-            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4 },
+            px: { xs: 1.5, sm: 2.5, md: 3, lg: 4, xl: 5 },
             py: { xs: 1.5, sm: 2.5, md: 3 },
             pb: { xs: '76px', md: '28px' }
           }}
@@ -410,7 +410,7 @@ function App() {
             px: { md: 4, lg: 6 }
           }}
         >
-          <Box sx={{ maxWidth: '1280px', mx: 'auto' }}>
+          <Box sx={{ maxWidth: '1536px', mx: 'auto' }}>
             {/* 3-Column Structured Layout */}
             <Box
               sx={{

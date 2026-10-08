@@ -147,9 +147,9 @@ export const Header = ({
       >
         <Box
           sx={{
-            maxWidth: '1280px',
+            maxWidth: '1536px',
             mx: 'auto',
-            px: { xs: 1.2, sm: 2, md: 3, lg: 4 },
+            px: { xs: 1.2, sm: 2, md: 3, lg: 4, xl: 5 },
             py: 0.4,
             display: 'flex',
             justifyContent: 'space-between',
@@ -208,11 +208,11 @@ export const Header = ({
       {/* Main Bar */}
       <Toolbar
         sx={{
-          maxWidth: '1280px',
+          maxWidth: '1536px',
           mx: 'auto',
           width: '100%',
           justifyContent: 'space-between',
-          px: { xs: 1.2, sm: 2, md: 3, lg: 4 },
+          px: { xs: 1.2, sm: 2, md: 3, lg: 4, xl: 5 },
           minHeight: { xs: 56, md: 66 },
           gap: { xs: 0.6, md: 1.5 }
         }}

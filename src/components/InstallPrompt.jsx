@@ -13,7 +13,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
 
   return (
-    <Box sx={{ width: '100%', maxWidth: '1280px', mx: 'auto', px: { xs: 1, sm: 2 } }}>
+    <Box sx={{ width: '100%', maxWidth: '1536px', mx: 'auto', px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 } }}>
       <Paper
         elevation={2}
         sx={{

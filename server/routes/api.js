@@ -96,14 +96,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.26';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.27';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'डेस्कटॉप 2-कॉलम एग्रीटेक कमांड सेंटर व स्टिकी साइडबार लेआउट: कंप्यूटर व लैपटॉप स्क्रीन पर आधुनिक 2-कॉलम लेआउट (बायाँ मुख्य स्ट्रीम ~64% एवं दायाँ स्टिकी साइडबार ~36%), जिसमें मौसम कार्ड, खाद व धान कैलकुलेटर, 8-टाइल कृषि टूल्स, और मंडी पल्स विजेट पूर्ण संतुलित रूप में प्रदर्शित होते हैं। मोबाइल स्क्रीन पर 100% शून्य-ओवरफ्लो टच लेआउट पूर्णतः सुरक्षित।',
+    releaseNotes: '1536px वाइडस्क्रीन डेस्कटॉप लेआउट व 2-कॉलम एग्रीटेक कमांड सेंटर: कंप्यूटर व 1080p फुल एचडी मॉनिटर पर अतिरिक्त साइड गैप को हटाकर 1536px (MUI XL) चौड़ा आधुनिक लेआउट लागू किया गया है। बायाँ मुख्य स्ट्रीम (~64%) व दायाँ स्टिकी साइडबार (~36%) अब अधिक खुले व पठनीय रूप में प्रदर्शित होते हैं। मोबाइल व टैबलेट पर 100% शून्य-ओवरफ्लो टच लेआउट पूर्णतः सुरक्षित।',
     updatedAt: new Date().toISOString()
   });
 });
