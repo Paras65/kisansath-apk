@@ -323,7 +323,7 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
 /**
  * 12-Month Agro-Climatic Calendar for Central India & Chhattisgarh
  */
-export const getSeasonalFarmAction = (monthIndex = new Date().getMonth(), isChhattisgarhi = false) => {
+export const getSeasonalFarmAction = (monthIndex = new Date().getMonth(), isChhattisgarhi = false, zoneKey = 'plains') => {
   const actions = {
     // January (0)
     0: {

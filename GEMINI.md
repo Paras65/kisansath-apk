@@ -19,5 +19,6 @@ You operate within a constrained compute environment for the **Kisan Saathi (क
 8. **Dual PWA & Android TWA Harmony (Zero-Conflict):** Maintain 100% functional parity between Web PWA and native Android TWA (`in.co.init65.kisan`). Handle Android hardware back-button modal unwinding, native status bar theming (`#1b5e20`), and seamless offline fallbacks without web install banner clutter or WebView layout shifts.
 9. **Synchronous 8-Target Release & Automated Tagging:** On every build or release:
    - Synchronously update version numbers across ALL 8 files: `package.json`, `public/version.json`, `public/manifest.json`, `twa/twa-manifest.json`, `src/config/appConfig.js`, `.env`, `server/routes/api.js`, and `docs/USER_MANUAL.md`.
+   - Run mandatory pre-build lint verification (`npm run lint` / `oxlint`) to catch undeclared variables, undefined references, and scope errors before build.
    - Verify clean build via `npm run build` with zero errors.
    - Automatically create an annotated Git tag `v<version>` (e.g. `git tag -a v1.0.31 -m "Release v1.0.31 - <features>"`) and push with tags (`git push origin main --tags` and `git push public-apk main --tags`). NEVER wait for the user to remind you to tag.

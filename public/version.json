@@ -1,8 +1,8 @@
 {
-  "version": "1.0.31",
+  "version": "1.0.32",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.31",
-  "releaseNotes": "ICAR व IGKV 3-कृषि-जलवायु क्षेत्र आधारित सामान्य बुआई कैलेंडर, जिला-वार पारदर्शिता बैज, तथा शून्य-कागज़ात सुरक्षित बुआई तारीख व किस्म चयन का भय-मुक्त समाधान।",
+  "releaseName": "किसान साथी v1.0.32",
+  "releaseNotes": "त्वरित हॉटफिक्स: कृषि-जलवायु क्षेत्र पैरामीटर (zoneKey) संदर्भ त्रुटि का समाधान एवं सुदृढ़ फॉलओवर।",
   "updatedAt": "2026-10-08"
 }
