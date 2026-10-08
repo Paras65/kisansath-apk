@@ -117,6 +117,39 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   });
   const [isVoicePlaying, setIsVoicePlaying] = useState(false);
   const prescriptionRef = useRef(null);
+  const [highlightDoctorCard, setHighlightDoctorCard] = useState(false);
+
+  useEffect(() => {
+    const handleKakaAction = (e) => {
+      const action = e.detail;
+      if (!action || action.type !== 'SHOW_DISEASE') return;
+
+      if (action.symptom) {
+        setSelectedSymptom(action.symptom);
+      }
+      if (diseasesList && diseasesList.length > 0) {
+        const found = diseasesList.find(
+          (d) =>
+            (action.disease && (d.diseaseName?.includes(action.disease) || action.disease?.includes(d.diseaseName))) ||
+            (action.symptom === 'bph' && (d.diseaseName?.includes('माहू') || d.symptoms?.includes('माहू'))) ||
+            (action.symptom === 'spot' && (d.diseaseName?.includes('झुलसा') || d.diseaseName?.includes('खैरा') || d.symptoms?.includes('धब्बे'))) ||
+            (action.symptom === 'stemborer' && (d.diseaseName?.includes('तना') || d.symptoms?.includes('गोभ')))
+        );
+        if (found) {
+          setActiveDisease(found);
+        }
+      }
+      setHighlightDoctorCard(true);
+      setTimeout(() => {
+        const el = document.getElementById('kaka-doctor-card');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+      setTimeout(() => setHighlightDoctorCard(false), 3500);
+    };
+
+    window.addEventListener('kisan_kaka_action', handleKakaAction);
+    return () => window.removeEventListener('kisan_kaka_action', handleKakaAction);
+  }, [diseasesList]);
 
   // Subscribe to speech state changes
   useEffect(() => {
@@ -1521,12 +1554,15 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       {activeDisease ? (
         <Card
           ref={prescriptionRef}
+          id="kaka-doctor-card"
+          className={highlightDoctorCard ? 'kaka-spotlight-pulse' : ''}
           sx={{
             borderRadius: '18px',
             border: '2px solid #ef9a9a',
             boxShadow: '0 6px 20px rgba(198, 40, 40, 0.09)',
             bgcolor: '#fff',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            transition: 'all 0.3s ease'
           }}
         >
           {/* Card Prescription Header (Authentic Rx Letterhead Motif) */}

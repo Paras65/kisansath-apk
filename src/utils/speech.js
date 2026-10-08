@@ -478,21 +478,10 @@ const speakViaWebSpeech = (cleanText, onEndCallback, forceWebSpeech = false) => 
   const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
 
   // CRITICAL FIELD SAFEGUARD:
-  // If the browser does NOT possess a genuine Hindi voice (e.g. standard Windows desktop without Hindi pack)
-  // and the user is online, DO NOT allow Web Speech to babble in alien English gibberish!
-  // Return false immediately so speakText cleanly delegates to Tier 2 Male Baritone Audio Stream!
+  // If the browser does NOT possess any Hindi voice (e.g. desktop Windows with only English US voices)
+  // and the user is online, delegate to audio stream.
   if (!hasHindiVoice && !chosenVoice && isOnline) {
-    console.info('[Speech] No genuine Hindi Web Speech voice detected on this browser. Delegating to Tier 2 Male Baritone Audio Stream.');
-    return false;
-  }
-
-  // BHAIRA KAKA AUTHENTIC ELDER MALE VOICE SAFEGUARD:
-  // In Chromium and standard browsers, if the only Hindi voice installed is female (e.g. "Google हिन्दी", "Microsoft Swara", "Kalpana"),
-  // Chromium's remote TTS engine completely IGNORES utterance.pitch (Chrome bug #679301), causing Bhaira Kaka to speak like a young woman!
-  // If the browser does NOT possess an authentic native male voice and user is online, return false so speakText delegates
-  // to the male-transformed audio stream (resampled to 167Hz elder male baritone).
-  if (!isMaleVoice && isOnline && !forceWebSpeech) {
-    console.info('[Speech] Only female Hindi voice found in Web Speech. Delegating to Male Baritone Audio Stream for Bhaira Kaka.');
+    console.info('[Speech] No genuine Hindi Web Speech voice detected on this browser. Delegating to audio stream.');
     return false;
   }
 
@@ -539,8 +528,8 @@ const speakViaWebSpeech = (cleanText, onEndCallback, forceWebSpeech = false) => 
       utterance.voice = voiceToUse;
     }
     utterance.lang = 'hi-IN'; // STRICTLY hi-IN! Never an English locale!
-    utterance.rate = (voiceInfo && voiceInfo.isMaleVoice) ? 0.90 : 0.80; // Calm, respectful pace for Bhaira Kaka
-    utterance.pitch = (voiceInfo && voiceInfo.isMaleVoice) ? 0.85 : 0.50; // Resonant elder male pitch (0.50 baritone fallback)
+    utterance.rate = (voiceInfo && voiceInfo.isMaleVoice) ? 0.90 : 0.86; // Natural elder pace
+    utterance.pitch = (voiceInfo && voiceInfo.isMaleVoice) ? 0.85 : 0.62; // Deeper baritone inflection
 
     utterance.onstart = () => {
       if (sessionId !== currentSpeechSessionId) return;
@@ -727,20 +716,14 @@ export const speakText = (text, onEndCallback) => {
     }
   }
 
-  const voiceInfo = selectBestVoice();
-  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-
-  // TIER 1: If browser has a genuine native MALE Hindi voice (e.g. Microsoft Madhur, Hemant, CMN Male),
-  // use Web Speech API immediately for ultra-fast zero-latency male speech!
-  if (voiceInfo && voiceInfo.isMaleVoice) {
-    const webSpeechSuccess = speakViaWebSpeech(clean, onEndCallback);
-    if (webSpeechSuccess) {
-      return true;
-    }
+  // TIER 1: PRIMARY WEB SPEECH API (Immediate, 100% Reliable Native Browser Engine)
+  const webSpeechSuccess = speakViaWebSpeech(clean, onEndCallback);
+  if (webSpeechSuccess) {
+    return true;
   }
 
-  // TIER 2: If online, use pitch-shifted male baritone audio stream (resampled to 167Hz elder male voice)
-  // This completely eliminates female voice playback on browsers that only have Google Hindi / Swara female voices!
+  // TIER 2: Secondary Audio Stream fallback if Web Speech is completely unavailable
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
   if (isOnline) {
     const audioSuccess = fallbackAudioStream(clean, onEndCallback);
     if (audioSuccess) {
@@ -748,9 +731,7 @@ export const speakText = (text, onEndCallback) => {
     }
   }
 
-  // TIER 3: OFFLINE FALLBACK (When disconnected from internet)
-  // Forced Web Speech with deepest pitch (0.50)
-  return speakViaWebSpeech(clean, onEndCallback, true);
+  return false;
 };
 
 export const isSpeaking = () => {

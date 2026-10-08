@@ -38,7 +38,7 @@ import {
 import { queryKakaBrain } from './services/kakaBrainService';
 import { DraggableVoiceButton } from './components/DraggableVoiceButton';
 import { useLanguage } from './utils/i18n';
-import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS } from './services/weatherService';
+import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS, getCachedWeather } from './services/weatherService';
 import { getActiveFarmer } from './services/farmerService';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
@@ -265,94 +265,97 @@ function App() {
 
     startVoiceRecognition(
       (transcript, route) => {
-        if (route) {
-          // In-Modal Action 1: Close active modal
-          if (route.type === 'modal_action' && route.action === 'close') {
-            closeAllActiveModals();
-            notify.info(isChhattisgarhi ? 'डायलॉग बंद होगे' : 'डायलॉग बंद किया गया');
-            speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
-            return;
-          }
+        if (!transcript) return;
 
-          // In-Modal Action 2: Save / Submit active modal form
-          if (route.type === 'modal_action' && route.action === 'save') {
-            const openDialog = document.querySelector('.MuiDialog-root');
-            if (openDialog) {
-              const submitBtn =
-                openDialog.querySelector('button[type="submit"]') ||
-                Array.from(openDialog.querySelectorAll('button')).find((b) =>
-                  /सहेजें|सबमिट|save|submit|जोड़ें/i.test(b.textContent || '')
-                );
-              if (submitBtn) {
-                submitBtn.click();
-                notify.success(isChhattisgarhi ? '💾 सहेजे के आदेश पूरा होगे' : '💾 जानकारी सहेज दी गई');
-                speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
-                return;
-              }
+        // In-Modal Action 1: Close active modal
+        if (route?.type === 'modal_action' && route?.action === 'close') {
+          closeAllActiveModals();
+          notify.info(isChhattisgarhi ? 'डायलॉग बंद होगे' : 'डायलॉग बंद किया गया');
+          speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
+          return;
+        }
+
+        // In-Modal Action 2: Save / Submit active modal form
+        if (route?.type === 'modal_action' && route?.action === 'save') {
+          const openDialog = document.querySelector('.MuiDialog-root');
+          if (openDialog) {
+            const submitBtn =
+              openDialog.querySelector('button[type="submit"]') ||
+              Array.from(openDialog.querySelectorAll('button')).find((b) =>
+                /सहेजें|सबमिट|save|submit|जोड़ें/i.test(b.textContent || '')
+              );
+            if (submitBtn) {
+              submitBtn.click();
+              notify.success(isChhattisgarhi ? '💾 सहेजे के आदेश पूरा होगे' : '💾 जानकारी सहेज दी गई');
+              speakText(isChhattisgarhi ? route.spokenCg : route.spokenHi);
+              return;
             }
           }
+        }
 
-          closeAllActiveModals();
-          notify.success(`${route.icon} "${transcript}" — ${route.label}`);
+        // Always query Bhaira Kaka AI Brain first for deep agricultural intelligence & direct answers
+        const cachedWeather = getCachedWeather(selectedDistrict);
+        const brain = queryKakaBrain(transcript, isChhattisgarhi, {
+          weather: cachedWeather,
+          selectedDistrict,
+        });
 
-          // Spoken Audio Confirmation for Illiterate Farmers (Zero-Text UX)
-          const spoken = isChhattisgarhi ? route.spokenCg : route.spokenHi;
-          if (spoken) {
-            speakText(spoken);
+        // In-Modal Action 3: Acreage fill inside active modal if open
+        const acreVal = brain.extractedAcre || extractAcreage(transcript);
+        const openDialog = document.querySelector('.MuiDialog-root');
+        if (acreVal && openDialog) {
+          const acreInput = openDialog.querySelector('input[type="number"], input[name*="acre"], input[id*="acre"]');
+          if (acreInput) {
+            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+            if (nativeSetter) {
+              nativeSetter.call(acreInput, acreVal);
+              acreInput.dispatchEvent(new Event('input', { bubbles: true }));
+              acreInput.dispatchEvent(new Event('change', { bubbles: true }));
+              notify.success(isChhattisgarhi ? `🌾 ${acreVal} एकड़ सेट होगे` : `🌾 ${acreVal} एकड़ सेट हो गया`);
+              speakText(isChhattisgarhi ? `हव बेटा, ${acreVal} एकड़ सेट कर देगेंव!` : `जी भैया, ${acreVal} एकड़ सेट कर दिया गया है।`);
+              return;
+            }
           }
+        }
 
-          if (route.type === 'tab') {
-            handleTabChange(route.target);
-          } else if (route.target === 'token') {
+        // Determine destination route (from brain or keyword route)
+        const targetRoute = brain.route || route;
+        const spokenResponse = isChhattisgarhi
+          ? (brain.textCg || route?.spokenCg)
+          : (brain.textHi || route?.spokenHi);
+
+        // 1. Spoken Audio: Speak the direct concrete answer immediately!
+        if (spokenResponse) {
+          speakText(spokenResponse);
+        }
+
+        // 2. Visual Notification Toast
+        if (targetRoute) {
+          notify.success(isChhattisgarhi ? `👴🏻 काका: ${brain.textCg || route?.spokenCg}` : `👴🏻 काका: ${brain.textHi || route?.spokenHi}`);
+        } else {
+          notify.info(isChhattisgarhi ? `👴🏻 काका: ${brain.textCg}` : `👴🏻 काका: ${brain.textHi}`);
+        }
+
+        // 3. Seamless Navigation to Target Screen
+        if (targetRoute) {
+          closeAllActiveModals();
+          if (targetRoute.type === 'tab') {
+            handleTabChange(targetRoute.target);
+          } else if (targetRoute.target === 'token') {
             handleTabChange('mandi');
             window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
-          } else if (route.target === 'motor' || route.target === 'khet') {
+          } else if (targetRoute.target === 'motor' || targetRoute.target === 'khet') {
             handleTabChange('home');
-            window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: route.target } }));
+            window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: targetRoute.target } }));
           }
-        } else if (transcript) {
-          // Check Bhaira Kaka AI Brain for deep conversational answer & parameters
-          const brain = queryKakaBrain(transcript, isChhattisgarhi);
+        }
 
-          // In-Modal Action 3: Acreage fill inside active modal
-          const acreVal = brain.extractedAcre || extractAcreage(transcript);
-          const openDialog = document.querySelector('.MuiDialog-root');
-          if (acreVal && openDialog) {
-            const acreInput = openDialog.querySelector('input[type="number"], input[name*="acre"], input[id*="acre"]');
-            if (acreInput) {
-              const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-              if (nativeSetter) {
-                nativeSetter.call(acreInput, acreVal);
-                acreInput.dispatchEvent(new Event('input', { bubbles: true }));
-                acreInput.dispatchEvent(new Event('change', { bubbles: true }));
-                notify.success(isChhattisgarhi ? `🌾 ${acreVal} एकड़ सेट होगे` : `🌾 ${acreVal} एकड़ सेट हो गया`);
-                speakText(isChhattisgarhi ? `हव बेटा, ${acreVal} एकड़ सेट कर देगेंव!` : `जी भैया, ${acreVal} एकड़ सेट कर दिया गया है।`);
-                return;
-              }
-            }
-          }
-
-          // If brain matched an app destination route, navigate seamlessly!
-          if (brain.route) {
-            closeAllActiveModals();
-            notify.success(isChhattisgarhi ? `👴🏻 काका: ${brain.textCg}` : `👴🏻 काका: ${brain.textHi}`);
-            speakText(isChhattisgarhi ? brain.textCg : brain.textHi);
-
-            if (brain.route.type === 'tab') {
-              handleTabChange(brain.route.target);
-            } else if (brain.route.target === 'token') {
-              handleTabChange('mandi');
-              window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
-            } else if (brain.route.target === 'motor' || brain.route.target === 'khet') {
-              handleTabChange('home');
-              window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: brain.route.target } }));
-            }
-            return;
-          }
-
-          // Direct conversational advice or warm persona response
-          notify.info(isChhattisgarhi ? `👴🏻 बहिरा काका: "${transcript}"` : `👴🏻 काका: "${transcript}"`);
-          speakText(isChhattisgarhi ? brain.textCg : brain.textHi);
+        // 4. Dispatch Agentic Action Event (Immediate + 300ms post-render for component spotlight & auto-calculation)
+        if (brain.action) {
+          window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
+          }, 300);
         }
       },
       (errMsg, errCode) => {

@@ -202,6 +202,8 @@ export const HomeTab = ({
   };
 
   // Voice Navigation Modal Trigger Listener
+  const [highlightWeatherCard, setHighlightWeatherCard] = useState(false);
+
   useEffect(() => {
     const handleVoiceModal = (e) => {
       const modal = e?.detail?.modal;
@@ -210,7 +212,25 @@ export const HomeTab = ({
       else if (modal === 'token') setOpenTokenGuide(true);
     };
     window.addEventListener('kisan-open-modal', handleVoiceModal);
-    return () => window.removeEventListener('kisan-open-modal', handleVoiceModal);
+
+    const handleKakaAction = (e) => {
+      const action = e?.detail;
+      if (!action) return;
+      if (action.type === 'SHOW_WEATHER') {
+        setHighlightWeatherCard(true);
+        setTimeout(() => {
+          const el = document.getElementById('kaka-weather-card');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+        setTimeout(() => setHighlightWeatherCard(false), 3500);
+      }
+    };
+    window.addEventListener('kisan_kaka_action', handleKakaAction);
+
+    return () => {
+      window.removeEventListener('kisan-open-modal', handleVoiceModal);
+      window.removeEventListener('kisan_kaka_action', handleKakaAction);
+    };
   }, []);
 
   // Fetch active department broadcasts
@@ -1851,13 +1871,16 @@ export const HomeTab = ({
 
           {/* Floating Weather & Spray Card */}
           <Card
+            id="kaka-weather-card"
+            className={highlightWeatherCard ? 'kaka-spotlight-pulse' : ''}
             sx={{
               mb: 2.2,
               p: { xs: 1.5, sm: 2 },
               borderRadius: 3.5,
               bgcolor: '#ffffff',
               border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.04)'
+              boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+              transition: 'all 0.3s ease'
             }}
           >
             {/* Top Row: Temp, Condition, Spray Badge */}

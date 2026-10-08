@@ -149,14 +149,16 @@ const KAKA_KNOWLEDGE_BASE = [
 
 /**
  * Process any spoken query through Bhaira Kaka's AI Brain
- * Returns structured response with spoken audio strings, matching routes, and extracted parameters
+ * Returns structured response with spoken audio strings, matching routes, and structured actions
  */
-export const queryKakaBrain = (transcript, isChhattisgarhi = false) => {
+export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}) => {
   if (!transcript || typeof transcript !== 'string' || transcript.trim().length < 2) {
     return {
       textHi: 'कुछ सुनाई नहीं दिया। शांत जगह पर थोड़ा ज़ोर से बोलें।',
       textCg: 'अरे भइया, कछु सुनाई नई परिस! थोड़ा जोर ले बोलव, तोर काका कान लगाके बइठे हे!',
       route: null,
+      action: null,
+      needsClarification: false,
       extractedAcre: null,
       confidence: 0,
     };
@@ -165,37 +167,200 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false) => {
   const clean = transcript.toLowerCase().trim();
   const extractedAcre = extractAcreage(clean);
 
-  // 1. Search for conversational knowledge match
-  for (const item of KAKA_KNOWLEDGE_BASE) {
-    for (const trigger of item.triggers) {
-      if (clean.includes(trigger.toLowerCase())) {
-        return {
-          textHi: item.spokenHi,
-          textCg: item.spokenCg,
-          route: item.route,
-          extractedAcre,
-          confidence: 0.95,
-        };
-      }
+  // 1. Fertilizer & Nutrient Intent (Dosage calculation + Ask-Before)
+  const fertTriggers = ['खाद', 'यूरिया', 'dap', 'पोटाश', 'कितना खाद', 'खाद कैलकुलेटर', 'खाद कते डारना', 'khad', 'khaad', 'urea', 'yuriya', 'potash'];
+  const hasFert = fertTriggers.some((t) => clean.includes(t));
+
+  if (hasFert) {
+    if (extractedAcre) {
+      const dapBags = Math.max(1, Math.round(extractedAcre * 1.0));
+      const ureaBags = Math.max(1, Math.round((extractedAcre * 100) / 45));
+      const mopBags = Math.max(1, Math.round(extractedAcre * 0.6));
+      return {
+        textHi: `${extractedAcre} एकड़ धान के लिए ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी भैया! खाद कैलकुलेटर में हिसाब सेट कर दिया है।`,
+        textCg: `${extractedAcre} एकड़ धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी! चल कैलकुलेटर म पूरा हिसाब सेट कर दे हंव!`,
+        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
+        needsClarification: false,
+        extractedAcre,
+        confidence: 0.98,
+      };
+    } else {
+      return {
+        textHi: 'धान में खाद के लिए आपका खेत कितने एकड़ है भैया? अपना रकबा बताएं — 1 एकड़, 2 एकड़ या ढाई एकड़?',
+        textCg: 'धान म खाद बर कतका एकड़ खेत हे संगी? अपन रकबा बताव — 1 एकड़, 2 एकड़ या ढाई एकड़?',
+        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        action: { type: 'ASK_ACRES', crop: 'paddy' },
+        needsClarification: true,
+        extractedAcre: null,
+        confidence: 0.95,
+      };
     }
   }
 
-  // 2. Check for Acreage-only input (e.g. farmer says "2.5 एकड़")
-  if (extractedAcre) {
+  // 2. Pest & Disease Intents (Mahu, Blast/Yellowing, Stem Borer)
+  const mahuTriggers = ['माहू', 'माहुर', 'bph', 'चेपा', 'भूरा माहू', 'हरा माहू', 'रस चूसक', 'mahu', 'mahur', 'chepa'];
+  if (mahuTriggers.some((t) => clean.includes(t))) {
     return {
-      textHi: `आपके खेत का रकबा ${extractedAcre} एकड़ दर्ज किया गया।`,
-      textCg: `तोर खेत के रकबा ${extractedAcre} एकड़ दर्ज होगे।`,
-      route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+      textHi: 'सावधान किसान भाई! धान में माहू का प्रकोप है तो खेत का पानी तुरंत निकालें। तने के पास 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड का छिड़काव करें।',
+      textCg: 'अरे भइया! धान म माहू लग गे हे त खेत के पानी ला तुरते निकालव! 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड के स्प्रे सीधे तना तीर करव। चल दवाई देखाथंव!',
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'bph', disease: 'माहू (BPH)' },
+      needsClarification: false,
       extractedAcre,
-      confidence: 0.9,
+      confidence: 0.96,
     };
   }
 
-  // 3. Fallback: Warm Bhaira Kaka hard-of-hearing persona
+  const blastTriggers = ['पीला', 'पियरिया', 'पीलापन', 'झुलसा', 'ब्लास्ट', 'केंचुली', 'शीथ ब्लाइट', 'खैरा', 'पाना पीयर', 'peela', 'peeli', 'jhulsa', 'blast', 'khaira'];
+  if (blastTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'पत्तियां पीली पड़ रही हैं तो जिंक की कमी से खैरा या फफूंद का झुलसा हो सकता है। 5 किलो जिंक सल्फेट या ट्राइसाइक्लाजोल 120 ग्राम प्रति एकड़ छिड़कें।',
+      textCg: 'का कहिथस, पाना पीयर परत हे? खैरा रोग बर जिंक सल्फेट अउ झुलसा बर ट्राइसाइक्लाजोल 120 ग्राम प्रति एकड़ छिड़कव संगी!',
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'spot', disease: 'झुलसा / खैरा' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  const stemBorerTriggers = ['तना छेदक', 'गाभा छेदक', 'इल्ली', 'सुंडी', 'कीड़ा', 'कीरा', 'पत्ता लपेटक', 'tana chhedak', 'illi', 'sundi', 'kida'];
+  if (stemBorerTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'तना छेदक और इल्ली के नियंत्रण हेतु कारटाप हाइड्रोक्लोराइड 4G दानेदार या कोराजन 60ml प्रति एकड़ का छिड़काव करें।',
+      textCg: 'गाभा छेदक कीरा तना ला भीतर ले काट देथे! कारटाप हाइड्रोक्लोराइड दानेदार या कोराजन के छिड़काव करव। चल दवाई देखाथंव!',
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'stemborer', disease: 'तना छेदक' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  // 3. Mandi & Dhan 3100 Intent
+  const mandiTriggers = ['3100', '३१००', 'समर्थन मूल्य', 'msp', 'धान खरीदी', 'कृषक उन्नति', 'रेट', 'धान का भाव', 'धान के रेट', 'भाव', 'dhan', 'bhav', 'bhaav', 'rate', 'price', 'dam', 'daam', 'mandi', 'paisa'];
+  if (mandiTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'छत्तीसगढ़ में कृषक उन्नति योजना अंतर्गत धान ₹3,100 प्रति क्विंटल की दर से 21 क्विंटल प्रति एकड़ खरीदा जाता है। पूरा मंडी भाव खोल रहे हैं।',
+      textCg: 'हव बेटा! छत्तीसगढ़ म धान के भाव ₹3,100 प्रति क्विंटल हे, प्रति एकड़ 21 क्विंटल खरीदी होथे। चल तोर काका पूरा मंडी भाव देखावत हे!',
+      route: { target: 'mandi', type: 'tab', label: 'मंडी भाव' },
+      action: { type: 'SHOW_MANDI' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  // 4. Weather & Rain Intent
+  const weatherTriggers = ['मौसम', 'बारिश', 'पानी गिरही', 'पानी गिरेगा', 'हवा', 'धूप', 'घाम', 'बादल', 'मावठा', 'mausam', 'mosam', 'barish', 'baarish', 'rain', 'weather', 'pani'];
+  if (weatherTriggers.some((t) => clean.includes(t))) {
+    const condText = context?.weather ? (isChhattisgarhi ? (context.weather.conditionTextCg || context.weather.conditionText) : context.weather.conditionText) : 'साफ मौसम';
+    const distText = context?.selectedDistrict || 'रायपुर';
+    return {
+      textHi: `आज ${distText} में मौसम ${condText} है भैया! बारिश या 15 किमी से तेज हवा में यूरिया और कीटनाशक का छिड़काव न करें। मौसम डैशबोर्ड खोल रहे हैं।`,
+      textCg: `आज ${distText} म मौसम ${condText} हे संगी! पानी अउ तेज हवा म यूरिया अउ कीटनाशक के छिड़काव रोक देवव ताकि दवाई बोहा झन जाय। चल मौसम देखाथंव!`,
+      route: { target: 'home', type: 'tab', label: 'मौसम डैशबोर्ड' },
+      action: { type: 'SHOW_WEATHER' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  // 5. Motor / Pump Intent (Ask-Before confirmation)
+  const motorTriggers = ['मोटर', 'बोरवेल', 'पंप', 'ट्यूबवेल', 'पानी चलाना', 'starter', 'motor', 'motar', 'pump', 'borwell', 'borewell'];
+  if (motorTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'क्या बोरवेल मोटर चालू करने का संदेश भेजें भैया? खेत का स्टार्टर नियंत्रित करने हेतु मोटर कंट्रोलर खोल रहे हैं।',
+      textCg: 'का बोरवेल मोटर चालू करे के SMS आदेश भेजंव संगी? घर बैठे ट्यूबवेल चलाए बर मोटर कंट्रोलर खोलत हंव!',
+      route: { target: 'motor', type: 'modal', label: 'मोटर कंट्रोलर' },
+      action: { type: 'ASK_MOTOR' },
+      needsClarification: true,
+      extractedAcre,
+      confidence: 0.95,
+    };
+  }
+
+  // 6. Token Tuhar Hath Intent
+  const tokenTriggers = ['टोकन', 'तुंहर हाथ', 'टोकन कब', 'टोकन कैसे', 'सोसायटी टोकन', 'धान बेचना', 'token', 'tuhar hath', 'parchi', 'slot'];
+  if (tokenTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'टोकन तुंहर हाथ ऐप से धान उपार्जन केंद्र का स्लॉट 7 दिन पूर्व बुक करें। धान को 17 प्रतिशत नमी मानक पर सुखाकर लाएं। टोकन गाइड खोल रहे हैं।',
+      textCg: 'टोकन तुंहर हाथ ले धान बेचे के टोकन 7 दिन पहिले बुक करे सकथव। धान ला 17% नमी तक सुखा के ले जाना हे। चल टोकन गाइड देखाथंव!',
+      route: { target: 'token', type: 'modal', label: 'टोकन तुंहर हाथ' },
+      action: { type: 'OPEN_MODAL', modal: 'token' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.95,
+    };
+  }
+
+  // 7. Rabi Crops Intent
+  const rabiTriggers = ['चना', 'गेहूं', 'सरसों', 'रबी', 'उतेरा', 'पैरा', 'पराली', 'chana', 'gehu', 'sarson', 'rabi'];
+  if (rabiTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'धान कटाई के बाद पराली खेत में न जलाएं। रबी दलहन चना JG-11 व सरसों की बुआई पूर्व ट्राइकोडर्मा व राइजोबियम से बीजोपचार अवश्य करें।',
+      textCg: 'धान कटाई बाद पैरा झन जलाव—रोटावेटर ले माटी म मिलाव! रबी चना JG-11 या राधे लगावत हव त ट्राइकोडर्मा ले बीजोपचार जरूर करव।',
+      route: { target: 'calculator', type: 'tab', label: 'रबी योजना' },
+      action: { type: 'AUTO_CALC_FERTILIZER', crop: 'chana' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.94,
+    };
+  }
+
+  // 8. Mera Khet / Diary Intent
+  const khetTriggers = ['मेरा खेत', 'अपन खेत', 'डायरी', 'खर्चा', 'हिसाब', 'आमदनी', 'plot', 'khet', 'diary'];
+  if (khetTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'फसल की बुआई तारीख, खाद का खर्च और लाभ-हानि का हिसाब रखने हेतु मेरा खेत डायरी खोल रहे हैं।',
+      textCg: 'अपन खेत के बुआई तारीख, खाद के खर्च अउ आमदनी के हिसाब रखना हे? चल मेरा खेत डायरी खोलथंव!',
+      route: { target: 'khet', type: 'modal', label: 'मेरा खेत' },
+      action: { type: 'OPEN_MODAL', modal: 'khet' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.94,
+    };
+  }
+
+  // 9. Persona & Greetings
+  const greetingTriggers = ['काका', 'बहिरा काका', 'जय जोहार', 'नमस्ते', 'प्रणाम', 'राम राम', 'कइसे हस', 'कैसे हो', 'kaka', 'bhaira', 'johar', 'jay johar', 'ram ram', 'namaste', 'hello', 'hi', 'kaise ho'];
+  if (greetingTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'जय जोहार किसान भाई! मैं आपका बहिरा काका हूँ। थोड़ा ज़ोर से बोलिए—धान का भाव जानना है, खाद का हिसाब, या खेत में कोई बीमारी लगी है?',
+      textCg: 'जय जोहार संगी! मैं तोर बहिरा काका हंव। कान म थोड़ा कम सुनाई देथे बाक़ी किसानी के सब बात जानथंव! बोल, खेत म का समस्या हे?',
+      route: null,
+      action: null,
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.95,
+    };
+  }
+
+  // 10. Direct Acreage-only input (e.g. farmer says "2.5 एकड़" or "ढाई एकड़")
+  if (extractedAcre) {
+    const dapBags = Math.max(1, Math.round(extractedAcre * 1.0));
+    const ureaBags = Math.max(1, Math.round((extractedAcre * 100) / 45));
+    const mopBags = Math.max(1, Math.round(extractedAcre * 0.6));
+    return {
+      textHi: `खेत का रकबा ${extractedAcre} एकड़ सेट हो गया। धान हेतु ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी।`,
+      textCg: `तोर खेत के रकबा ${extractedAcre} एकड़ सेट होगे! धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी!`,
+      route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+      action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.92,
+    };
+  }
+
+  // 11. Fallback: Warm Bhaira Kaka hard-of-hearing persona
   return {
-    textHi: `काका समझ नहीं पाए। क्या आप धान के भाव, खाद की बोरी या फसल में लगी बीमारी के बारे में पूछ रहे हैं?`,
-    textCg: `अरे भइया, तोला पता हे न मैं थोड़ा बहिरा हंव! थोड़ा जोर ले बोलव — धान के भाव जानना हे, खाद के हिसाब, कि कोनो दवाई?`,
+    textHi: 'काका समझ नहीं पाए। थोड़ा ज़ोर से बोलिए—धान के भाव, खाद की बोरी या फसल में लगी बीमारी के बारे में पूछ रहे हैं?',
+    textCg: 'अरे भइया, तोला पता हे न मैं थोड़ा बहिरा हंव! थोड़ा जोर ले बोलव — धान के भाव जानना हे, खाद के हिसाब, कि कोनो दवाई?',
     route: null,
+    action: null,
+    needsClarification: false,
     extractedAcre: null,
     confidence: 0.3,
   };

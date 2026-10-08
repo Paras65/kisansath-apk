@@ -65,6 +65,25 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [districtFilterOnly, setDistrictFilterOnly] = useState(false);
   const [openSellModal, setOpenSellModal] = useState(false);
   const [mspBenchmarksList, setMspBenchmarksList] = useState([]);
+  const [highlightMspCard, setHighlightMspCard] = useState(false);
+
+  useEffect(() => {
+    const handleKakaAction = (e) => {
+      const action = e?.detail;
+      if (!action) return;
+      if (action.type === 'SHOW_MANDI') {
+        setSelectedCropFilter('धान');
+        setHighlightMspCard(true);
+        setTimeout(() => {
+          const el = document.getElementById('kaka-mandi-msp-card');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+        setTimeout(() => setHighlightMspCard(false), 3500);
+      }
+    };
+    window.addEventListener('kisan_kaka_action', handleKakaAction);
+    return () => window.removeEventListener('kisan_kaka_action', handleKakaAction);
+  }, []);
 
   // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
   const [mandiRatesList, setMandiRatesList] = useState(() => {
@@ -520,6 +539,8 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
 
       {/* Government MSP Highlight Banner */}
       <Paper
+        id="kaka-mandi-msp-card"
+        className={highlightMspCard ? 'kaka-spotlight-pulse' : ''}
         elevation={0}
         sx={{
           p: 1.5,
@@ -530,7 +551,8 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: 1
+          gap: 1,
+          transition: 'all 0.3s ease'
         }}
       >
         <Box>

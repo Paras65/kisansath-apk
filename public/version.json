@@ -1,8 +1,8 @@
 {
-  "version": "1.0.49",
+  "version": "1.0.50",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.49",
-  "releaseNotes": "👴🏻 सर्वव्यापी 'काका ले समझव' ऑडियो वॉकथ्रू: सभी 13 मॉड्यूल्स व मोडाल्स में एक समान स्थिर गति (Constant Pace ~140 WPM) एवं सुव्यवस्थित शीर्ष बटन।",
+  "releaseName": "किसान साथी v1.0.50",
+  "releaseNotes": "🤖 स्वायत्त बहिरा काका एजेंटिक एक्शन: सीधा बोलकर जवाब, पूछकर आगे बढ़ना (Ask-Before), ऑटो-कैलकुलेट एवं विज़ुअल स्पॉटलाइट पल्स कार्ड्स।",
   "updatedAt": "2026-10-08"
 }

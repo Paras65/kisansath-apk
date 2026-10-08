@@ -66,6 +66,44 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
   const [paddyUnit, setPaddyUnit] = useState('acre'); // 'acre' | 'dismil'
   const [paddyAcres, setPaddyAcres] = useState(2.5);
 
+  // Spotlight glow state for Kaka agentic interactions
+  const [highlightCard, setHighlightCard] = useState(null);
+
+  useEffect(() => {
+    const handleKakaAction = (e) => {
+      const action = e.detail;
+      if (!action) return;
+
+      if (action.type === 'AUTO_CALC_FERTILIZER') {
+        setSubTab(0);
+        if (action.acre) {
+          setFertAcres(action.acre);
+          setFertUnit('acre');
+        }
+        if (action.crop) {
+          setFertCrop(action.crop);
+        }
+        setHighlightCard('fert-result');
+        setTimeout(() => {
+          const el = document.getElementById('kaka-fert-result-card');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+        setTimeout(() => setHighlightCard(null), 3500);
+      } else if (action.type === 'ASK_ACRES') {
+        setSubTab(0);
+        setHighlightCard('fert-input');
+        setTimeout(() => {
+          const el = document.getElementById('kaka-fert-input-card');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
+        setTimeout(() => setHighlightCard(null), 3500);
+      }
+    };
+
+    window.addEventListener('kisan_kaka_action', handleKakaAction);
+    return () => window.removeEventListener('kisan_kaka_action', handleKakaAction);
+  }, []);
+
   const loadFromMongo = async () => {
     const liveFert = await getFertilizers();
     if (liveFert && Object.keys(liveFert).length > 0) setFertData(liveFert);
@@ -259,7 +297,14 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   <MenuItem value="maize">{isChhattisgarhi ? 'मक्का (जुनहरी)' : 'मक्का (Maize)'}</MenuItem>
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={4}>
+              <Grid
+                item
+                xs={12}
+                sm={4}
+                id="kaka-fert-input-card"
+                className={highlightCard === 'fert-input' ? 'kaka-spotlight-pulse' : ''}
+                sx={{ borderRadius: 2, transition: 'all 0.3s ease' }}
+              >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
@@ -647,7 +692,11 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 </Button>
               </Paper>
             ) : (
-              <>
+              <Box
+                id="kaka-fert-result-card"
+                className={highlightCard === 'fert-result' ? 'kaka-spotlight-pulse' : ''}
+                sx={{ borderRadius: 3, p: 0.5, transition: 'all 0.3s ease' }}
+              >
                 {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
                 <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
                   {isChhattisgarhi ? `📦 कुल जरूरी खाद के बोरी अउ मात्रा (${acresNum} एकड़ बर):` : `📦 कुल आवश्यक खाद की बोरी व मात्रा (${acresNum} एकड़ हेतु):`}
@@ -902,7 +951,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     </Grid>
                   ))}
                 </Grid>
-              </>
+              </Box>
             )}
           </Card>
         </Box>
