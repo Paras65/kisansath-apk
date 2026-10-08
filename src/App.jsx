@@ -451,6 +451,7 @@ function App() {
                 onNavigate={handleTabChange}
                 selectedDistrict={selectedDistrict}
                 isGpsLocation={isGpsLocation}
+                onDistrictChange={handleDistrictChange}
               />
             )}
             {currentTab === 'doctor' && <CropDoctorTab selectedDistrict={selectedDistrict} />}

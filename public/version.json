@@ -1,8 +1,8 @@
 {
-  "version": "1.0.41",
+  "version": "1.0.42",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.41",
-  "releaseNotes": "हरा floating voice pill button जोड़ा गया — हिंदी/छत्तीसगढ़ी में बोलें, App अपने आप सही section में ले जाएगा (v1.0.41)।",
+  "releaseName": "किसान साथी v1.0.42",
+  "releaseNotes": "मौसम कार्ड पर 1-टैप लाइव GPS पहचान (🎯 वर्तमान जगह लें) एवं 33 जिलों का त्वरित दृश्य चयन डायलॉग।",
   "updatedAt": "2026-10-08"
 }

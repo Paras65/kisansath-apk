@@ -44,10 +44,16 @@ import FlashOnIcon from '@mui/icons-material/FlashOn';
 import WbSunnyIcon from '@mui/icons-material/WbSunny';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { speakText, stopSpeech } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
-import { fetchLiveWeather, getCachedWeather } from '../services/weatherService';
+import {
+  fetchLiveWeather,
+  getCachedWeather,
+  detectCurrentLocationDistrict,
+  CG_DISTRICT_COORDS
+} from '../services/weatherService';
 import {
   getActiveFarmer,
   loginFarmer,
@@ -147,7 +153,12 @@ const getIgkvSeasonalAdvisory = (isChhattisgarhi) => {
   }
 };
 
-export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false }) => {
+export const HomeTab = ({
+  onNavigate,
+  selectedDistrict,
+  isGpsLocation = false,
+  onDistrictChange
+}) => {
   const { isChhattisgarhi } = useLanguage();
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
   const [openGpsTracker, setOpenGpsTracker] = useState(false);
@@ -156,10 +167,37 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [openTokenGuide, setOpenTokenGuide] = useState(false);
+  const [openDistrictPicker, setOpenDistrictPicker] = useState(false);
+  const [detectingGps, setDetectingGps] = useState(false);
   const [weather, setWeather] = useState(() => getCachedWeather(selectedDistrict));
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
   const [activeBroadcasts, setActiveBroadcasts] = useState([]);
+
+  // 1-Tap Live GPS Location Detection
+  const handleDetectLiveGps = async () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      notify.warning(isChhattisgarhi ? 'मोबाइल म GPS सुविधा नइये।' : 'डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
+      return;
+    }
+    setDetectingGps(true);
+    notify.info(isChhattisgarhi ? '📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...' : '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
+    try {
+      const res = await detectCurrentLocationDistrict(true);
+      setDetectingGps(false);
+      if (res && res.district) {
+        if (typeof onDistrictChange === 'function') {
+          onDistrictChange(res.district, true);
+        }
+        notify.success(isChhattisgarhi ? `📍 लाइव जगह मिलिस: ${res.district}` : `📍 वर्तमान स्थान सेट हुआ: ${res.district}`);
+        speakText(isChhattisgarhi ? `अपन जगह ${res.district} के मौसम सेट होगे` : `आपके स्थान ${res.district} का मौसम सेट हो गया`);
+      }
+    } catch {
+      setDetectingGps(false);
+      notify.warning(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। फोन के Location चालू करव।' : 'GPS अनुमति नहीं मिली। कृपया फोन की Location चालू करें।');
+      speakText(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। फोन के लोकेशन चालू करव।' : 'GPS अनुमति नहीं मिली। कृपया लोकेशन चालू करें।');
+    }
+  };
 
   // Voice Navigation Modal Trigger Listener
   useEffect(() => {
@@ -1837,9 +1875,69 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                         : (weatherLoading ? (isChhattisgarhi ? 'लाइव मौसम लोड होत हे...' : 'लाइव मौसम लोड हो रहा है...') : (isChhattisgarhi ? 'उघरा अकास' : 'साफ मौसम'))}
                     </Typography>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                    📍 {selectedDistrict} {isGpsLocation ? (isChhattisgarhi ? '• वर्तमान जगह (GPS)' : '• वर्तमान स्थान (GPS)') : (weatherLoading && !weather ? (isChhattisgarhi ? '• 🔄 लोड होत हे...' : '• 🔄 लोड हो रहा है...') : (weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? `• सहेजे डेटा (${weather?.displayTime || 'ऑफ़लाइन'})` : `• सहेजा डेटा (${weather?.displayTime || 'ऑफ़लाइन'})`)))}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.3, flexWrap: 'wrap' }}>
+                    <Typography
+                      variant="caption"
+                      onClick={() => setOpenDistrictPicker(true)}
+                      sx={{
+                        color: '#1b5e20',
+                        fontWeight: 800,
+                        fontSize: '0.74rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.3,
+                        borderRadius: 1.5,
+                        px: 0.7,
+                        py: 0.15,
+                        bgcolor: 'rgba(27,94,32,0.08)',
+                        '&:hover': { bgcolor: 'rgba(27,94,32,0.16)' }
+                      }}
+                    >
+                      📍 {selectedDistrict} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
+                    </Typography>
+
+                    {isGpsLocation ? (
+                      <Chip
+                        size="small"
+                        icon={<MyLocationIcon sx={{ fontSize: '11px !important', color: '#1b5e20 !important' }} />}
+                        label={isChhattisgarhi ? 'लाइव GPS' : 'लाइव GPS'}
+                        sx={{
+                          height: 20,
+                          fontSize: '0.65rem',
+                          fontWeight: 800,
+                          bgcolor: '#e8f5e9',
+                          color: '#1b5e20',
+                          border: '1px solid #a5d6a7'
+                        }}
+                      />
+                    ) : (
+                      <Button
+                        size="small"
+                        onClick={handleDetectLiveGps}
+                        disabled={detectingGps}
+                        startIcon={<MyLocationIcon sx={{ fontSize: '12px !important' }} />}
+                        sx={{
+                          py: 0.1,
+                          px: 0.8,
+                          minWidth: 0,
+                          height: 22,
+                          fontSize: '0.66rem',
+                          fontWeight: 800,
+                          bgcolor: '#eff6ff',
+                          color: '#0284c7',
+                          borderRadius: 3,
+                          textTransform: 'none',
+                          border: '1px solid #bae6fd',
+                          '&:hover': { bgcolor: '#e0f2fe', borderColor: '#38bdf8' }
+                        }}
+                      >
+                        {detectingGps
+                          ? (isChhattisgarhi ? 'खोजत हे...' : 'खोज रहे हैं...')
+                          : (isChhattisgarhi ? '🎯 अपन जगह खोजव (GPS)' : '🎯 वर्तमान जगह लें (GPS)')}
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
               </Box>
 
@@ -2614,6 +2712,89 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
         </DialogTitle>
         <DialogContent dividers sx={{ py: 2 }}>
           {renderSmartAuthCard(true)}
+        </DialogContent>
+      </Dialog>
+
+      {/* 1-Tap Visual District & Live GPS Location Picker Modal */}
+      <Dialog
+        open={openDistrictPicker}
+        onClose={() => setOpenDistrictPicker(false)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3.5, p: 0.5 } }}
+      >
+        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <MyLocationIcon sx={{ color: '#2e7d32' }} />
+            <span>{isChhattisgarhi ? '🗺️ अपन जिला चुनव' : '🗺️ अपना जिला चुनें'}</span>
+          </Box>
+          <IconButton size="small" onClick={() => setOpenDistrictPicker(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers sx={{ py: 2 }}>
+          {/* Top 1-Tap Live GPS Button */}
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              setOpenDistrictPicker(false);
+              handleDetectLiveGps();
+            }}
+            disabled={detectingGps}
+            startIcon={<MyLocationIcon />}
+            sx={{
+              py: 1.2,
+              mb: 2,
+              borderRadius: 3,
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              bgcolor: '#1b5e20',
+              '&:hover': { bgcolor: '#2e7d32' }
+            }}
+          >
+            {isChhattisgarhi ? '🎯 अपन लाइव जगह (GPS ले खोजव)' : '🎯 मेरी लाइव लोकेशन (GPS द्वारा पहचानें)'}
+          </Button>
+
+          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, mb: 1, display: 'block' }}>
+            {isChhattisgarhi ? 'या नीचे दिए सूची ले जिला छू के चुनव:' : 'या नीचे दी गई सूची से 1-टैप में जिला चुनें:'}
+          </Typography>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 1 }}>
+            {Object.entries(CG_DISTRICT_COORDS).map(([distKey, info]) => {
+              const isSelected = distKey === selectedDistrict;
+              return (
+                <Button
+                  key={distKey}
+                  variant={isSelected ? 'contained' : 'outlined'}
+                  onClick={() => {
+                    if (typeof onDistrictChange === 'function') {
+                      onDistrictChange(distKey, false);
+                    }
+                    setOpenDistrictPicker(false);
+                    notify.success(isChhattisgarhi ? `📍 जिला सेट होगे: ${distKey}` : `📍 जिला सेट हुआ: ${distKey}`);
+                  }}
+                  sx={{
+                    py: 1,
+                    px: 0.8,
+                    borderRadius: 2.5,
+                    fontWeight: 700,
+                    fontSize: '0.78rem',
+                    textTransform: 'none',
+                    bgcolor: isSelected ? '#1b5e20' : '#ffffff',
+                    color: isSelected ? '#ffffff' : '#334155',
+                    borderColor: isSelected ? '#1b5e20' : '#cbd5e1',
+                    '&:hover': {
+                      bgcolor: isSelected ? '#2e7d32' : '#f1f5f9',
+                      borderColor: '#1b5e20'
+                    }
+                  }}
+                >
+                  {info.name || distKey}
+                </Button>
+              );
+            })}
+          </Box>
         </DialogContent>
       </Dialog>
     </Box>
