@@ -23,19 +23,20 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import ScienceIcon from '@mui/icons-material/Science';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import TerrainIcon from '@mui/icons-material/Terrain';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
-import { speakText } from '../utils/speech';
+import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes, getCachedModuleData, getDistrictSoilHealth } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
+import { TokenGuideModal } from './TokenGuideModal';
 import { notify } from '../services/notificationService';
 import { useLanguage } from '../utils/i18n';
 import { acreToDismil, dismilToAcre, stepAcre, stepDismil, calculatePaddyProcurement } from '../utils/unitConverter';
 
 export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [subTab, setSubTab] = useState(0);
+  const [openTokenGuide, setOpenTokenGuide] = useState(false);
 
   // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
   const [fertData, setFertData] = useState(() => {
@@ -1266,6 +1267,26 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   </>
                 )}
               </Typography>
+
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => { stopSpeech(); setOpenTokenGuide(true); }}
+                sx={{
+                  mt: 1.5,
+                  bgcolor: '#1d4ed8',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  borderRadius: 2.5,
+                  py: 0.8,
+                  textTransform: 'none',
+                  boxShadow: '0 2px 8px rgba(29, 78, 216, 0.25)',
+                  '&:hover': { bgcolor: '#1e40af' }
+                }}
+              >
+                {isChhattisgarhi ? '🎯 टोकन तुंहर हाथ: पात्रता, बोरी अऊ ऑनलाइन गाइड देखव ➔' : '🎯 टोकन तुंहर हाथ: पात्रता, बोरी व ऑनलाइन टोकन गाइड देखें ➔'}
+              </Button>
             </Box>
           </Card>
         </Box>
@@ -1397,6 +1418,13 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           setSoilSensorData(data);
           notify.success('स्मार्ट मिट्टी सेंसर की रीडिंग खाद कैलकुलेटर में लागू की गई!');
         }}
+      />
+
+      {/* CG Paddy Token Tuhar Hath & Bardana Guide Modal */}
+      <TokenGuideModal
+        open={openTokenGuide}
+        onClose={() => setOpenTokenGuide(false)}
+        initialAcres={pAcresNum || 1.0}
       />
     </Box>
   );

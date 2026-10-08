@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.37';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.38';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सुव्यवस्थित होम स्क्रीन: शीर्ष 8-टूल लॉन्चर, छत्तीसगढ़ धान ₹3,100 उपार्जन व टोकन तुंहर हाथ हब एवं IGKV रायपुर सामयिक किसानी बुलेटिन।',
+    releaseNotes: 'टोकन तुंहर हाथ: धान उपार्जन पात्रता, बारदाना बोरी (40kg) कैलकुलेटर एवं 4-चरण ऑनलाइन टोकन जनरेशन गाइड।',
     updatedAt: new Date().toISOString()
   });
 });

@@ -71,6 +71,7 @@ import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { MotorControllerModal } from './MotorControllerModal';
 import { DeviceHubModal } from './DeviceHubModal';
 import { ShareModal } from './ShareModal';
+import { TokenGuideModal } from './TokenGuideModal';
 import { getMandiRates, getCachedModuleData } from '../services/apiService';
 import { fetchVillagesByPincode } from '../services/pincodeService';
 
@@ -160,6 +161,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   const [openMotorModal, setOpenMotorModal] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [openTokenGuide, setOpenTokenGuide] = useState(false);
   const [weather, setWeather] = useState(() => getCachedWeather(selectedDistrict));
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
@@ -1156,27 +1158,45 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 </Typography>
               </Box>
 
-              <Button
-                size="small"
-                variant="contained"
-                href={appConfig.portals.tokenTuharHathUrl || appConfig.portals.tokenUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                endIcon={<OpenInNewIcon sx={{ fontSize: 13 }} />}
-                sx={{
-                  bgcolor: '#1d4ed8',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.72rem',
-                  borderRadius: 2,
-                  py: 0.5,
-                  alignSelf: 'flex-start',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#1e40af' }
-                }}
-              >
-                {isChhattisgarhi ? 'टोकन पोर्टल खोलव (kisan.cg.nic.in)' : 'टोकन पोर्टल खोलें (kisan.cg.nic.in)'}
-              </Button>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', pt: 0.5 }}>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => { stopSpeech(); setOpenTokenGuide(true); }}
+                  sx={{
+                    bgcolor: '#1d4ed8',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    borderRadius: 2,
+                    py: 0.5,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#1e40af' }
+                  }}
+                >
+                  {isChhattisgarhi ? '🎯 टोकन पात्रता अऊ गाइड' : '🎯 टोकन पात्रता व गाइड'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  href={appConfig.portals.tokenTuharHathUrl || appConfig.portals.tokenUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                  sx={{
+                    borderColor: '#93c5fd',
+                    color: '#1d4ed8',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    borderRadius: 2,
+                    py: 0.5,
+                    textTransform: 'none',
+                    '&:hover': { bgcolor: '#dbeafe', borderColor: '#60a5fa' }
+                  }}
+                >
+                  {isChhattisgarhi ? 'पोर्टल (kisan.cg.nic.in)' : 'पोर्टल (kisan.cg.nic.in)'}
+                </Button>
+              </Box>
             </Box>
           </Box>
 
@@ -2666,6 +2686,13 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       <ShareModal
         open={shareModalOpen}
         onClose={() => setShareModalOpen(false)}
+      />
+
+      <TokenGuideModal
+        open={openTokenGuide}
+        onClose={() => setOpenTokenGuide(false)}
+        initialAcres={Number(activeFarmer?.totalAcres || activeFarmer?.totalLandAcres) || 1.0}
+        farmerName={activeFarmer?.name || ''}
       />
 
       {/* Quick Farmer Login & Registration Modal (Zero Friction, Public First) */}

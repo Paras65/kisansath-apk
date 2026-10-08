@@ -1,8 +1,8 @@
 {
-  "version": "1.0.37",
+  "version": "1.0.38",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.37",
-  "releaseNotes": "सुव्यवस्थित होम स्क्रीन: शीर्ष 8-टूल लॉन्चर, छत्तीसगढ़ धान ₹3,100 उपार्जन व टोकन तुंहर हाथ हब एवं IGKV रायपुर सामयिक किसानी बुलेटिन।",
+  "releaseName": "किसान साथी v1.0.38",
+  "releaseNotes": "टोकन तुंहर हाथ: धान उपार्जन पात्रता, बारदाना बोरी (40kg) कैलकुलेटर एवं 4-चरण ऑनलाइन टोकन जनरेशन गाइड।",
   "updatedAt": "2026-10-08"
 }
