@@ -44,7 +44,7 @@ import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { useLanguage } from '../utils/i18n';
 import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
 import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides, chatWithCropDoctor } from '../services/apiService';
-import { fetchLiveWeather, getSprayAdvisory } from '../services/weatherService';
+import { fetchLiveWeather, getSprayAdvisory, getCachedWeather } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
 import { openNativeDialer } from '../utils/capacitorUtils';
@@ -107,7 +107,13 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
   }, [activeDisease?.id, activeDisease?.diseaseName]);
 
   // Live Weather Spray Advisory State
-  const [sprayAdvisory, setSprayAdvisory] = useState(null);
+  const [sprayAdvisory, setSprayAdvisory] = useState(() => {
+    const cached = getCachedWeather(selectedDistrict);
+    if (cached) {
+      return { ...getSprayAdvisory(cached), weather: cached };
+    }
+    return null;
+  });
   const [isVoicePlaying, setIsVoicePlaying] = useState(false);
   const prescriptionRef = useRef(null);
 

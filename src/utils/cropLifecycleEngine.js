@@ -273,11 +273,19 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
 
   // Dynamic Weather Override Evaluation
   let weatherAlert = null;
-  const condition = (weatherContext.condition || '').toLowerCase();
+  const condition = (weatherContext.conditionName || weatherContext.condition || weatherContext.conditionText || '').toLowerCase();
+  const isRaining = weatherContext.isRaining || (weatherContext.rainProbability >= 50);
   const humidity = weatherContext.humidity || 65;
   const temp = weatherContext.temp || 30;
 
-  if (condition.includes('rain') || condition.includes('बारिश') || condition.includes('thunder')) {
+  if (weatherContext.mawathaAlert && weatherContext.mawathaAlert.hasRisk) {
+    weatherAlert = {
+      type: 'warning',
+      title: weatherContext.mawathaAlert.badge,
+      message: weatherContext.mawathaAlert.advice,
+      actionBlocker: true,
+    };
+  } else if (isRaining || condition.includes('rain') || condition.includes('बारिश') || condition.includes('thunder')) {
     weatherAlert = {
       type: 'warning',
       title: '🌧️ वर्षा पूर्व-चेतावनी (Rain Alert)',

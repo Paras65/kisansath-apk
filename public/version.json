@@ -1,8 +1,8 @@
 {
-  "version": "1.0.32",
+  "version": "1.0.33",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.32",
-  "releaseNotes": "त्वरित हॉटफिक्स: कृषि-जलवायु क्षेत्र पैरामीटर (zoneKey) संदर्भ त्रुटि का समाधान एवं सुदृढ़ फॉलओवर।",
+  "releaseName": "किसान साथी v1.0.33",
+  "releaseNotes": "छत्तीसगढ़ सूक्ष्म-मौसम संवर्धन: 72-घंटे मावठा चक्रवाती पूर्व-चेतावनी, कन्हार-मटासी मिट्टी नमी इंडेक्स एवं 0ms त्वरित रेंडर।",
   "updatedAt": "2026-10-08"
 }

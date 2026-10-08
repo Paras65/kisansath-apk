@@ -264,26 +264,87 @@ export const calculateDiseaseOutbreakRisk = (hourly = {}) => {
 };
 
 /**
- * Evaluate Satellite Soil Moisture (0-9cm depth) into Farmer-Intuitive Zones
- * Volumetric capacity standard for clay-loam / matasi soil in CG: ~0.40 m³/m³
+ * Synchronously retrieves last known valid weather data from localStorage
+ * Returns null if no cached data exists (enables 0ms instant render without 200ms flicker).
  */
-export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMoisture = 0.28) => {
-  // Weighted moisture across topsoil (0-1cm) and active rootzone (3-9cm)
+export const getCachedWeather = (districtName = 'रायपुर') => {
+  if (typeof window === 'undefined' || !window.localStorage) return null;
+  const cacheKey = `kisan_weather_${districtName}`;
+  try {
+    const raw = localStorage.getItem(cacheKey);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+};
+
+/**
+ * Detect Unseasonal Cyclonic / Post-Monsoon Rain ("मावठा") in Chhattisgarh
+ * Critical during October-December (paddy maturity, drying & Mandi sales).
+ * Prevents harvested paddy lodging and grain sprouting (गलथना).
+ */
+export const calculateMawathaRainAlert = (daily = {}, forecast3Days = [], monthIndex = new Date().getMonth()) => {
+  // Peak paddy harvest & Mandi procurement season in CG: October (9), November (10), December (11), January (0)
+  const isMawathaSeason = [9, 10, 11, 0].includes(monthIndex);
+  if (!isMawathaSeason) return null;
+
+  const rainProbs = daily.precipitation_probability_max || [];
+  const rain0 = rainProbs[0] ?? (forecast3Days[0]?.rainProb || 0);
+  const rain1 = rainProbs[1] ?? (forecast3Days[1]?.rainProb || 0);
+  const rain2 = rainProbs[2] ?? (forecast3Days[2]?.rainProb || 0);
+  const maxRain = Math.max(rain0, rain1, rain2);
+
+  const weatherCodes = daily.weather_code || [];
+  const hasRainCode = weatherCodes.slice(0, 3).some((code) => [51, 53, 55, 61, 63, 65, 80, 81, 82, 95].includes(code));
+
+  if (maxRain >= 25 || hasRainCode) {
+    return {
+      hasRisk: true,
+      maxRain,
+      badge: '⚠️ मावठा वर्षा चेतावनी (धान सुरक्षा)',
+      badgeCg: '⚠️ मावठा पानी अलर्ट (धान बचाव)',
+      title: 'बेमौसम चक्रवाती बारिश (मावठा) की पूर्व-चेतावनी',
+      titleCg: 'बेमौसम पानी (मावठा) के संका: धान सुरक्षित राखव',
+      advice: `आगामी 72 घंटों में बारिश (${maxRain}%) की संभावना है। खलिहान में रखे धान को तुरंत तिरपाल से ढकें और कटी फसल की मड़ाई जल्द करें। बालियों में दाना अंकुरित (गलथने) से बचाएं ताकि मंडी में 17% नमी मानक पर धान बिक सके।`,
+      adviceCg: `आवत 72 घंटा म पानी (${maxRain}%) गिरे के भारी संका हे! खलिहान म रखे धान ला तुरते तिरपाल ले तोपव। कटी फसल ला भींजे झन देवव, दाना गलथा (अंकुरित) जाही त मंडी म बेचे म दिक्कत होही।`,
+      voice: `सावधान किसान भाई! आगामी दिनों में मावठा यानी बेमौसम बारिश की संभावना है। खलिहान में रखे धान को तुरंत तिरपाल से सुरक्षित ढकें ताकि दाना अंकुरित न हो।`
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Evaluate Satellite Soil Moisture (0-9cm depth) into Farmer-Intuitive Zones
+ * Dynamic Volumetric capacity standard across Chhattisgarh Soils:
+ * कन्हार (0.48), डोर्सा (0.42), मटासी (0.36), भाठा (0.28 m³/m³)
+ */
+export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMoisture = 0.28, soilType = 'मटासी') => {
+  const capacityMap = {
+    'कन्हार': 0.48,
+    'डोर्सा': 0.42,
+    'मटासी': 0.36,
+    'भाठा': 0.28,
+  };
+  const standardCapacity = capacityMap[soilType] || 0.38;
+
   const effectiveVolumetric = (Number(currentMoisture) * 0.4) + (Number(rootZoneMoisture) * 0.6);
-  // Normalize to farmer percentage (0 to 100%) against field capacity (~0.40 m³/m³)
-  const percentage = Math.min(100, Math.max(8, Math.round((effectiveVolumetric / 0.40) * 100)));
+  const percentage = Math.min(100, Math.max(8, Math.round((effectiveVolumetric / standardCapacity) * 100)));
+  const isKanhar = soilType === 'कन्हार';
 
   if (percentage < 35) {
     return {
       percentage,
+      soilType,
       volumetric: Number(effectiveVolumetric.toFixed(3)),
       status: 'dry',
-      label: 'सूखी मिट्टी (सिंचाई आवश्यक)',
-      labelCg: 'सूखी भुइयां (पानी के कमी)',
+      label: `सूखी मिट्टी (${soilType}) - सिंचाई आवश्यक`,
+      labelCg: `सूखी भुइयां (${soilType}) - पानी के कमी`,
       color: '#d32f2f',
       bg: '#ffebee',
-      advice: 'जड़ क्षेत्र (0-9 सेमी) में नमी कम हो गई है। फसल को तनाव से बचाने हेतु अगले 24 घंटों में हल्की सिंचाई करें।',
-      adviceCg: 'जड़ क्षेत्र (0-9 सेमी) म माटी सुखावत हे। फसल म जोर झन पड़े तेकर सेती 24 घंटा म पानी देवव।',
+      advice: `${soilType} मिट्टी में जड़ क्षेत्र (0-9 सेमी) की नमी कम हो गई है। फसल को तनाव से बचाने हेतु अगले 24 घंटों में हल्की सिंचाई करें।`,
+      adviceCg: `${soilType} माटी म जड़ तीर नमी कम होगे हे। फसल म जोर झन पड़े तेकर सेती 24 घंटा म पानी देवव।`,
       irrigationNeeded: true,
       badge: '🔴 पानी की कमी'
     };
@@ -292,14 +353,15 @@ export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMo
   if (percentage <= 80) {
     return {
       percentage,
+      soilType,
       volumetric: Number(effectiveVolumetric.toFixed(3)),
       status: 'optimal',
-      label: 'उत्तम नमी (अनुकूल)',
-      labelCg: 'बने नमी (पूरव पानी)',
+      label: `उत्तम नमी (${soilType}) - अनुकूल`,
+      labelCg: `बने नमी (${soilType}) - पूरव पानी`,
       color: '#2e7d32',
       bg: '#e8f5e9',
-      advice: 'खेत के जड़ क्षेत्र (0-9 सेमी) में पर्याप्त नमी उपलब्ध है। अभी सिंचाई की आवश्यकता नहीं है, पानी और बिजली की बचत करें।',
-      adviceCg: 'खेत के जड़ क्षेत्र (0-9 सेमी) म बने नमी हे। अभी पानी देहे के जरूरत नइ हे, पानी अऊ बिजली बचावहू।',
+      advice: `खेत के जड़ क्षेत्र (0-9 सेमी) में पर्याप्त नमी उपलब्ध है। ${isKanhar ? 'कन्हार मिट्टी नमी देर तक रोकती है, अभी सिंचाई टालें।' : 'अभी सिंचाई की आवश्यकता नहीं है, पानी और बिजली की बचत करें।'}`,
+      adviceCg: `खेत म जड़ तीर बने नमी हे। ${isKanhar ? 'कन्हार माटी देर तक पानी रखे रहिथे, अभी पानी झन देवव।' : 'अभी पानी देहे के जरूरत नइये, पानी अऊ बिजली बचावहू।'}`,
       irrigationNeeded: false,
       badge: '🟢 पर्याप्त नमी'
     };
@@ -307,14 +369,15 @@ export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMo
 
   return {
     percentage,
+    soilType,
     volumetric: Number(effectiveVolumetric.toFixed(3)),
     status: 'wet',
-    label: 'अत्यधिक गीली (जलभराव जोखिम)',
-    labelCg: 'जादा गीला (जलभराव के खतरा)',
+    label: `अत्यधिक गीली (${soilType}) - जलभराव जोखिम`,
+    labelCg: `जादा गीला (${soilType}) - जलभराव खतरा`,
     color: '#ed6c02',
     bg: '#fff3e0',
-    advice: 'खेत में पानी की मात्रा अधिक है। जलभराव से जड़ों को सड़ने से बचाने के लिए खेत की मेड़ों से अतिरिक्त पानी निकासी की व्यवस्था रखें।',
-    adviceCg: 'खेत म जादा पानी भरे हे। जड़ झन सड़य तेकर सेती मेड़ ले अतिरिक्त पानी निकास के बेवस्था करव।',
+    advice: `${isKanhar ? 'कन्हार मिट्टी में अत्यधिक जलभराव है! जड़ों को सड़न व उकठा रोग से बचाने हेतु खेत की मेड़ काटकर पानी निकासी करें।' : 'खेत में पानी की मात्रा अधिक है। जड़ों को सड़ने से बचाने के लिए मेड़ों से अतिरिक्त पानी निकासी की व्यवस्था रखें।'}`,
+    adviceCg: `${isKanhar ? 'कन्हार माटी म जादा पानी भरे हे! जड़ झन सड़य तेकर सेती मेड़ ला काट के पानी बोहा देवव।' : 'खेत म पानी जादा हे। मेड़ ले अतिरिक्त पानी निकास के बेवस्था करव।'}`,
     irrigationNeeded: false,
     badge: '🟡 अधिक गीली'
   };
@@ -519,6 +582,9 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
       parsedWeather.lightningRisk = calculateLightningRisk(weatherCode, parsedWeather.windSpeed, rainProbability);
       parsedWeather.harvestDryingWindow = calculateHarvestDryingWindow(daily, parsedWeather.forecast3Days);
+      parsedWeather.mawathaAlert = calculateMawathaRainAlert(daily, parsedWeather.forecast3Days, new Date().getMonth());
+      parsedWeather.recordedAt = new Date().toISOString();
+      parsedWeather.displayTime = new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
 
       // Save to localStorage for offline resilience
       localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
@@ -542,6 +608,8 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       if (!parsed.diseaseRisk) parsed.diseaseRisk = calculateDiseaseOutbreakRisk();
       if (!parsed.lightningRisk) parsed.lightningRisk = calculateLightningRisk();
       if (!parsed.harvestDryingWindow) parsed.harvestDryingWindow = calculateHarvestDryingWindow({}, parsed.forecast3Days);
+      parsed.mawathaAlert = calculateMawathaRainAlert({}, parsed.forecast3Days || [], new Date().getMonth());
+      parsed.updatedAt = parsed.displayTime ? `सहेजा डेटा (${parsed.displayTime})` : 'ऑफ़लाइन सहेजा डेटा';
       return parsed;
     } catch (e) {}
   }
@@ -579,6 +647,7 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     ]
   };
   defaultWeather.sprayAdvisory = getSprayAdvisory(defaultWeather);
+  defaultWeather.mawathaAlert = calculateMawathaRainAlert({}, defaultWeather.forecast3Days, new Date().getMonth());
   return defaultWeather;
 };
 
@@ -667,6 +736,9 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
       parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
       parsedWeather.lightningRisk = calculateLightningRisk(weatherCode, parsedWeather.windSpeed, rainProbability);
       parsedWeather.harvestDryingWindow = calculateHarvestDryingWindow(daily, parsedWeather.forecast3Days);
+      parsedWeather.mawathaAlert = calculateMawathaRainAlert(daily, parsedWeather.forecast3Days, new Date().getMonth());
+      parsedWeather.recordedAt = new Date().toISOString();
+      parsedWeather.displayTime = new Date().toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' });
       localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
       return parsedWeather;
     }

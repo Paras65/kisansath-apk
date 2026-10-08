@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.32';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.33';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'त्वरित हॉटफिक्स: कृषि-जलवायु क्षेत्र पैरामीटर (zoneKey) संदर्भ त्रुटि का समाधान एवं सुदृढ़ फॉलओवर।',
+    releaseNotes: 'छत्तीसगढ़ सूक्ष्म-मौसम संवर्धन: 72-घंटे मावठा चक्रवाती पूर्व-चेतावनी, कन्हार-मटासी मिट्टी नमी इंडेक्स एवं 0ms त्वरित रेंडर।',
     updatedAt: new Date().toISOString()
   });
 });

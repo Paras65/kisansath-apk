@@ -58,7 +58,7 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { speakText, stopSpeech } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
-import { fetchLiveWeather } from '../services/weatherService';
+import { fetchLiveWeather, getCachedWeather } from '../services/weatherService';
 import {
   getActiveFarmer,
   loginFarmer,
@@ -173,8 +173,8 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [openMotorModal, setOpenMotorModal] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [weather, setWeather] = useState(null);
+  const [weather, setWeather] = useState(() => getCachedWeather(selectedDistrict));
+  const [weatherLoading, setWeatherLoading] = useState(false);
   const [activeFarmer, setActiveFarmer] = useState(getActiveFarmer());
   const [activeBroadcasts, setActiveBroadcasts] = useState([]);
 
@@ -363,8 +363,12 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   useEffect(() => {
     let isMounted = true;
     const loadWeather = async () => {
+      setWeatherLoading(true);
       const data = await fetchLiveWeather(selectedDistrict);
-      if (isMounted) setWeather(data);
+      if (isMounted) {
+        setWeather(data);
+        setWeatherLoading(false);
+      }
     };
     loadWeather();
     return () => { isMounted = false; };
@@ -376,6 +380,19 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       'आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।'
     );
     let parts = [];
+
+    // Live weather summary preamble
+    if (weather) {
+      parts.push(
+        isChhattisgarhi
+          ? `जय जोहार संगवारी! ${selectedDistrict} म आज तापमान ${weather.temp} डिग्री, पानी गिरे के संका ${weather.rainProbability} प्रतिशत अऊ हवा ${weather.windSpeed} किलोमीटर प्रति घंटा हे।`
+          : `नमस्ते किसान साथी! ${selectedDistrict} में आज तापमान ${weather.temp} डिग्री, वर्षा संभावना ${weather.rainProbability} प्रतिशत और हवा ${weather.windSpeed} किमी प्रति घंटा है।`
+      );
+    }
+
+    if (weather?.mawathaAlert?.hasRisk) {
+      parts.push(isChhattisgarhi ? (weather.mawathaAlert.adviceCg || weather.mawathaAlert.advice) : weather.mawathaAlert.advice);
+    }
 
     if (weather?.lightningRisk?.hasRisk) {
       parts.push(isChhattisgarhi ? (weather.lightningRisk.adviceCg || weather.lightningRisk.advice) : weather.lightningRisk.advice);
@@ -2188,14 +2205,16 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 <Box>
                   <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.8 }}>
                     <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1, fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
-                      {weather ? `${weather.temp}°` : '29°'}
+                      {weather ? `${weather.temp}°` : (weatherLoading ? '--°' : '30°')}
                     </Typography>
                     <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: { xs: '0.82rem', sm: '0.9rem' } }}>
-                      {weather ? (isChhattisgarhi ? (weather.conditionTextCg || weather.conditionText) : weather.conditionText) : (isChhattisgarhi ? 'उघरा अकास' : 'साफ मौसम')}
+                      {weather
+                        ? (isChhattisgarhi ? (weather.conditionTextCg || weather.conditionText) : weather.conditionText)
+                        : (weatherLoading ? (isChhattisgarhi ? 'लाइव मौसम लोड होत हे...' : 'लाइव मौसम लोड हो रहा है...') : (isChhattisgarhi ? 'उघरा अकास' : 'साफ मौसम'))}
                     </Typography>
                   </Box>
                   <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                    📍 {selectedDistrict} {isGpsLocation ? (isChhattisgarhi ? '• वर्तमान जगह (GPS)' : '• वर्तमान स्थान (GPS)') : (weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? '• सुरक्छित डेटा' : '• सुरक्षित डेटा'))}
+                    📍 {selectedDistrict} {isGpsLocation ? (isChhattisgarhi ? '• वर्तमान जगह (GPS)' : '• वर्तमान स्थान (GPS)') : (weatherLoading && !weather ? (isChhattisgarhi ? '• 🔄 लोड होत हे...' : '• 🔄 लोड हो रहा है...') : (weather?.isLive ? (isChhattisgarhi ? '• लाइव मौसम' : '• लाइव मौसम') : (isChhattisgarhi ? `• सहेजे डेटा (${weather?.displayTime || 'ऑफ़लाइन'})` : `• सहेजा डेटा (${weather?.displayTime || 'ऑफ़लाइन'})`)))}
                   </Typography>
                 </Box>
               </Box>
@@ -2223,6 +2242,40 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                 </IconButton>
               </Box>
             </Box>
+
+            {/* Mawatha (Unseasonal Cyclonic Rain) Emergency Warning Banner */}
+            {weather?.mawathaAlert?.hasRisk && (
+              <Box
+                sx={{
+                  p: 1.2,
+                  mb: 1.5,
+                  borderRadius: 2.5,
+                  bgcolor: '#fff7ed',
+                  border: '2px solid #ea580c',
+                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.15)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.6
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.8 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>🌾🌧️</Typography>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#c2410c', fontSize: '0.86rem' }}>
+                      {isChhattisgarhi ? (weather.mawathaAlert.titleCg || weather.mawathaAlert.title) : weather.mawathaAlert.title}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={isChhattisgarhi ? (weather.mawathaAlert.badgeCg || weather.mawathaAlert.badge) : weather.mawathaAlert.badge}
+                    size="small"
+                    sx={{ bgcolor: '#ffedd5', color: '#c2410c', fontWeight: 900, fontSize: '0.66rem', height: 22, border: '1px solid #fdba74' }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#9a3412', fontSize: '0.76rem', lineHeight: 1.35, fontWeight: 700 }}>
+                  {isChhattisgarhi ? (weather.mawathaAlert.adviceCg || weather.mawathaAlert.advice) : weather.mawathaAlert.advice}
+                </Typography>
+              </Box>
+            )}
 
             {/* Lightning & Severe Squall Emergency Warning Banner */}
             {weather?.lightningRisk?.hasRisk && (
@@ -2266,7 +2319,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> {isChhattisgarhi ? 'पानी (बरसात)' : 'वर्षा'}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.rainProbability}%` : '10%'}
+                  {weather ? `${weather.rainProbability}%` : (weatherLoading ? '--' : '0%')}
                 </Typography>
               </Box>
               <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
@@ -2274,7 +2327,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> {isChhattisgarhi ? 'हवा के गति' : 'हवा'}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.windSpeed} km/h` : '10 km/h'}
+                  {weather ? `${weather.windSpeed} km/h` : (weatherLoading ? '--' : '0 km/h')}
                 </Typography>
               </Box>
               <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
@@ -2282,7 +2335,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
                   💧 {isChhattisgarhi ? 'उमस (नमी)' : 'आर्द्रता'}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.humidity}%` : '62%'}
+                  {weather ? `${weather.humidity}%` : (weatherLoading ? '--' : '0%')}
                 </Typography>
               </Box>
             </Box>

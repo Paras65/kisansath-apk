@@ -59,7 +59,7 @@ import {
 } from '../utils/cropLifecycleEngine';
 import { getFertilizers, getCachedModuleData } from '../services/apiService';
 import { speakText, stopSpeech } from '../utils/speech';
-import { fetchLiveWeather } from '../services/weatherService';
+import { fetchLiveWeather, getCachedWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
 import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
@@ -87,7 +87,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
     return () => { isMounted = false; };
   }, []);
   const [openMotorModal, setOpenMotorModal] = useState(false);
-  const [liveWeather, setLiveWeather] = useState(weatherContext || null);
+  const [liveWeather, setLiveWeather] = useState(() => weatherContext || getCachedWeather(selectedDistrict));
 
   useEffect(() => {
     if (open) {
