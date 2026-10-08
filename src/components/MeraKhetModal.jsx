@@ -43,6 +43,7 @@ import ScienceIcon from '@mui/icons-material/Science';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
 import PrintIcon from '@mui/icons-material/Print';
 import { generateAndPrintKccReport } from '../utils/printReportHelper';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 
 import {
   getActiveFarmer,
@@ -336,9 +337,12 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
               {isChhattisgarhi ? '🌾 मोर खेत: बहु-फसली स्मार्ट डैशबोर्ड' : '🌾 मेरा खेत: बहु-फसली स्मार्ट डैशबोर्ड'}
             </Typography>
           </Box>
-          <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
-            <CloseIcon />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <KakaWalkthroughButton featureId="merakhet" sx={{ bgcolor: 'rgba(255,255,255,0.92)' }} />
+            <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </DialogTitle>
 
         <DialogContent sx={{ p: { xs: 1.5, sm: 2.5 } }}>

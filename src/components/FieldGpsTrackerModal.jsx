@@ -38,6 +38,7 @@ import {
 import { speakText, stopSpeech } from '../utils/speech';
 import { vibrateDevice, setNativeKeepScreenOn } from '../utils/capacitorUtils';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 
 export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = 'खेत' }) => {
   const { isChhattisgarhi } = useLanguage();
@@ -369,9 +370,12 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
-          <CloseIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <KakaWalkthroughButton featureId="gps" sx={{ bgcolor: 'rgba(255,255,255,0.92)' }} />
+          <IconButton size="small" onClick={onClose} sx={{ color: '#fff' }} aria-label="close">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent sx={{ p: 2, bgcolor: '#fafbf9' }}>

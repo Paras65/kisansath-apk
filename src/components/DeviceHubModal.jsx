@@ -45,6 +45,7 @@ import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 import { openNativeDialer, openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 
 export const DeviceHubModal = ({
   open,
@@ -267,24 +268,8 @@ export const DeviceHubModal = ({
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-          <Button
-            size="small"
-            startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-            onClick={handleVoiceSummary}
-            sx={{
-              color: '#ffffff',
-              bgcolor: 'rgba(255,255,255,0.15)',
-              fontSize: '0.72rem',
-              fontWeight: 700,
-              borderRadius: '8px',
-              py: 0.4,
-              px: 1,
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
-            }}
-          >
-            {isChhattisgarhi ? 'सुनव' : 'सुनें'}
-          </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <KakaWalkthroughButton featureId="devicehub" sx={{ bgcolor: 'rgba(255,255,255,0.92)' }} />
           <IconButton onClick={handleClose} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.1)' }} aria-label="close">
             <CloseIcon fontSize="small" />
           </IconButton>

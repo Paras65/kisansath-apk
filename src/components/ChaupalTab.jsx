@@ -42,6 +42,7 @@ import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import { speakText } from '../utils/speech';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
 import {
   getMachinery,
@@ -361,15 +362,18 @@ export const ChaupalTab = () => {
                 {isChhattisgarhi ? 'ट्रैक्टर, कंबाइन हार्वेस्टर अउ कृषि ड्रोन सही दर म' : 'ट्रैक्टर, कंबाइन हार्वेस्टर और कृषि ड्रोन उचित दरों पर'}
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddCircleIcon />}
-              onClick={() => setOpenAddMachineryModal(true)}
-              sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.75rem', borderRadius: 2, '&:hover': { bgcolor: '#125420' } }}
-            >
-              {isChhattisgarhi ? '+ मशीन किराया बर जोड़व' : '+ मशीन किराए पर जोड़ें'}
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <KakaWalkthroughButton featureId="machinery" />
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddCircleIcon />}
+                onClick={() => setOpenAddMachineryModal(true)}
+                sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.75rem', borderRadius: 2, '&:hover': { bgcolor: '#125420' } }}
+              >
+                {isChhattisgarhi ? '+ मशीन किराया बर जोड़व' : '+ मशीन किराए पर जोड़ें'}
+              </Button>
+            </Box>
           </Box>
           {/* Zero-False-Data Benchmark Notice */}
           <Paper
@@ -571,7 +575,7 @@ export const ChaupalTab = () => {
       {/* SUB-TAB 1: COMMUNITY FORUM Q&A */}
       {subTab === 1 && (
         <Box>
-          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
                 {isChhattisgarhi ? '💬 किसान चौपाल (संगी मंच)' : '💬 किसान चौपाल (Community Forum)'}
@@ -580,23 +584,26 @@ export const ChaupalTab = () => {
                 {isChhattisgarhi ? 'कृषि वैज्ञानिक व संगी किसान मन ले सवाल पूछव अउ अनुभव बांटव' : 'कृषि विशेषज्ञों व साथी किसानों से सवाल पूछें और अनुभव बांटें'}
               </Typography>
             </Box>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddCircleIcon />}
-              onClick={() => setOpenAskModal(true)}
-              sx={{
-                bgcolor: '#1b5e20',
-                color: '#ffffff',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                borderRadius: '8px',
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: '#125420' }
-              }}
-            >
-              {isChhattisgarhi ? 'सवाल पूछव' : 'सवाल पूछें'}
-            </Button>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <KakaWalkthroughButton featureId="chaupal" />
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddCircleIcon />}
+                onClick={() => setOpenAskModal(true)}
+                sx={{
+                  bgcolor: '#1b5e20',
+                  color: '#ffffff',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  borderRadius: '8px',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: '#125420' }
+                }}
+              >
+                {isChhattisgarhi ? 'सवाल पूछव' : 'सवाल पूछें'}
+              </Button>
+            </Box>
           </Box>
 
           {questions.length === 0 ? (
@@ -776,7 +783,8 @@ export const ChaupalTab = () => {
                 {isChhattisgarhi ? 'अपन फसल दर्ज करव अउ पानी व खाद के सुरता पावव' : 'अपनी फसलें दर्ज करें और सिंचाई व खाद का रिमाइंडर पाएं'}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+              <KakaWalkthroughButton featureId="diary" />
               <Button
                 variant="outlined"
                 size="small"

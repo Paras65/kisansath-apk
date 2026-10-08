@@ -43,6 +43,7 @@ import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 import { openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 
 export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
   const { isChhattisgarhi } = useLanguage();
@@ -149,9 +150,12 @@ export const MotorControllerModal = ({ open, onClose, weatherContext }) => {
             </Typography>
           </Box>
         </Box>
-        <IconButton size="small" onClick={handleModalClose} sx={{ color: '#fff' }} aria-label="close">
-          <CloseIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <KakaWalkthroughButton featureId="motor" sx={{ bgcolor: 'rgba(255,255,255,0.92)' }} />
+          <IconButton size="small" onClick={handleModalClose} sx={{ color: '#fff' }} aria-label="close">
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       <DialogContent sx={{ p: 2, bgcolor: '#fafbf9' }}>
