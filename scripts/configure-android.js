@@ -76,6 +76,8 @@ function setupManifestPermissions() {
   const permissionsAndQueries = `
     <!-- Kisan Saathi Agricultural Modules Hardware & System Permissions -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -88,10 +90,11 @@ function setupManifestPermissions() {
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-feature android:name="android.hardware.location.gps" android:required="false" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
-    <!-- Android 11+ Package Visibility Queries for Dial, SMS, and WhatsApp -->
+    <!-- Android 11+ Package Visibility Queries for Dial, SMS, WhatsApp, and Speech Recognition -->
     <queries>
         <intent>
             <action android:name="android.intent.action.DIAL" />
@@ -105,14 +108,17 @@ function setupManifestPermissions() {
             <action android:name="android.intent.action.SENDTO" />
             <data android:scheme="sms" />
         </intent>
+        <intent>
+            <action android:name="android.speech.RecognitionService" />
+        </intent>
         <package android:name="com.whatsapp" />
         <package android:name="com.whatsapp.w4b" />
     </queries>
 `;
 
-  if (!content.includes('android.permission.CAMERA')) {
+  if (!content.includes('android.permission.RECORD_AUDIO')) {
     content = content.replace('</manifest>', `${permissionsAndQueries}\n</manifest>`);
-    console.log('[Manifest] Added Camera, Location, Vibration, WakeLock, and Queries to AndroidManifest.xml.');
+    console.log('[Manifest] Added Mic, Location, Camera, Bluetooth, and Speech queries to AndroidManifest.xml.');
   }
 
   if (!content.includes('android:usesCleartextTraffic')) {
@@ -147,8 +153,12 @@ function setupNativeTTSAndMediaSettings() {
 
   const code = `package in.co.init65.kisan;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -157,6 +167,9 @@ import android.os.Vibrator;
 import android.print.PrintAttributes;
 import android.print.PrintDocumentAdapter;
 import android.print.PrintManager;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -164,16 +177,38 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import com.getcapacitor.BridgeActivity;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends BridgeActivity {
     private TextToSpeech tts;
     private boolean isTtsReady = false;
     private String pendingSpeechText = null;
+    private SpeechRecognizer speechRecognizer = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Auto-request runtime hardware permissions on Android 6+ (API 23+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            String[] requiredPerms = new String[] {
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.RECORD_AUDIO
+            };
+            boolean needsPrompt = false;
+            for (String p : requiredPerms) {
+                if (checkSelfPermission(p) != PackageManager.PERMISSION_GRANTED) {
+                    needsPrompt = true;
+                    break;
+                }
+            }
+            if (needsPrompt) {
+                requestPermissions(requiredPerms, 1001);
+            }
+        }
 
         // Initialize Native Android Hardware Text-to-Speech Engine
         tts = new TextToSpeech(this, status -> {
@@ -194,9 +229,25 @@ public class MainActivity extends BridgeActivity {
         WebView webView = getBridge().getWebView();
         if (webView != null) {
             webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+            webView.getSettings().setGeolocationEnabled(true);
+            webView.getSettings().setDatabaseEnabled(true);
+            webView.getSettings().setDomStorageEnabled(true);
+
             webView.addJavascriptInterface(new AndroidTTSBridge(), "AndroidTTS");
             webView.addJavascriptInterface(new AndroidDeviceBridge(), "AndroidBridge");
+            webView.addJavascriptInterface(new AndroidSpeechBridge(), "AndroidSpeech");
         }
+    }
+
+    private void sendJsEvent(String jsCode) {
+        runOnUiThread(() -> {
+            try {
+                WebView webView = getBridge() != null ? getBridge().getWebView() : null;
+                if (webView != null) {
+                    webView.evaluateJavascript(jsCode, null);
+                }
+            } catch (Exception ignored) {}
+        });
     }
 
     public class AndroidTTSBridge {
@@ -224,10 +275,166 @@ public class MainActivity extends BridgeActivity {
         }
     }
 
+    public class AndroidSpeechBridge {
+        @JavascriptInterface
+        public boolean isAvailable() {
+            return SpeechRecognizer.isRecognitionAvailable(MainActivity.this);
+        }
+
+        @JavascriptInterface
+        public void startListening() {
+            runOnUiThread(() -> {
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, 2001);
+                            sendJsEvent("window._kisanOnNativeSpeechError && window._kisanOnNativeSpeechError('permission_needed')");
+                            return;
+                        }
+                    }
+
+                    if (speechRecognizer != null) {
+                        try {
+                            speechRecognizer.destroy();
+                        } catch (Exception ignored) {}
+                        speechRecognizer = null;
+                    }
+
+                    speechRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "hi-IN");
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "hi-IN");
+                    intent.putExtra("android.speech.extra.EXTRA_ADDITIONAL_LANGUAGES", new String[]{"hi-IN", "en-IN"});
+                    intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
+                    intent.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+
+                    speechRecognizer.setRecognitionListener(new RecognitionListener() {
+                        @Override
+                        public void onReadyForSpeech(Bundle params) {
+                            sendJsEvent("window._kisanOnNativeSpeechState && window._kisanOnNativeSpeechState('ready')");
+                        }
+                        @Override
+                        public void onBeginningOfSpeech() {
+                            sendJsEvent("window._kisanOnNativeSpeechState && window._kisanOnNativeSpeechState('beginning')");
+                        }
+                        @Override
+                        public void onRmsChanged(float rmsdB) {}
+                        @Override
+                        public void onBufferReceived(byte[] buffer) {}
+                        @Override
+                        public void onEndOfSpeech() {
+                            sendJsEvent("window._kisanOnNativeSpeechState && window._kisanOnNativeSpeechState('end')");
+                        }
+                        @Override
+                        public void onError(int error) {
+                            sendJsEvent("window._kisanOnNativeSpeechError && window._kisanOnNativeSpeechError(" + error + ")");
+                        }
+                        @Override
+                        public void onResults(Bundle results) {
+                            ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                            if (matches != null && !matches.isEmpty()) {
+                                String top = matches.get(0).replace("\\\\", "\\\\\\\\").replace("\\"", "\\\\\\"").replace("\\n", " ");
+                                sendJsEvent("window._kisanOnNativeSpeechResult && window._kisanOnNativeSpeechResult(\\\"" + top + "\\\")");
+                            } else {
+                                sendJsEvent("window._kisanOnNativeSpeechError && window._kisanOnNativeSpeechError(7)");
+                            }
+                        }
+                        @Override
+                        public void onPartialResults(Bundle partialResults) {
+                            ArrayList<String> matches = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                            if (matches != null && !matches.isEmpty()) {
+                                String part = matches.get(0).replace("\\\\", "\\\\\\\\").replace("\\"", "\\\\\\"").replace("\\n", " ");
+                                sendJsEvent("window._kisanOnNativeSpeechPartial && window._kisanOnNativeSpeechPartial(\\\"" + part + "\\\")");
+                            }
+                        }
+                        @Override
+                        public void onEvent(int eventType, Bundle params) {}
+                    });
+
+                    speechRecognizer.startListening(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendJsEvent("window._kisanOnNativeSpeechError && window._kisanOnNativeSpeechError(-1)");
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void stopListening() {
+            runOnUiThread(() -> {
+                if (speechRecognizer != null) {
+                    try {
+                        speechRecognizer.stopListening();
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void cancel() {
+            runOnUiThread(() -> {
+                if (speechRecognizer != null) {
+                    try {
+                        speechRecognizer.cancel();
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
+    }
+
     public class AndroidDeviceBridge {
         @JavascriptInterface
         public boolean isNative() {
             return true;
+        }
+
+        @JavascriptInterface
+        public String getNativeLocation() {
+            try {
+                LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                if (lm == null) return null;
+                Location best = null;
+                List<String> providers = lm.getProviders(true);
+                for (String provider : providers) {
+                    try {
+                        Location l = lm.getLastKnownLocation(provider);
+                        if (l == null) continue;
+                        if (best == null || l.getAccuracy() < best.getAccuracy()) {
+                            best = l;
+                        }
+                    } catch (SecurityException ignored) {}
+                }
+                if (best != null) {
+                    return "{\\\"lat\\\":" + best.getLatitude() + ",\\\"lon\\\":" + best.getLongitude() + ",\\\"accuracy\\\":" + best.getAccuracy() + "}";
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        @JavascriptInterface
+        public void requestLocationPermission() {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    }, 1002);
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void requestMicPermission() {
+            runOnUiThread(() -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(new String[]{
+                        Manifest.permission.RECORD_AUDIO
+                    }, 1003);
+                }
+            });
         }
 
         @JavascriptInterface
@@ -363,13 +570,16 @@ public class MainActivity extends BridgeActivity {
             tts.stop();
             tts.shutdown();
         }
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
         super.onDestroy();
     }
 }
 `;
 
   fs.writeFileSync(mainActivityPath, code, 'utf8');
-  console.log('[MainActivity] ✅ Native Android TTS, Hardware Dialer/SMS, Share, & MediaPlayback enabled in MainActivity.java.');
+  console.log('[MainActivity] ✅ Native Android TTS, SpeechRecognizer, Hardware GPS Location, Dialer, SMS, & MediaPlayback enabled in MainActivity.java.');
 }
 
 setupIcons();

@@ -154,12 +154,24 @@ export const DraggableVoiceButton = ({
     }
   };
 
-  // Background and appearance logic
-  const bg = isSpeakingActive
-    ? '#c62828'
+  // Glassmorphic translucent background & border logic
+  const glassBg = isSpeakingActive
+    ? 'linear-gradient(135deg, rgba(198, 40, 40, 0.85) 0%, rgba(183, 28, 28, 0.78) 100%)'
     : isVoiceListening
-    ? '#1565c0'
-    : '#2e7d32';
+    ? 'linear-gradient(135deg, rgba(21, 101, 192, 0.85) 0%, rgba(13, 71, 161, 0.78) 100%)'
+    : 'linear-gradient(135deg, rgba(46, 125, 50, 0.82) 0%, rgba(27, 94, 32, 0.75) 100%)';
+
+  const glassBorder = isModalOpen
+    ? '2.5px solid rgba(255, 255, 255, 0.85)'
+    : '1.5px solid rgba(255, 255, 255, 0.35)';
+
+  const glassShadow = isVoiceListening
+    ? '0 0 0 4px rgba(21, 101, 192, 0.35), 0 8px 32px rgba(21, 101, 192, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+    : isSpeakingActive
+    ? '0 8px 32px rgba(198, 40, 40, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+    : isModalOpen
+    ? '0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 3px rgba(255, 255, 255, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.4)'
+    : '0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(27, 94, 32, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.45)';
 
   const currentAvatarSrc = isSpeakingActive
     ? '/icons/kaka-speaking.png'
@@ -206,36 +218,38 @@ export const DraggableVoiceButton = ({
           alignItems: 'center',
           justifyContent: 'center',
           gap: 0.8,
-          bgcolor: bg,
+          background: glassBg,
+          backdropFilter: 'blur(14px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(14px) saturate(180%)',
           color: '#ffffff',
           fontWeight: 800,
           fontSize: '0.84rem',
           letterSpacing: '0.3px',
-          boxShadow: isVoiceListening
-            ? '0 0 0 4px rgba(21,101,192,0.35), 0 6px 22px rgba(21,101,192,0.6)'
-            : isSpeakingActive
-            ? '0 6px 22px rgba(198,40,40,0.55)'
-            : isModalOpen
-            ? '0 8px 24px rgba(0,0,0,0.35), 0 0 0 3px #ffffff'
-            : '0 6px 20px rgba(46,125,50,0.45)',
+          textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+          boxShadow: glassShadow,
           px: isModalOpen ? 0 : 1.6,
           py: isModalOpen ? 0 : 0.8,
           width: isModalOpen ? 48 : 'auto',
           height: isModalOpen ? 48 : 44,
           minWidth: isModalOpen ? 48 : 0,
           borderRadius: isModalOpen ? '50%' : '28px',
-          border: isModalOpen ? '2.5px solid #ffffff' : 'none',
+          border: glassBorder,
           transition: isDraggingRef.current
             ? 'none'
-            : 'width 0.25s, height 0.25s, border-radius 0.25s, background-color 0.2s, box-shadow 0.2s, left 0.15s ease-out',
+            : 'width 0.25s, height 0.25s, border-radius 0.25s, background 0.2s, box-shadow 0.2s, left 0.15s ease-out',
           animation: isVoiceListening ? 'kisanVoicePulse 1.2s infinite' : 'none',
           '@keyframes kisanVoicePulse': {
-            '0%, 100%': { boxShadow: '0 0 0 4px rgba(21,101,192,0.35), 0 6px 22px rgba(21,101,192,0.6)' },
-            '50%': { boxShadow: '0 0 0 10px rgba(21,101,192,0.15), 0 8px 28px rgba(21,101,192,0.7)' },
+            '0%, 100%': { boxShadow: '0 0 0 4px rgba(21,101,192,0.35), 0 8px 32px rgba(21,101,192,0.6)' },
+            '50%': { boxShadow: '0 0 0 10px rgba(21,101,192,0.18), 0 10px 36px rgba(21,101,192,0.75)' },
           },
           '&:hover': {
-            bgcolor: isSpeakingActive ? '#b71c1c' : isVoiceListening ? '#0d47a1' : '#1b5e20',
+            background: isSpeakingActive
+              ? 'linear-gradient(135deg, rgba(183, 28, 28, 0.92) 0%, rgba(136, 14, 79, 0.88) 100%)'
+              : isVoiceListening
+              ? 'linear-gradient(135deg, rgba(13, 71, 161, 0.92) 0%, rgba(1, 87, 155, 0.88) 100%)'
+              : 'linear-gradient(135deg, rgba(46, 125, 50, 0.90) 0%, rgba(27, 94, 32, 0.85) 100%)',
             transform: 'scale(1.03)',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.32), inset 0 1px 2px rgba(255, 255, 255, 0.5)',
           },
           '&:active': {
             transform: 'scale(0.97)',
@@ -266,6 +280,8 @@ export const DraggableVoiceButton = ({
                 height: '100%',
                 objectFit: 'cover',
                 borderRadius: '50%',
+                transform: 'scale(1.22)',
+                transformOrigin: 'center 35%',
               }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
@@ -295,11 +311,12 @@ export const DraggableVoiceButton = ({
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
-                border: '2px solid #ffffff',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                border: '1.5px solid rgba(255, 255, 255, 0.85)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                bgcolor: 'rgba(0,0,0,0.1)',
               }}
             >
               <Box
@@ -310,6 +327,8 @@ export const DraggableVoiceButton = ({
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
+                  transform: 'scale(1.22)',
+                  transformOrigin: 'center 35%',
                 }}
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';

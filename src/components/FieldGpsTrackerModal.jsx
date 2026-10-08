@@ -100,6 +100,16 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
       return;
     }
 
+    if (
+      typeof window !== 'undefined' &&
+      window.AndroidBridge &&
+      typeof window.AndroidBridge.requestLocationPermission === 'function'
+    ) {
+      try {
+        window.AndroidBridge.requestLocationPermission();
+      } catch {}
+    }
+
     requestWakeLock();
     setTrackingState('tracking');
     speakText('खेत सीमा मापन शुरू हो गया है। कृपया खेत की चारों मेड़ों पर सामान्य गति से चलें।');
@@ -129,6 +139,15 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
       },
       (err) => {
         console.warn('[GPS Error]', err);
+        if (
+          typeof window !== 'undefined' &&
+          window.AndroidBridge &&
+          typeof window.AndroidBridge.requestLocationPermission === 'function'
+        ) {
+          try {
+            window.AndroidBridge.requestLocationPermission();
+          } catch {}
+        }
         if (err.code === 3) {
           // Timeout: satellite lock in progress
           setGpsError('उपग्रह सिग्नल खोज रहे हैं... कृपया खुले आसमान के नीचे रहें।');

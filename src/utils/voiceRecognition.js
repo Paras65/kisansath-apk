@@ -30,12 +30,13 @@ export const subscribeVoiceState = (fn) => {
   return () => stateListeners.delete(fn);
 };
 
-/** Returns true if browser supports Web Speech Recognition */
+/** Returns true if browser supports Web Speech Recognition or Android Native Speech Bridge */
 export const isVoiceSupported = () => {
-  return (
-    typeof window !== 'undefined' &&
-    (Boolean(window.SpeechRecognition) || Boolean(window.webkitSpeechRecognition))
-  );
+  if (typeof window === 'undefined') return false;
+  if (window.AndroidSpeech && typeof window.AndroidSpeech.startListening === 'function') {
+    return true;
+  }
+  return Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
 };
 
 // Safe Haptic feedback helper
@@ -305,6 +306,83 @@ export const startVoiceRecognition = (onResult, onError) => {
     }
   };
 
+  // ── Native Android Speech Recognition Bridge (APK / TWA / Capacitor) ──
+  if (
+    typeof window !== 'undefined' &&
+    window.AndroidSpeech &&
+    typeof window.AndroidSpeech.startListening === 'function'
+  ) {
+    isStarting = false;
+    isListening = true;
+    triggerHaptic([45]);
+
+    clearWatchdog();
+    watchdogTimer = setTimeout(() => {
+      if (isListening) {
+        stopVoiceRecognition();
+        if (onError) onError('समय समाप्त हुआ। शांत जगह पर फिर से बोलें।', 'timeout');
+      }
+    }, 9000);
+
+    window._kisanOnNativeSpeechState = (state) => {
+      if (state === 'ready' || state === 'beginning') {
+        isListening = true;
+        notifyListeners({ listening: true, transcript: '', error: null });
+      }
+    };
+
+    window._kisanOnNativeSpeechPartial = (partial) => {
+      notifyListeners({ listening: true, transcript: partial, error: null });
+    };
+
+    window._kisanOnNativeSpeechResult = (text) => {
+      clearWatchdog();
+      triggerHaptic([30, 40, 30]);
+      const best = (text || '').trim();
+      const matched = matchVoiceRoute(best);
+      notifyListeners({ listening: false, transcript: best, error: null });
+      isListening = false;
+      isStarting = false;
+
+      // Sequence buffer to let audio hardware switch from mic to speaker cleanly
+      setTimeout(() => {
+        if (onResult) onResult(best, matched);
+      }, 150);
+    };
+
+    window._kisanOnNativeSpeechError = (code) => {
+      clearWatchdog();
+      isListening = false;
+      isStarting = false;
+
+      let friendly = 'आवाज़ पहचान में समस्या आई। फिर से बोलें।';
+      if (code === 'permission_needed' || code === 9) {
+        friendly = '🎤 माइक्रोफ़ोन की अनुमति बंद है। कृपया ऐप सेटिंग्स में अनुमति दें।';
+      } else if (code === 6 || code === 7) {
+        friendly = 'कुछ सुनाई नहीं दिया। कृपया फिर से बोलें।';
+      } else if (code === 1 || code === 2) {
+        friendly = 'इंटरनेट धीमा है, थोड़ा इंतज़ार करके दोबारा बोलें।';
+      }
+
+      notifyListeners({ listening: false, transcript: '', error: friendly });
+      if (onError) onError(friendly, code);
+    };
+
+    window._kisanStopVoiceRecognition = stopVoiceRecognition;
+    notifyListeners({ listening: true, transcript: '', error: null });
+
+    try {
+      window.AndroidSpeech.startListening();
+    } catch (err) {
+      clearWatchdog();
+      isListening = false;
+      isStarting = false;
+      if (onError) onError('माइक्रोफ़ोन शुरू करने में समस्या आई।', err?.message);
+    }
+    return;
+  }
+
+  // ── Standard Web Speech Recognition (Chrome / Safari / PWA) ──
   try {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SR();
@@ -398,6 +476,17 @@ export const stopVoiceRecognition = () => {
   if (watchdogTimer) {
     clearTimeout(watchdogTimer);
     watchdogTimer = null;
+  }
+  if (
+    typeof window !== 'undefined' &&
+    window.AndroidSpeech &&
+    typeof window.AndroidSpeech.stopListening === 'function'
+  ) {
+    try {
+      window.AndroidSpeech.stopListening();
+    } catch {
+      // safe stop
+    }
   }
   if (recognitionInstance) {
     try {

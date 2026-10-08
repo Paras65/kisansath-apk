@@ -58,24 +58,81 @@ export const findClosestDistrict = (latitude, longitude) => {
 
 /**
  * Auto-detect user's current GPS location and resolve closest agricultural center
+ * Seamlessly integrates Native Android Hardware Location Manager & Web Geolocation
  */
 export const detectCurrentLocationDistrict = (highAccuracy = false) => {
   return new Promise((resolve, reject) => {
+    // 1. Check Native Android Hardware GPS Bridge (Instant 0ms Hardware Fix for APK)
+    if (
+      typeof window !== 'undefined' &&
+      window.AndroidBridge &&
+      typeof window.AndroidBridge.getNativeLocation === 'function'
+    ) {
+      try {
+        const raw = window.AndroidBridge.getNativeLocation();
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
+            const district = findClosestDistrict(parsed.lat, parsed.lon);
+            resolve({
+              district,
+              coords: { latitude: parsed.lat, longitude: parsed.lon, accuracy: parsed.accuracy },
+              isLiveGps: true,
+            });
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[Native Location Check Error]', err);
+      }
+
+      // Prompt Android runtime permission if not yet granted
+      try {
+        if (typeof window.AndroidBridge.requestLocationPermission === 'function') {
+          window.AndroidBridge.requestLocationPermission();
+        }
+      } catch {}
+    }
+
+    // 2. Standard Web Geolocation API
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       reject(new Error('Geolocation not supported'));
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const { latitude, longitude } = pos.coords;
+        const { latitude, longitude, accuracy } = pos.coords;
         const district = findClosestDistrict(latitude, longitude);
         resolve({
           district,
-          coords: { latitude, longitude },
+          coords: { latitude, longitude, accuracy },
           isLiveGps: true,
         });
       },
       (err) => {
+        // Fallback retry to native bridge if navigator returned permission or timeout error
+        if (
+          typeof window !== 'undefined' &&
+          window.AndroidBridge &&
+          typeof window.AndroidBridge.getNativeLocation === 'function'
+        ) {
+          try {
+            const raw = window.AndroidBridge.getNativeLocation();
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
+                const district = findClosestDistrict(parsed.lat, parsed.lon);
+                resolve({
+                  district,
+                  coords: { latitude: parsed.lat, longitude: parsed.lon, accuracy: parsed.accuracy },
+                  isLiveGps: true,
+                });
+                return;
+              }
+            }
+          } catch {}
+        }
         reject(err);
       },
       { enableHighAccuracy: highAccuracy, timeout: 8000, maximumAge: 300000 }

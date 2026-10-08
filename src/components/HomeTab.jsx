@@ -176,7 +176,8 @@ export const HomeTab = ({
 
   // 1-Tap Live GPS Location Detection
   const handleDetectLiveGps = async () => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    const hasBridgeGps = typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getNativeLocation === 'function';
+    if (!hasBridgeGps && (typeof navigator === 'undefined' || !navigator.geolocation)) {
       notify.warning(isChhattisgarhi ? 'मोबाइल म GPS सुविधा नइये।' : 'डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
       return;
     }

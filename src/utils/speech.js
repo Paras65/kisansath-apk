@@ -83,28 +83,56 @@ const scoreVoice = (v) => {
   let score = 0;
   const name = (v.name || '').toLowerCase();
   const lang = (v.lang || '').toLowerCase().replace(/_/g, '-');
+  const uri = (v.voiceURI || '').toLowerCase();
+  const fullId = `${name} ${uri}`;
 
   const isHindi = lang.startsWith('hi') || name.includes('hindi') || name.includes('हिन्दी');
   const isIndian = lang.includes('in') || name.includes('india');
 
+  // Bhaira Kaka is an elderly village uncle / grandfather (काका) - strictly prioritize male voices!
+  const isExplicitMale =
+    fullId.includes('madhur') ||
+    fullId.includes('prabhat') ||
+    fullId.includes('rishi') ||
+    fullId.includes('neel') ||
+    fullId.includes('hemant') ||
+    fullId.includes('ravi') ||
+    fullId.includes('cmn') || // Google WaveNet/Neural male model
+    fullId.includes('male') ||
+    fullId.includes('पुरुष');
+
+  const isExplicitFemale =
+    fullId.includes('swara') ||
+    fullId.includes('neerja') ||
+    fullId.includes('kalpana') ||
+    fullId.includes('lekha') ||
+    fullId.includes('cfn') || // Google female model
+    fullId.includes('hie') ||
+    fullId.includes('female') ||
+    fullId.includes('महिला') ||
+    fullId.includes('woman') ||
+    fullId.includes('zira');
+
   if (isHindi) {
     score += 70;
-    // Microsoft Natural Neural voices (Top Tier on Windows & Microsoft Edge)
-    if (name.includes('natural') || name.includes('neural')) score += 50;
-    if (name.includes('swara')) score += 40; // Microsoft Swara Online (Natural) - Rank 1 Female
-    if (name.includes('madhur')) score += 35; // Microsoft Madhur Online (Natural) - Rank 2 Male
-    // Google WaveNet Neural (Google Chrome & Android)
+    // Microsoft Natural Neural voices
+    if (name.includes('natural') || name.includes('neural')) score += 40;
     if (name.includes('google')) score += 30;
     if (name.includes('online')) score += 15;
   } else if (isIndian) {
     score += 25;
     if (name.includes('natural') || name.includes('neural')) score += 20;
-    if (name.includes('neerja') || name.includes('prabhat')) score += 25;
-    if (name.includes('google')) score += 15;
+  }
+
+  // Strong gender weighting for Bhaira Kaka persona:
+  if (isExplicitMale) {
+    score += 100; // Heavily favor authentic male voice (e.g. Microsoft Madhur, Google CMN)
+  } else if (isExplicitFemale) {
+    score -= 80; // Strongly de-prioritize female voices (Swara, Neerja, Lekha)
   }
 
   // Slight bonus if marked system default
-  if (v.default) score += 5;
+  if (v.default && !isExplicitFemale) score += 5;
 
   return score;
 };
@@ -132,7 +160,7 @@ const selectBestVoice = () => {
   }
 
   let bestVoice = null;
-  let highestScore = -1;
+  let highestScore = -999;
 
   for (const v of voices) {
     const score = scoreVoice(v);
@@ -142,7 +170,7 @@ const selectBestVoice = () => {
     }
   }
 
-  if (bestVoice && highestScore > 0) {
+  if (bestVoice) {
     return { voice: bestVoice, lang: bestVoice.lang || 'hi-IN' };
   }
 
@@ -468,8 +496,8 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
       utterance.voice = voiceToUse;
     }
     utterance.lang = lang || 'hi-IN';
-    utterance.rate = 0.92; // Calm, respectful pace for rural elders and clarity
-    utterance.pitch = 1.0; // Natural conversational pitch
+    utterance.rate = 0.88; // Calm, respectful, grandfatherly pace for Bhaira Kaka
+    utterance.pitch = 0.82; // Deeper, resonant pitch (0.82) to guarantee an authentic older male / काका voice
 
     utterance.onstart = () => {
       if (sessionId !== currentSpeechSessionId) return;
