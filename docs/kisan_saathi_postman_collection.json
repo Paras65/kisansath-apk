@@ -30,21 +30,6 @@
           }
         },
         {
-          "name": "Agmarknet Mandi Rates Backup Mirror",
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Accept", "value": "application/json" }],
-            "url": {
-              "raw": "https://mandi-api.onrender.com/api/mandis?state=Chhattisgarh",
-              "protocol": "https",
-              "host": ["mandi-api", "onrender", "com"],
-              "path": ["api", "mandis"],
-              "query": [{ "key": "state", "value": "Chhattisgarh" }]
-            },
-            "description": "High-availability backup mirror proxy when data.gov.in government servers experience downtime."
-          }
-        },
-        {
           "name": "CIB&RC Registered Pesticides (OGD Dataset)",
           "request": {
             "method": "GET",

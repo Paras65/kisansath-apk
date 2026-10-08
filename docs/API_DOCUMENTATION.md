@@ -587,10 +587,9 @@ curl -i https://kisan.init65.co.in/api/farmer/profile/9876543210
 3. `docs/kisan_saathi_postman_collection.json` फ़ाइल को ड्रैग-एंड-ड्रॉप करें या सेलेक्ट करें।
 4. कलेक्शन तुरंत **"Kisan Saathi - Complete Platform & External APIs Collection"** नाम से आपके वर्कस्पेस में जुड़ जाएगा।
 
-### (ख) पहले से कॉन्फ़िगर किए गए 9 मुख्य फ़ोल्डर्स (कुल 52 एंडपॉइंट्स):
-1. **🌾 1. External Agri & OGD APIs (भारत सरकार) (5 एंडपॉइंट्स):**
+### (ख) पहले से कॉन्फ़िगर किए गए 9 मुख्य फ़ोल्डर्स (कुल 51 एंडपॉइंट्स):
+1. **🌾 1. External Agri & OGD APIs (भारत सरकार) (4 एंडपॉइंट्स):**
    - Agmarknet Live Mandi Rates (`data.gov.in`)
-   - Agmarknet Mandi Rates Backup Mirror (`mandi-api.onrender.com`)
    - CIB&RC Approved Safe Pesticides Dataset
    - District Soil Health Survey Baseline Dataset
    - CACP Official MSP Benchmarks Dataset

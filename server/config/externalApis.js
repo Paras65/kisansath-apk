@@ -18,7 +18,6 @@ export const externalApisConfig = {
     ).trim(),
     limit: parseInt(process.env.MANDI_API_LIMIT, 10) || 60,
     timeoutMs: parseInt(process.env.MANDI_API_TIMEOUT_MS, 10) || 8000,
-    backupMirrorUrl: (process.env.MANDI_BACKUP_MIRROR_URL || 'https://mandi-api.onrender.com/api/mandis?state=Chhattisgarh').trim(),
     stateVariants: (process.env.MANDI_STATE_VARIANTS || 'Chattisgarh,Chhattisgarh')
       .split(',')
       .map((s) => s.trim())

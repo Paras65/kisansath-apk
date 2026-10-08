@@ -174,38 +174,9 @@ const fetchFromDataGovIn = async () => {
 };
 
 /**
- * Tier 1: Attempt to query public open community mandi feeds
- */
-const fetchFromPublicMandiFeed = async () => {
-  const { backupMirrorUrl, timeoutMs } = externalApisConfig.mandi;
-  if (!backupMirrorUrl) return null;
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), Math.min(timeoutMs, 5000));
-
-    const res = await fetch(backupMirrorUrl, {
-      signal: controller.signal,
-      headers: { 'Accept': 'application/json' }
-    });
-    clearTimeout(timeout);
-
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        const cleaned = data.map(sanitizeMandiRate).filter(Boolean);
-        if (cleaned.length >= 3) return cleaned;
-      }
-    }
-  } catch (err) {
-    // Expected when open community service is sleeping or rate-limited
-  }
-  return null;
-};
-
-/**
- * Tier 2: Fetch and verify current APMC market rates using backend Gemini AI Grounding
+ * Tier 1: Fetch and verify current APMC market rates using backend Gemini AI Grounding
  * Powered entirely by backend server environment key. The farmer requires ZERO keys.
+ * Immediately activates whenever data.gov.in upstream is unreachable, with zero timeout delay.
  */
 const fetchFromBackendGeminiMandiSync = async () => {
   const apiKey =
@@ -341,12 +312,8 @@ export const getOrFetchLiveMandiRates = async ({ forceRefresh = false, district 
     console.warn('[MandiLiveService] MongoDB read error, continuing to live fetch:', dbErr.message);
   }
 
-  // 2. Fetch fresh rates (Tier 0: Official data.gov.in, Tier 1: Public Feed, Tier 2: Backend Gemini AI Sync)
+  // 2. Fetch fresh rates (Tier 0: Official data.gov.in, Tier 1: Backend Gemini AI Grounding Sync)
   let freshRates = await fetchFromDataGovIn();
-
-  if (!freshRates || freshRates.length === 0) {
-    freshRates = await fetchFromPublicMandiFeed();
-  }
 
   if (!freshRates || freshRates.length === 0) {
     freshRates = await fetchFromBackendGeminiMandiSync();
