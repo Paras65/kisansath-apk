@@ -1,6 +1,6 @@
 # 🛡️ किसान साथी (Kisan Saathi) — Enterprise Secure API Specification
 
-> **संस्करण:** v1.0.14  
+> **संस्करण:** v1.0.28  
 > **सुरक्षा मानक:** OWASP Top 10 • Zero-PII Offline Policy • Zero-Fake-Data OGD Engine  
 > **आधार URL (Base URL):** `https://kisan.init65.co.in/api` (Production) / `http://localhost:5000/api` (Local)  
 > **हेडर प्रारूप:** `Content-Type: application/json`
@@ -24,6 +24,7 @@
 7. [मेरा खेत: बहु-प्लॉट प्रबंधन व फसल डायरी APIs (Multi-Plot & Diary APIs)](#7-मेरा-खेत-बहु-प्लॉट-प्रबंधन-व-फसल-डायरी-apis)
 8. [सुपर एडमिन कमांड, टेलीमेट्री व लाइव हेल्थ चेकर APIs (Admin Command Center)](#8-सुपर-एडमिन-कमांड-टेलीमेट्री-व-लाइव-हेल्थ-चेकर-apis)
 9. [सुरक्षा परीक्षण एवं पेनिट्रेशन टेस्टिंग प्लेबुक (Security Testing Playbook)](#9-सुरक्षा-परीक्षण-एवं-पेनिट्रेशन-टेस्टिंग-प्लेबुक)
+10. [आधिकारिक पोस्टमैन कलेक्शन (Official Postman Collection v2.1.0)](#10-आधिकारिक-पोस्टमैन-कलेक्शन)
 
 ---
 
@@ -569,4 +570,94 @@ curl -X POST https://kisan.init65.co.in/api/community-qa \
 curl -i https://kisan.init65.co.in/api/farmer/profile/9876543210
 # अपेक्षित परिणाम: HTTP 401 Unauthorized
 ```
+
+---
+
+## 10. आधिकारिक पोस्टमैन कलेक्शन (Official Postman Collection v2.1.0)
+
+डेवलपर्स, कृषि विज्ञान केंद्रों एवं तकनीकी परीक्षकों के लिए सभी बाहरी और आंतरिक APIs का रेडी-टू-यूज़ पोस्टमैन कलेक्शन तैयार किया गया है:
+
+* **कलेक्शन फ़ाइल:** [`docs/kisan_saathi_postman_collection.json`](file:///c:/Users/LENOVO/Desktop/init/kisan/docs/kisan_saathi_postman_collection.json)
+* **पोस्टमैन स्कीमा संस्करण:** Postman Collection v2.1.0
+
+### (क) पोस्टमैन में इम्पोर्ट करने की विधि:
+1. अपने कंप्यूटर पर **Postman** खोलें।
+2. ऊपरी बाएं कोने में **"Import"** बटन दबाएं।
+3. `docs/kisan_saathi_postman_collection.json` फ़ाइल को ड्रैग-एंड-ड्रॉप करें या सेलेक्ट करें।
+4. कलेक्शन तुरंत **"Kisan Saathi - Complete Platform & External APIs Collection"** नाम से आपके वर्कस्पेस में जुड़ जाएगा।
+
+### (ख) पहले से कॉन्फ़िगर किए गए 9 मुख्य फ़ोल्डर्स (कुल 52 एंडपॉइंट्स):
+1. **🌾 1. External Agri & OGD APIs (भारत सरकार) (5 एंडपॉइंट्स):**
+   - Agmarknet Live Mandi Rates (`data.gov.in`)
+   - Agmarknet Mandi Rates Backup Mirror (`mandi-api.onrender.com`)
+   - CIB&RC Approved Safe Pesticides Dataset
+   - District Soil Health Survey Baseline Dataset
+   - CACP Official MSP Benchmarks Dataset
+2. **🌦️ 2. Live Weather & Agro-Advisory API (Open-Meteo) (3 एंडपॉइंट्स):**
+   - Raipur HQ Live Weather & Spray Advisory
+   - Bilaspur District Forecast
+   - Bastar Tribal Agro-Climatic Zone Forecast
+3. **🤖 3. AI Vision Crop Doctor (Google Gemini AI) (2 एंडपॉइंट्स):**
+   - Direct Multimodal Gemini 2.5 Flash Vision API
+   - Kisan Saathi Proxied Diagnostic Engine (`/api/doctor/diagnose`)
+4. **📮 4. Postal Directory & Village API (India Post) (3 एंडपॉइंट्स):**
+   - 492001 (Raipur) Pincode & Villages Lookup
+   - 495001 (Bilaspur) Pincode & Villages Lookup
+   - 494001 (Bastar) Pincode & Villages Lookup
+5. **🌾 5. Agronomy & Scientific Advisory APIs (6 एंडपॉइंट्स):**
+   - `/api/version` (In-App Update Engine & Integrity Hash)
+   - `/api/crops` (Master Crop Catalog)
+   - `/api/fertilizers` (Scientific NPK Dosages)
+   - `/api/diseases` (Symptoms Library)
+   - `/api/schemes` (Government Subsidies & Rates)
+   - `/api/admin/broadcasts` (Public Emergency Broadcasts)
+6. **🏪 6. Mandi Rates & Farm Marketplace APIs (8 एंडपॉइंट्स):**
+   - `/api/mandi-rates` (Proxied Live Rates)
+   - `/api/mandi-rates/refresh` (Manual Cache Refresh)
+   - `/api/mandi-rates/offline-sync` (Sync Offline Queries)
+   - `/api/mandi-rates/pesticides` (CIBRC Local Proxy)
+   - `/api/mandi-rates/soil-health` (Soil Health Survey Proxy)
+   - `/api/mandi-rates/msp-benchmarks` (CACP MSP Benchmark Proxy)
+   - `/api/marketplace` (GET Active Listings)
+   - `/api/marketplace` (POST New Direct Produce Listing)
+7. **🚜 7. Farm Machinery & Chaupal Community APIs (5 एंडपॉइंट्स):**
+   - `/api/machinery` (GET Equipment Rentals)
+   - `/api/machinery` (POST Rent Equipment Listing)
+   - `/api/community-qa` (GET Q&A Feed)
+   - `/api/community-qa` (POST Ask Agri Question)
+   - `/api/community-qa/:id/answer` (POST Farmer/Expert Reply)
+8. **🌾 8. Farmer Auth, Multi-Plot & Farm Diary APIs (8 एंडपॉइंट्स):**
+   - `/api/farmer/auth` (1-Click JWT Quick Auth)
+   - `/api/farmer/profile/:phone` (Fetch Profile & Plots)
+   - `/api/farmer/plot` (POST Add/Update Farm Plot)
+   - `/api/farmer/plot/:plotId` (DELETE Plot)
+   - `/api/farmer/plot/:plotId/task/:taskId/toggle` (Toggle Lifecycle Task)
+   - `/api/farmer/diary/:phone` (GET Farm Diary Entries)
+   - `/api/farmer/diary` (POST New Expense/Income Record)
+   - `/api/farmer/diary/:entryId` (DELETE Diary Entry)
+9. **🛡️ 9. Super Admin Command Center & Health APIs (12 एंडपॉइंट्स):**
+   - `/api/admin/login` (Secure Passkey Auth)
+   - `/api/admin/stats` (Platform Usage Metrics)
+   - `/api/admin/farmers` (Farmer Registry Audit - Masked PII)
+   - `/api/admin/broadcasts` (GET All Broadcasts)
+   - `/api/admin/broadcasts` (POST Publish Advisory Alert)
+   - `/api/admin/broadcasts/:id` (DELETE Broadcast Alert)
+   - `/api/admin/marketplace/:id/status` (Listing Moderation)
+   - `/api/admin/community-qa/:id/status` (Q&A Content Moderation)
+   - `/api/admin/health` (Telemetry Live Health Probe)
+   - `/api/admin/external-config` (External API Configuration Probe)
+   - `/api/admin/audit-logs` (Security Event Logs)
+   - `/api/admin/audit-logs` (DELETE Purge Audit Logs)
+
+### (ग) अंतर्निहित पर्यावरण चर (Environment Variables):
+कलेक्शन में निम्नलिखित चर पहले से सुरक्षित रूप से परिभाषित हैं:
+* `{{BASE_URL}}`: `https://kisan-saathi-api-4sdo.onrender.com/api` (या स्थानीय `http://localhost:8000/api`)
+* `{{MANDI_API_BASE_URL}}`: `https://api.data.gov.in/resource/`
+* `{{OGD_API_KEY}}`: OGD प्लेटफॉर्म API की
+* `{{GEMINI_API_KEY}}`: Google Gemini API की
+* `{{ADMIN_PIN}}`: सुपर एडमिन ऑथराइजेशन पिन
+* `{{ADMIN_TOKEN}}`: सुपर एडमिन प्रमाणीकरण Bearer टोकन
+* `{{FARMER_PHONE}}`: टेस्ट किसान मोबाइल नंबर (उदा. `9876543210`)
+* `{{FARMER_TOKEN}}`: किसान लॉगिन से प्राप्त होने वाला JWT Bearer टोकन
+
 

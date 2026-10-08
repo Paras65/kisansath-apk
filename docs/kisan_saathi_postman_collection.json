@@ -1,0 +1,956 @@
+{
+  "info": {
+    "_postman_id": "7b8e14fa-6d12-4c8e-9087-9d7e35b71c42",
+    "name": "Kisan Saathi - Complete Platform & External APIs Collection",
+    "description": "Comprehensive, exhaustive Postman Collection for Kisan Saathi (किसान साथी: फसल से लेकर बिक्री तक).\nIncludes all 52 external and internal endpoints: OGD Agmarknet, Open-Meteo Weather, Google Gemini Multimodal Vision AI, India Post Pincode, Agronomy, Mandi Marketplace, Community Chaupal, Farmer Multi-Plot & Diary Cloud Sync, and Super Admin Command Center.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. 🌾 External Agri & OGD APIs (भारत सरकार)",
+      "description": "Direct Open Government Data (data.gov.in) endpoints for live mandi rates, pesticides, soil health, and MSP benchmarks.",
+      "item": [
+        {
+          "name": "Agmarknet Live Mandi Rates (OGD India)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{MANDI_API_BASE_URL}}?api-key={{OGD_API_KEY}}&format=json&offset=0&limit=60&filters%5Bstate%5D=Chhattisgarh",
+              "host": ["{{MANDI_API_BASE_URL}}"],
+              "query": [
+                { "key": "api-key", "value": "{{OGD_API_KEY}}" },
+                { "key": "format", "value": "json" },
+                { "key": "offset", "value": "0" },
+                { "key": "limit", "value": "60" },
+                { "key": "filters[state]", "value": "Chhattisgarh" }
+              ]
+            },
+            "description": "Fetches live arrival volume and modal price per quintal across APMCs in Chhattisgarh."
+          }
+        },
+        {
+          "name": "Agmarknet Mandi Rates Backup Mirror",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "https://mandi-api.onrender.com/api/mandis?state=Chhattisgarh",
+              "protocol": "https",
+              "host": ["mandi-api", "onrender", "com"],
+              "path": ["api", "mandis"],
+              "query": [{ "key": "state", "value": "Chhattisgarh" }]
+            },
+            "description": "High-availability backup mirror proxy when data.gov.in government servers experience downtime."
+          }
+        },
+        {
+          "name": "CIB&RC Registered Pesticides (OGD Dataset)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{MANDI_API_BASE_URL}}?api-key={{OGD_API_KEY}}&format=json&offset=0&limit=50",
+              "host": ["{{MANDI_API_BASE_URL}}"],
+              "query": [
+                { "key": "api-key", "value": "{{OGD_API_KEY}}" },
+                { "key": "format", "value": "json" },
+                { "key": "offset", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "Central Insecticides Board approved safe chemical and bio-pesticide formulations."
+          }
+        },
+        {
+          "name": "District Soil Health Survey Baseline (OGD Dataset)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{MANDI_API_BASE_URL}}?api-key={{OGD_API_KEY}}&format=json&offset=0&limit=50",
+              "host": ["{{MANDI_API_BASE_URL}}"],
+              "query": [
+                { "key": "api-key", "value": "{{OGD_API_KEY}}" },
+                { "key": "format", "value": "json" },
+                { "key": "offset", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "District-level soil fertility index (N, P, K, pH, Organic Carbon) from the national Soil Health Card scheme."
+          }
+        },
+        {
+          "name": "CACP Official MSP Benchmarks (OGD Dataset)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{MANDI_API_BASE_URL}}?api-key={{OGD_API_KEY}}&format=json&offset=0&limit=50",
+              "host": ["{{MANDI_API_BASE_URL}}"],
+              "query": [
+                { "key": "api-key", "value": "{{OGD_API_KEY}}" },
+                { "key": "format", "value": "json" },
+                { "key": "offset", "value": "0" },
+                { "key": "limit", "value": "50" }
+              ]
+            },
+            "description": "Commission for Agricultural Costs and Prices (CACP) official Minimum Support Price benchmarks."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 🌦️ Live Weather & Agro-Advisory API (Open-Meteo)",
+      "description": "High-resolution satellite weather forecast and spray advisory service (100% free, zero-key).",
+      "item": [
+        {
+          "name": "Current Weather & Spray Advisory (Raipur HQ)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.open-meteo.com/v1/forecast?latitude=21.2514&longitude=81.6296&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata",
+              "protocol": "https",
+              "host": ["api", "open-meteo", "com"],
+              "path": ["v1", "forecast"],
+              "query": [
+                { "key": "latitude", "value": "21.2514" },
+                { "key": "longitude", "value": "81.6296" },
+                { "key": "current", "value": "temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" },
+                { "key": "daily", "value": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max" },
+                { "key": "timezone", "value": "Asia%2FKolkata" }
+              ]
+            },
+            "description": "Live hourly and daily weather metrics for Raipur, used to calculate agricultural spraying safety index."
+          }
+        },
+        {
+          "name": "Bilaspur District Weather Forecast",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.open-meteo.com/v1/forecast?latitude=22.0797&longitude=82.1409&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata",
+              "protocol": "https",
+              "host": ["api", "open-meteo", "com"],
+              "path": ["v1", "forecast"],
+              "query": [
+                { "key": "latitude", "value": "22.0797" },
+                { "key": "longitude", "value": "82.1409" },
+                { "key": "current", "value": "temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" },
+                { "key": "daily", "value": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max" },
+                { "key": "timezone", "value": "Asia%2FKolkata" }
+              ]
+            },
+            "description": "Weather metrics for Bilaspur district."
+          }
+        },
+        {
+          "name": "Bastar / Jagdalpur Weather Forecast",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "https://api.open-meteo.com/v1/forecast?latitude=19.0744&longitude=82.0224&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max&timezone=Asia%2FKolkata",
+              "protocol": "https",
+              "host": ["api", "open-meteo", "com"],
+              "path": ["v1", "forecast"],
+              "query": [
+                { "key": "latitude", "value": "19.0744" },
+                { "key": "longitude", "value": "82.0224" },
+                { "key": "current", "value": "temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m" },
+                { "key": "daily", "value": "weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max" },
+                { "key": "timezone", "value": "Asia%2FKolkata" }
+              ]
+            },
+            "description": "Weather metrics for Bastar (Jagdalpur) tribal agricultural belt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 🤖 AI Vision Crop Doctor (Google Gemini AI)",
+      "description": "Multimodal Computer Vision AI diagnostics for leaf and plant disease identification.",
+      "item": [
+        {
+          "name": "Direct Gemini 2.5 Flash Multimodal Vision API",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are an expert Indian agricultural plant pathologist. Analyze this crop leaf image. Identify the crop, exact disease name in Hindi and English, cause, chemical pesticide dosage per 15L pump, organic alternative, and preventive steps in structured JSON.\"\n        },\n        {\n          \"inline_data\": {\n            \"mime_type\": \"image/jpeg\",\n            \"data\": \"/9j/4AAQSkZJRgABAQEASABIAAD... (base64 string)\"\n          }\n        }\n      ]\n    }\n  ],\n  \"generationConfig\": {\n    \"temperature\": 0.15,\n    \"topK\": 32,\n    \"topP\": 0.95,\n    \"maxOutputTokens\": 2048\n  }\n}"
+            },
+            "url": {
+              "raw": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={{GEMINI_API_KEY}}",
+              "protocol": "https",
+              "host": ["generativelanguage", "googleapis", "com"],
+              "path": ["v1beta", "models", "gemini-2.5-flash:generateContent"],
+              "query": [{ "key": "key", "value": "{{GEMINI_API_KEY}}" }]
+            },
+            "description": "Direct Google Gemini multimodal vision endpoint for plant disease diagnosis."
+          }
+        },
+        {
+          "name": "Backend AI Doctor Proxy (/api/crop-doctor/diagnose)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"image\": \"data:image/jpeg;base64,/9j/4AAQSkZJRgABA...\",\n  \"crop\": \"धान\",\n  \"cropId\": \"paddy\",\n  \"symptoms\": \"पत्तियों पर नाव के आकार के भूरे धब्बे दिखाई दे रहे हैं\",\n  \"district\": \"रायपुर\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/crop-doctor/diagnose",
+              "host": ["{{BASE_URL}}"],
+              "path": ["crop-doctor", "diagnose"]
+            },
+            "description": "Secure proxy route executing server-side Gemini Vision cascade with sanitized farmer output."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 📮 Postal Directory & Village API (India Post)",
+      "description": "Zero-key public postal directory API for 6-digit PIN code to village resolution.",
+      "item": [
+        {
+          "name": "Lookup Villages by PIN Code (492001 Raipur)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "https://api.postalpincode.in/pincode/492001",
+              "protocol": "https",
+              "host": ["api", "postalpincode", "in"],
+              "path": ["pincode", "492001"]
+            },
+            "description": "Fetches post office branches and village settlements associated with Raipur pincode 492001."
+          }
+        },
+        {
+          "name": "Lookup Villages by PIN Code (495001 Bilaspur)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "https://api.postalpincode.in/pincode/495001",
+              "protocol": "https",
+              "host": ["api", "postalpincode", "in"],
+              "path": ["pincode", "495001"]
+            },
+            "description": "Fetches post office branches and village settlements associated with Bilaspur pincode 495001."
+          }
+        },
+        {
+          "name": "Lookup Villages by PIN Code (494001 Bastar)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "https://api.postalpincode.in/pincode/494001",
+              "protocol": "https",
+              "host": ["api", "postalpincode", "in"],
+              "path": ["pincode", "494001"]
+            },
+            "description": "Fetches settlements for Bastar Jagdalpur pincode 494001."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 🌾 Agronomy & Scientific Advisory APIs",
+      "description": "Core agricultural master data: crops, fertilizer formulas, disease library, and government schemes.",
+      "item": [
+        {
+          "name": "App Version & In-App Update Engine",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/version",
+              "host": ["{{BASE_URL}}"],
+              "path": ["version"]
+            },
+            "description": "Rate-limit free endpoint returning current semantic version, minimal supported version, and release notes."
+          }
+        },
+        {
+          "name": "Crops Master List",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/crops",
+              "host": ["{{BASE_URL}}"],
+              "path": ["crops"]
+            },
+            "description": "Returns full list of supported crops with sowing windows, varieties, and agronomic thresholds."
+          }
+        },
+        {
+          "name": "Fertilizer Dosages Map (N:P:K)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/fertilizers",
+              "host": ["{{BASE_URL}}"],
+              "path": ["fertilizers"]
+            },
+            "description": "N:P:K dosage maps per acre and topography splits (Dand/Tikra vs Bahra/Gahira)."
+          }
+        },
+        {
+          "name": "Crop Diseases & Diagnostic Symptoms",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/diseases?cropId=paddy",
+              "host": ["{{BASE_URL}}"],
+              "path": ["diseases"],
+              "query": [{ "key": "cropId", "value": "paddy" }]
+            },
+            "description": "Pest and disease library with symptom tags, organic control, and chemical dosage per 15L spray pump."
+          }
+        },
+        {
+          "name": "Government Schemes & Subsidies",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/schemes",
+              "host": ["{{BASE_URL}}"],
+              "path": ["schemes"]
+            },
+            "description": "Comprehensive schemes database including Krishi Unnati Yojana, CREDA Saur Sujala, and PM-Kisan."
+          }
+        },
+        {
+          "name": "Public Departmental Broadcast Advisories",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/broadcasts?district=all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["broadcasts"],
+              "query": [{ "key": "district", "value": "all" }]
+            },
+            "description": "Active departmental alerts and weather warnings published for farmers."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. 🏪 Mandi Rates & Farm Marketplace APIs",
+      "description": "Live APMC mandi prices, offline query sync, CIBRC/MSP proxies, and direct marketplace trade.",
+      "item": [
+        {
+          "name": "Live Mandi Rates (Proxied OGD Engine)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/mandi-rates?district=रायपुर&force=false",
+              "host": ["{{BASE_URL}}"],
+              "path": ["mandi-rates"],
+              "query": [
+                { "key": "district", "value": "रायपुर" },
+                { "key": "force", "value": "false" }
+              ]
+            },
+            "description": "Returns cached live mandi rates with metadata including fetch time and source."
+          }
+        },
+        {
+          "name": "Mandi Rates Manual Refresh (Rate-limited: 10/min)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/mandi-rates/refresh",
+              "host": ["{{BASE_URL}}"],
+              "path": ["mandi-rates", "refresh"]
+            },
+            "description": "Forces live fetch from data.gov.in and updates cache."
+          }
+        },
+        {
+          "name": "Offline Mandi Query Sync",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop\": \"धान\",\n  \"mandi\": \"रायपुर\",\n  \"district\": \"रायपुर\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/mandi-rates/offline-query",
+              "host": ["{{BASE_URL}}"],
+              "path": ["mandi-rates", "offline-query"]
+            },
+            "description": "Resolves local queries saved by farmers when offline."
+          }
+        },
+        {
+          "name": "CIB&RC Registered Pesticides (Proxied OGD)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/cibrc-pesticides?cropId=paddy&pest=stemborer",
+              "host": ["{{BASE_URL}}"],
+              "path": ["cibrc-pesticides"],
+              "query": [
+                { "key": "cropId", "value": "paddy" },
+                { "key": "pest", "value": "stemborer" }
+              ]
+            },
+            "description": "Returns CIB&RC approved safe pesticides filtered by crop and pest."
+          }
+        },
+        {
+          "name": "District Soil Health Card Baseline (Proxied OGD)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/soil-health/रायपुर",
+              "host": ["{{BASE_URL}}"],
+              "path": ["soil-health", "रायपुर"]
+            },
+            "description": "Returns soil health survey baseline for specified district."
+          }
+        },
+        {
+          "name": "Official CACP MSP Benchmarks (Proxied OGD)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/msp-benchmarks",
+              "host": ["{{BASE_URL}}"],
+              "path": ["msp-benchmarks"]
+            },
+            "description": "Returns official Commission for Agricultural Costs and Prices MSP policies."
+          }
+        },
+        {
+          "name": "Direct Marketplace Listings (Produce for Sale)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/marketplace",
+              "host": ["{{BASE_URL}}"],
+              "path": ["marketplace"]
+            },
+            "description": "Farmer-to-buyer direct crop listings for field-gate sales."
+          }
+        },
+        {
+          "name": "Create Direct Marketplace Listing",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"crop\": \"धान (एचएमटी)\",\n  \"quantity\": \"50 क्विंटल\",\n  \"expectedPrice\": \"₹3,100/क्विंटल\",\n  \"farmerName\": \"रामेश्वर साहू\",\n  \"phone\": \"9876543210\",\n  \"village\": \"आरंग\",\n  \"district\": \"रायपुर\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/marketplace",
+              "host": ["{{BASE_URL}}"],
+              "path": ["marketplace"]
+            },
+            "description": "Publishes a new farmer crop listing for field-gate trade."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. 🚜 Farm Machinery & Chaupal Community APIs",
+      "description": "Machinery rental equipment sharing and farmer-to-farmer community knowledge exchange.",
+      "item": [
+        {
+          "name": "Machinery Rentals Listing",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/machinery",
+              "host": ["{{BASE_URL}}"],
+              "path": ["machinery"]
+            },
+            "description": "Returns agricultural machinery available for rent."
+          }
+        },
+        {
+          "name": "Post Machinery for Rent",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"महिंद्रा 575 DI ट्रैक्टर (रोटावेटर सहित)\",\n  \"category\": \"ट्रैक्टर\",\n  \"rate\": \"₹750/घंटा\",\n  \"operatorIncluded\": true,\n  \"contactName\": \"सुनील वर्मा\",\n  \"phone\": \"9876543210\",\n  \"village\": \"अभनपुर\",\n  \"district\": \"रायपुर\",\n  \"features\": [\"कुशल चालक उपलब्ध\", \"समय पर खेत पहुंच\"]\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/machinery",
+              "host": ["{{BASE_URL}}"],
+              "path": ["machinery"]
+            },
+            "description": "Posts tractor, combine harvester, or drone sprayer for rental."
+          }
+        },
+        {
+          "name": "Community Q&A Discussions",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "url": {
+              "raw": "{{BASE_URL}}/community-qa",
+              "host": ["{{BASE_URL}}"],
+              "path": ["community-qa"]
+            },
+            "description": "Returns questions and scientific replies from farmer chaupal."
+          }
+        },
+        {
+          "name": "Ask Question in Chaupal",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"author\": \"धर्मेंद्र कश्यप\",\n  \"crop\": \"धान\",\n  \"question\": \"धान के तने में गाभा कीट लगा है, कौन सी दवा का छिड़काव सही रहेगा?\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/community-qa",
+              "host": ["{{BASE_URL}}"],
+              "path": ["community-qa"]
+            },
+            "description": "Posts a farming problem or query to Chaupal."
+          }
+        },
+        {
+          "name": "Reply to Community Question",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"author\": \"डॉ. अरुण कुमार (KVK)\",\n  \"role\": \"कृषि वैज्ञानिक\",\n  \"text\": \"गाभा कीट के लिए फेरोमोन ट्रैप लगाएं और प्रति 15 लीटर पंप में 5 ग्राम कोराजन (क्लोरेंट्रानिलिप्रोल) का छिड़काव करें।\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/community-qa/qa-demo-1/reply",
+              "host": ["{{BASE_URL}}"],
+              "path": ["community-qa", "qa-demo-1", "reply"]
+            },
+            "description": "Submits expert solution or peer farmer reply to a question."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. 🌾 Farmer Auth, Multi-Plot & Farm Diary APIs",
+      "description": "Cloud sync for authenticated farmer sessions, registered land plots, seasonal tasks, and expense/income diaries.",
+      "item": [
+        {
+          "name": "Farmer 1-Click Login / Register (POST /api/farmer/auth)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"9876543210\",\n  \"pin\": \"1234\",\n  \"name\": \"राम कुमार साहू\",\n  \"village\": \"अभनपुर\",\n  \"district\": \"रायपुर\",\n  \"totalLandAcres\": 3.5\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/auth",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "auth"]
+            },
+            "description": "Authenticates or registers farmer with phone and 4-digit PIN. Returns 7-day JWT token."
+          }
+        },
+        {
+          "name": "Get Farmer Profile & Plots",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/profile/{{FARMER_PHONE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "profile", "{{FARMER_PHONE}}"]
+            },
+            "description": "Fetches authenticated farmer profile, land acreage, and plots."
+          }
+        },
+        {
+          "name": "Add / Update Plot for Farmer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plotName\": \"बड़ा खार (नहर वाला)\",\n  \"cropId\": \"paddy\",\n  \"cropName\": \"धान (महामाया)\",\n  \"areaAcres\": 2.5,\n  \"season\": \"खरीफ 2026\",\n  \"notes\": \"डांड खेत, जिंक सल्फेट मिलाना जरूरी\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/plots/{{FARMER_PHONE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "plots", "{{FARMER_PHONE}}"]
+            },
+            "description": "Creates or modifies a land plot under farmer's digital passbook."
+          }
+        },
+        {
+          "name": "Delete Plot from Farmer Account",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/plots/{{FARMER_PHONE}}/plot-demo-1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "plots", "{{FARMER_PHONE}}", "plot-demo-1"]
+            },
+            "description": "Removes plot record from farmer profile."
+          }
+        },
+        {
+          "name": "Toggle Plot Task Completion",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plotId\": \"plot-demo-1\",\n  \"taskId\": \"task_soil_test\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/tasks/{{FARMER_PHONE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "tasks", "{{FARMER_PHONE}}"]
+            },
+            "description": "Toggles completion checkbox for lifecycle farming tasks."
+          }
+        },
+        {
+          "name": "Get Farm Diary Cloud Entries",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/diary/{{FARMER_PHONE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "diary", "{{FARMER_PHONE}}"]
+            },
+            "description": "Fetches cloud-synced farm diary expenses, income, and crop log."
+          }
+        },
+        {
+          "name": "Add Farm Diary Entry (Expense / Income / Activity)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cropName\": \"धान\",\n  \"areaAcres\": \"2.5\",\n  \"type\": \"expense\",\n  \"category\": \"उर्वरक व खाद\",\n  \"amount\": 1350,\n  \"description\": \"2 बोरी डीएपी और 1 बोरी पोटाश खरीदी\",\n  \"date\": \"2026-10-08\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/diary/{{FARMER_PHONE}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "diary", "{{FARMER_PHONE}}"]
+            },
+            "description": "Records an expense or crop event in farmer's financial diary."
+          }
+        },
+        {
+          "name": "Delete Farm Diary Entry",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{FARMER_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/farmer/diary/{{FARMER_PHONE}}/diary-demo-1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["farmer", "diary", "{{FARMER_PHONE}}", "diary-demo-1"]
+            },
+            "description": "Deletes diary record from farmer's account."
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. 🛡️ Super Admin Command Center & Health APIs",
+      "description": "Enterprise administrator portal endpoints: telemetry, farmer audits, broadcast management, and API health checkers.",
+      "item": [
+        {
+          "name": "Super Admin Login (Issues 2-hr Admin JWT)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"passkey\": \"{{ADMIN_PIN}}\",\n  \"username\": \"kisan_admin\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "login"]
+            },
+            "description": "Authenticates super admin using constant-time string comparison with 5-attempt brute-force protection."
+          }
+        },
+        {
+          "name": "Super Admin Live Platform Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/stats",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "stats"]
+            },
+            "description": "Aggregates total farmers, plots, acreage, listings, and server telemetry."
+          }
+        },
+        {
+          "name": "Super Admin Farmer Registry Audit (Zero-PII Masked)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/farmers?limit=30&district=all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "farmers"],
+              "query": [
+                { "key": "limit", "value": "30" },
+                { "key": "district", "value": "all" }
+              ]
+            },
+            "description": "Lists registered farmers with masked PII for official audit."
+          }
+        },
+        {
+          "name": "Super Admin Broadcast Advisories List",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/broadcasts",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "broadcasts"]
+            },
+            "description": "Lists all departmental broadcast alerts."
+          }
+        },
+        {
+          "name": "Super Admin Publish Departmental Advisory",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"🌧️ भारी बारिश की चेतावनी\",\n  \"category\": \"weather\",\n  \"severity\": \"urgent\",\n  \"message\": \"अगले 48 घंटों में भारी वर्षा की संभावना। कीटनाशक छिड़काव रोकें।\",\n  \"targetDistrict\": \"all\",\n  \"author\": \"कृषि मौसम विभाग छत्तीसगढ़\"\n}"
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/admin/broadcasts",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "broadcasts"]
+            },
+            "description": "Publishes high-priority emergency alert to farmers' home screen."
+          }
+        },
+        {
+          "name": "Super Admin Delete Broadcast Advisory",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/broadcasts/adv-demo-1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "broadcasts", "adv-demo-1"]
+            },
+            "description": "Revokes an active broadcast alert."
+          }
+        },
+        {
+          "name": "Super Admin Moderate Marketplace Listing",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/listings/list-demo-1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "listings", "list-demo-1"]
+            },
+            "description": "Removes spam or fraudulent produce listing."
+          }
+        },
+        {
+          "name": "Super Admin Moderate Community QA",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/qa/qa-demo-1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "qa", "qa-demo-1"]
+            },
+            "description": "Deletes inappropriate discussion or spam question."
+          }
+        },
+        {
+          "name": "Super Admin Live External & Internal API Health Checker",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/api-health",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "api-health"]
+            },
+            "description": "Probes MongoDB Atlas, data.gov.in Agmarknet, Google Gemini, Open-Meteo, and Gov portals with live latency."
+          }
+        },
+        {
+          "name": "Super Admin External APIs Configuration Inspector",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/external-config",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "external-config"]
+            },
+            "description": "Inspects masked API keys, timeouts, models, and troubleshooting runbooks."
+          }
+        },
+        {
+          "name": "Super Admin Security & Error Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" },
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/audit-logs?limit=50&severity=all",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "audit-logs"],
+              "query": [
+                { "key": "limit", "value": "50" },
+                { "key": "severity", "value": "all" }
+              ]
+            },
+            "description": "Queries in-memory bounded security audit logs and lockout events."
+          }
+        },
+        {
+          "name": "Super Admin Clear Audit Logs",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "X-Admin-Pin", "value": "{{ADMIN_PIN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/admin/audit-logs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["admin", "audit-logs"]
+            },
+            "description": "Purges security audit records."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "https://kisan-saathi-api-4sdo.onrender.com/api",
+      "type": "string"
+    },
+    {
+      "key": "MANDI_API_BASE_URL",
+      "value": "https://api.data.gov.in/resource/",
+      "type": "string"
+    },
+    {
+      "key": "OGD_API_KEY",
+      "value": "YOUR_OGD_API_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "GEMINI_API_KEY",
+      "value": "YOUR_GEMINI_API_KEY_HERE",
+      "type": "string"
+    },
+    {
+      "key": "ADMIN_PIN",
+      "value": "YOUR_ADMIN_PIN_HERE",
+      "type": "string"
+    },
+    {
+      "key": "ADMIN_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "FARMER_PHONE",
+      "value": "9876543210",
+      "type": "string"
+    },
+    {
+      "key": "FARMER_TOKEN",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
