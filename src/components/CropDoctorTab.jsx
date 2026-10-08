@@ -42,6 +42,7 @@ import SendIcon from '@mui/icons-material/Send';
 import ChatIcon from '@mui/icons-material/Chat';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
 import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, getCibrcPesticides, chatWithCropDoctor } from '../services/apiService';
 import { fetchLiveWeather, getSprayAdvisory, getCachedWeather } from '../services/weatherService';
@@ -702,12 +703,15 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
           </Box>
         </Box>
 
-        <Chip
-          icon={<VerifiedIcon sx={{ fontSize: '15px !important', color: '#1b5e20 !important' }} />}
-          label={isChhattisgarhi ? "IGKV वैज्ञानिक ले जांचे" : "IGKV वैज्ञानिक अनुमोदित"}
-          size="small"
-          sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 700, fontSize: '0.72rem' }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <KakaWalkthroughButton featureId="doctor" />
+          <Chip
+            icon={<VerifiedIcon sx={{ fontSize: '15px !important', color: '#1b5e20 !important' }} />}
+            label={isChhattisgarhi ? "IGKV वैज्ञानिक ले जांचे" : "IGKV वैज्ञानिक अनुमोदित"}
+            size="small"
+            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 700, fontSize: '0.72rem' }}
+          />
+        </Box>
       </Box>
 
       {/* 2. Live Weather Spray Advisory Banner (Lifecycle Sync) */}

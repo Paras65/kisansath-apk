@@ -72,6 +72,7 @@ import { MotorControllerModal } from './MotorControllerModal';
 import { DeviceHubModal } from './DeviceHubModal';
 import { ShareModal } from './ShareModal';
 import { TokenGuideModal } from './TokenGuideModal';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { getMandiRates, getCachedModuleData } from '../services/apiService';
 import { fetchVillagesByPincode } from '../services/pincodeService';
 
@@ -1943,7 +1944,8 @@ export const HomeTab = ({
               </Box>
 
               {/* Spray Safety Badge & Voice button */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
+                <KakaWalkthroughButton featureId="home" />
                 <Chip
                   label={(isChhattisgarhi ? (weather?.sprayAdvisory?.badgeCg || weather?.sprayAdvisory?.badge) : weather?.sprayAdvisory?.badge) || (isChhattisgarhi ? 'छिड़काव बर बने हे' : 'छिड़काव अनुकूल')}
                   size="small"

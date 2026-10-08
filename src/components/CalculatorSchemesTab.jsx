@@ -30,6 +30,7 @@ import { getFertilizers, getSchemes, getCachedModuleData, getDistrictSoilHealth 
 import { CG_SOIL_PROFILES } from '../services/weatherService';
 import { SoilIotSensorModal } from './SoilIotSensorModal';
 import { TokenGuideModal } from './TokenGuideModal';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { notify } from '../services/notificationService';
 import { useLanguage } from '../utils/i18n';
 import { acreToDismil, dismilToAcre, stepAcre, stepDismil, calculatePaddyProcurement } from '../utils/unitConverter';
@@ -224,19 +225,22 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
       {subTab === 0 && (
         <Box>
           <Card sx={{ p: 2, mb: 2.5, borderRadius: 3.5, border: '1.5px solid #c8e6c9' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1rem' }}>
                 {isChhattisgarhi ? '🌾 खाद नाप-जोख कैलकुलेटर' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
               </Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-                onClick={handleReadFertSummary}
-                sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: 2 }}
-              >
-                {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <KakaWalkthroughButton featureId="calculator" />
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
+                  onClick={handleReadFertSummary}
+                  sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: 2 }}
+                >
+                  {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                </Button>
+              </Box>
             </Box>
 
             <Grid container spacing={1.5} sx={{ mb: 2 }}>

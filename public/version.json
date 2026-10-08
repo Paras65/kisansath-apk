@@ -1,8 +1,8 @@
 {
-  "version": "1.0.45",
+  "version": "1.0.46",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.45",
-  "releaseNotes": "👴🏻 बहिरा काका पुरुष व बुजुर्ग आवाज़, पारदर्शी ग्लासमोर्फिक बटन, एवं APK में नेटिव माइक (Android Speech) व हार्डवेयर GPS सुधार।",
+  "releaseName": "किसान साथी v1.0.46",
+  "releaseNotes": "🌾 बहिरा काका AI ब्रेन, खेत मोड (फोन हिलाकर बोलव), कर्णप्रिय ऑडियो चाइम व 1-टैप वॉयस वॉकथ्रू।",
   "updatedAt": "2026-10-08"
 }

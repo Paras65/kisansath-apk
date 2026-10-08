@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Tooltip } from '@mui/material';
+import { playListeningChime, playSuccessChime, playCancelChime } from '../utils/audioFeedback';
+import { startShakeDetection, stopShakeDetection } from '../utils/fieldMotionService';
+import { subscribeVoiceState } from '../utils/voiceRecognition';
 
 /**
  * Draggable & Adaptive Smart Voice Button (Option 2 + Option 3)
@@ -7,6 +10,8 @@ import { Box, Tooltip } from '@mui/material';
  * - Normal mode: Friendly green pill (🎤 बोलकर पूछें)
  * - In-Modal / Form mode: Transforms into a compact 48px circular floating bubble
  * - Can be dragged anywhere on screen so it NEVER blocks form inputs or save buttons
+ * - Hands-Free Muddy Hands Shake Sensor (खेत मोड)
+ * - Zero-Asset Audio Earcons (520Hz Chime & 880Hz Ding)
  */
 export const DraggableVoiceButton = ({
   isSpeakingActive,
@@ -16,10 +21,40 @@ export const DraggableVoiceButton = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [position, setPosition] = useState(null); // { x, y } in px
+  const [liveTranscript, setLiveTranscript] = useState('');
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0, initialElemX: 0, initialElemY: 0 });
   const hasMovedRef = useRef(false);
   const btnRef = useRef(null);
+  const prevListeningRef = useRef(false);
+
+  // Monitor voice transcript state
+  useEffect(() => {
+    const unsub = subscribeVoiceState(({ listening, transcript }) => {
+      setLiveTranscript(transcript || '');
+    });
+    return () => unsub();
+  }, []);
+
+  // Audio Earcons on listening state change
+  useEffect(() => {
+    if (isVoiceListening && !prevListeningRef.current) {
+      playListeningChime();
+    } else if (!isVoiceListening && prevListeningRef.current && liveTranscript) {
+      playSuccessChime();
+    }
+    prevListeningRef.current = isVoiceListening;
+  }, [isVoiceListening, liveTranscript]);
+
+  // Hands-Free Muddy Hands Shake Sensor (खेत मोड)
+  useEffect(() => {
+    startShakeDetection(() => {
+      if (!isVoiceListening && !isSpeakingActive) {
+        if (onVoiceClick) onVoiceClick();
+      }
+    });
+    return () => stopShakeDetection();
+  }, [isVoiceListening, isSpeakingActive, onVoiceClick]);
 
   // Monitor DOM for active modals/dialogs (MUI Dialogs)
   useEffect(() => {
@@ -256,6 +291,48 @@ export const DraggableVoiceButton = ({
           },
         }}
       >
+        {/* Floating Live Speech Transcript Bubble */}
+        {(isVoiceListening || (isSpeakingActive && liveTranscript)) && (
+          <Box
+            sx={{
+              position: 'absolute',
+              bottom: 'calc(100% + 8px)',
+              right: isModalOpen ? 0 : 'auto',
+              left: isModalOpen ? 'auto' : '50%',
+              transform: isModalOpen ? 'none' : 'translateX(-50%)',
+              bgcolor: isSpeakingActive ? 'rgba(183, 28, 28, 0.95)' : 'rgba(21, 101, 192, 0.95)',
+              color: '#ffffff',
+              px: 1.5,
+              py: 0.6,
+              borderRadius: '14px',
+              fontSize: '0.78rem',
+              fontWeight: 700,
+              boxShadow: '0 6px 20px rgba(0,0,0,0.3)',
+              backdropFilter: 'blur(10px)',
+              border: '1.5px solid rgba(255,255,255,0.4)',
+              maxWidth: 220,
+              textAlign: 'center',
+              whiteSpace: 'normal',
+              pointerEvents: 'none',
+              zIndex: 3600,
+              animation: 'fadeInUp 0.18s ease-out',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                top: '100%',
+                left: isModalOpen ? 'auto' : '50%',
+                right: isModalOpen ? '16px' : 'auto',
+                transform: isModalOpen ? 'none' : 'translateX(-50%)',
+                borderWidth: '5px',
+                borderStyle: 'solid',
+                borderColor: `${isSpeakingActive ? 'rgba(183, 28, 28, 0.95)' : 'rgba(21, 101, 192, 0.95)'} transparent transparent transparent`,
+              },
+            }}
+          >
+            {liveTranscript || (isChhattisgarhi ? '👂🏻 काका सुनत हे… बोलव!' : '👂🏻 काका सुन रहे हैं… बोलें!')}
+          </Box>
+        )}
+
         {isModalOpen ? (
           // In-Modal Compact 48px Bubble: 3D Avatar filling the bubble
           <Box

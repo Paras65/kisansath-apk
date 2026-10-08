@@ -29,6 +29,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useLanguage } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
 import { speakText, stopSpeech } from '../utils/speech';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { calculatePaddyProcurement, stepAcre } from '../utils/unitConverter';
 
 export const TokenGuideModal = ({
@@ -117,13 +118,16 @@ export const TokenGuideModal = ({
             </Typography>
           </Box>
         </Box>
-        <IconButton
-          size="small"
-          onClick={() => { stopSpeech(); onClose(); }}
-          sx={{ color: '#ffffff', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <KakaWalkthroughButton featureId="token" />
+          <IconButton
+            size="small"
+            onClick={() => { stopSpeech(); onClose(); }}
+            sx={{ color: '#ffffff', bgcolor: 'rgba(255,255,255,0.15)', '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' } }}
+          >
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </DialogTitle>
 
       {/* Tabs Bar */}

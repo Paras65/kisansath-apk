@@ -40,6 +40,7 @@ import Tooltip from '@mui/material/Tooltip';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { useLanguage } from '../utils/i18n';
+import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { startVoiceRecognition, stopVoiceRecognition, isSpeechRecognitionSupported, normalizeSpokenQuery } from '../utils/speechRecognition';
 import {
   getMandiRates,
@@ -387,6 +388,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <KakaWalkthroughButton featureId="mandi" />
           <Button
             variant="outlined"
             size="small"

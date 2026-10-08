@@ -35,6 +35,7 @@ import {
   isVoiceSupported,
   extractAcreage,
 } from './utils/voiceRecognition';
+import { queryKakaBrain } from './services/kakaBrainService';
 import { DraggableVoiceButton } from './components/DraggableVoiceButton';
 import { useLanguage } from './utils/i18n';
 import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS } from './services/weatherService';
@@ -310,8 +311,11 @@ function App() {
             window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: route.target } }));
           }
         } else if (transcript) {
+          // Check Bhaira Kaka AI Brain for deep conversational answer & parameters
+          const brain = queryKakaBrain(transcript, isChhattisgarhi);
+
           // In-Modal Action 3: Acreage fill inside active modal
-          const acreVal = extractAcreage(transcript);
+          const acreVal = brain.extractedAcre || extractAcreage(transcript);
           const openDialog = document.querySelector('.MuiDialog-root');
           if (acreVal && openDialog) {
             const acreInput = openDialog.querySelector('input[type="number"], input[name*="acre"], input[id*="acre"]');
@@ -328,11 +332,27 @@ function App() {
             }
           }
 
-          const fallbackMsg = isChhattisgarhi
-            ? 'अरे भइया, तोला पता हे न मैं थोड़ा बहिरा हंव! थोड़ा जोर ले अउ साफ़ बोलव — धान के भाव जानना हे कि दवाई?'
-            : 'अरे भैया, थोड़ा जोर से और साफ़ बोलें — मैं थोड़ा कम सुनता हूँ! धान का भाव जानना है कि खाद-दवाई?';
+          // If brain matched an app destination route, navigate seamlessly!
+          if (brain.route) {
+            closeAllActiveModals();
+            notify.success(isChhattisgarhi ? `👴🏻 काका: ${brain.textCg}` : `👴🏻 काका: ${brain.textHi}`);
+            speakText(isChhattisgarhi ? brain.textCg : brain.textHi);
+
+            if (brain.route.type === 'tab') {
+              handleTabChange(brain.route.target);
+            } else if (brain.route.target === 'token') {
+              handleTabChange('mandi');
+              window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
+            } else if (brain.route.target === 'motor' || brain.route.target === 'khet') {
+              handleTabChange('home');
+              window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: brain.route.target } }));
+            }
+            return;
+          }
+
+          // Direct conversational advice or warm persona response
           notify.info(isChhattisgarhi ? `👴🏻 बहिरा काका: "${transcript}"` : `👴🏻 काका: "${transcript}"`);
-          speakText(fallbackMsg);
+          speakText(isChhattisgarhi ? brain.textCg : brain.textHi);
         }
       },
       (errMsg, errCode) => {
