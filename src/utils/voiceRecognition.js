@@ -68,9 +68,11 @@ export const KEYWORD_ROUTES = [
       'कवक', 'फफूंद', 'रोग', 'खेत में समस्या', 'दवाई', 'कीटनाशक', 'स्प्रे', 'दवा',
       'धान में', 'मक्का में', 'सोयाबीन में', 'doctor', 'डॉक्टर', 'इल्ली', 'टिड्डी',
       'तना छेदक', 'सड़न', 'उकठा', 'ब्लास्ट', 'शीथ ब्लाइट', 'पत्ता मरोड़', 'दवा छिड़काव', 'टंकी',
-      // Chhattisgarhi
+      // Chhattisgarhi & Hinglish / Phonetic triggers
       'माहू', 'माहुर', 'पाना पीयर', 'खेत के रोग', 'फसल खराब', 'दवाई बताव', 'का डारूँ',
       'का छिड़काव', 'गाभा छेदक', 'सुंडी', 'चेपा', 'दवाई कौन',
+      'bimari', 'keeda', 'keera', 'kira', 'mahu', 'mahur', 'dawai', 'dawa', 'spray',
+      'fasal', 'patti', 'peela', 'peeli', 'jhulsa', 'blast', 'khaira', 'chepa', 'illi'
     ],
   },
 
@@ -86,9 +88,10 @@ export const KEYWORD_ROUTES = [
       'मंडी', 'भाव', 'दाम', 'कीमत', 'बेचना', 'बिक्री', 'मार्केट', 'धान का भाव',
       'msp', 'समर्थन मूल्य', 'रेट', 'धान खरीदी', 'उपार्जन', 'तौल', 'बोनस',
       '3100', '३१००', 'कृषक उन्नति', 'सोसायटी', 'मंडी भाव',
-      // Chhattisgarhi
+      // Chhattisgarhi & Hinglish triggers
       'मंडी म', 'धान बेचना', 'बाज़ार भाव', 'पईसा', 'कतना पईसा', 'धान के रेट',
       '३१०० रुपया', 'धान के पईसा', 'धान बिकाही', 'सोसायटी म',
+      'dhan', 'bhav', 'bhaav', 'rate', 'price', 'dam', 'daam', 'paisa', 'bechna', 'chawal', 'kharidi'
     ],
   },
 
@@ -102,7 +105,7 @@ export const KEYWORD_ROUTES = [
     spokenCg: 'अरे टोकन कटाना हे? हड़बड़ा झन, चल टोकन तुंहर हाथ के पूरा रद्दा बताथंव!',
     keywords: [
       'टोकन', 'टोकन तुंहर हाथ', 'टोकन काटना', 'टोकन कइसे', 'token', 'टोकन पर्ची',
-      'टोकन डेट', 'टोकन तारीख',
+      'टोकन डेट', 'टोकन तारीख', 'tuhar hath', 'parchi', 'slot'
     ],
   },
 
@@ -118,8 +121,9 @@ export const KEYWORD_ROUTES = [
       'खाद', 'उर्वरक', 'npk', 'dap', 'यूरिया', 'पोटाश', 'कैलकुलेटर', 'हिसाब',
       'कितनी खाद', 'calculator', 'योजना', 'सरकारी', 'pm kisan', 'पीएम किसान',
       'किसान क्रेडिट', 'kcc', 'लोन', 'सब्सिडी', 'किस्त', 'ऋण', 'बीमा', 'फसल बीमा',
-      // Chhattisgarhi
+      // Chhattisgarhi & Hinglish
       'खाद कतना', 'सरकारी योजना', 'पैसा कब', 'खाद हिसाब', 'पैसा कब आही', 'किस्त कब',
+      'khad', 'khaad', 'urea', 'yuriya', 'potash', 'subsidy', 'loan', 'fasal bima'
     ],
   },
 
@@ -134,6 +138,7 @@ export const KEYWORD_ROUTES = [
     keywords: [
       'मोटर', 'पंप', 'ट्यूबवेल', 'बोर', 'बोरवेल', 'पानी चलाना', 'सिंचाई मोटर',
       'मोटर चालू', 'मोटर बंद', 'लाइट', 'बिजली', 'motor', 'pump',
+      'motar', 'borewell', 'borwell', 'tubewell', 'starter', 'bijli'
     ],
   },
 
@@ -147,7 +152,7 @@ export const KEYWORD_ROUTES = [
     spokenCg: 'अपन खेत के हाल-चाल देखना हे? चल तोर खेत के कैलेंडर खोलथंव!',
     keywords: [
       'मेरा खेत', 'अपन खेत', 'खेत का हाल', 'बुआई', 'बोवाई', 'रोपाई',
-      'फसल चक्र', 'कैलेंडर', 'फसल के दिन', 'khet',
+      'फसल चक्र', 'कैलेंडर', 'फसल के दिन', 'khet', 'apna khet', 'mera khet', 'calendar'
     ],
   },
 
@@ -163,7 +168,7 @@ export const KEYWORD_ROUTES = [
       'चौपाल', 'सवाल', 'पूछना', 'दूसरे किसान', 'community', 'forum', 'सलाह',
       'बात करना', 'चर्चा', 'मदद', 'समुदाय',
       // Chhattisgarhi
-      'चौपाल म', 'किसान भाई', 'गोठ बात', 'गोठ-बात',
+      'चौपाल म', 'किसान भाई', 'गोठ बात', 'गोठ-बात', 'chaupal'
     ],
   },
 
@@ -178,8 +183,9 @@ export const KEYWORD_ROUTES = [
     keywords: [
       'मौसम', 'बारिश', 'आंधी', 'तूफान', 'धूप', 'तापमान', 'weather', 'कल कैसा',
       'आज का मौसम', 'घर', 'होम', 'home', 'मुख्य',
-      // Chhattisgarhi
+      // Chhattisgarhi & Hinglish
       'बरसात', 'पानी कब', 'मौसम कइसन हे', 'बादल', 'हवा',
+      'mausam', 'mosam', 'barish', 'baarish', 'rain', 'badal', 'dhup'
     ],
   },
 
@@ -194,7 +200,7 @@ export const KEYWORD_ROUTES = [
     keywords: [
       'जय जोहार', 'राम राम', 'नमस्ते', 'नमस्कार', 'प्रणाम', 'हेलो', 'जोहार',
       'hello', 'hi', 'काका', 'बहिरा काका', 'काका सुन', 'काका सुनव', 'काका बताव',
-      'ओ काका', 'काका जी', 'kaka',
+      'ओ काका', 'काका जी', 'kaka', 'bhaira kaka', 'johar', 'jay johar', 'ram ram', 'kaise ho'
     ],
   },
 
@@ -209,7 +215,7 @@ export const KEYWORD_ROUTES = [
     spokenCg: 'ले बेटा, डायलॉग ला बंद कर देगेंव!',
     keywords: [
       'बंद करो', 'बंद करव', 'काटो', 'हटाओ', 'हटाव', 'रद्द करो', 'रद्द करव',
-      'वापस जाओ', 'वापस जाव', 'पीछे जाओ', 'close', 'cancel', 'back'
+      'वापस जाओ', 'वापस जाव', 'पीछे जाओ', 'close', 'cancel', 'back', 'band karo', 'band karav'
     ],
   },
   {
@@ -222,7 +228,7 @@ export const KEYWORD_ROUTES = [
     spokenCg: 'हव बेटा, तोर जानकारी सहेज देगेंव! निश्चिंत रहव!',
     keywords: [
       'सहेजें', 'सहेजो', 'सहेजव', 'सेव करो', 'सेव करव', 'सबमिट करो', 'सबमिट करव',
-      'जमा करो', 'जमा करव', 'आगे बढ़ो', 'आगे बढ़व', 'save', 'submit'
+      'जमा करो', 'जमा करव', 'आगे बढ़ो', 'आगे बढ़व', 'save', 'submit', 'done', 'save karo'
     ],
   },
 ];
@@ -414,19 +420,45 @@ export const startVoiceRecognition = (onResult, onError) => {
       clearWatchdog();
       triggerHaptic([30, 40, 30]);
 
-      let best = '';
+      let primary = '';
+      let matchedRoute = null;
+      let matchedText = '';
+
       if (event.results && event.results[0]) {
-        for (let i = 0; i < event.results[0].length; i++) {
-          const alt = event.results[0][i].transcript || '';
-          if (alt.length > best.length) best = alt;
+        primary = (event.results[0][0]?.transcript || '').trim();
+
+        // 1. Check if the primary high-confidence hypothesis matches any route
+        matchedRoute = matchVoiceRoute(primary);
+        if (matchedRoute) {
+          matchedText = primary;
+        } else {
+          // 2. If primary didn't match, check if any alternative matches an agricultural route
+          for (let i = 1; i < event.results[0].length; i++) {
+            const alt = (event.results[0][i]?.transcript || '').trim();
+            const altMatch = matchVoiceRoute(alt);
+            if (altMatch) {
+              matchedRoute = altMatch;
+              matchedText = alt;
+              break;
+            }
+          }
         }
       }
 
-      const matched = matchVoiceRoute(best);
+      const best = matchedText || primary;
+      const matched = matchedRoute || matchVoiceRoute(best);
       notifyListeners({ listening: false, transcript: best, error: null });
 
       isListening = false;
       isStarting = false;
+
+      // Release microphone hardware immediately before any TTS speaker output
+      if (recognitionInstance) {
+        try {
+          recognitionInstance.abort();
+        } catch {}
+        recognitionInstance = null;
+      }
 
       // Small sequence buffer to let OS release microphone before any TTS response
       setTimeout(() => {

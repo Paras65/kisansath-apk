@@ -79,25 +79,37 @@ if (typeof document !== 'undefined') {
  * natural human inflection, and Indian / Devanagari phonetics.
  */
 const scoreVoice = (v) => {
-  if (!v) return 0;
-  let score = 0;
+  if (!v) return -9999;
   const name = (v.name || '').toLowerCase();
   const lang = (v.lang || '').toLowerCase().replace(/_/g, '-');
   const uri = (v.voiceURI || '').toLowerCase();
   const fullId = `${name} ${uri}`;
 
-  const isHindi = lang.startsWith('hi') || name.includes('hindi') || name.includes('हिन्दी');
-  const isIndian = lang.includes('in') || name.includes('india');
+  // ABSOLUTE FIELD SAFEGUARD: The voice MUST be capable of speaking Hindi / Devanagari script!
+  // Any English or foreign voice (en-US, en-GB, en-IN, etc.) reading Devanagari Hindi
+  // sounds like bizarre, unintelligible alien gibberish ("पता नहीं किस भाषा में कुछ भी बोल रहा है").
+  const isHindi =
+    lang.startsWith('hi') ||
+    name.includes('hindi') ||
+    name.includes('हिन्दी') ||
+    uri.includes('hindi') ||
+    uri.includes('hi-in');
 
-  // Bhaira Kaka is an elderly village uncle / grandfather (काका) - strictly prioritize male voices!
+  if (!isHindi) {
+    // Strictly eliminate all non-Hindi voices from selection!
+    return -9999;
+  }
+
+  let score = 100; // Base score for any confirmed Hindi-capable voice
+
+  // Bhaira Kaka is an elderly village uncle / grandfather (काका) - prioritize male voices within Hindi!
   const isExplicitMale =
     fullId.includes('madhur') ||
     fullId.includes('prabhat') ||
     fullId.includes('rishi') ||
     fullId.includes('neel') ||
     fullId.includes('hemant') ||
-    fullId.includes('ravi') ||
-    fullId.includes('cmn') || // Google WaveNet/Neural male model
+    fullId.includes('cmn') || // Google WaveNet/Neural Hindi male model
     fullId.includes('male') ||
     fullId.includes('पुरुष');
 
@@ -110,35 +122,32 @@ const scoreVoice = (v) => {
     fullId.includes('hie') ||
     fullId.includes('female') ||
     fullId.includes('महिला') ||
-    fullId.includes('woman') ||
-    fullId.includes('zira');
+    fullId.includes('woman');
 
-  if (isHindi) {
-    score += 70;
-    // Microsoft Natural Neural voices
-    if (name.includes('natural') || name.includes('neural')) score += 40;
-    if (name.includes('google')) score += 30;
-    if (name.includes('online')) score += 15;
-  } else if (isIndian) {
-    score += 25;
-    if (name.includes('natural') || name.includes('neural')) score += 20;
-  }
+  // Microsoft Natural Neural voices
+  if (name.includes('natural') || name.includes('neural')) score += 45;
+  if (name.includes('google')) score += 30;
+  if (name.includes('online')) score += 15;
 
-  // Strong gender weighting for Bhaira Kaka persona:
+  // Gender weighting for Bhaira Kaka persona:
   if (isExplicitMale) {
-    score += 100; // Heavily favor authentic male voice (e.g. Microsoft Madhur, Google CMN)
+    score += 100; // Heavily favor authentic male Hindi voice (e.g. Microsoft Madhur, Google CMN)
   } else if (isExplicitFemale) {
-    score -= 80; // Strongly de-prioritize female voices (Swara, Neerja, Lekha)
+    score += 15; // Still a valid Hindi voice (e.g. Swara/Kalpana), 100x better than English gibberish!
+  } else {
+    // Neutral Hindi (e.g. "Google हिन्दी")
+    score += 35;
   }
 
   // Slight bonus if marked system default
-  if (v.default && !isExplicitFemale) score += 5;
+  if (v.default) score += 5;
 
   return score;
 };
 
 /**
- * Selects the highest quality natural voice available on the user device.
+ * Selects the highest quality natural Hindi voice available on the user device.
+ * Never returns an English or foreign voice.
  */
 const selectBestVoice = () => {
   let voices = (cachedVoices && cachedVoices.length > 0) ? cachedVoices : loadVoices();
@@ -156,11 +165,11 @@ const selectBestVoice = () => {
   }
 
   if (!voices || voices.length === 0) {
-    return { voice: null, lang: 'hi-IN' };
+    return { voice: null, lang: 'hi-IN', hasHindiVoice: false };
   }
 
   let bestVoice = null;
-  let highestScore = -999;
+  let highestScore = -100;
 
   for (const v of voices) {
     const score = scoreVoice(v);
@@ -170,12 +179,13 @@ const selectBestVoice = () => {
     }
   }
 
-  if (bestVoice) {
-    return { voice: bestVoice, lang: bestVoice.lang || 'hi-IN' };
+  if (bestVoice && highestScore > 0) {
+    return { voice: bestVoice, lang: 'hi-IN', hasHindiVoice: true };
   }
 
-  // Fallback to first available voice or default hi-IN
-  return { voice: voices[0] || null, lang: voices[0]?.lang || 'hi-IN' };
+  // NO GENUINE HINDI VOICE EXISTS in the browser (e.g. desktop Windows with only English US voices)!
+  // Never return voices[0] or an English voice to prevent alien gibberish.
+  return { voice: null, lang: 'hi-IN', hasHindiVoice: false };
 };
 
 /**
@@ -312,6 +322,22 @@ export const cleanSpeechText = (raw) => {
     .replace(/\bOTP\b/gi, 'ओ टी पी')
     .replace(/\bPIN\b/gi, 'पिन')
     .replace(/\bha\b/gi, 'हेक्टेयर')
+    .replace(/\btoken\b/gi, 'टोकन')
+    .replace(/\bdoctor\b/gi, 'डॉक्टर')
+    .replace(/\bweather\b/gi, 'मौसम')
+    .replace(/\bmandi\b/gi, 'मंडी')
+    .replace(/\brate\b/gi, 'रेट')
+    .replace(/\bbhav\b/gi, 'भाव')
+    .replace(/\bcalculator\b/gi, 'कैलकुलेटर')
+    .replace(/\bmotor\b/gi, 'मोटर')
+    .replace(/\bpump\b/gi, 'पंप')
+    .replace(/\bborewell\b/gi, 'बोरवेल')
+    .replace(/\bborwell\b/gi, 'बोरवेल')
+    .replace(/\bstarter\b/gi, 'स्टार्टर')
+    .replace(/\bapp\b/gi, 'ऐप')
+    .replace(/\bportal\b/gi, 'पोर्टल')
+    .replace(/\bacre\b/gi, 'एकड़')
+    .replace(/\bdismil\b/gi, 'डिसमिल')
     // 7. Chhattisgarhi Phonetic Enhancements for Standard Devanagari TTS
     .replace(/\s+म\s+/g, ' मां ') // Standalone postposition "म" (in/में) pronounced as natural "मां"
     .replace(/अऊ/g, 'अउ') // Phonetic smoothing of diphthong
@@ -451,8 +477,18 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
   webSpeechQueue = [...sentences];
   isWebSpeechQueueActive = true;
 
-  const { voice, lang } = selectBestVoice();
+  const { voice, lang, hasHindiVoice } = selectBestVoice();
   let chosenVoice = voice;
+
+  // CRITICAL FIELD SAFEGUARD:
+  // If the browser does NOT possess a genuine Hindi voice (e.g. standard Windows desktop without Hindi pack)
+  // and the user is online, DO NOT allow Web Speech to babble in alien English gibberish!
+  // Return false immediately so speakText cleanly delegates to Tier 2 Google Neural Audio Stream!
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  if (!hasHindiVoice && !chosenVoice && isOnline) {
+    console.info('[Speech] No genuine Hindi Web Speech voice detected on this browser. Delegating to Tier 2 Google Neural Audio Stream.');
+    return false;
+  }
 
   // Chrome cold-start listener: attach best voice as soon as voices finish populating
   if (!chosenVoice && typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -495,9 +531,9 @@ const speakViaWebSpeech = (cleanText, onEndCallback) => {
     if (voiceToUse) {
       utterance.voice = voiceToUse;
     }
-    utterance.lang = lang || 'hi-IN';
-    utterance.rate = 0.88; // Calm, respectful, grandfatherly pace for Bhaira Kaka
-    utterance.pitch = 0.82; // Deeper, resonant pitch (0.82) to guarantee an authentic older male / काका voice
+    utterance.lang = 'hi-IN'; // STRICTLY hi-IN! Never an English locale!
+    utterance.rate = 0.90; // Calm, respectful, grandfatherly pace for Bhaira Kaka
+    utterance.pitch = 0.86; // Resonant pitch (0.86) to guarantee authentic older male / काका voice without distortion
 
     utterance.onstart = () => {
       if (sessionId !== currentSpeechSessionId) return;
