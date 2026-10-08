@@ -8,6 +8,9 @@ const ASSETS_TO_CACHE = [
   '/version.json',
   '/icons/kisan-icon-512.png',
   '/icons/kisan-icon.svg',
+  '/icons/kaka-idle.png',
+  '/icons/kaka-listening.png',
+  '/icons/kaka-speaking.png',
   '/favicon.svg'
 ];
 

@@ -322,27 +322,39 @@ function App() {
                 acreInput.dispatchEvent(new Event('input', { bubbles: true }));
                 acreInput.dispatchEvent(new Event('change', { bubbles: true }));
                 notify.success(isChhattisgarhi ? `🌾 ${acreVal} एकड़ सेट होगे` : `🌾 ${acreVal} एकड़ सेट हो गया`);
-                speakText(isChhattisgarhi ? `${acreVal} एकड़ सेट होगे संगी` : `${acreVal} एकड़ सेट हो गया`);
+                speakText(isChhattisgarhi ? `हव बेटा, ${acreVal} एकड़ सेट कर देगेंव!` : `जी भैया, ${acreVal} एकड़ सेट कर दिया गया है।`);
                 return;
               }
             }
           }
 
           const fallbackMsg = isChhattisgarhi
-            ? 'माफ करव संगी, समझ नई आइस। फिर से बोलव — जैसे धान के भाव या फसल बीमारी।'
-            : 'माफ कीजिए, समझ नहीं आया। फिर से बोलें — जैसे धान का भाव या फसल की बीमारी।';
-          notify.info(`🎤 "${transcript}"`);
+            ? 'अरे भइया, तोला पता हे न मैं थोड़ा बहिरा हंव! थोड़ा जोर ले अउ साफ़ बोलव — धान के भाव जानना हे कि दवाई?'
+            : 'अरे भैया, थोड़ा जोर से और साफ़ बोलें — मैं थोड़ा कम सुनता हूँ! धान का भाव जानना है कि खाद-दवाई?';
+          notify.info(isChhattisgarhi ? `👴🏻 बहिरा काका: "${transcript}"` : `👴🏻 काका: "${transcript}"`);
           speakText(fallbackMsg);
         }
       },
       (errMsg, errCode) => {
         notify.warning(errMsg);
         if (errCode === 'not-allowed') {
-          speakText(isChhattisgarhi ? 'माइक बंद हे संगी, फोन के सेटिंग ले चालू करव।' : 'माइक्रोफ़ोन बंद है, फोन की सेटिंग से चालू करें।');
+          speakText(
+            isChhattisgarhi
+              ? 'अरे बेटा, तोर मोबाइल के माइक बंद हे! सेटिंग म जाके चालू करव तभे न तोर काका सुनही!'
+              : 'अरे भैया, मोबाइल का माइक बंद है! सेटिंग में जाकर चालू करें तभी आपका काका सुनेगा!'
+          );
         } else if (errCode === 'network') {
-          speakText(isChhattisgarhi ? 'इंटरनेट धीमा हे, थोड़ा रुक के बोलव।' : 'इंटरनेट धीमा है, कृपया प्रतीक्षा करें।');
+          speakText(
+            isChhattisgarhi
+              ? 'इंटरनेट थोरकिन सुस्त चलत हे संगी, थोड़ा धीरज धरव, काका सुनत हे!'
+              : 'इंटरनेट धीमा चल रहा है भैया, थोड़ा धीरज रखें, काका सुन रहा है!'
+          );
         } else if (errCode === 'no-speech' || errCode === 'timeout') {
-          speakText(isChhattisgarhi ? 'कछु बोलव भइया, जैसे धान के भाव।' : 'कृपया कुछ बोलें, जैसे धान का भाव।');
+          speakText(
+            isChhattisgarhi
+              ? 'अरे भइया, कछु बोलव त सही! तोर बहिरा काका कान लगाके बइठे हे!'
+              : 'अरे भैया, कुछ बोलिए तो सही! आपका काका कान लगाकर बैठा है!'
+          );
         }
       }
     );

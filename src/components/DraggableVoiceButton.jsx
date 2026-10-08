@@ -38,7 +38,7 @@ export const DraggableVoiceButton = ({
   // Compute default bottom-right position
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const defaultX = Math.max(16, window.innerWidth - (isModalOpen ? 64 : 170));
+    const defaultX = Math.max(16, window.innerWidth - (isModalOpen ? 64 : 205));
     const defaultY = Math.max(76, window.innerHeight - 130);
 
     // If user hasn't dragged, set default
@@ -49,7 +49,7 @@ export const DraggableVoiceButton = ({
     const handleResize = () => {
       setPosition((prev) => {
         if (!prev) return { x: defaultX, y: defaultY };
-        const maxX = window.innerWidth - (isModalOpen ? 56 : 160);
+        const maxX = window.innerWidth - (isModalOpen ? 56 : 195);
         const maxY = window.innerHeight - 80;
         return {
           x: Math.min(Math.max(10, prev.x), maxX),
@@ -86,7 +86,7 @@ export const DraggableVoiceButton = ({
       hasMovedRef.current = true;
     }
 
-    const btnWidth = isModalOpen ? 52 : 150;
+    const btnWidth = isModalOpen ? 52 : 185;
     const btnHeight = 48;
     const newX = Math.min(Math.max(10, startPosRef.current.initialElemX + dx), window.innerWidth - btnWidth);
     const newY = Math.min(Math.max(10, startPosRef.current.initialElemY + dy), window.innerHeight - btnHeight);
@@ -99,7 +99,7 @@ export const DraggableVoiceButton = ({
     // Snap to nearest side if dragged
     if (hasMovedRef.current && position) {
       const snapToRight = position.x > window.innerWidth / 2;
-      const btnWidth = isModalOpen ? 56 : 160;
+      const btnWidth = isModalOpen ? 56 : 190;
       const snappedX = snapToRight ? window.innerWidth - btnWidth - 12 : 12;
       setPosition((prev) => ({ ...prev, x: snappedX }));
     }
@@ -125,7 +125,7 @@ export const DraggableVoiceButton = ({
       if (Math.hypot(dx, dy) > 6) {
         hasMovedRef.current = true;
       }
-      const btnWidth = isModalOpen ? 52 : 150;
+      const btnWidth = isModalOpen ? 52 : 185;
       const btnHeight = 48;
       const newX = Math.min(Math.max(10, startPosRef.current.initialElemX + dx), window.innerWidth - btnWidth);
       const newY = Math.min(Math.max(10, startPosRef.current.initialElemY + dy), window.innerHeight - btnHeight);
@@ -161,15 +161,23 @@ export const DraggableVoiceButton = ({
     ? '#1565c0'
     : '#2e7d32';
 
-  const label = isSpeakingActive
-    ? (isChhattisgarhi ? '🛑 बंद करव' : '🛑 बंद करें')
+  const currentAvatarSrc = isSpeakingActive
+    ? '/icons/kaka-speaking.png'
     : isVoiceListening
-    ? (isChhattisgarhi ? '🎙️ सुनत हन…' : '🎙️ सुन रहा हूँ…')
-    : (isChhattisgarhi ? '🎤 बोलकर पूछव' : '🎤 बोलकर पूछें');
+    ? '/icons/kaka-listening.png'
+    : '/icons/kaka-idle.png';
+
+  const emojiFallback = isSpeakingActive ? '🛑' : isVoiceListening ? '👂🏻' : '👴🏻';
+
+  const label = isSpeakingActive
+    ? (isChhattisgarhi ? 'काका ला रोको' : 'काका को रोकें')
+    : isVoiceListening
+    ? (isChhattisgarhi ? 'काका सुनत हे… बोलव!' : 'काका सुन रहे हैं… बोलें!')
+    : (isChhattisgarhi ? 'बहिरा काका ले पूछव' : 'बहिरा काका से पूछें');
 
   const tooltipTitle = isModalOpen
-    ? (isChhattisgarhi ? '🎤 मोडल म बोलव (खिसकाए बर पकड़व)' : '🎤 मोडल में बोलें (खिसकाने के लिए पकड़ें)')
-    : (isChhattisgarhi ? '🎤 बोलकर पूछव (उंगली ले खिसकावव)' : '🎤 बोलकर पूछें (उंगली से खिसकाएं)');
+    ? (isChhattisgarhi ? '👴🏻 बहिरा काका (खिसकाए बर पकड़व)' : '👴🏻 बहिरा काका (खिसकाने के लिए पकड़ें)')
+    : (isChhattisgarhi ? '👴🏻 बहिरा काका ले पूछव (उंगली ले खिसकावव)' : '👴🏻 बहिरा काका से पूछें (उंगली से खिसकाएं)');
 
   if (!position) return null;
 
@@ -193,6 +201,7 @@ export const DraggableVoiceButton = ({
           cursor: isDraggingRef.current ? 'grabbing' : 'grab',
           userSelect: 'none',
           touchAction: 'none',
+          whiteSpace: 'nowrap',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -209,10 +218,10 @@ export const DraggableVoiceButton = ({
             : isModalOpen
             ? '0 8px 24px rgba(0,0,0,0.35), 0 0 0 3px #ffffff'
             : '0 6px 20px rgba(46,125,50,0.45)',
-          px: isModalOpen ? 0 : 2,
-          py: isModalOpen ? 0 : 1,
+          px: isModalOpen ? 0 : 1.6,
+          py: isModalOpen ? 0 : 0.8,
           width: isModalOpen ? 48 : 'auto',
-          height: isModalOpen ? 48 : 42,
+          height: isModalOpen ? 48 : 44,
           minWidth: isModalOpen ? 48 : 0,
           borderRadius: isModalOpen ? '50%' : '28px',
           border: isModalOpen ? '2.5px solid #ffffff' : 'none',
@@ -234,13 +243,89 @@ export const DraggableVoiceButton = ({
         }}
       >
         {isModalOpen ? (
-          // In-Modal Compact Bubble: Just the icon with pulse/state
-          <Box sx={{ fontSize: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            {isSpeakingActive ? '🛑' : isVoiceListening ? '🎙️' : '🎤'}
+          // In-Modal Compact 48px Bubble: 3D Avatar filling the bubble
+          <Box
+            sx={{
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,0.7)',
+            }}
+          >
+            <Box
+              component="img"
+              src={currentAvatarSrc}
+              alt="बहिरा काका"
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                borderRadius: '50%',
+              }}
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+                const fallback = e.currentTarget.parentElement?.querySelector('.kaka-emoji-fallback');
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            <Box
+              className="kaka-emoji-fallback"
+              sx={{
+                display: 'none',
+                fontSize: '22px',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {emojiFallback}
+            </Box>
           </Box>
         ) : (
-          // Normal Screen: Full Friendly Pill
-          <span>{label}</span>
+          // Normal Screen: 3D Avatar Badge + Full Friendly Pill
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                overflow: 'hidden',
+                flexShrink: 0,
+                border: '2px solid #ffffff',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Box
+                component="img"
+                src={currentAvatarSrc}
+                alt="बहिरा काका"
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.parentElement?.querySelector('.kaka-pill-fallback');
+                  if (fallback) fallback.style.display = 'block';
+                }}
+              />
+              <Box
+                className="kaka-pill-fallback"
+                sx={{ display: 'none', fontSize: '18px' }}
+              >
+                {emojiFallback}
+              </Box>
+            </Box>
+            <span>{label}</span>
+          </Box>
         )}
       </Box>
     </Tooltip>
