@@ -17,7 +17,8 @@ import {
   Alert,
   Divider,
   InputAdornment,
-  LinearProgress
+  LinearProgress,
+  Collapse
 } from '@mui/material';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
@@ -49,6 +50,11 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import CloseIcon from '@mui/icons-material/Close';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
+import FlashOnIcon from '@mui/icons-material/FlashOn';
+import WbSunnyIcon from '@mui/icons-material/WbSunny';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import { speakText, stopSpeech } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
@@ -60,7 +66,7 @@ import {
   getFarmerPlots
 } from '../services/farmerService';
 import { notify } from '../services/notificationService';
-import { CROP_LIFECYCLE_RULES, analyzePlotLifecycle } from '../utils/cropLifecycleEngine';
+import { CROP_LIFECYCLE_RULES, analyzePlotLifecycle, getTodayActionableFarmTask } from '../utils/cropLifecycleEngine';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { shareOnWhatsApp } from '../utils/shareUtils';
 import { checkForAppUpdate } from '../services/updateService';
@@ -213,6 +219,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   // 1-Click Quick Login Modal & Pending Tool Action State
   const [openQuickLogin, setOpenQuickLogin] = useState(false);
   const [pendingToolAction, setPendingToolAction] = useState(null);
+  const [showLifecycleJourney, setShowLifecycleJourney] = useState(false);
   const [authMode, setAuthMode] = useState('register'); // 'register' | 'login'
   const [loginForm, setLoginForm] = useState({
     phone: '',
@@ -368,17 +375,30 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       'आज के किसानी सलाह: मौसम साफ अऊ बने रहिही। यूरिया खाद अऊ दवाई छिड़काव बर बने समय हे।',
       'आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।'
     );
-    let advisoryVoice = isChhattisgarhi
+    let parts = [];
+
+    if (weather?.lightningRisk?.hasRisk) {
+      parts.push(isChhattisgarhi ? (weather.lightningRisk.adviceCg || weather.lightningRisk.advice) : weather.lightningRisk.advice);
+    }
+
+    const sprayVoice = isChhattisgarhi
       ? (weather?.sprayAdvisory?.voiceCg || weather?.sprayAdvisory?.voice)
       : weather?.sprayAdvisory?.voice;
+    if (sprayVoice) parts.push(sprayVoice);
+
+    if (weather?.harvestDryingWindow) {
+      parts.push(isChhattisgarhi ? (weather.harvestDryingWindow.adviceCg || weather.harvestDryingWindow.advice) : weather.harvestDryingWindow.advice);
+    }
 
     if (weather?.soilMoisture) {
-      advisoryVoice = `${advisoryVoice || ''} ${isChhattisgarhi ? weather.soilMoisture.adviceCg : weather.soilMoisture.advice}`;
+      parts.push(isChhattisgarhi ? weather.soilMoisture.adviceCg : weather.soilMoisture.advice);
     }
     if (weather?.diseaseRisk && weather.diseaseRisk.riskLevel === 'high') {
-      advisoryVoice = `${advisoryVoice || ''} ${isChhattisgarhi ? weather.diseaseRisk.adviceCg : weather.diseaseRisk.advice}`;
+      parts.push(isChhattisgarhi ? weather.diseaseRisk.adviceCg : weather.diseaseRisk.advice);
     }
-    speakText(advisoryVoice ? advisoryVoice.trim() : fallbackText);
+
+    const fullText = parts.length > 0 ? parts.join(' ') : fallbackText;
+    speakText(fullText.trim());
   };
 
   const handleReadStep = (e, step) => {
@@ -2205,6 +2225,41 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               </Box>
             </Box>
 
+            {/* Lightning & Severe Squall Emergency Warning Banner */}
+            {weather?.lightningRisk?.hasRisk && (
+              <Box
+                sx={{
+                  p: 1.2,
+                  mb: 1.5,
+                  borderRadius: 2.5,
+                  bgcolor: '#fff1f2',
+                  border: '2px solid #e11d48',
+                  boxShadow: '0 4px 14px rgba(225, 29, 72, 0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.6
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.8 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <FlashOnIcon sx={{ color: '#e11d48', fontSize: 22 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#be123c', fontSize: '0.86rem' }}>
+                      {isChhattisgarhi ? (weather.lightningRisk.titleCg || weather.lightningRisk.title) : weather.lightningRisk.title}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={isChhattisgarhi ? (weather.lightningRisk.badgeCg || weather.lightningRisk.badge) : weather.lightningRisk.badge}
+                    size="small"
+                    color="error"
+                    sx={{ fontWeight: 900, fontSize: '0.66rem', height: 22 }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#881337', fontSize: '0.76rem', lineHeight: 1.35, fontWeight: 700 }}>
+                  {isChhattisgarhi ? (weather.lightningRisk.adviceCg || weather.lightningRisk.advice) : weather.lightningRisk.advice}
+                </Typography>
+              </Box>
+            )}
+
             {/* Metrics Strip */}
             <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 1.5 }}>
               <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
@@ -2348,6 +2403,46 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               </Typography>
             </Box>
 
+            {/* 72-Hour Safe Harvest & Sun-Drying Window */}
+            {weather?.harvestDryingWindow && (
+              <Box
+                sx={{
+                  p: 1.2,
+                  mb: 1.5,
+                  borderRadius: 2.5,
+                  bgcolor: weather.harvestDryingWindow.bg || '#f0fdf4',
+                  border: `1.5px solid ${weather.harvestDryingWindow.borderColor || '#bbf7d0'}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 0.6
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.8 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <WbSunnyIcon sx={{ color: weather.harvestDryingWindow.color || '#166534', fontSize: 20 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: weather.harvestDryingWindow.color || '#166534', fontSize: '0.82rem' }}>
+                      {isChhattisgarhi ? (weather.harvestDryingWindow.titleCg || weather.harvestDryingWindow.title) : weather.harvestDryingWindow.title}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={isChhattisgarhi ? (weather.harvestDryingWindow.badgeCg || weather.harvestDryingWindow.badge) : weather.harvestDryingWindow.badge}
+                    size="small"
+                    sx={{
+                      bgcolor: '#ffffff',
+                      color: weather.harvestDryingWindow.color || '#166534',
+                      border: `1px solid ${weather.harvestDryingWindow.color || '#166534'}`,
+                      fontWeight: 800,
+                      fontSize: '0.66rem',
+                      height: 20
+                    }}
+                  />
+                </Box>
+                <Typography variant="caption" sx={{ color: '#334155', fontSize: '0.74rem', lineHeight: 1.35 }}>
+                  {isChhattisgarhi ? (weather.harvestDryingWindow.adviceCg || weather.harvestDryingWindow.advice) : weather.harvestDryingWindow.advice}
+                </Typography>
+              </Box>
+            )}
+
             {/* Compact 3-Day Forecast Strip */}
             {weather?.forecast3Days && (
               <Box sx={{ pt: 1, borderTop: '1px solid #f1f5f9' }}>
@@ -2375,6 +2470,96 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               </Box>
             )}
           </Card>
+
+          {/* High-Impact Today's Farm Action Card (🌾 आज खेत में 1 मुख्य काम) */}
+          {(() => {
+            const todayTask = getTodayActionableFarmTask({ activeFarmer, farmerPlots, weather, isChhattisgarhi });
+            if (!todayTask) return null;
+            return (
+              <Card
+                sx={{
+                  p: { xs: 1.5, sm: 2 },
+                  mb: 2.2,
+                  borderRadius: 3.5,
+                  bgcolor: '#fafffa',
+                  border: '1.5px solid #86efac',
+                  boxShadow: '0 4px 16px rgba(34, 197, 94, 0.08)',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        bgcolor: '#1b5e20',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <TaskAltIcon sx={{ fontSize: 20 }} />
+                    </Box>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#166534', fontSize: '0.92rem', lineHeight: 1.2 }}>
+                        {isChhattisgarhi ? '🌾 आज खेत म 1 मुख्य काम' : '🌾 आज खेत में 1 मुख्य काम'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                        {todayTask.source === 'plot'
+                          ? (isChhattisgarhi ? `तुंहर खेत: ${todayTask.plotName} (${todayTask.cropName})` : `आपका खेत: ${todayTask.plotName} (${todayTask.cropName})`)
+                          : (isChhattisgarhi ? `मौसम चक्र: ${todayTask.season}` : `कृषि मौसम चक्र: ${todayTask.season}`)}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                    <Chip
+                      label={todayTask.source === 'plot' ? (isChhattisgarhi ? 'खेत अनुसार' : 'खेत आधारित') : (isChhattisgarhi ? 'मासिक सलाह' : 'ऋतु आधारित')}
+                      size="small"
+                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                    />
+                    <IconButton
+                      size="small"
+                      onClick={() => speakText(`${todayTask.title}। ${todayTask.task}`)}
+                      sx={{ bgcolor: '#f1f8e9', color: '#1b5e20', p: 0.6 }}
+                    >
+                      <VolumeUpIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <Typography variant="body2" sx={{ color: '#1e293b', fontWeight: 700, fontSize: '0.86rem', mb: 0.5 }}>
+                  {todayTask.title}
+                </Typography>
+
+                <Typography variant="body2" sx={{ color: '#334155', fontSize: '0.82rem', lineHeight: 1.5, mb: 1.2 }}>
+                  {todayTask.task}
+                </Typography>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px dashed #cbd5e1', flexWrap: 'wrap', gap: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <span>📌</span> {isChhattisgarhi ? 'समय ले काम निपटाव अऊ पैदावार बढ़ाव' : 'समय पर काम पूरा कर भरपूर पैदावार पाएं'}
+                  </Typography>
+                  <Button
+                    size="small"
+                    endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
+                    onClick={() => {
+                      stopSpeech();
+                      if (todayTask.targetTab) onNavigate(todayTask.targetTab);
+                      else if (todayTask.source === 'plot') setOpenMeraKhet(true);
+                    }}
+                    sx={{ color: '#1b5e20', fontWeight: 800, fontSize: '0.75rem', py: 0.2, px: 1 }}
+                  >
+                    {todayTask.actionText || (isChhattisgarhi ? 'आगे देखव ➔' : 'आगे देखें ➔')}
+                  </Button>
+                </Box>
+              </Card>
+            );
+          })()}
 
           {/* Public Crop Advisor & Quick Acre Estimator (Shown prominently on Public Mode) */}
           {!activeFarmer && renderPublicCropAdvisor()}
@@ -2590,15 +2775,57 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
           {/* Public Crop Advisor & Quick Acre Estimator (For Logged-in Farmers Reference) */}
           {activeFarmer && renderPublicCropAdvisor()}
 
-          {/* Interactive 6-Stage Agricultural Lifecycle Stepper */}
-          <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>
-              {isChhattisgarhi ? '🌱 फसल ले लेके बिक्री तक (6 चरणीय किसानी यात्रा)' : '🌱 फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-              {isChhattisgarhi ? 'चरण चुनव अऊ जानव' : 'चरण चुनें व जानें'}
-            </Typography>
-          </Box>
+          {/* Interactive 6-Stage Agricultural Lifecycle Stepper (Collapsible) */}
+          <Card
+            sx={{
+              mb: 2.5,
+              borderRadius: 3.5,
+              bgcolor: '#ffffff',
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.03)'
+            }}
+          >
+            <Box
+              onClick={() => setShowLifecycleJourney((prev) => !prev)}
+              sx={{
+                p: 1.5,
+                px: 2,
+                cursor: 'pointer',
+                bgcolor: showLifecycleJourney ? '#f8fafc' : '#ffffff',
+                borderBottom: showLifecycleJourney ? '1px solid #e2e8f0' : 'none',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                transition: 'all 0.18s ease',
+                '&:hover': { bgcolor: '#f8fafc' }
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>🌱</Typography>
+                <Box>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem' }}>
+                    {isChhattisgarhi ? 'फसल ले लेके बिक्री तक (6 चरणीय किसानी यात्रा)' : 'फसल से लेकर बिक्री तक (6 चरणीय कृषि यात्रा)'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                    {isChhattisgarhi ? 'बुआई पूर्व ले मंडी बिक्री तक के 6 चरण' : 'बुआई पूर्व से मंडी बिक्री तक के 6 चरण'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <Chip
+                  label={showLifecycleJourney ? (isChhattisgarhi ? 'समेटव' : 'समेटें') : (isChhattisgarhi ? 'विस्तार देखव' : 'विस्तार देखें')}
+                  size="small"
+                  sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                />
+                <IconButton size="small" sx={{ color: '#64748b', p: 0.3 }}>
+                  {showLifecycleJourney ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+                </IconButton>
+              </Box>
+            </Box>
+
+            <Collapse in={showLifecycleJourney} timeout="auto" unmountOnExit>
+              <Box sx={{ p: 2, pt: 1.5 }}>
 
           {/* 6-Stage Progress Stepper Bar (Visual Segmented Pills on md+, Numbered Dots on xs) */}
           <Box sx={{ mb: 1.5 }}>
@@ -2734,7 +2961,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
             return (
               <Card
                 sx={{
-                  mb: 2.5,
+                  mb: 0.5,
                   p: 2,
                   borderRadius: 3.5,
                   bgcolor: '#ffffff',
@@ -2880,6 +3107,9 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
               </Card>
             );
           })()}
+              </Box>
+            </Collapse>
+          </Card>
 
           {/* Platform APK & Share Footer (Mobile Only: xs & sm) */}
           <Box sx={{ display: { xs: 'block', md: 'none' }, mt: 2 }}>

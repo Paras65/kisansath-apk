@@ -1,8 +1,8 @@
 {
-  "version": "1.0.29",
+  "version": "1.0.30",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.29",
-  "releaseNotes": "सैटेलाइट जड़ क्षेत्र मृदा नमी मीटर (0-9 सेमी) व स्मार्ट सिंचाई सलाह, 48-घंटे ब्लास्ट/फफूंद रोग पूर्व-चेतावनी, एआई फसल डॉक्टर मल्टी-टर्न संवाद परामर्श चैट व फोटो सुधार गाइड, तथा एगमार्कनेट मंडी दोहरी दर (क्विंटल व किलो भाव) एवं अंतर-मंडी मूल्य तुलना पट्टी का सफल समावेश।",
+  "releaseName": "किसान साथी v1.0.30",
+  "releaseNotes": "होम टैब में आकाशीय बिजली व गंभीर आंधी-तूफान आपातकालीन सुरक्षा अलर्ट (Severe Lightning & Squall Alert), 72-घंटे सुरक्षित कटाई व धूप में सुखाने की खिड़की (Safe Harvest & Sun-Drying Window), 'आज खेत में 1 मुख्य काम' (Today's Single Actionable Farm Task Engine), तथा संकुचित 6-चरणीय कृषि यात्रा (Collapsible Lifecycle Stepper) का सफल समावेश।",
   "updatedAt": "2026-10-08"
 }

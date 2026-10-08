@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.29';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.30';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: 'सैटेलाइट जड़ क्षेत्र मृदा नमी मीटर (0-9 सेमी) व स्मार्ट सिंचाई सलाह, 48-घंटे ब्लास्ट/फफूंद रोग पूर्व-चेतावनी, एआई फसल डॉक्टर मल्टी-टर्न संवाद परामर्श चैट व फोटो सुधार गाइड, तथा एगमार्कनेट मंडी दोहरी दर (क्विंटल व किलो भाव) एवं अंतर-मंडी मूल्य तुलना पट्टी का सफल समावेश।',
+    releaseNotes: 'होम टैब में आकाशीय बिजली व गंभीर आंधी-तूफान आपातकालीन सुरक्षा अलर्ट (Severe Lightning & Squall Alert), 72-घंटे सुरक्षित कटाई व धूप में सुखाने की खिड़की (Safe Harvest & Sun-Drying Window), आज खेत में 1 मुख्य काम (Today\'s Single Actionable Farm Task Engine), तथा संकुचित 6-चरणीय कृषि यात्रा (Collapsible Lifecycle Stepper) का सफल समावेश।',
     updatedAt: new Date().toISOString()
   });
 });

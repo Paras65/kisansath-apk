@@ -321,6 +321,120 @@ export const calculateSoilMoistureAdvisory = (currentMoisture = 0.25, rootZoneMo
 };
 
 /**
+ * Evaluate Real-time Lightning (गाज) & Severe Squall Danger
+ * Codes 95, 96, 99 indicate active thunderstorms / hailstorms in Open-Meteo
+ */
+export const calculateLightningRisk = (weatherCode = 0, windSpeed = 0, rainProb = 0) => {
+  const isThunderstorm = [95, 96, 99].includes(Number(weatherCode));
+  const isSevereStorm = isThunderstorm || (Number(windSpeed) >= 35 && Number(rainProb) >= 70);
+  const isModerateSquall = [80, 81, 82].includes(Number(weatherCode)) && Number(windSpeed) >= 25;
+
+  if (isSevereStorm) {
+    return {
+      hasRisk: true,
+      severity: 'danger',
+      badge: '⚡ गाज (आकाशीय बिजली) अलर्ट',
+      badgeCg: '⚡ गाज (बिजली) के भारी खतरा',
+      title: 'आकाशीय बिजली (गाज) व आंधी-तूफान की चेतावनी!',
+      titleCg: 'आकाशीय बिजली (गाज) अऊ अंधरी-तूफान के भारी खतरा!',
+      advice: 'मौसम में बिजली गिरने (गाज) और तेज आंधी की तीव्र संभावना है। तुरंत खुले खेत, ऊंचे पेड़, लोहे के खंभे व ट्रांसफार्मर के पास से हटें। सुरक्षित पक्के मकान में शरण लें!',
+      adviceCg: 'मौसम म गाज गिरे अऊ अंधरी चले के भारी खतरा हे! खुले खेत, बड़े रुख (पेड़), खंभा अऊ डीपी (ट्रांसफार्मर) के तीर ले हटके तुरते पक्का घर म जावव!',
+      voice: 'सावधान! मौसम में आकाशीय बिजली यानी गाज गिरने का गंभीर खतरा है। तुरंत खुले खेत और पेड़ों के नीचे से हटकर सुरक्षित स्थान पर जाएं।'
+    };
+  }
+
+  if (isModerateSquall) {
+    return {
+      hasRisk: true,
+      severity: 'warning',
+      badge: '💨 तेज आंधी सतर्कता',
+      badgeCg: '💨 तेज अंधरी सतर्कता',
+      title: 'तेज हवा व आकस्मिक बौछार की सतर्कता',
+      titleCg: 'तेज हवा अऊ पानी के बौछार के संका',
+      advice: 'हवा की गति तेज है। खुले खेत में कीटनाशक छिड़काव रोकें और कटी फसलों को ढकने की व्यवस्था रखें।',
+      adviceCg: 'हवा तेज चलत हे। दवाई के छिड़काव रोकव अऊ कटी फसल ला तिरपाल ले तोप के राखव।',
+      voice: 'मौसम में तेज हवा और बौछारों की संभावना है। कटी फसल को सुरक्षित ढकें।'
+    };
+  }
+
+  return {
+    hasRisk: false,
+    severity: 'none',
+    badge: '✅ बिजली खतरा नहीं',
+    badgeCg: '✅ गाज के खतरा नइये',
+    title: 'मौसम शांत: आकाशीय बिजली का कोई खतरा नहीं',
+    titleCg: 'मौसम शांत हे, कोनो गाज के खतरा नइये',
+    advice: 'खेत में सामान्य कृषि कार्य किए जा सकते हैं।',
+    adviceCg: 'खेत म सामान्य किसानी काम करे सकथव।',
+    voice: ''
+  };
+};
+
+/**
+ * Evaluate 72-Hour Safe Harvest & Sun-Drying Window (फसल कटाई व धूप में सुखाने का मौसम)
+ * Analyzes next 3 days for rain probability and precipitation to prevent post-harvest grain sprouting.
+ */
+export const calculateHarvestDryingWindow = (daily = {}, forecast3Days = []) => {
+  const rainProbs = daily.precipitation_probability_max || [];
+  const rain0 = rainProbs[0] ?? (forecast3Days[0]?.rainProb || 15);
+  const rain1 = rainProbs[1] ?? (forecast3Days[1]?.rainProb || 10);
+  const rain2 = rainProbs[2] ?? (forecast3Days[2]?.rainProb || 15);
+
+  const maxRain = Math.max(rain0, rain1, rain2);
+  const weatherCodes = daily.weather_code || [];
+  const hasStormCode = weatherCodes.slice(0, 3).some(code => [61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code));
+
+  if (maxRain < 25 && !hasStormCode) {
+    return {
+      status: 'safe',
+      isSafe: true,
+      badge: '☀️ 3 दिन सुरक्षित कटाई',
+      badgeCg: '☀️ 3 दिन बने कटाई बेरा',
+      color: '#2e7d32',
+      bg: '#f0fdf4',
+      border: '#bbf7d0',
+      title: 'फसल कटाई व धूप में सुखाने हेतु 3 दिन सुरक्षित',
+      titleCg: 'फसल कटाई अऊ खरिहान म सुखोय बर 3 दिन बने हे',
+      advice: 'अगले 72 घंटों में बारिश की संभावना नगण्य है। पकी फसल की कटाई और खलिहान में धान सुखाने के लिए मौसम पूरी तरह अनुकूल है। दानों में नमी 14-17% तक लाने का यह उत्तम समय है।',
+      adviceCg: 'आवत 3 दिन म पानी गिरे के कोनो संका नइये। धान कटाई अऊ खरिहान म सुखोय बर मौसम एकदम साफ हे। गलथाय या दाना जमे के खतरा नइये।',
+      voice: 'अगले तीन दिन मौसम सूखा और धूप वाला रहेगा। फसल कटाई और खलिहान में सुखाने के लिए उत्तम समय है।'
+    };
+  }
+
+  if (maxRain <= 45 && !hasStormCode) {
+    return {
+      status: 'caution',
+      isSafe: false,
+      badge: '⛅ सावधानी से कटाई',
+      badgeCg: '⛅ देख-परख के कटाई',
+      color: '#d97706',
+      bg: '#fffbeb',
+      border: '#fde68a',
+      title: 'हल्की स्थानीय वर्षा की संभावना: सतर्कता बरतें',
+      titleCg: 'हल्का पानी गिरे के संका: सचेत होके कटाई करव',
+      advice: 'आगामी 2-3 दिनों में स्थानीय बादलों से हल्की बौछारों की संभावना है। जितनी फसल की कटाई करें, उसे ढकने या खलिहान में सुरक्षित लाने की व्यवस्था रखें। तिरपाल तैयार रखें।',
+      adviceCg: 'आवत 2-3 दिन म हल्का पानी गिर सकथे। कटी फसल बर तिरपाल तियार राखव, खुल्ला म झन छोड़व।',
+      voice: 'स्थानीय बादलों से हल्की बौछारों की संभावना है। कटी फसल को ढकने के लिए तिरपाल तैयार रखें।'
+    };
+  }
+
+  return {
+    status: 'unsafe',
+    isSafe: false,
+    badge: '🌧️ कटाई तुरंत रोकें',
+    badgeCg: '🌧️ कटाई अभी झन करव',
+    color: '#dc2626',
+    bg: '#fef2f2',
+    border: '#fecaca',
+    title: 'वर्षा का जोखिम: पकी फसल की कटाई तुरंत टालें',
+    titleCg: 'पानी गिरे के भारी संका: कटाई अभी रोकव',
+    advice: `आगामी दिनों में बारिश की संभावना (${maxRain}%) अधिक है। कटी हुई फसल भीगने से बालियों में ही दाना अंकुरित होने (गलने) का गंभीर खतरा है। मौसम साफ होने तक कटाई टालें।`,
+    adviceCg: `आवत दिन म पानी गिरे के भारी संका (${maxRain}%) हे। कटी फसल भीजही त दाना जम जाही (अंकुरित हो जाही)। मौसम साफ होवे तक कटाई टालव।`,
+    voice: 'सावधान! आगामी दिनों में बारिश की संभावना है। कटी फसल भीगने से बचाने के लिए अभी कटाई टालें।'
+  };
+};
+
+/**
  * Fetch Live Weather from Open-Meteo (Zero Key, Free)
  */
 export const fetchLiveWeather = async (districtName = 'रायपुर') => {
@@ -403,6 +517,8 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
 
       // Attach advisory
       parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
+      parsedWeather.lightningRisk = calculateLightningRisk(weatherCode, parsedWeather.windSpeed, rainProbability);
+      parsedWeather.harvestDryingWindow = calculateHarvestDryingWindow(daily, parsedWeather.forecast3Days);
 
       // Save to localStorage for offline resilience
       localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
@@ -424,6 +540,8 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
       parsed.sprayAdvisory = getSprayAdvisory(parsed);
       if (!parsed.soilMoisture) parsed.soilMoisture = calculateSoilMoistureAdvisory(0.26, 0.28);
       if (!parsed.diseaseRisk) parsed.diseaseRisk = calculateDiseaseOutbreakRisk();
+      if (!parsed.lightningRisk) parsed.lightningRisk = calculateLightningRisk();
+      if (!parsed.harvestDryingWindow) parsed.harvestDryingWindow = calculateHarvestDryingWindow({}, parsed.forecast3Days);
       return parsed;
     } catch (e) {}
   }
@@ -448,6 +566,12 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     soilTemperature: 28,
     soilMoisture: calculateSoilMoistureAdvisory(0.26, 0.28),
     diseaseRisk: calculateDiseaseOutbreakRisk(),
+    lightningRisk: calculateLightningRisk(),
+    harvestDryingWindow: calculateHarvestDryingWindow({}, [
+      { day: 'आज', rainProb: 15 },
+      { day: 'बिहान', rainProb: 10 },
+      { day: 'पर्सों', rainProb: 20 }
+    ]),
     forecast3Days: [
       { day: 'आज (Today)', dayCg: 'आज', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप', conditionCg: 'बने घाम' },
       { day: 'कल (Tomorrow)', dayCg: 'बिहान', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल', conditionCg: 'घाम अउ बादर' },
@@ -541,6 +665,8 @@ export const fetchLiveWeatherByCoords = async (lat, lon, label = '📍 मेर
       ];
 
       parsedWeather.sprayAdvisory = getSprayAdvisory(parsedWeather);
+      parsedWeather.lightningRisk = calculateLightningRisk(weatherCode, parsedWeather.windSpeed, rainProbability);
+      parsedWeather.harvestDryingWindow = calculateHarvestDryingWindow(daily, parsedWeather.forecast3Days);
       localStorage.setItem(cacheKey, JSON.stringify(parsedWeather));
       return parsedWeather;
     }

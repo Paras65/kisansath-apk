@@ -282,3 +282,176 @@ export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
     estimatedGrossIncome,
   };
 };
+
+/**
+ * 12-Month Agro-Climatic Calendar for Central India & Chhattisgarh
+ */
+export const getSeasonalFarmAction = (monthIndex = new Date().getMonth(), isChhattisgarhi = false) => {
+  const actions = {
+    // January (0)
+    0: {
+      season: 'रबी शीतकालीन प्रबंधन',
+      title: isChhattisgarhi ? 'पाला अऊ जाड़ा ले फसल बचाव, चना-सरसों कीरा निगरानी' : 'शीतकालीन पाला से फसल सुरक्षा व चना-सरसों कीट निगरानी',
+      task: isChhattisgarhi
+        ? 'रात म जादा पाला (तुषार) के संका होए म खेत के मेड़ म शाम के धुआं करव या हल्का पानी चलावव। चना म इल्ली अऊ सरसों म माहू बर नीम तेल 5 मिली/लीटर छिड़कव।'
+        : 'रात में पाला (तुषार) की संभावना पर खेत की मेड़ों पर शाम के समय धुआं करें या हल्की सिंचाई करें। चना में फली छेदक इल्ली व सरसों में माहू की निगरानी रखें।',
+      targetTab: 'doctor',
+      actionText: isChhattisgarhi ? 'कीरा दवाई जांचव ➔' : 'कीट-रोग दवा जांचें ➔',
+    },
+    // February (1)
+    1: {
+      season: 'रबी दाना भराव व सिंचाई',
+      title: isChhattisgarhi ? 'गेहूं म दाना भराव अऊ दलहन म इल्ली रोकथाम' : 'गेहूं में दाना भराव अवस्था व दलहन में इल्ली नियंत्रण',
+      task: isChhattisgarhi
+        ? 'गेहूं के बाली निकलत बेरा पानी के कमी झन होए देवव। चना म इल्ली दिखे ले इमामेक्टिन बेंजोएट (5 ग्राम/पंप) या नीम अर्क छिड़कव।'
+        : 'गेहूं में बालियां बनते समय खेत में नमी बनाए रखें। चने में फली छेदक इल्ली दिखने पर इमामेक्टिन बेंजोएट (5 ग्राम/पंप) या 5% नीम अर्क का छिड़काव करें।',
+      targetTab: 'doctor',
+      actionText: isChhattisgarhi ? 'फसल डॉक्टर खोलव ➔' : 'फसल डॉक्टर खोलें ➔',
+    },
+    // March (2)
+    2: {
+      season: 'रबी कटाई व वित्तीय प्रबंधन',
+      title: isChhattisgarhi ? 'रबी चना-गेहूं कटाई अऊ KCC ऋण नवीनीकरण' : 'रबी चना-गेहूं कटाई व 31 मार्च KCC ऋण नवीनीकरण',
+      task: isChhattisgarhi
+        ? 'चना अऊ सरसों के कटाई समय म करव। 31 मार्च ले पहिली 0% ब्याज बर अपन किसान क्रेडिट कार्ड (KCC) ऋण के बैंक म नवीनीकरण जरूर कराव।'
+        : 'चना व सरसों की समय पर कटाई करें। 31 मार्च से पूर्व 0% ब्याज लाभ हेतु अपने किसान क्रेडिट कार्ड (KCC) ऋण का बैंक में नवीनीकरण अवश्य कराएं।',
+      targetTab: 'mandi',
+      actionText: isChhattisgarhi ? 'मंडी भाव देखव ➔' : 'मंडी भाव देखें ➔',
+    },
+    // April (3)
+    3: {
+      season: 'ग्रीष्मकालीन खेत तैयारी',
+      title: isChhattisgarhi ? 'घाम म गहिर जुताई अऊ गोबर खाद डारना' : 'ग्रीष्मकालीन गहरी जुताई व गोबर खाद प्रबंधन',
+      task: isChhattisgarhi
+        ? 'खाली खेत के मिट्टी पलटने वाला नागर ले गहिर जुताई करव ताकि घाम ले कीड़ा-मकोड़ा के अंडा जल जावय। 4-5 ट्राली सड़े गोबर खाद खेत म बगरवाव।'
+        : 'खाली खेतों की मिट्टी पलटने वाले हल से गहरी जुताई करें ताकि तेज धूप से हानिकारक कीटों के अंडे व खरपतवार नष्ट हों। 4-5 ट्रॉली गोबर खाद फैलाएं।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'माटी सेहत जांचव ➔' : 'मृदा स्वास्थ्य देखें ➔',
+    },
+    // May (4)
+    4: {
+      season: 'खरीफ पूर्व तैयारी',
+      title: isChhattisgarhi ? 'माटी जांच, मेड़ सुधार अऊ उन्नत बीज व्यवस्था' : 'मृदा परीक्षण, मेड़बंदी व उन्नत प्रमाणित बीज व्यवस्था',
+      task: isChhattisgarhi
+        ? 'नजदीकी कृषि केंद्र ले माटी जांच कराव। बारिश ले पहिली खेत के मेड़ ला बांधव। प्रमाणित धान बीज (सरना, महामाया, एचएमटी) समिति ले उठाव।'
+        : 'नजदीकी कृषि विज्ञान केंद्र से मिट्टी की जांच कराएं। मानसून से पूर्व खेत की मेड़बंदी ठीक करें और सहकारी समिति से प्रमाणित बीज प्राप्त करें।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'खाद हिसाब कैलकुलेटर ➔' : 'खाद कैलकुलेटर ➔',
+    },
+    // June (5)
+    5: {
+      season: 'खरीफ बुआई व नर्सरी',
+      title: isChhattisgarhi ? 'बीजोपचार अऊ धान थरहा (नर्सरी) डारना' : 'बीजोपचार व धान की नर्सरी (थरहा) बुआई',
+      task: isChhattisgarhi
+        ? 'बोवाई ले पहिली 1 किग्रा बीज म 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिलाके बीजोपचार करव। रोपाई बर 10 डिसमिल म थरहा डारव।'
+        : 'बुआई से पूर्व 1 किग्रा बीज में 2 ग्राम कार्बेन्डाजिम या 5 ग्राम ट्राइकोडर्मा मिलाकर बीजोपचार अवश्य करें। रोपाई हेतु 10 डिसमिल में नर्सरी डालें।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'बीजोपचार गाइड ➔' : 'बीजोपचार विधि ➔',
+    },
+    // July (6)
+    6: {
+      season: 'धान रोपाई व बेसल पोषण',
+      title: isChhattisgarhi ? 'धान रोपाई, बियासी अऊ पूरा DAP-पोटाश खाद' : 'धान रोपाई, बियासी व बेसल (DAP/पोटाश) खाद प्रबंधन',
+      task: isChhattisgarhi
+        ? '20-25 दिन के थरहा के 2-3 पौधा प्रति थान रोपाई करव। रोपाई के बेरा पूरा DAP (50 किग्रा) अऊ पोटाश (20 किग्रा) डारव। जिंक अलग ले देवव।'
+        : '20-25 दिन की नर्सरी की रोपाई 2-3 पौधे प्रति स्थान करें। रोपाई के समय पूरी DAP (50 किग्रा) व पोटाश (20 किग्रा) डालें। जिंक सल्फेट अलग से दें।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'खाद बोरी हिसाब ➔' : 'खाद बोरी हिसाब ➔',
+    },
+    // August (7)
+    7: {
+      season: 'कल्ले फूटना व प्रथम टॉप-ड्रेसिंग',
+      title: isChhattisgarhi ? 'कल्ले फूटना, निंदाई-गुड़ाई अऊ पहिली यूरिया' : 'कल्ले फूटने की अवस्था, खरपतवार नियंत्रण व प्रथम यूरिया',
+      task: isChhattisgarhi
+        ? 'रोपाई के 20-25 दिन बाद निंदाई करके 45 किग्रा यूरिया प्रति एकड़ डारव। खेत म 2-3 सेमी पानी बना के रखव। तना छेदक बर फेरोमोन ट्रैप लगाव।'
+        : 'रोपाई के 20-25 दिन बाद खरपतवार निकालकर 45 किग्रा यूरिया प्रति एकड़ डालें। खेत में 2-3 सेमी पानी बनाए रखें। तना छेदक के लिए फेरोमोन ट्रैप लगाएं।',
+      targetTab: 'doctor',
+      actionText: isChhattisgarhi ? 'रोग-कीट जांचव ➔' : 'रोग-कीट जांचें ➔',
+    },
+    // September (8)
+    8: {
+      season: 'गाभा अवस्था व द्वितीय खाद खुराक',
+      title: isChhattisgarhi ? 'गाभा बेरा, माहू-झुलसा निगरानी अऊ यूरिया-पोटाश' : 'गाभा अवस्था, भूरा माहू/शीथ ब्लाइट निगरानी व द्वितीय खुराक',
+      task: isChhattisgarhi
+        ? 'बालियां बनने से पूर्व 30 किग्रा यूरिया + 10 किग्रा पोटाश प्रति एकड़ डालें। तनों पर भूरा माहू (BPH) व केंचुली (शीथ ब्लाइट) की दैनिक निगरानी करें।'
+        : 'बालियां बनने से पहले 30 किग्रा यूरिया + 10 किग्रा पोटाश प्रति एकड़ डालें। तनों पर भूरा माहू (BPH) व पत्तियों पर शीथ ब्लाइट का नियमित निरीक्षण करें।',
+      targetTab: 'doctor',
+      actionText: isChhattisgarhi ? 'डॉक्टर म दवाई जांचव ➔' : 'दवा परामर्श जांचें ➔',
+    },
+    // October (9)
+    9: {
+      season: 'धान परिपक्वता व उतेरा बुआई',
+      title: isChhattisgarhi ? 'धान कटाई तैयारी, उतेरा चना-तिवड़ा अऊ पानी निकास' : 'धान परिपक्वता, उतेरा (चना/तिवड़ा) बुआई व खेत से पानी निकासी',
+      task: isChhattisgarhi
+        ? 'बालियों के 85% सुनहरे होने पर कटाई करें। कटाई से 10-12 दिन पहले खेत का पानी निकालें और खड़े धान में चना/तिवड़ा का उतेरा छिड़काव करें।'
+        : 'बालियों के 85% सुनहरे होने पर कटाई करें। कटाई से 10-12 दिन पूर्व खेत का पानी निकालें और खड़े धान में चना/तिवड़ा का उतेरा छिड़कें ताकि बिना जुताई रबी दलहन तैयार हो सके।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'धान ₹3,100 कैलकुलेटर ➔' : 'धान ₹3,100 कैलकुलेटर ➔',
+    },
+    // November (10)
+    10: {
+      season: 'धान कटाई, टोकन व रबी बुआई',
+      title: isChhattisgarhi ? 'धान मिझाई, टोकन तुंहर हाथ अऊ रबी चना-गेहूं बोवाई' : 'धान गहाई, टोकन तुंहर हाथ व रबी चना-गेहूं बुआई',
+      task: isChhattisgarhi
+        ? 'कटी फसल ला खलिहान म 14-17% नमी तक सुखाव। टोकन तुंहर हाथ ले धान बेचे के टोकन कटाव। खाली खेत म रबी चना, गेहूं अउ सरसों के बोवाई पूरा करव।'
+        : 'कटी फसल को खलिहान में 14-17% नमी तक सुखाएं। टोकन तुंहर हाथ से धान टोकन काटें। खाली खेतों में पलेवा देकर रबी चना, गेहूं व सरसों की बुआई पूरी करें।',
+      targetTab: 'mandi',
+      actionText: isChhattisgarhi ? 'मंडी भाव व टोकन ➔' : 'मंडी भाव व टोकन ➔',
+    },
+    // December (11)
+    11: {
+      season: 'रबी पोषण व प्रथम सिंचाई',
+      title: isChhattisgarhi ? 'गेहूं म CRI पहिली सिंचाई अऊ यूरिया टॉप-ड्रेसिंग' : 'गेहूं में CRI प्रथम सिंचाई (21 दिन) व यूरिया टॉप-ड्रेसिंग',
+      task: isChhattisgarhi
+        ? 'गेहूं म बोवाई के 21वां दिन पहिली जरूरी सिंचाई (CRI) करव अऊ 35 किग्रा यूरिया डारव। चना म नींदा नियंत्रण अऊ इल्ली निगरानी करव।'
+        : 'गेहूं में बुआई के 21वें दिन पहली आवश्यक सिंचाई (CRI अवस्था) करें और 35 किग्रा यूरिया डालें। चने में खरपतवार नियंत्रण व इल्ली निगरानी करें।',
+      targetTab: 'schemes',
+      actionText: isChhattisgarhi ? 'खाद कैलकुलेटर ➔' : 'खाद कैलकुलेटर ➔',
+    },
+  };
+
+  return actions[monthIndex] || actions[9];
+};
+
+/**
+ * High-Impact Today's Farm Action Evaluator
+ * If farmer has active plot -> returns plot-specific real-time task.
+ * Otherwise -> returns high-accuracy regional seasonal task.
+ */
+export const getTodayActionableFarmTask = ({ activeFarmer, farmerPlots = [], weather = {}, isChhattisgarhi = false }) => {
+  if (activeFarmer && farmerPlots.length > 0) {
+    const primaryPlot = farmerPlots[0];
+    const analysis = analyzePlotLifecycle(primaryPlot, weather);
+    const cropName = primaryPlot.cropName || analysis.cropRule?.name || 'धान';
+    const stageName = analysis.currentStage?.stageName?.split('(')[0] || 'सक्रिय अवस्था';
+    const task = analysis.currentStage?.task || 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।';
+    const days = analysis.daysElapsed || 0;
+
+    return {
+      source: 'plot',
+      cropName,
+      plotName: primaryPlot.plotName || primaryPlot.name || 'खेत 1',
+      stageName,
+      daysElapsed: days,
+      title: isChhattisgarhi
+        ? `🌾 आज के जरूरी काम: ${cropName} (${days} दिन - ${stageName})`
+        : `🌾 आज का आवश्यक कार्य: ${cropName} (${days} दिन - ${stageName})`,
+      task: isChhattisgarhi ? (analysis.currentStage?.taskCg || task) : task,
+      warning: analysis.currentStage?.warning || null,
+      weatherAlert: analysis.weatherAlert || null,
+      targetTab: analysis.currentStage?.minDay > 90 ? 'mandi' : (analysis.currentStage?.minDay > 40 ? 'doctor' : 'schemes'),
+      actionText: isChhattisgarhi ? 'खेत ब्योरा देखव ➔' : 'खेत विवरण देखें ➔',
+    };
+  }
+
+  // Seasonal fallback for guest / new farmer
+  const seasonal = getSeasonalFarmAction(new Date().getMonth(), isChhattisgarhi);
+  return {
+    source: 'seasonal',
+    season: seasonal.season,
+    title: seasonal.title,
+    task: seasonal.task,
+    targetTab: seasonal.targetTab,
+    actionText: seasonal.actionText,
+  };
+};
