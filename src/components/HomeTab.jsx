@@ -50,7 +50,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import { speakText, stopSpeech } from '../utils/speech';
-import { useLanguage } from '../utils/i18n';
+import { useLanguage, tCg } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';
 import { fetchLiveWeather } from '../services/weatherService';
 import {
@@ -159,7 +159,7 @@ export const getLifecycleSteps = (isChhattisgarhi = false) => [
 export const LIFECYCLE_STEPS = getLifecycleSteps(false);
 
 export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false }) => {
-  const { isChhattisgarhi, t } = useLanguage();
+  const { isChhattisgarhi, t, tCg, tPlural } = useLanguage();
   const lifecycleSteps = getLifecycleSteps(isChhattisgarhi);
   const [expandedStep, setExpandedStep] = useState(1);
   const [openMeraKhet, setOpenMeraKhet] = useState(false);
@@ -283,11 +283,11 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
 
   const handleQuickLoginSubmit = async () => {
     if (!loginForm.phone || loginForm.phone.length < 10) {
-      notify.warning('कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।');
+      notify.warning(tCg('कृपया 10 अंक के मोबाइल नंबर डारव।', 'कृपया 10 अंकों का वैध मोबाइल नंबर दर्ज करें।'));
       return;
     }
     if (authMode === 'login' && (!loginForm.pin || loginForm.pin.length < 4)) {
-      notify.warning('कृपया 4 अंकों का सुरक्षा पिन दर्ज करें।');
+      notify.warning(tCg('कृपया 4 अंक के सुरक्षा पिन डारव।', 'कृपया 4 अंकों का सुरक्षा पिन दर्ज करें।'));
       return;
     }
     setLoginLoading(true);
@@ -302,7 +302,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
       if (res.success) {
         setActiveFarmer(res.farmer);
         setOpenQuickLogin(false);
-        notify.success(`स्वागत है, ${res.farmer.name || 'किसान साथी'}! आपका खाता सक्रिय हो गया।`);
+        notify.success(tCg('स्वागत हे, {name}! आपके खाता खुल गे।', 'स्वागत है, {name}! आपका खाता सक्रिय हो गया।', { name: res.farmer.name || 'किसान साथी' }));
         if (pendingToolAction === 'motor') setOpenMotorModal(true);
         else if (pendingToolAction === 'khet') setOpenMeraKhet(true);
         else if (pendingToolAction === 'soil') setOpenSoilIot(true);
@@ -322,7 +322,7 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
     logoutFarmer();
     setActiveFarmer(null);
     setFarmerPlots([]);
-    notify.info('सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।');
+    notify.info(tCg('सफलतापूर्वक लॉगआउट। आपके सबो डेटा सुरक्षित हे।', 'सफलतापूर्वक लॉगआउट। आपका डेटा सुरक्षित है।'));
   };
 
   // Public Instant Crop & Quick Acre Advisor State (Zero Login Required)
@@ -364,12 +364,14 @@ export const HomeTab = ({ onNavigate, selectedDistrict, isGpsLocation = false })
   }, [selectedDistrict]);
 
   const handleReadAdvisory = () => {
-    const text = (isChhattisgarhi
+    const fallbackText = tCg(
+      'आज के किसानी सलाह: मौसम साफ अऊ बने रहिही। यूरिया खाद अऊ दवाई छिड़काव बर बने समय हे।',
+      'आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।'
+    );
+    const advisoryVoice = isChhattisgarhi
       ? (weather?.sprayAdvisory?.voiceCg || weather?.sprayAdvisory?.voice)
-      : weather?.sprayAdvisory?.voice) || (isChhattisgarhi
-      ? `आज के किसानी सलाह: मौसम साफ अऊ बने रहिही। यूरिया खाद अऊ दवाई छिड़काव बर बने समय हे।`
-      : `आज की कृषि सलाह: मौसम साफ और अनुकूल रहेगा। यूरिया खाद व कीटनाशक छिड़काव का सही समय है।`);
-    speakText(text);
+      : weather?.sprayAdvisory?.voice;
+    speakText(advisoryVoice || fallbackText);
   };
 
   const handleReadStep = (e, step) => {

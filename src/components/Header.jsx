@@ -49,7 +49,7 @@ export const Header = ({
   onOpenDeviceHub = () => {},
   onOpenAdmin = () => {}
 }) => {
-  const { isChhattisgarhi, isHindi, setLanguage, t } = useLanguage();
+  const { isChhattisgarhi, isHindi, setLanguage, t, tCg } = useLanguage();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -65,32 +65,32 @@ export const Header = ({
 
   const handleGpsLocation = async () => {
     if (!navigator.geolocation) {
-      notify.warning(isChhattisgarhi ? 'आपके मोबाइल म GPS सुविधा नइये।' : 'आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
+      notify.warning(tCg('आपके मोबाइल म GPS सुविधा नइये।', 'आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।'));
       return;
     }
     setDetectingGps(true);
-    notify.info(isChhattisgarhi ? '📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...' : '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...');
+    notify.info(tCg('📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...', '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...'));
     try {
       const res = await detectCurrentLocationDistrict(true);
       setDetectingGps(false);
       if (res && res.district) {
         onDistrictChange(res.district, true);
-        notify.success(isChhattisgarhi ? `📍 GPS ले मिले जगह: ${res.district} (लाइव मौसम चालू)` : `📍 GPS स्थान प्राप्त: ${res.district} (लाइव मौसम सक्रिय)`);
+        notify.success(tCg('📍 GPS ले मिले जगह: {district} (लाइव मौसम चालू)', '📍 GPS स्थान प्राप्त: {district} (लाइव मौसम सक्रिय)', { district: res.district }));
       }
     } catch (err) {
       setDetectingGps(false);
-      notify.info(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।' : 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।');
+      notify.info(tCg('GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।', 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।'));
     }
   };
 
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      notify.success(isChhattisgarhi ? 'इंटरनेट चालू होगे (ऑनलाइन मोड)' : 'इंटरनेट कनेक्शन पुनः स्थापित हुआ (ऑनलाइन मोड)');
+      notify.success(tCg('इंटरनेट चालू होगे (ऑनलाइन मोड)', 'इंटरनेट कनेक्शन पुनः स्थापित हुआ (ऑनलाइन मोड)'));
     };
     const handleOffline = () => {
       setIsOnline(false);
-      notify.warning(isChhattisgarhi ? 'इंटरनेट बंद हे। ऐप सुरक्षित ऑफ़लाइन मोड म काम करत हे।' : 'इंटरनेट बंद है। ऐप सुरक्षित ऑफलाइन मोड में काम कर रहा है।');
+      notify.warning(tCg('इंटरनेट बंद हे। ऐप सुरक्षित ऑफ़लाइन मोड म काम करत हे।', 'इंटरनेट बंद है। ऐप सुरक्षित ऑफलाइन मोड में काम कर रहा है।'));
     };
 
     window.addEventListener('online', handleOnline);
@@ -100,7 +100,7 @@ export const Header = ({
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [isChhattisgarhi]);
+  }, [tCg]);
 
   // Sync Header speaker icon with global speech engine
   useEffect(() => {
@@ -114,9 +114,10 @@ export const Header = ({
     if (speaking) {
       stopSpeech();
     } else {
-      const text = isChhattisgarhi
-        ? `${appConfig.appName} ऐप म आप मन के स्वागत हे! फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना अऊ मंडी भाव बर नीचे दिए गए विकल्प मन ला चुनव।`
-        : `${appConfig.appName} ऐप में आपका स्वागत है। फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और मंडी भाव के लिए नीचे दिए गए विकल्पों का चयन करें।`;
+      const text = tCg(
+        `${appConfig.appName} ऐप म आप मन के स्वागत हे! फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना अऊ मंडी भाव बर नीचे दिए गए विकल्प मन ला चुनव।`,
+        `${appConfig.appName} ऐप में आपका स्वागत है। फसल बुआई, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और मंडी भाव के लिए नीचे दिए गए विकल्पों का चयन करें।`
+      );
       speakText(text);
     }
   };

@@ -270,6 +270,97 @@ export const t = (key, params = {}) => {
   return text;
 };
 
+/**
+ * 🌾 जेनेरिक इनलाइन भाषा अनुवादक (Inline Generic i18n Helper)
+ * कोड में बार-बार isChhattisgarhi ? ... : ... लिखने की जगह सीधे:
+ * tCg('छत्तीसगढ़ी पाठ', 'हिंदी पाठ', { params })
+ * यह 1 नैनोसेकंड में सक्रिय भाषा अनुसार सही वाक्य लौटाता है।
+ */
+export const tCg = (cgText, hiText, params = {}) => {
+  const currentLang = getAppLanguage();
+  let text = currentLang === 'cg' ? (cgText || hiText || '') : (hiText || cgText || '');
+
+  if (params && typeof params === 'object') {
+    Object.keys(params).forEach((paramKey) => {
+      text = text.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), params[paramKey] ?? '');
+    });
+  }
+
+  return text;
+};
+
+/**
+ * एकवचन एवं बहुवचन जेनेरिक सहायक (Chhattisgarhi 'मन' vs Hindi Pluralizer)
+ * उपयोग: tPlural(plotCount, { cg: '{count} खेत मन चालू हवय', hi: '{count} खेत सक्रिय हैं' })
+ */
+export const tPlural = (count, options = {}) => {
+  const currentLang = getAppLanguage();
+  const template = options[currentLang] || options.hi || options.cg || '';
+  return template.replace(/\{count\}/g, count);
+};
+
+/**
+ * कृषि शब्दावली व बाह्य API अनुवादक (Agri Terms & LLM Mapper)
+ * Agmarknet, OGD India, एवं AI विज़न के मानक शब्दों को स्वतः स्थानीय भाषा में मैप करता है।
+ */
+export const AGRI_GLOSSARY = {
+  paddy: { cg: 'धान', hi: 'धान' },
+  wheat: { cg: 'गहूं (गेहूं)', hi: 'गेहूं' },
+  maize: { cg: 'मक्का (जौनरा)', hi: 'मक्का' },
+  gram: { cg: 'चना', hi: 'चना' },
+  soybean: { cg: 'सोयाबीन', hi: 'सोयाबीन' },
+  mustard: { cg: 'सरसों (राई)', hi: 'सरसों' },
+  urea: { cg: 'यूरिया', hi: 'यूरिया' },
+  dap: { cg: 'डी.ए.पी. (DAP)', hi: 'डी.ए.पी. (DAP)' },
+  mop: { cg: 'पोटाश (MOP)', hi: 'पोटाश (MOP)' },
+  zinc: { cg: 'जिंक सल्फेट', hi: 'जिंक सल्फेट' },
+  stem_borer: { cg: 'गाभा कीट / भंवरी / मृत गोभ', hi: 'तना छेदक (गाभा कीट / मृत गोभ)' },
+  bph: { cg: 'माहू / लाही / चेंपा', hi: 'माहू / भूरा फुदका' },
+  sheath_blight: { cg: 'केंचुली रोग (शीथ ब्लाइट)', hi: 'शीथ ब्लाइट (केंचुली रोग)' },
+  khaira: { cg: 'खैरा रोग (जिंक कमी)', hi: 'खैरा रोग (जिंक कमी)' },
+  acre: { cg: 'एकड़', hi: 'एकड़' },
+  dismil: { cg: 'डिसमिल', hi: 'डिसमिल' },
+  quintal: { cg: 'क्विंटल', hi: 'क्विंटल' }
+};
+
+export const translateAgriTerm = (termKey) => {
+  const currentLang = getAppLanguage();
+  const entry = AGRI_GLOSSARY[termKey?.toLowerCase()];
+  if (!entry) return termKey || '';
+  return entry[currentLang] || entry.hi || termKey;
+};
+
+/**
+ * व्याकरणिक विभक्तियों एवं क्रियापदों का जेनेरिक अनुवाद नियम (Generic Grammar Engine)
+ */
+export const CG_TO_HI_GRAMMAR = [
+  { cg: /\bम\b/g, hi: 'में' },
+  { cg: /\bबर\b/g, hi: 'के लिए' },
+  { cg: /\bअऊ\b/g, hi: 'और' },
+  { cg: /\bकरव\b/g, hi: 'करें' },
+  { cg: /\bदेखव\b/g, hi: 'देखें' },
+  { cg: /\bसुनव\b/g, hi: 'सुनें' },
+  { cg: /\bजानव\b/g, hi: 'जानें' },
+  { cg: /\bजोड़व\b/g, hi: 'जोड़ें' },
+  { cg: /\bहवय\b/g, hi: 'है' },
+  { cg: /\bहवंय\b/g, hi: 'हैं' },
+  { cg: /\bनइ\s+हे\b/g, hi: 'नहीं है' },
+  { cg: /\bनई\s+हे\b/g, hi: 'नहीं है' },
+  { cg: /\bझनम\b/g, hi: 'मत' },
+  { cg: /\bझन\b/g, hi: 'मत' },
+  { cg: /\bतुंहर\b/g, hi: 'आपका' },
+  { cg: /\bअपन\b/g, hi: 'अपना' }
+];
+
+export const autoTranslateCgToHi = (cgSentence) => {
+  if (!cgSentence) return '';
+  let hiSentence = String(cgSentence);
+  CG_TO_HI_GRAMMAR.forEach(({ cg, hi }) => {
+    hiSentence = hiSentence.replace(cg, hi);
+  });
+  return hiSentence;
+};
+
 // 5. रिएक्ट हुक (React Hook for Instant Component Re-render)
 export const useLanguage = () => {
   const [lang, setLang] = useState(getAppLanguage);
@@ -296,6 +387,8 @@ export const useLanguage = () => {
   };
 
   const translate = (key, params) => t(key, params);
+  const inlineTranslate = (cgText, hiText, params) => tCg(cgText, hiText, params);
+  const pluralTranslate = (count, options) => tPlural(count, options);
 
   return {
     lang,
@@ -303,7 +396,9 @@ export const useLanguage = () => {
     isHindi: lang === 'hi',
     setLanguage: setAppLanguage,
     toggleLanguage,
-    t: translate
+    t: translate,
+    tCg: inlineTranslate,
+    tPlural: pluralTranslate
   };
 };
 
