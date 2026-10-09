@@ -2528,8 +2528,12 @@ export const AdminPortal = ({ onExit }) => {
                           <TableCell sx={{ fontWeight: 800, color: '#16a34a' }}>₹{appConfig.paddyScheme.totalRate}/क्विंटल</TableCell>
                         </TableRow>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>हेल्पलाइन</TableCell>
-                          <TableCell sx={{ fontWeight: 800, color: '#0f172a' }}>{appConfig.helpline.label}</TableCell>
+                          <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>किसान कॉल सेंटर (कृषि विभाग)</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#0f172a' }}>{appConfig.helpline.label} (खेती-किसानी परामर्श)</TableCell>
+                        </TableRow>
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 700, color: '#64748b' }}>ऐप तकनीकी सहायता ईमेल</TableCell>
+                          <TableCell sx={{ fontWeight: 800, color: '#0284c7' }}>{appConfig.supportEmail || 'support@init65.co.in'} (Init65)</TableCell>
                         </TableRow>
                       </TableBody>
                     </Table>

@@ -45,6 +45,7 @@ import { SuperAdminModal } from './components/SuperAdminModal';
 import { AdminPortal } from './components/AdminPortal';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import EmailIcon from '@mui/icons-material/Email';
 import SecurityIcon from '@mui/icons-material/Security';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
@@ -620,7 +621,15 @@ function App() {
                 variant="caption"
                 sx={{ color: '#1b5e20', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                📞 किसान कॉल सेंटर: {appConfig.helpline?.phone || '1800-180-1551'}
+                📞 कृषि सलाह (किसान कॉल सेंटर): {appConfig.helpline?.phone || '1800-180-1551'}
+              </Typography>
+              <Typography
+                component="a"
+                href={`mailto:${appConfig.supportEmail || 'support@init65.co.in'}`}
+                variant="caption"
+                sx={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}
+              >
+                ✉️ ऐप तकनीकी सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 🔒 100% सुरक्षित • ऑफलाइन सुलभ
@@ -681,20 +690,36 @@ function App() {
                 </Box>
               </Box>
 
-              {/* Column 2: Government Helpline & Security Guarantees */}
+              {/* Column 2: Government Crop Advisory vs App Technical Support */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  📞 आधिकारिक किसान हेल्पलाइन व सुरक्षा
+                  📞 आधिकारिक हेल्पलाइन व ऐप सहायता
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                     <PhoneInTalkIcon sx={{ fontSize: 18, color: '#16a34a', mt: 0.2 }} />
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.8rem', display: 'block' }}>
-                        किसान कॉल सेंटर (टोल-फ्री): {appConfig.helpline.phone}
+                      <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.8rem', display: 'block' }}>
+                        सरकारी किसान कॉल सेंटर (कृषि विभाग): {appConfig.helpline.phone}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        सुबह 6:00 से रात 10:00 बजे तक (निःशुल्क कृषि परामर्श)
+                        सुबह 6:00 से रात 10:00 बजे तक (केवल फसल, रोग, खाद व खेती सलाह हेतु)
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                    <EmailIcon sx={{ fontSize: 18, color: '#0284c7', mt: 0.2 }} />
+                    <Box>
+                      <Typography
+                        component="a"
+                        href={`mailto:${appConfig.supportEmail || 'support@init65.co.in'}`}
+                        variant="caption"
+                        sx={{ color: '#0284c7', fontWeight: 800, fontSize: '0.8rem', display: 'block', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+                      >
+                        ऐप तकनीकी सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
+                        किसान साथी ऐप में समस्या, लॉगिन कठिनाई या सुझाव हेतु (Init65 सपोर्ट)
                       </Typography>
                     </Box>
                   </Box>

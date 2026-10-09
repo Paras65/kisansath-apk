@@ -8,7 +8,8 @@ export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
   appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.50',
+  appVersion: env.VITE_APP_VERSION || '1.0.51',
+  supportEmail: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
   defaultDistrict: env.VITE_DEFAULT_DISTRICT || 'रायपुर',
@@ -27,12 +28,17 @@ export const appConfig = {
   helpline: {
     phone: env.VITE_HELPLINE_PHONE || '18001801551',
     label: env.VITE_HELPLINE_LABEL || '1800-180-1551',
+    purpose: 'कृषि विभाग / भारत सरकार (केवल फसल, कीट व खेती सलाह हेतु)',
+    email: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
     kisanCallCenter: env.VITE_KISAN_CALL_CENTER || '1800-180-1551',
     foodDeptHelpline: env.VITE_FOOD_DEPT_HELPLINE || '1800-233-3663',
   },
   contacts: {
     phone: env.VITE_HELPLINE_PHONE || '18001801551',
     label: env.VITE_HELPLINE_LABEL || '1800-180-1551',
+    kisanCallCenterDept: 'कृषि विभाग किसान कॉल सेंटर (खेती-किसानी परामर्श)',
+    email: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
+    appSupportLabel: 'किसान साथी ऐप तकनीकी सहायता व सुझाव (Init65)',
     kisanCallCenter: env.VITE_KISAN_CALL_CENTER || '1800-180-1551',
     foodDeptHelpline: env.VITE_FOOD_DEPT_HELPLINE || '1800-233-3663',
   },

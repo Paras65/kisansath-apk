@@ -2,6 +2,8 @@
 // Authentic Chhattisgarhi & Hindi Rural Dialogues with IGKV Raipur recommendations
 // Handles 40+ Agricultural Intents, Dialect Edge-cases, Rustic Number Extraction & Persona responses
 
+import { appConfig } from '../config/appConfig';
+
 /**
  * Extracts numeric acreage from colloquial Hindi/Chhattisgarhi speech
  * Handles fractions: "ढाई", "डेढ़", "सवा दो", "पौने तीन", "साढ़े तीन", "आधा एकड़", "25 डिसमिल"
@@ -324,7 +326,37 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     };
   }
 
-  // 9. Persona & Greetings
+  // 9. Helpline & Support Intent (Clear Distinction between Agri Call Center vs App Tech Support)
+  const appIssueTriggers = ['ऐप नहीं चल रहा', 'ऐप में समस्या', 'ऐप की समस्या', 'ऐप खराब', 'लॉगिन नहीं', 'ऐप बंद', 'app problem', 'app issue', 'app not working', 'login problem'];
+  if (appIssueTriggers.some((t) => clean.includes(t))) {
+    const email = appConfig.supportEmail || 'support@init65.co.in';
+    return {
+      textHi: `भैया, किसान साथी ऐप में किसी तकनीकी समस्या या खराबी हेतु हमारी सहायता ईमेल ${email} पर लिखें। ध्यान रखें—1800-180-1551 कृषि विभाग का सरकारी कॉल सेंटर है, वो केवल फसल व खेती की सलाह देते हैं, ऐप की नहीं!`,
+      textCg: `संगी, किसान साथी ऐप म कोनो तकनीकी खराबी बर हमर सपोर्ट ईमेल ${email} म लिखव। चेत रखव—1800-180-1551 कृषि विभाग के सरकारी कॉल सेंटर हे, वो केवल खेती-किसानी के सलाह देथे, ऐप के नोहय!`,
+      route: null,
+      action: null,
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  const supportTriggers = ['हेल्पलाइन', 'सहायता', 'सपोर्ट', 'संपर्क', 'कॉल सेंटर', 'फोन नंबर', 'ईमेल', 'शिकायत', 'मदद', 'help', 'support', 'contact', 'email', 'helpline', 'phone', 'mail'];
+  if (supportTriggers.some((t) => clean.includes(t))) {
+    const email = appConfig.supportEmail || 'support@init65.co.in';
+    const phone = appConfig.helpline?.label || '1800-180-1551';
+    return {
+      textHi: `खेती-किसानी और फसल सलाह के लिए कृषि विभाग के किसान कॉल सेंटर ${phone} पर फोन करें। और यदि किसान साथी ऐप में कोई तकनीकी समस्या या सुझाव हो, तो हमारी ऐप सहायता ईमेल ${email} पर लिखें!`,
+      textCg: `खेती-किसानी अउ फसल के सलाह बर कृषि विभाग के किसान कॉल सेंटर ${phone} म फोन लगाव संगी। अउ अगर किसान साथी ऐप म कोनो तकनीकी समस्या या सुझाव हे, त हमर ईमेल ${email} म लिखव!`,
+      route: null,
+      action: null,
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.95,
+    };
+  }
+
+  // 10. Persona & Greetings
   const greetingTriggers = ['काका', 'बहिरा काका', 'जय जोहार', 'नमस्ते', 'प्रणाम', 'राम राम', 'कइसे हस', 'कैसे हो', 'kaka', 'bhaira', 'johar', 'jay johar', 'ram ram', 'namaste', 'hello', 'hi', 'kaise ho'];
   if (greetingTriggers.some((t) => clean.includes(t))) {
     return {

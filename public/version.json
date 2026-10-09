@@ -1,8 +1,8 @@
 {
-  "version": "1.0.50",
+  "version": "1.0.51",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.50",
-  "releaseNotes": "🤖 स्वायत्त बहिरा काका एजेंटिक एक्शन: सीधा बोलकर जवाब, पूछकर आगे बढ़ना (Ask-Before), ऑटो-कैलकुलेट एवं विज़ुअल स्पॉटलाइट पल्स कार्ड्स।",
-  "updatedAt": "2026-10-08"
+  "releaseName": "किसान साथी v1.0.51",
+  "releaseNotes": "✉️ आधिकारिक तकनीकी सहायता ईमेल (support@init65.co.in) हेडर, फुटर, एडमिन पोर्टल एवं बहिरा काका वॉयस सहायता में एकीकृत।",
+  "updatedAt": "2026-10-09"
 }

@@ -13,6 +13,7 @@ import {
   Button
 } from '@mui/material';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
+import EmailIcon from '@mui/icons-material/Email';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
@@ -184,24 +185,49 @@ export const Header = ({
                 sx={{ bgcolor: '#d84315', color: '#fff', height: 18, fontSize: '0.64rem', fontWeight: 700 }}
               />
             )}
-            <Button
-              size="small"
-              startIcon={<PhoneInTalkIcon sx={{ fontSize: 12 }} />}
-              onClick={handleCallHelpline}
-              sx={{
-                color: '#fff',
-                bgcolor: 'rgba(255,255,255,0.12)',
-                py: 0.1,
-                px: 1,
-                fontSize: { xs: '0.66rem', sm: '0.7rem' },
-                borderRadius: 4,
-                fontWeight: 700,
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
-              }}
-            >
-              टोल-फ्री: {appConfig.helpline.label}
-            </Button>
+            <Tooltip title="सरकारी किसान कॉल सेंटर (कृषि विभाग): केवल फसल, कीट व खेती सलाह हेतु">
+              <Button
+                size="small"
+                startIcon={<PhoneInTalkIcon sx={{ fontSize: 12 }} />}
+                onClick={handleCallHelpline}
+                sx={{
+                  color: '#fff',
+                  bgcolor: 'rgba(255,255,255,0.12)',
+                  py: 0.1,
+                  px: 1,
+                  fontSize: { xs: '0.66rem', sm: '0.7rem' },
+                  borderRadius: 4,
+                  fontWeight: 700,
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
+                }}
+              >
+                कृषि सलाह: {appConfig.helpline.label}
+              </Button>
+            </Tooltip>
+            <Tooltip title="किसान साथी ऐप सहायता: ऐप में तकनीकी समस्या, बग या सुझाव हेतु">
+              <Button
+                size="small"
+                component="a"
+                href={`mailto:${appConfig.supportEmail || 'support@init65.co.in'}`}
+                startIcon={<EmailIcon sx={{ fontSize: 12 }} />}
+                sx={{
+                  display: { xs: 'none', sm: 'inline-flex' },
+                  color: '#fff',
+                  bgcolor: 'rgba(255,255,255,0.12)',
+                  py: 0.1,
+                  px: 1,
+                  fontSize: { xs: '0.66rem', sm: '0.7rem' },
+                  borderRadius: 4,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.22)' }
+                }}
+              >
+                ऐप सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
+              </Button>
+            </Tooltip>
           </Box>
         </Box>
       </Box>
