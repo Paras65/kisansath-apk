@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.68';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.69';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🌾 आधुनिक नेटिव किसान वर्कस्टेशन व एकीकृत स्मार्ट डिवाइस (IoT) प्रबंधन हब: 4G/GSM ट्यूबवेल मोटर, ब्लूटूथ डिजिटल मिट्टी प्रोब, खेत सीमा GPS, 5-चरणीय दृश्य फसल चक्र एवं डिजिटल पासबुक।',
+    releaseNotes: '💻 एडमिन ऑडिट लॉग्स में विस्तृत तकनीकी कंसोल एरर व कम्पलीट स्टैक ट्रेस एकीकरण, 1-टैप लॉग कॉपी, रिक्वेस्ट पैरामीटर्स/क्वेरी पेलोड एवं ज़ीरो-PII सुरक्षा संवर्धन।',
     updatedAt: new Date().toISOString()
   });
 });

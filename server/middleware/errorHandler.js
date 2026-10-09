@@ -49,7 +49,7 @@ export const extractPlatformSignature = (userAgent = '') => {
 /**
  * Sanitize error message to prevent secret/PII leaks in server and client logs (Rule 8, 10 & 13)
  */
-export const sanitizeLogMessage = (msg) => {
+export const sanitizeLogMessage = (msg, maxLen = 2000) => {
   if (!msg) return '';
   return String(msg)
     // Redact MongoDB connection URI and database credentials
@@ -67,24 +67,24 @@ export const sanitizeLogMessage = (msg) => {
     .replace(/(pin["':\s]+)\d+/gi, '$1[MASKED]')
     // Mask Indian phone numbers (keep first 2 and last 2 digits)
     .replace(/(\b[6-9]\d{9}\b)/g, (phone) => `${phone.slice(0, 2)}******${phone.slice(-2)}`)
-    .slice(0, 500);
+    .slice(0, maxLen);
 };
 
 /**
  * Deep-sanitize object parameters / query / headers to prevent secret leaks
  */
-export const sanitizeLogObject = (obj) => {
+export const sanitizeLogObject = (obj, maxLen = 2000) => {
   if (!obj || typeof obj !== 'object') return obj;
   try {
     const serialized = JSON.stringify(obj);
-    return JSON.parse(sanitizeLogMessage(serialized));
+    return JSON.parse(sanitizeLogMessage(serialized, maxLen));
   } catch {
     return '[Sanitized Object]';
   }
 };
 
 /**
- * Record a secure, bounded Audit Log entry
+ * Record a secure, bounded Audit Log entry with full technical console details
  */
 export const recordAuditLog = ({
   type = 'error',
@@ -94,6 +94,7 @@ export const recordAuditLog = ({
   statusCode = 500,
   message = 'तकनीकी समस्या',
   technicalError = null,
+  technicalDetails = null,
   req = null,
 }) => {
   const rawIp = req?.headers?.['x-forwarded-for']?.split(',')[0] || req?.ip || req?.socket?.remoteAddress;
@@ -107,8 +108,20 @@ export const recordAuditLog = ({
     endpoint: endpoint || req?.originalUrl || req?.url || 'unknown',
     method: method || req?.method || 'GET',
     statusCode: Number(statusCode) || 500,
-    message: sanitizeLogMessage(message),
-    technicalError: sanitizeLogMessage(technicalError || message),
+    message: sanitizeLogMessage(message, 500),
+    technicalError: sanitizeLogMessage(technicalError || message, 1000),
+    technicalDetails: technicalDetails
+      ? {
+          errorName: sanitizeLogMessage(technicalDetails.errorName || 'Error', 200),
+          errorMessage: sanitizeLogMessage(technicalDetails.errorMessage || '', 1000),
+          stack: sanitizeLogMessage(technicalDetails.stack || '', 3000),
+          params: sanitizeLogObject(technicalDetails.params || {}),
+          query: sanitizeLogObject(technicalDetails.query || {}),
+          url: sanitizeLogMessage(technicalDetails.url || req?.originalUrl || req?.url || '', 500),
+          method: technicalDetails.method || method || 'GET',
+          timestamp: technicalDetails.timestamp || new Date().toISOString(),
+        }
+      : null,
     ipMasked: maskIp(rawIp),
     platform: extractPlatformSignature(userAgent),
   };
@@ -161,11 +174,14 @@ export const getAuditLogs = ({ severity = 'all', type = 'all', search = '', limi
     const q = search.toLowerCase().trim();
     filtered = filtered.filter(
       (log) =>
-        log.endpoint.toLowerCase().includes(q) ||
-        log.message.toLowerCase().includes(q) ||
-        log.technicalError.toLowerCase().includes(q) ||
+        log.endpoint?.toLowerCase().includes(q) ||
+        log.message?.toLowerCase().includes(q) ||
+        log.technicalError?.toLowerCase().includes(q) ||
+        log.technicalDetails?.errorName?.toLowerCase().includes(q) ||
+        log.technicalDetails?.stack?.toLowerCase().includes(q) ||
+        log.technicalDetails?.url?.toLowerCase().includes(q) ||
         String(log.statusCode).includes(q) ||
-        log.platform.toLowerCase().includes(q)
+        log.platform?.toLowerCase().includes(q)
     );
   }
 
@@ -220,8 +236,8 @@ export const clearAuditLogs = () => {
 export const logApiError = (endpoint, req, err) => {
   const status = err?.statusCode || 500;
   const rawUrl = req?.originalUrl || req?.url || 'N/A';
-  const cleanUrl = sanitizeLogMessage(rawUrl);
-  const cleanEndpoint = sanitizeLogMessage(endpoint || rawUrl);
+  const cleanUrl = sanitizeLogMessage(rawUrl, 500);
+  const cleanEndpoint = sanitizeLogMessage(endpoint || rawUrl, 200);
 
   const details = {
     endpoint: cleanEndpoint,
@@ -230,22 +246,23 @@ export const logApiError = (endpoint, req, err) => {
     params: sanitizeLogObject(req?.params || {}),
     query: sanitizeLogObject(req?.query || {}),
     errorName: err?.name || 'Error',
-    errorMessage: sanitizeLogMessage(err?.message || String(err)),
-    stack: sanitizeLogMessage(err?.stack || 'No stack trace available'),
+    errorMessage: sanitizeLogMessage(err?.message || String(err), 1000),
+    stack: sanitizeLogMessage(err?.stack || 'No stack trace available', 3000),
     timestamp: new Date().toISOString(),
   };
 
   console.error(`🚨 [TECHNICAL API ERROR: ${details.endpoint}] [${details.method} ${details.url}]:`, details);
 
-  // Synchronously store in secure audit ring buffer
+  // Synchronously store in secure audit ring buffer WITH full technical console details
   recordAuditLog({
     type: status >= 500 ? 'error' : 'warning',
     severity: status >= 500 ? 'high' : 'medium',
     endpoint: details.endpoint,
     method: details.method,
     statusCode: status,
-    message: sanitizeLogMessage(err?.userMessage || err?.message || 'सर्वर तकनीकी त्रुटि'),
+    message: sanitizeLogMessage(err?.userMessage || err?.message || 'सर्वर तकनीकी त्रुटि', 500),
     technicalError: `${details.errorName}: ${details.errorMessage}`,
+    technicalDetails: details,
     req,
   });
 

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.68",
+  "version": "1.0.69",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.68",
-  "releaseNotes": "🌾 आधुनिक नेटिव किसान वर्कस्टेशन व एकीकृत स्मार्ट डिवाइस (IoT) प्रबंधन हब: 4G/GSM ट्यूबवेल मोटर, ब्लूटूथ डिजिटल मिट्टी प्रोब, खेत सीमा GPS, 5-चरणीय दृश्य फसल चक्र एवं डिजिटल पासबुक।",
+  "releaseName": "किसान साथी v1.0.69",
+  "releaseNotes": "💻 एडमिन ऑडिट लॉग्स में विस्तृत तकनीकी कंसोल एरर व कम्पलीट स्टैक ट्रेस एकीकरण, 1-टैप लॉग कॉपी, रिक्वेस्ट पैरामीटर्स/क्वेरी पेलोड एवं ज़ीरो-PII सुरक्षा संवर्धन।",
   "updatedAt": "2026-10-09"
 }
