@@ -117,14 +117,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.74';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.75';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '⚡ ऑन-डिमांड डायलॉग व मॉडल कोड-स्प्लिटिंग (मापक, सेंसर, मोटर, शेयर व खाता टूल्स का अलग चंक), 🚀 मुख्य होम बंडल में भारी कमी एवं वॉयस रकबा एक्सट्रैक्टर सुधार।',
+    releaseNotes: '⚡ मुख्य होम स्क्रीन का व्यापक मॉड्यूलर रिफैक्टरिंग (MandiPulseCard, CgAssistanceHubCard, PublicWelcomeBanner, QuickLauncherGrid, SmartAuthCard पृथक्करण), 🚀 होम कॉम्पोनेन्ट में 1,145+ लाइनों की कटौती एवं अल्ट्रा-फास्ट लोडिंग।',
     updatedAt: new Date().toISOString()
   });
 });

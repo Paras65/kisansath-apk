@@ -1,8 +1,8 @@
 {
-  "version": "1.0.74",
+  "version": "1.0.75",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.74",
-  "releaseNotes": "⚡ ऑन-डिमांड डायलॉग व मॉडल कोड-स्प्लिटिंग (मापक, सेंसर, मोटर, शेयर व खाता टूल्स का अलग चंक), 🚀 मुख्य होम बंडल में भारी कमी एवं वॉयस रकबा एक्सट्रैक्टर सुधार।",
+  "releaseName": "किसान साथी v1.0.75",
+  "releaseNotes": "⚡ मुख्य होम स्क्रीन का व्यापक मॉड्यूलर रिफैक्टरिंग (MandiPulseCard, CgAssistanceHubCard, PublicWelcomeBanner, QuickLauncherGrid, SmartAuthCard पृथक्करण), 🚀 होम कॉम्पोनेन्ट में 1,145+ लाइनों की कटौती एवं अल्ट्रा-फास्ट लोडिंग।",
   "updatedAt": "2026-10-09"
 }
