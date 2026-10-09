@@ -44,6 +44,7 @@ import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { FaqModal } from './components/FaqModal';
 import { TokenGuideModal } from './components/TokenGuideModal';
+import { KakaDirectAnswerSheet } from './components/KakaDirectAnswerSheet';
 import { AdminPortal } from './components/AdminPortal';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
@@ -160,6 +161,7 @@ function App() {
   const [openAdminModal, setOpenAdminModal] = useState(false);
   const [openFaqModal, setOpenFaqModal] = useState(false);
   const [openTokenModal, setOpenTokenModal] = useState(false);
+  const [directAnswerData, setDirectAnswerData] = useState(null);
   const [globalCheckingUpdate, setGlobalCheckingUpdate] = useState(false);
 
   const handleGlobalCheckUpdate = async () => {
@@ -255,6 +257,7 @@ function App() {
 
   // Safe modal dismissal before voice navigation
   const closeAllActiveModals = () => {
+    setDirectAnswerData(null);
     setOpenDeviceHub(false);
     setOpenAdminModal(false);
     setOpenFaqModal(false);
@@ -352,7 +355,31 @@ function App() {
           }
         }
 
-        // Determine destination route (from brain or keyword route)
+        // 🌟 REVOLUTIONARY DIRECT ANSWER PRESENTATION: Zero UI Chhakar / Zero Navigation Shock!
+        // When Bhaira Kaka generates a Direct Answer, present it immediately in the BottomSheet
+        // without navigating away from the farmer's active screen!
+        if (brain.directAnswer) {
+          setDirectAnswerData(brain.directAnswer);
+          const spokenResponse = isChhattisgarhi
+            ? (brain.directAnswer.spokenCg || brain.textCg || route?.spokenCg)
+            : (brain.directAnswer.spokenHi || brain.textHi || route?.spokenHi);
+          if (spokenResponse) {
+            speakText(spokenResponse);
+          }
+          notify.success(
+            isChhattisgarhi
+              ? `👴🏻 काका: ${brain.directAnswer.headlineCg || brain.directAnswer.headline}`
+              : `👴🏻 काका: ${brain.directAnswer.headline || brain.directAnswer.headlineCg}`
+          );
+
+          // Dispatch background action so downstream components update their internal calculations
+          if (brain.action) {
+            window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
+          }
+          return; // Stay on the current screen! No unsolicited navigation!
+        }
+
+        // Determine destination route (from brain or keyword route for pure navigation)
         const targetRoute = brain.route || route;
         const spokenResponse = isChhattisgarhi
           ? (brain.textCg || route?.spokenCg)
@@ -419,6 +446,62 @@ function App() {
         }
       }
     );
+  };
+
+  // Handle suggestion chip tap inside KakaDirectAnswerSheet (Multi-turn slot filling)
+  const handleDirectAnswerSuggestion = (suggestionText) => {
+    if (!suggestionText) return;
+    const cachedWeather = getCachedWeather(selectedDistrict);
+    const brain = queryKakaBrain(suggestionText, isChhattisgarhi, {
+      weather: cachedWeather,
+      selectedDistrict,
+    });
+
+    if (brain.directAnswer) {
+      setDirectAnswerData(brain.directAnswer);
+      const spokenResponse = isChhattisgarhi
+        ? (brain.directAnswer.spokenCg || brain.textCg)
+        : (brain.directAnswer.spokenHi || brain.textHi);
+      if (spokenResponse) {
+        speakText(spokenResponse);
+      }
+      notify.success(
+        isChhattisgarhi
+          ? `👴🏻 काका: ${brain.directAnswer.headlineCg || brain.directAnswer.headline}`
+          : `👴🏻 काका: ${brain.directAnswer.headline || brain.directAnswer.headlineCg}`
+      );
+    } else if (brain.route) {
+      setDirectAnswerData(null);
+      closeAllActiveModals();
+      if (brain.route.type === 'tab') {
+        handleTabChange(brain.route.target);
+      } else if (brain.route.target === 'faq') {
+        setOpenFaqModal(true);
+      } else if (brain.route.target === 'token') {
+        setOpenTokenModal(true);
+      }
+    }
+
+    if (brain.action) {
+      window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
+    }
+  };
+
+  // Handle explicit deep link tap if farmer explicitly wants full table/tab
+  const handleDirectAnswerDeepLink = (deepLink) => {
+    setDirectAnswerData(null);
+    if (!deepLink) return;
+    closeAllActiveModals();
+    if (deepLink.tab) {
+      handleTabChange(deepLink.tab);
+    } else if (deepLink.modal === 'faq') {
+      setOpenFaqModal(true);
+    } else if (deepLink.modal === 'token') {
+      setOpenTokenModal(true);
+    } else if (deepLink.modal === 'motor' || deepLink.modal === 'khet') {
+      handleTabChange('home');
+      window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: deepLink.modal } }));
+    }
   };
 
   // Read URL query param if opened from PWA shortcut or external link
@@ -1092,6 +1175,17 @@ function App() {
         <TokenGuideModal
           open={openTokenModal}
           onClose={() => setOpenTokenModal(false)}
+        />
+        {/* 👴🏻 Bhaira Kaka Direct Answer BottomSheet (Zero UI Chhakar / Conversational Slot-Filling) */}
+        <KakaDirectAnswerSheet
+          open={Boolean(directAnswerData)}
+          onClose={() => setDirectAnswerData(null)}
+          answer={directAnswerData}
+          isSpeaking={isSpeakingActive}
+          onSuggestionClick={handleDirectAnswerSuggestion}
+          onStartVoice={handleVoiceFab}
+          onDeepLink={handleDirectAnswerDeepLink}
+          isChhattisgarhi={isChhattisgarhi}
         />
       </Box>
     </ThemeProvider>

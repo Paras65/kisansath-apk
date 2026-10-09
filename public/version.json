@@ -1,8 +1,8 @@
 {
-  "version": "1.0.56",
+  "version": "1.0.57",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.56",
-  "releaseNotes": "🚀 संपूर्ण राउटिंग एवं नेविगेशन सुदृढ़ीकरण: बहिरा काका वॉयस नेविगेशन सामान्यीकरण, ग्लोबल टोकन गाइड मोडल, धान ₹3,100 डीप-लिंकिंग, एंड्रॉयड हार्डवेयर बैक बटन मोडल स्टैक अनवाइंडिंग एवं एडमिन यूआरएल स्वच्छता।",
+  "releaseName": "किसान साथी v1.0.57",
+  "releaseNotes": "👴🏻 बहिरा काका सीधा जवाब बॉटमशीट (Conversational Slot-Filling Agent): UI के चक्कर से पूर्ण मुक्ति, 3 सेकंड में स्पष्ट उत्तर व कार्ड्स (धान ₹3,100, खाद, मंडी, मौसम, बीमारी, मोटर), 1-टैप सुझाव चिप्स एवं व्हाट्सएप साझाकरण।",
   "updatedAt": "2026-10-09"
 }

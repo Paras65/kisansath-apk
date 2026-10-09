@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.56';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.57';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '👴🏻 बहिरा काका वॉयस वर्कफ़्लो सुदृढ़ीकरण: मल्टी-टर्न सत्र याददाश्त (हाँ/हव पुष्टि), सटीक रकबा इनपुट सुरक्षा, 16px कंपन सहिष्णुता, 260ms ऑडियो बफ़र एवं रिट्राई कार्ड स्पॉटलाइट।',
+    releaseNotes: '👴🏻 बहिरा काका सीधा जवाब बॉटमशीट (Conversational Slot-Filling Agent): UI के चक्कर से पूर्ण मुक्ति, 3 सेकंड में स्पष्ट उत्तर व कार्ड्स (धान ₹3,100, खाद, मंडी, मौसम, बीमारी, मोटर), 1-टैप सुझाव चिप्स एवं व्हाट्सएप साझाकरण।',
     updatedAt: new Date().toISOString()
   });
 });
