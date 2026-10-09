@@ -11,7 +11,7 @@ import {
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CloseIcon from '@mui/icons-material/Close';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
-import { speakText, stopSpeech } from '../utils/speech';
+import { speakText } from '../utils/speech';
 import { useLanguage, tCg } from '../utils/i18n';
 import {
   fetchLiveWeather,

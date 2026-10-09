@@ -1,7 +1,7 @@
 {
   "name": "किसान साथी - फसल से बिक्री तक",
   "short_name": "किसान साथी",
-  "version": "1.0.77",
+  "version": "1.0.78",
   "description": "फसल बुआई, मौसम, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और लाइव मंडी भाव - किसानों का सम्पूर्ण साथी",
   "start_url": "/",
   "id": "/",
@@ -13,6 +13,24 @@
   "lang": "hi",
   "categories": ["business", "finance", "productivity", "utilities"],
   "icons": [
+    {
+      "src": "/icons/kisan-icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/kisan-icon-512.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/kisan-icon.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any"
+    },
     {
       "src": "/icons/kisan-icon-512.png",
       "sizes": "512x512",

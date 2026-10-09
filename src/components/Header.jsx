@@ -15,7 +15,6 @@ import EmailIcon from '@mui/icons-material/Email';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import VolumeOffIcon from '@mui/icons-material/VolumeOff';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
-import GetAppIcon from '@mui/icons-material/GetApp';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import HomeIcon from '@mui/icons-material/Home';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';

@@ -13,9 +13,8 @@ import {
   Chip,
   Alert,
   IconButton,
-  Divider,
-  Paper,
-  CircularProgress
+  CircularProgress,
+  Paper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import BluetoothIcon from '@mui/icons-material/Bluetooth';
@@ -24,7 +23,6 @@ import BluetoothDisabledIcon from '@mui/icons-material/BluetoothDisabled';
 import ScienceIcon from '@mui/icons-material/Science';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import ThermostatIcon from '@mui/icons-material/Thermostat';
-import ElectricBoltIcon from '@mui/icons-material/ElectricBolt';
 import GrassIcon from '@mui/icons-material/Grass';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

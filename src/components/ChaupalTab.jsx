@@ -13,7 +13,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Divider,
   IconButton,
   InputAdornment,
   MenuItem,

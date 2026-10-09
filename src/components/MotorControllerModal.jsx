@@ -15,9 +15,7 @@ import {
   IconButton,
   TextField,
   Divider,
-  Paper,
-  Switch,
-  FormControlLabel
+  Paper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PowerSettingsNewIcon from '@mui/icons-material/PowerSettingsNew';
@@ -28,14 +26,11 @@ import SecurityIcon from '@mui/icons-material/Security';
 import PhoneAndroidIcon from '@mui/icons-material/PhoneAndroid';
 import SmsIcon from '@mui/icons-material/Sms';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SpeedIcon from '@mui/icons-material/Speed';
 import CloudQueueIcon from '@mui/icons-material/CloudQueue';
 
 import {
   getStoredMotorConfig,
   saveMotorConfig,
-  getGsmActionUri,
   getMotorTelemetry
 } from '../utils/motorControllerService';
 import { validateIndianPhone, updateDevice } from '../services/deviceManagerService';

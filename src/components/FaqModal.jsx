@@ -23,10 +23,6 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import SearchIcon from '@mui/icons-material/Search';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import EmailIcon from '@mui/icons-material/Email';
-import SecurityIcon from '@mui/icons-material/Security';
-import WifiOffIcon from '@mui/icons-material/WifiOff';
-import AgricultureIcon from '@mui/icons-material/Agriculture';
-import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 
 import { useLanguage } from '../utils/i18n';
 import { appConfig } from '../config/appConfig';

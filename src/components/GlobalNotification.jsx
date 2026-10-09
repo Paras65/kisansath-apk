@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Snackbar,
-  Alert,
-  AlertTitle,
   Slide,
   Box,
   Typography,

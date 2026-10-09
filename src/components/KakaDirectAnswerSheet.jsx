@@ -91,8 +91,8 @@ export const KakaDirectAnswerSheet = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
             <Box
               component="img"
-              src={isSpeaking ? '/icons/kaka-speaking.png' : '/icons/kaka-idle.png'}
-              onError={(e) => { e.currentTarget.src = isSpeaking ? '/icons/kaka-speaking-cg.png' : '/icons/kaka-idle-cg.png'; }}
+              src={isSpeaking ? '/icons/kaka-speaking.webp' : '/icons/kaka-idle.webp'}
+              onError={(e) => { e.currentTarget.src = isSpeaking ? '/icons/kaka-speaking.png' : '/icons/kaka-idle.png'; }}
               alt="बहिरा काका"
               sx={{
                 width: 38,

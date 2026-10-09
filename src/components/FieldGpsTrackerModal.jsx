@@ -13,12 +13,9 @@ import {
   Chip,
   Alert,
   IconButton,
-  Divider,
-  Paper,
-  CircularProgress
+  Paper
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import PauseIcon from '@mui/icons-material/Pause';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';

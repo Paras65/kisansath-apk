@@ -211,10 +211,10 @@ export const DraggableVoiceButton = ({
     : '0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(27, 94, 32, 0.35), inset 0 1px 1.5px rgba(255, 255, 255, 0.45)';
 
   const currentAvatarSrc = isSpeakingActive
-    ? '/icons/kaka-speaking.png'
+    ? '/icons/kaka-speaking.webp'
     : isVoiceListening
-    ? '/icons/kaka-listening.png'
-    : '/icons/kaka-idle.png';
+    ? '/icons/kaka-listening.webp'
+    : '/icons/kaka-idle.webp';
 
   const emojiFallback = isSpeakingActive ? '🛑' : isVoiceListening ? '👂🏻' : '👴🏻';
 

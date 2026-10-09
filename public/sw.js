@@ -1,13 +1,19 @@
 // किसान साथी (Kisan Saathi) Service Worker
-// Version: v1.0.77 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
-const CACHE_NAME = 'kisan-saathi-v1.0.77';
+// Version: v1.0.78 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
+const CACHE_NAME = 'kisan-saathi-v1.0.78';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/version.json',
   '/icons/kisan-icon-512.png',
+  '/icons/kisan-icon-512.webp',
+  '/icons/kisan-icon.png',
+  '/icons/kisan-icon.webp',
   '/icons/kisan-icon.svg',
+  '/icons/kaka-idle.webp',
+  '/icons/kaka-listening.webp',
+  '/icons/kaka-speaking.webp',
   '/icons/kaka-idle.png',
   '/icons/kaka-listening.png',
   '/icons/kaka-speaking.png',

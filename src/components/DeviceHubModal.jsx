@@ -40,7 +40,7 @@ import {
   validateStarterPin
 } from '../services/deviceManagerService';
 import { isWebBluetoothSupported, generateSimulatedSoilData } from '../utils/bluetoothSoilSensor';
-import { getGsmActionUri, getMotorTelemetry } from '../utils/motorControllerService';
+import { getMotorTelemetry } from '../utils/motorControllerService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { notify } from '../services/notificationService';
 import { openNativeDialer, openNativeSms, vibrateDevice } from '../utils/capacitorUtils';
