@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -6,7 +6,6 @@ import {
   CardContent,
   Chip,
   Button,
-  Grid,
   TextField,
   InputAdornment,
   Paper,
@@ -28,14 +27,8 @@ import ScienceIcon from '@mui/icons-material/Science';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
-import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import WaterDropIcon from '@mui/icons-material/WaterDrop';
-import AirIcon from '@mui/icons-material/Air';
-import SecurityIcon from '@mui/icons-material/Security';
 import CloudQueueIcon from '@mui/icons-material/CloudQueue';
-import CallIcon from '@mui/icons-material/Call';
 import SyncIcon from '@mui/icons-material/Sync';
-import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import MicIcon from '@mui/icons-material/Mic';
 import ClearIcon from '@mui/icons-material/Clear';
 import SendIcon from '@mui/icons-material/Send';
@@ -50,7 +43,6 @@ import { getCrops, getDiseases, diagnoseCropWithLiveAi, getCachedModuleData, get
 import { fetchLiveWeather, getSprayAdvisory, getCachedWeather } from '../services/weatherService';
 import { notify } from '../services/notificationService';
 import { getOfflineScans, saveOfflineScan, removeOfflineScan } from '../services/offlineDoctorQueueService';
-import { openNativeDialer } from '../utils/capacitorUtils';
 import { appConfig } from '../config/appConfig';
 import { CROPS, CROP_DISEASES, CIBRC_PESTICIDES } from '../data/kisanData';
 
@@ -272,7 +264,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         };
         setChatMessages((prev) => [...prev, errorMsg]);
       }
-    } catch (err) {
+    } catch {
       setChatMessages((prev) => [
         ...prev,
         { sender: 'doctor', text: 'नेटवर्क में समस्या आई। कृपया इंटरनेट कनेक्शन जांचें।', isError: true }
@@ -494,7 +486,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
             setTimeout(() => {
               prescriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 180);
-          } catch (err) {
+          } catch {
             setAnalyzing(false);
             setScanError('फोटो विश्लेषण में तकनीकी समस्या आई। कृपया पुनः प्रयास करें।');
             notify.error('फोटो विश्लेषण में त्रुटि हुई।');
@@ -539,7 +531,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
     }
   };
 
-  const handleProcessQueuedScan = async (scanItem) => {
+  const handleProcessQueuedScan = useCallback(async (scanItem) => {
     if (!scanItem) return;
     if (!navigator.onLine) {
       notify.warning('अभी फोन में इंटरनेट नहीं है। कृपया मोबाइल डेटा चालू करें।');
@@ -606,11 +598,11 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       setTimeout(() => {
         prescriptionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }, 200);
-    } catch (err) {
+    } catch {
       setIsSyncingPending(false);
       setScanError('तकनीकी समस्या आई। कृपया पुनः प्रयास करें।');
     }
-  };
+  }, [selectedCrop]);
 
   const handleProcessAllQueuedScans = async () => {
     const queued = getOfflineScans();
@@ -633,7 +625,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
 
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, []);
+  }, [handleProcessQueuedScan]);
 
   const handleVoiceReadRemedy = (disease) => {
     if (!disease) return;
