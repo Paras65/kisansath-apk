@@ -1825,6 +1825,266 @@ export const HomeTab = ({
         </Paper>
       )}
 
+      {/* ── 3. Farmer Command Center Telemetry KPI Tiles (Admin-Grade Precision) ── */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+          gap: { xs: 1.5, sm: 2 },
+          mb: { xs: 2.5, md: 3 }
+        }}
+      >
+        {/* Tile 1: Active Farm Plots & Registered Acreage */}
+        <Paper
+          elevation={0}
+          onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
+          sx={{
+            p: 1.8,
+            borderRadius: 3,
+            bgcolor: '#ffffff',
+            border: '1.5px solid #bbf7d0',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 2px 10px rgba(22, 101, 52, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            '&:hover': {
+              borderColor: '#16a34a',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 18px rgba(22, 101, 52, 0.12)'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 2.5,
+                bgcolor: '#f0fdf4',
+                color: '#166534',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <AgricultureIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Chip
+              label={isChhattisgarhi ? 'खेत डैशबोर्ड' : 'खेत डैशबोर्ड'}
+              size="small"
+              sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.72rem', display: 'block' }}>
+              {isChhattisgarhi ? 'सक्रिय खेत अऊ रकबा' : 'सक्रिय खेत व कुल रकबा'}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
+              {activeFarmer
+                ? `${(farmerPlots || []).length} खेत • ${activeFarmer.acres || 0} एकड़`
+                : (isChhattisgarhi ? 'अपन खेत जोड़व' : 'खेत जोड़ें / बुआई')}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
+              📅 {isChhattisgarhi ? 'बुआई ले कटाई कैलेंडर →' : 'बुआई से कटाई कैलेंडर →'}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Tile 2: Paddy MSP ₹3,100 Procurement Telemetry */}
+        <Paper
+          elevation={0}
+          onClick={() => {
+            stopSpeech();
+            onNavigate('schemes');
+            window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 1 } }));
+          }}
+          sx={{
+            p: 1.8,
+            borderRadius: 3,
+            bgcolor: '#ffffff',
+            border: '1.5px solid #fde68a',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 2px 10px rgba(180, 83, 9, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            '&:hover': {
+              borderColor: '#f59e0b',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 18px rgba(180, 83, 9, 0.12)'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 2.5,
+                bgcolor: '#fffbeb',
+                color: '#b45309',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <MonetizationOnIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Chip
+              label={isChhattisgarhi ? '₹3,100 गारंटी' : '₹3,100 गारंटी'}
+              size="small"
+              sx={{ bgcolor: '#fef3c7', color: '#92400e', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.72rem', display: 'block' }}>
+              {isChhattisgarhi ? 'धान सरकारी उपार्जन' : 'धान सरकारी उपार्जन दर'}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
+              ₹{appConfig.paddyScheme.totalRate} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>/क्विंटल</span>
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#b45309', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
+              🌾 {isChhattisgarhi ? '21 क्विंटल/एकड़ सीमा →' : '21 क्विंटल/एकड़ सीमा →'}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Tile 3: Live Microclimate Weather & Spray Suitability */}
+        <Paper
+          elevation={0}
+          onClick={() => {
+            stopSpeech();
+            const el = document.getElementById('kaka-weather-card');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            else setOpenDistrictPicker(true);
+          }}
+          sx={{
+            p: 1.8,
+            borderRadius: 3,
+            bgcolor: '#ffffff',
+            border: '1.5px solid #bae6fd',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 2px 10px rgba(2, 132, 199, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            '&:hover': {
+              borderColor: '#0284c7',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 18px rgba(2, 132, 199, 0.12)'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 2.5,
+                bgcolor: '#f0f9ff',
+                color: '#0284c7',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <WbSunnyIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Chip
+              label={weather ? `${weather.temp}°C` : selectedDistrict}
+              size="small"
+              sx={{ bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.72rem', display: 'block' }}>
+              {isChhattisgarhi ? 'लाइव मौसम अऊ छिड़काव' : 'लाइव मौसम व छिड़काव'}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.25, mt: 0.2 }}>
+              {activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict} • {weather?.condition || (isChhattisgarhi ? 'साफ' : 'साफ')}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: (weather?.rainProbability || 0) > 40 ? '#dc2626' : (weather?.windSpeed || 0) > 15 ? '#d97706' : '#0284c7',
+                fontWeight: 700,
+                fontSize: '0.68rem',
+                mt: 0.4,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.4
+              }}
+            >
+              {(weather?.rainProbability || 0) > 40
+                ? (isChhattisgarhi ? '⚠️ पानी के संका • स्प्रे रोकव' : '⚠️ वर्षा संभावना • स्प्रे रोकें')
+                : (weather?.windSpeed || 0) > 15
+                ? (isChhattisgarhi ? '💨 तेज हवा • स्प्रे नइ करव' : '💨 तेज हवा • स्प्रे न करें')
+                : (isChhattisgarhi ? '🌿 मौसम बने हे • काम जारी' : '🌿 मौसम अनुकूल • कार्य जारी')}
+            </Typography>
+          </Box>
+        </Paper>
+
+        {/* Tile 4: Mandi Bhav Pulse Telemetry */}
+        <Paper
+          elevation={0}
+          onClick={() => { stopSpeech(); onNavigate('mandi'); }}
+          sx={{
+            p: 1.8,
+            borderRadius: 3,
+            bgcolor: '#ffffff',
+            border: '1.5px solid #e9d5ff',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            boxShadow: '0 2px 10px rgba(109, 40, 217, 0.05)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            '&:hover': {
+              borderColor: '#9333ea',
+              transform: 'translateY(-2px)',
+              boxShadow: '0 6px 18px rgba(109, 40, 217, 0.12)'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: 2.5,
+                bgcolor: '#faf5ff',
+                color: '#7e22ce',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <StorefrontIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Chip
+              label={isChhattisgarhi ? 'मंडी दरें' : 'मंडी दरें'}
+              size="small"
+              sx={{ bgcolor: '#f3e8ff', color: '#6b21a8', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
+            />
+          </Box>
+          <Box>
+            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.72rem', display: 'block' }}>
+              {isChhattisgarhi ? 'मंडी भाव पल्स' : 'मंडी भाव व दलहन दरें'}
+            </Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
+              {isChhattisgarhi ? 'दैनिक मॉडल भाव' : 'दैनिक मॉडल भाव'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: '#7e22ce', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
+              🏪 {isChhattisgarhi ? '33 जिला के मंडी भाव →' : '33 जिलों के मंडी भाव →'}
+            </Typography>
+          </Box>
+        </Paper>
+      </Box>
+
       {/* Responsive 2-Column Agritech Command Center Layout on Desktop */}
       <Box
         sx={{
@@ -1936,7 +2196,7 @@ export const HomeTab = ({
                         '&:hover': { bgcolor: 'rgba(27,94,32,0.16)' }
                       }}
                     >
-                      📍 {selectedDistrict} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
+                      📍 {activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
                     </Typography>
 
                     {isGpsLocation ? (

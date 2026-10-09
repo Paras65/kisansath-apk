@@ -30,6 +30,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import MyLocationIcon from '@mui/icons-material/MyLocation';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { appConfig } from '../config/appConfig';
@@ -62,6 +63,7 @@ export const Header = ({
     { id: 'schemes', label: t('tab_schemes'), icon: CalculateIcon },
     { id: 'mandi', label: t('tab_mandi'), icon: StorefrontIcon },
     { id: 'chaupal', label: t('tab_chaupal'), icon: ForumIcon },
+    { id: 'settings', label: t('tab_settings'), icon: SettingsIcon },
   ];
 
   const handleGpsLocation = async () => {

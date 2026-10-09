@@ -14,6 +14,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
+import SettingsIcon from '@mui/icons-material/Settings';
 
 import { theme } from './theme';
 import { Header } from './components/Header';
@@ -23,6 +24,7 @@ import { CropDoctorTab } from './components/CropDoctorTab';
 import { CalculatorSchemesTab } from './components/CalculatorSchemesTab';
 import { MandiTab } from './components/MandiTab';
 import { ChaupalTab } from './components/ChaupalTab';
+import { SettingsTab } from './components/SettingsTab';
 import { GlobalNotification } from './components/GlobalNotification';
 import { notify } from './services/notificationService';
 import { appConfig } from './config/appConfig';
@@ -863,6 +865,15 @@ function App() {
             {currentTab === 'schemes' && <CalculatorSchemesTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
             {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}
+            {currentTab === 'settings' && (
+              <SettingsTab
+                selectedDistrict={selectedDistrict}
+                onDistrictChange={handleDistrictChange}
+                isGpsLocation={isGpsLocation}
+                onOpenAdmin={handleOpenAdminPortal}
+                onNavigate={handleTabChange}
+              />
+            )}
           </ErrorBoundary>
 
           {/* Mobile Farmer Informational Footer Card (Visible only on xs and sm) */}
@@ -1302,6 +1313,11 @@ function App() {
               label={t('tab_chaupal')}
               value="chaupal"
               icon={<ForumIcon sx={{ fontSize: 24 }} />}
+            />
+            <BottomNavigationAction
+              label={t('tab_settings')}
+              value="settings"
+              icon={<SettingsIcon sx={{ fontSize: 24 }} />}
             />
           </BottomNavigation>
           </Box>

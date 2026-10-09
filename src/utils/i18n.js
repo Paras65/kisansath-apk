@@ -34,6 +34,7 @@ export const DICTIONARY = {
     tab_schemes: 'खाद-धान हिसाब',
     tab_mandi: 'मंडी भाव',
     tab_chaupal: 'किसान चौपाल',
+    tab_settings: 'सेटिंग्स',
 
     // Home Screen Actions & Cards
     weather_card_title: 'आज के मौसम अऊ सलाह',
@@ -132,6 +133,7 @@ export const DICTIONARY = {
     tab_schemes: 'खाद-धान',
     tab_mandi: 'मंडी भाव',
     tab_chaupal: 'चौपाल',
+    tab_settings: 'सेटिंग्स',
 
     // Home Screen Actions & Cards
     weather_card_title: 'आज का मौसम एवं सलाह',
