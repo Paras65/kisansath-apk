@@ -135,11 +135,11 @@ export const FaqModal = ({ open, onClose }) => {
 
   const categories = [
     { id: 'all', labelHi: 'सब सवाल', labelCg: 'सबो सवाल' },
-    { id: 'help', labelHi: '📞 सहायता व कॉल सेंटर', labelCg: '📞 सहायता व कॉल सेंटर' },
-    { id: 'privacy', labelHi: '🔒 शून्य-कागजात', labelCg: '🔒 कागजात-मुक्त' },
+    { id: 'help', labelHi: '📞 सहायता व कॉल सेंटर', labelCg: '📞 सहायता अऊ कॉल सेंटर' },
+    { id: 'privacy', labelHi: '🔒 शून्य-कागजात', labelCg: '🔒 कोनो कागजात नई' },
     { id: 'offline', labelHi: '🌐 ऑफ़लाइन उपयोग', labelCg: '🌐 ऑफ़लाइन' },
     { id: 'kaka', labelHi: '👴🏻 बहिरा काका वॉयस', labelCg: '👴🏻 बहिरा काका' },
-    { id: 'farming', labelHi: '🌾 खाद, फसल व मंडी', labelCg: '🌾 खाद, फसल व मंडी' },
+    { id: 'farming', labelHi: '🌾 खाद, फसल व मंडी', labelCg: '🌾 खाद, फसल अऊ मंडी' },
   ];
 
   const filteredItems = FAQ_ITEMS.filter((item) => {
@@ -214,10 +214,10 @@ export const FaqModal = ({ open, onClose }) => {
           <HelpOutlineIcon sx={{ color: '#ffeb3b', fontSize: 26 }} />
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff', fontSize: '1.05rem' }}>
-              {isChhattisgarhi ? 'अक्सर पूछे जाने वाले सवाल (FAQs)' : 'अक्सर पूछे जाने वाले सवाल (FAQs)'}
+              {isChhattisgarhi ? 'जरूरी सवाल-जवाब (काका ले पूछव)' : 'अक्सर पूछे जाने वाले सवाल (FAQs)'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem' }}>
-              {isChhattisgarhi ? 'किसान संगी मन के सबो शंका के समाधान • बोलके सुनो' : 'किसानों की हर शंका का समाधान • बोलकर सुनें'}
+              {isChhattisgarhi ? 'किसान संगी मन के सबो शंका के समाधान • बोलके सुनव' : 'किसानों की हर शंका का समाधान • बोलकर सुनें'}
             </Typography>
           </Box>
         </Box>
@@ -294,10 +294,10 @@ export const FaqModal = ({ open, onClose }) => {
             <PhoneInTalkIcon sx={{ color: '#16a34a', fontSize: 22 }} />
             <Box>
               <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.78rem', display: 'block' }}>
-                सरकारी किसान कॉल सेंटर: 1800-180-1551 (केवल फसल व खेती सलाह)
+                {isChhattisgarhi ? 'सरकारी किसान कॉल सेंटर: 1800-180-1551 (केवल खेती-किसानी सलाह)' : 'सरकारी किसान कॉल सेंटर: 1800-180-1551 (केवल फसल व खेती सलाह)'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                यह कृषि विभाग का नंबर है। ऐप समस्या हेतु इस पर फोन न करें।
+                {isChhattisgarhi ? 'ये कृषि विभाग के नंबर हे। ऐप के खराबी बर एमा फोन झन लगावहू।' : 'यह कृषि विभाग का नंबर है। ऐप समस्या हेतु इस पर फोन न करें।'}
               </Typography>
             </Box>
           </Box>
@@ -305,10 +305,10 @@ export const FaqModal = ({ open, onClose }) => {
             <EmailIcon sx={{ color: '#0284c7', fontSize: 22 }} />
             <Box>
               <Typography variant="caption" sx={{ color: '#0369a1', fontWeight: 800, fontSize: '0.78rem', display: 'block' }}>
-                ऐप तकनीकी सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
+                {isChhattisgarhi ? `ऐप सहायता ईमेल: ${appConfig.supportEmail || 'support@init65.co.in'}` : `ऐप तकनीकी सहायता: ${appConfig.supportEmail || 'support@init65.co.in'}`}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                किसान साथी ऐप लॉगिन, बग व सुझाव हेतु।
+                {isChhattisgarhi ? 'किसान साथी ऐप लॉगिन, खराबी या सुझाव बर।' : 'किसान साथी ऐप लॉगिन, बग व सुझाव हेतु।'}
               </Typography>
             </Box>
           </Box>
@@ -378,7 +378,7 @@ export const FaqModal = ({ open, onClose }) => {
                             }}
                           />
                         )}
-                        <Tooltip title={isCurrentlySpeaking ? "काका ला रोको" : "काका ले सुनो"}>
+                        <Tooltip title={isCurrentlySpeaking ? (isChhattisgarhi ? "काका ला रोकव" : "काका को रोकें") : (isChhattisgarhi ? "काका ले सुनव" : "काका से सुनें")}>
                           <IconButton
                             size="small"
                             onClick={(e) => handleSpeakFaq(e, item)}
@@ -421,7 +421,7 @@ export const FaqModal = ({ open, onClose }) => {
                           textTransform: 'none'
                         }}
                       >
-                        {isCurrentlySpeaking ? (isChhattisgarhi ? '🛑 रोको' : '🛑 रोकें') : (isChhattisgarhi ? '👴🏻 काका ले सुनो' : '👴🏻 काका से सुनें')}
+                        {isCurrentlySpeaking ? (isChhattisgarhi ? '🛑 रोकव' : '🛑 रोकें') : (isChhattisgarhi ? '👴🏻 काका ले सुनव' : '👴🏻 काका से सुनें')}
                       </Button>
                     </Box>
                   </AccordionDetails>
@@ -434,7 +434,7 @@ export const FaqModal = ({ open, onClose }) => {
 
       <DialogActions sx={{ p: 1.8, bgcolor: '#f1f5f9', justifyContent: 'space-between' }}>
         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-          🔒 100% सुरक्षित • शून्य कागज़ात • किसान कल्याण मंच
+          {isChhattisgarhi ? '🔒 100% सुरक्षित • कोनो कागजात नई चाही • किसान साथी' : '🔒 100% सुरक्षित • शून्य कागज़ात • किसान कल्याण मंच'}
         </Typography>
         <Button
           onClick={handleClose}
@@ -448,7 +448,7 @@ export const FaqModal = ({ open, onClose }) => {
             '&:hover': { bgcolor: '#144a19' }
           }}
         >
-          {isChhattisgarhi ? 'समझ गेव (बंद करव)' : 'समझ गया (बंद करें)'}
+          {isChhattisgarhi ? 'समझ गेन (बंद करव)' : 'समझ गया (बंद करें)'}
         </Button>
       </DialogActions>
     </Dialog>

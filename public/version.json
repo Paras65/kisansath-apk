@@ -1,8 +1,8 @@
 {
-  "version": "1.0.53",
+  "version": "1.0.54",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.53",
-  "releaseNotes": "🌾 छत्तीसगढ़ी भाषा शुद्धिकरण: सामयिक कृषि बुलेटिन, फसल डॉक्टर, मंडी, चौपाल एवं टोकन गाइड में प्रामाणिक देहाती शब्दावली परिष्कार।",
+  "releaseName": "किसान साथी v1.0.54",
+  "releaseNotes": "🌾 अक्सर पूछे जाने वाले सवाल (FAQs), पंजीयन कार्ड, 8-टूल लॉन्चर एवं शब्दकोश में संपूर्ण छत्तीसगढ़ी बोली परिष्कार।",
   "updatedAt": "2026-10-09"
 }

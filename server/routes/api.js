@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.53';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.54';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🌾 छत्तीसगढ़ी भाषा शुद्धिकरण: सामयिक कृषि बुलेटिन, फसल डॉक्टर, मंडी, चौपाल एवं टोकन गाइड में प्रामाणिक देहाती शब्दावली परिष्कार।',
+    releaseNotes: '🌾 अक्सर पूछे जाने वाले सवाल (FAQs), 8-टूल लॉन्चर एवं शब्दकोश में संपूर्ण छत्तीसगढ़ी बोली परिष्कार।',
     updatedAt: new Date().toISOString()
   });
 });

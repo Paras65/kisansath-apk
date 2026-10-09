@@ -515,7 +515,7 @@ export const HomeTab = ({
             }
           }}
         >
-          🌾 नया किसान पंजीयन
+          {isChhattisgarhi ? '🌾 नवा किसान पंजीयन' : '🌾 नया किसान पंजीयन'}
         </Button>
         <Button
           fullWidth
@@ -555,7 +555,7 @@ export const HomeTab = ({
           >
             <PinDropIcon sx={{ color: '#059669', fontSize: 20, flexShrink: 0 }} />
             <Typography variant="caption" sx={{ color: '#065f46', fontWeight: 700, fontSize: '0.75rem', lineHeight: 1.3 }}>
-              ⚡ <strong>स्मार्ट सुविधा:</strong> 6-अंक पिन कोड डालते ही आपके क्षेत्र के सभी गांव की सूची तुरंत आ जाएगी।
+              {isChhattisgarhi ? '⚡ <strong>सुविधा:</strong> 6-अंक पिन कोड डारते ही तुंहर इलाका के सबो गांव के सूची तुरंत आ जही।' : '⚡ <strong>स्मार्ट सुविधा:</strong> 6-अंक पिन कोड डालते ही आपके क्षेत्र के सभी गांव की सूची तुरंत आ जाएगी।'}
             </Typography>
           </Box>
 
@@ -852,7 +852,7 @@ export const HomeTab = ({
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.5, pt: 1, borderTop: '1px dashed #e2e8f0' }}>
         <CheckCircleIcon sx={{ fontSize: 14, color: '#16a34a' }} />
         <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-          {isChhattisgarhi ? 'शून्य-कागजात • 100% सुरक्छित डेटा • टोल-फ्री: 1800-180-1551' : 'शून्य-कागजात • 100% सुरक्षित डेटा • टोल-फ्री: 1800-180-1551'}
+          {isChhattisgarhi ? 'कोनो कागजात नई चाही • 100% सुरक्छित डेटा • किसान कॉल सेंटर: 1800-180-1551' : 'शून्य-कागजात • 100% सुरक्षित डेटा • टोल-फ्री: 1800-180-1551'}
         </Typography>
       </Box>
     </Box>
@@ -960,7 +960,7 @@ export const HomeTab = ({
 
     const handleReadHub = () => {
       const fullSpeech = isChhattisgarhi
-        ? `छत्तीसगढ़ धान उपार्जन अऊ IGKV रायपुर कृषि बुलेटिन। धान समर्थन मूल्य ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल, 21 क्विंटल प्रति एकड़ सरकारी खरीदी गारंटी हे। टोकन तुंहर हाथ ऑनलाइन बुकिंग ले घर बैठे टोकन कटाव। ${advisory.voiceText}`
+        ? `छत्तीसगढ़ धान खरीदी अऊ IGKV रायपुर किसानी गोठ। धान समर्थन मूल्य ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल, 21 क्विंटल प्रति एकड़ सरकारी खरीदी गारंटी हे। टोकन तुंहर हाथ ऑनलाइन बुकिंग ले घर बैठे टोकन कटाव। ${advisory.voiceText}`
         : `छत्तीसगढ़ धान उपार्जन एवं IGKV रायपुर कृषि बुलेटिन। धान समर्थन मूल्य ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल, 21 क्विंटल प्रति एकड़ उपार्जन गारंटी है। टोकन तुंहर हाथ ऑनलाइन पोर्टल से घर बैठे टोकन प्राप्त करें। ${advisory.voiceText}`;
       speakText(fullSpeech);
     };
@@ -1732,12 +1732,12 @@ export const HomeTab = ({
           <Box sx={{ textAlign: 'center', py: 3, px: 2, bgcolor: '#f8fafc', borderRadius: 3, border: '1px dashed #cbd5e1' }}>
             <AgricultureIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e293b', mb: 0.5 }}>
-              {isChhattisgarhi ? 'अभे कोनो खेत दर्ज नइ हे' : 'आपका कोई खेत अभी पंजीकृत नहीं है'}
+              {isChhattisgarhi ? 'अभे कोनो फसल तारीख नइ चुने हव' : 'अभी कोई फसल बुआई तारीख नहीं चुनी गई'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 2, maxWidth: 360, mx: 'auto', fontSize: '0.76rem' }}>
               {isChhattisgarhi
-                ? 'अपन खेत के रकबा (एकड़) अउ बोआई के तारीख जोड़व। किसान साथी हर अवस्था म सही सलाह देही।'
-                : 'अपने खेत का रकबा (एकड़) और बुआई की तारीख जोड़ें। किसान साथी आपके खेत के हर चरण (अंकुरण, खाद, सिंचाई, कटाई) का दैनिक मार्गदर्शन करेगा।'}
+                ? 'अपन फसल के रकबा (एकड़) अऊ बोवाई तारीख चुनव। कोनो खसरा या जमीन के ब्यौरा नइ चाही।'
+                : 'अपनी फसल का रकबा (एकड़) और बुआई की तारीख चुनें। किसी खसरा या कागज़ात की आवश्यकता नहीं है।'}
             </Typography>
             <Button
               variant="contained"
@@ -1745,7 +1745,7 @@ export const HomeTab = ({
               onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
               sx={{ bgcolor: '#1b5e20', color: '#fff', fontWeight: 800, fontSize: '0.78rem', borderRadius: 2.5, px: 2, py: 0.6 }}
             >
-              {isChhattisgarhi ? '➕ अपन पहिली खेत जोड़व (1 मिनट)' : '➕ अपना पहला खेत जोड़ें (1 मिनट)'}
+              {isChhattisgarhi ? '📅 अपन बोवाई तारीख चुनव (1 मिनट)' : '📅 अपनी बुआई तारीख चुनें (1 मिनट)'}
             </Button>
           </Box>
         )}
@@ -1842,7 +1842,7 @@ export const HomeTab = ({
                     📢 {activeBroadcasts[0].title}
                   </Typography>
                   <Chip
-                    label={activeBroadcasts[0].severity === 'urgent' ? (isChhattisgarhi ? 'अति गंभीर चेतावनी' : 'अति गंभीर चेतावनी') : activeBroadcasts[0].severity === 'warning' ? (isChhattisgarhi ? 'विभागीय चेतावनी' : 'विभागीय चेतावनी') : (isChhattisgarhi ? 'कृषि सलाह' : 'कृषि परामर्श')}
+                    label={activeBroadcasts[0].severity === 'urgent' ? (isChhattisgarhi ? 'अति गंभीर चेतावनी' : 'अति गंभीर चेतावनी') : activeBroadcasts[0].severity === 'warning' ? (isChhattisgarhi ? 'विभागीय चेतावनी' : 'विभागीय चेतावनी') : (isChhattisgarhi ? 'खेती सलाह' : 'कृषि परामर्श')}
                     size="small"
                     color={activeBroadcasts[0].severity === 'urgent' ? 'error' : activeBroadcasts[0].severity === 'warning' ? 'warning' : 'primary'}
                     sx={{ fontWeight: 800, fontSize: '0.68rem', height: 20 }}
@@ -2318,7 +2318,7 @@ export const HomeTab = ({
             >
               {[
                 {
-                  title: isChhattisgarhi ? 'रोग निदान' : 'फसल डॉक्टर',
+                  title: isChhattisgarhi ? 'कीरा-रोग' : 'फसल डॉक्टर',
                   icon: <MedicalServicesIcon sx={{ color: '#d32f2f', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#ffebee',
                   border: '#ffcdd2',
@@ -2363,7 +2363,7 @@ export const HomeTab = ({
                   action: () => setOpenGpsTracker(true)
                 },
                 {
-                  title: isChhattisgarhi ? 'ट्यूबवेल मोटर' : 'ट्यूबवेल मोटर',
+                  title: isChhattisgarhi ? 'बोर मोटर' : 'ट्यूबवेल मोटर',
                   icon: <PowerSettingsNewIcon sx={{ color: '#0288d1', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e1f5fe',
                   border: '#b3e5fc',
@@ -2372,7 +2372,7 @@ export const HomeTab = ({
                   action: () => handleRequireLogin('motor')
                 },
                 {
-                  title: isChhattisgarhi ? 'माटी सेंसर' : 'मिट्टी सेंसर',
+                  title: isChhattisgarhi ? 'माटी जांच' : 'मिट्टी सेंसर',
                   icon: <ScienceIcon sx={{ color: '#2e7d32', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#e8f5e9',
                   border: '#c8e6c9',
@@ -2381,7 +2381,7 @@ export const HomeTab = ({
                   action: () => handleRequireLogin('soil')
                 },
                 {
-                  title: isChhattisgarhi ? 'किसान डायरी' : 'किसान डायरी',
+                  title: isChhattisgarhi ? 'फसल डायरी' : 'किसान डायरी',
                   icon: <MenuBookIcon sx={{ color: '#7b1fa2', fontSize: { xs: 24, sm: 26 } }} />,
                   bg: '#f3e5f5',
                   border: '#e1bee7',

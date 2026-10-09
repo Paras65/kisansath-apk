@@ -1259,7 +1259,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       {t('bardana_bags')} (40kg {isChhattisgarhi ? 'पैमाना' : 'मानक'})
                     </Typography>
                     <Typography variant="h6" sx={{ fontWeight: 900, color: '#e65100', fontSize: '1.25rem', lineHeight: 1.2, my: 0.3 }}>
-                      ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरी' : 'बोरी'}
+                      ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरा' : 'बोरी'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#8d6e63', fontSize: '0.68rem' }}>
                       {isChhattisgarhi ? '1 क्विंटल = 2.5 बारदाना (जूट बोरा)' : '1 क्विंटल = 2.5 जूट बोरे'}
