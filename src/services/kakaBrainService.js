@@ -2342,7 +2342,7 @@ export const queryKakaAiExpert = async (query, isChhattisgarhi = false, context 
   try {
     const apiBase = appConfig?.apiBaseUrl || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    const timeoutId = setTimeout(() => controller.abort(), 25000);
 
     const res = await fetch(`${apiBase}/kaka-brain/expert`, {
       method: 'POST',

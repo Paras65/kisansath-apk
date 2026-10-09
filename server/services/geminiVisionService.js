@@ -108,8 +108,8 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
 }`;
 
   // Multi-model fallback cascade read dynamically from externalApisConfig (.env GEMINI_MODELS)
-  const defaultModels = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
-  const modelsToTry = models.length > 0 ? Array.from(new Set([...models, ...defaultModels])) : defaultModels;
+  const defaultModels = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.8-flash'];
+  const modelsToTry = models.length > 0 ? Array.from(new Set([...defaultModels, ...models])) : defaultModels;
 
   const modelErrors = [];
 
@@ -136,6 +136,14 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
       }
       parts.push({ text: prompt });
 
+      const genConfig = {
+        temperature,
+        responseMimeType: 'application/json'
+      };
+      if (model.includes('2.5')) {
+        genConfig.thinkingConfig = { thinkingBudget: 0 };
+      }
+
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -145,10 +153,7 @@ Return ONLY a valid JSON object with NO extra text or markdown code fences:
         signal: controller.signal,
         body: JSON.stringify({
           contents: [{ parts }],
-          generationConfig: {
-            temperature,
-            responseMimeType: 'application/json'
-          }
+          generationConfig: genConfig
         })
       });
 
@@ -426,7 +431,7 @@ CRITICAL RULES:
 
 OUTPUT FORMAT: Return ONLY a valid JSON object matching the requested schema. No markdown backticks, no comments, no extra text.`;
 
-  const defaultModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+  const defaultModels = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-3.5-flash', 'gemini-3.8-flash'];
   const modelsToTry = models.length > 0 ? Array.from(new Set([...defaultModels, ...models])) : defaultModels;
 
   const modelErrors = [];
@@ -439,7 +444,16 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching the requested schema. No
     try {
       const url = `${baseUrl}/${model}:generateContent?key=${apiKey}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), Math.min(timeoutMs, 10000));
+      const perModelTimeout = Math.min(timeoutMs, 14000);
+      const timeoutId = setTimeout(() => controller.abort(), perModelTimeout);
+
+      const genConfig = {
+        temperature: 0.2,
+        responseMimeType: 'application/json'
+      };
+      if (model.includes('2.5')) {
+        genConfig.thinkingConfig = { thinkingBudget: 0 };
+      }
 
       const res = await fetch(url, {
         method: 'POST',
@@ -455,10 +469,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching the requested schema. No
               parts: [{ text: prompt }]
             }
           ],
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: 'application/json'
-          }
+          generationConfig: genConfig
         })
       });
 
@@ -478,7 +489,21 @@ OUTPUT FORMAT: Return ONLY a valid JSON object matching the requested schema. No
         continue;
       }
 
-      const cleanedText = rawText.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+      let cleanedText = rawText.trim();
+      if (cleanedText.startsWith('```json')) {
+        cleanedText = cleanedText.slice(7);
+      } else if (cleanedText.startsWith('```')) {
+        cleanedText = cleanedText.slice(3);
+      }
+      if (cleanedText.endsWith('```')) {
+        cleanedText = cleanedText.slice(0, -3);
+      }
+      cleanedText = cleanedText.trim();
+      const firstBrace = cleanedText.indexOf('{');
+      const lastBrace = cleanedText.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleanedText = cleanedText.substring(firstBrace, lastBrace + 1);
+      }
       const parsed = JSON.parse(cleanedText);
 
       return {

@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.66';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.67';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '⚙️ 6वां समर्पित सेटिंग्स टैब (किसान प्रोफ़ाइल, भाषा व GPS चयन, स्मार्ट IoT हब, ऐप अपडेटर) एवं होम स्क्रीन पर 4 एग्जीक्यूटिव टेलीमेट्री टाइल्स (सक्रिय खेत व रकबा, धान ₹3,100 उपार्जन, लाइव मौसम व स्प्रे इंटरलॉक, मंडी भाव पल्स) का संपूर्ण समावेश।',
+    releaseNotes: '🌾 बहिरा काका एआई कृषि वैज्ञानिक इंजन (Google Gemini IGKV/ICAR रोल) का सशक्तिकरण: स्टेबल जेमिनी 2.5 फ्लैश व शून्य-थिंकिंग लेटेंसी ऑप्टिमाइजेशन, स्वचालित बहु-मॉडल फॉलबैक एवं विट लोकल प्रॉक्सी एकीकरण।',
     updatedAt: new Date().toISOString()
   });
 });

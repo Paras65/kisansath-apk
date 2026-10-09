@@ -74,7 +74,7 @@ export const externalApisConfig = {
       process.env.GEMINI_KEY ||
       ''
     ).trim(),
-    models: (process.env.GEMINI_MODELS || 'gemini-3.8-flash,gemini-3.5-flash,gemini-3.5-flash-lite')
+    models: (process.env.GEMINI_MODELS || 'gemini-2.5-flash,gemini-2.5-flash-lite,gemini-flash-latest,gemini-flash-lite-latest,gemini-3.5-flash,gemini-3.8-flash')
       .split(',')
       .map((m) => m.trim())
       .filter(Boolean),
