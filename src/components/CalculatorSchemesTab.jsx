@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Box,
   Typography,
@@ -32,13 +32,14 @@ import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes, getCachedModuleData, getDistrictSoilHealth } from '../services/apiService';
 import { CG_SOIL_PROFILES } from '../services/weatherService';
-import { SoilIotSensorModal } from './SoilIotSensorModal';
-import { TokenGuideModal } from './TokenGuideModal';
 import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { notify } from '../services/notificationService';
 import { useLanguage } from '../utils/i18n';
 import { acreToDismil, dismilToAcre, stepAcre, stepDismil, calculatePaddyProcurement } from '../utils/unitConverter';
 import { FERTILIZER_DOSES, SCHEMES } from '../data/kisanData';
+
+const SoilIotSensorModal = lazy(() => import('./SoilIotSensorModal').then((m) => ({ default: m.SoilIotSensorModal })));
+const TokenGuideModal = lazy(() => import('./TokenGuideModal').then((m) => ({ default: m.TokenGuideModal })));
 
 export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [subTab, setSubTab] = useState(0);
@@ -1604,22 +1605,27 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
         )
       )}
 
-      {/* Soil IoT Sensor Modal */}
-      <SoilIotSensorModal
-        open={openSoilIot}
-        onClose={() => setOpenSoilIot(false)}
-        onApplyToCalculator={(data) => {
-          setSoilSensorData(data);
-          notify.success('स्मार्ट मिट्टी सेंसर की रीडिंग खाद कैलकुलेटर में लागू की गई!');
-        }}
-      />
+      {/* Modals & Dialogs (On-Demand Lazy Loaded) */}
+      <Suspense fallback={null}>
+        {openSoilIot && (
+          <SoilIotSensorModal
+            open={openSoilIot}
+            onClose={() => setOpenSoilIot(false)}
+            onApplyToCalculator={(data) => {
+              setSoilSensorData(data);
+              notify.success('स्मार्ट मिट्टी सेंसर की रीडिंग खाद कैलकुलेटर में लागू की गई!');
+            }}
+          />
+        )}
 
-      {/* CG Paddy Token Tuhar Hath & Bardana Guide Modal */}
-      <TokenGuideModal
-        open={openTokenGuide}
-        onClose={() => setOpenTokenGuide(false)}
-        initialAcres={pAcresNum || 1.0}
-      />
+        {openTokenGuide && (
+          <TokenGuideModal
+            open={openTokenGuide}
+            onClose={() => setOpenTokenGuide(false)}
+            initialAcres={pAcresNum || 1.0}
+          />
+        )}
+      </Suspense>
     </Box>
   );
 };

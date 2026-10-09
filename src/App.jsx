@@ -36,12 +36,12 @@ import {
   stopVoiceRecognition,
   subscribeVoiceState,
   isVoiceSupported,
-  extractAcreage,
 } from './utils/voiceRecognition';
 import {
   queryKakaBrain,
   detectDistrictFromText,
   queryKakaAiExpert,
+  extractAcreage,
 } from './services/kakaBrainService';
 import { DraggableVoiceButton } from './components/DraggableVoiceButton';
 import { useLanguage } from './utils/i18n';

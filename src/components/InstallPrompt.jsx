@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { Box, Paper, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import GetAppIcon from '@mui/icons-material/GetApp';
 import AndroidIcon from '@mui/icons-material/Android';
 import CloseIcon from '@mui/icons-material/Close';
 import ShareIcon from '@mui/icons-material/Share';
 import { appConfig } from '../config/appConfig';
-import { ShareModal } from './ShareModal';
 import { useLanguage } from '../utils/i18n';
 import {
   isAppAlreadyInstalled,
   isInstallBannerDismissed,
   dismissInstallBanner,
 } from '../utils/capacitorUtils';
+
+const ShareModal = lazy(() => import('./ShareModal').then((m) => ({ default: m.ShareModal })));
 
 export const InstallPrompt = ({ onInstall, onDismiss }) => {
   const { isChhattisgarhi } = useLanguage();
@@ -162,11 +163,15 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
           </Tooltip>
         </Box>
 
-        {/* Share Modal */}
-        <ShareModal
-          open={shareModalOpen}
-          onClose={() => setShareModalOpen(false)}
-        />
+        {/* Share Modal (On-Demand Lazy Loaded) */}
+        <Suspense fallback={null}>
+          {shareModalOpen && (
+            <ShareModal
+              open={shareModalOpen}
+              onClose={() => setShareModalOpen(false)}
+            />
+          )}
+        </Suspense>
       </Paper>
     </Box>
   );

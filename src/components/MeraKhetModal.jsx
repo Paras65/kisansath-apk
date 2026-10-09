@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -62,10 +62,11 @@ import { getFertilizers, getCachedModuleData } from '../services/apiService';
 import { speakText, stopSpeech } from '../utils/speech';
 import { fetchLiveWeather, getCachedWeather } from '../services/weatherService';
 import { appConfig } from '../config/appConfig';
-import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
-import { SoilIotSensorModal } from './SoilIotSensorModal';
-import { MotorControllerModal } from './MotorControllerModal';
 import { useLanguage } from '../utils/i18n';
+
+const FieldGpsTrackerModal = lazy(() => import('./FieldGpsTrackerModal').then((m) => ({ default: m.FieldGpsTrackerModal })));
+const SoilIotSensorModal = lazy(() => import('./SoilIotSensorModal').then((m) => ({ default: m.SoilIotSensorModal })));
+const MotorControllerModal = lazy(() => import('./MotorControllerModal').then((m) => ({ default: m.MotorControllerModal })));
 
 export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायपुर', weatherContext }) => {
   const { isChhattisgarhi } = useLanguage();
@@ -1166,37 +1167,43 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         </DialogActions>
       </Dialog>
 
-      {/* Field GPS Tracker Modal */}
-      <FieldGpsTrackerModal
-        open={openGpsTracker}
-        onClose={() => setOpenGpsTracker(false)}
-        plotName={openAddPlotDialog ? newPlot.plotName || (isChhattisgarhi ? 'नवा खेत' : 'नया खेत') : activePlot?.plotName || (isChhattisgarhi ? 'खेत' : 'खेत')}
-        onSaveArea={(acres) => {
-          if (openAddPlotDialog) {
-            setNewPlot((prev) => ({ ...prev, areaAcres: String(acres) }));
-            notify.success(isChhattisgarhi ? `GPS ले ${acres} एकड़ रकबा दर्ज होगे!` : `GPS से ${acres} एकड़ रकबा दर्ज किया गया!`);
-          } else if (activePlot) {
-            const updated = { ...activePlot, areaAcres: Number(acres) };
-            saveFarmerPlot(farmer.phone, updated);
-            loadPlots(farmer.phone);
-            notify.success(isChhattisgarhi ? `"${activePlot.plotName}" के रकबा अपडेट होके ${acres} एकड़ होगे!` : `"${activePlot.plotName}" का रकबा अपडेट होकर ${acres} एकड़ हुआ!`);
-          }
-        }}
-      />
+      {/* On-Demand Lazy-Loaded Modals */}
+      <Suspense fallback={null}>
+        {openGpsTracker && (
+          <FieldGpsTrackerModal
+            open={openGpsTracker}
+            onClose={() => setOpenGpsTracker(false)}
+            plotName={openAddPlotDialog ? newPlot.plotName || (isChhattisgarhi ? 'नवा खेत' : 'नया खेत') : activePlot?.plotName || (isChhattisgarhi ? 'खेत' : 'खेत')}
+            onSaveArea={(acres) => {
+              if (openAddPlotDialog) {
+                setNewPlot((prev) => ({ ...prev, areaAcres: String(acres) }));
+                notify.success(isChhattisgarhi ? `GPS ले ${acres} एकड़ रकबा दर्ज होगे!` : `GPS से ${acres} एकड़ रकबा दर्ज किया गया!`);
+              } else if (activePlot) {
+                const updated = { ...activePlot, areaAcres: Number(acres) };
+                saveFarmerPlot(farmer.phone, updated);
+                loadPlots(farmer.phone);
+                notify.success(isChhattisgarhi ? `"${activePlot.plotName}" के रकबा अपडेट होके ${acres} एकड़ होगे!` : `"${activePlot.plotName}" का रकबा अपडेट होकर ${acres} एकड़ हुआ!`);
+              }
+            }}
+          />
+        )}
 
-      {/* Soil IoT Sensor Modal */}
-      <SoilIotSensorModal
-        open={openSoilIot}
-        onClose={() => setOpenSoilIot(false)}
-        plotName={activePlot?.plotName || 'खेत'}
-      />
+        {openSoilIot && (
+          <SoilIotSensorModal
+            open={openSoilIot}
+            onClose={() => setOpenSoilIot(false)}
+            plotName={activePlot?.plotName || 'खेत'}
+          />
+        )}
 
-      {/* Smart Tubewell Motor Controller Modal */}
-      <MotorControllerModal
-        open={openMotorModal}
-        onClose={() => setOpenMotorModal(false)}
-        weatherContext={liveWeather}
-      />
+        {openMotorModal && (
+          <MotorControllerModal
+            open={openMotorModal}
+            onClose={() => setOpenMotorModal(false)}
+            weatherContext={liveWeather}
+          />
+        )}
+      </Suspense>
     </>
   );
 };

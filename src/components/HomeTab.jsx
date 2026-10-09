@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Box,
   Typography,
@@ -67,13 +67,6 @@ import { analyzePlotLifecycle, getTodayActionableFarmTask } from '../utils/cropL
 import { checkForAppUpdate } from '../services/updateService';
 import { getPublicBroadcasts } from '../services/adminService';
 import SensorsIcon from '@mui/icons-material/Sensors';
-import { MeraKhetModal } from './MeraKhetModal';
-import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
-import { SoilIotSensorModal } from './SoilIotSensorModal';
-import { MotorControllerModal } from './MotorControllerModal';
-import { DeviceHubModal } from './DeviceHubModal';
-import { ShareModal } from './ShareModal';
-import { TokenGuideModal } from './TokenGuideModal';
 import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { getMandiRates, getCachedModuleData } from '../services/apiService';
 import { fetchVillagesByPincode } from '../services/pincodeService';
@@ -82,6 +75,14 @@ import {
   updateDevice,
   subscribeDeviceRegistry
 } from '../services/deviceManagerService';
+
+const MeraKhetModal = lazy(() => import('./MeraKhetModal').then((m) => ({ default: m.MeraKhetModal })));
+const FieldGpsTrackerModal = lazy(() => import('./FieldGpsTrackerModal').then((m) => ({ default: m.FieldGpsTrackerModal })));
+const SoilIotSensorModal = lazy(() => import('./SoilIotSensorModal').then((m) => ({ default: m.SoilIotSensorModal })));
+const MotorControllerModal = lazy(() => import('./MotorControllerModal').then((m) => ({ default: m.MotorControllerModal })));
+const DeviceHubModal = lazy(() => import('./DeviceHubModal').then((m) => ({ default: m.DeviceHubModal })));
+const ShareModal = lazy(() => import('./ShareModal').then((m) => ({ default: m.ShareModal })));
+const TokenGuideModal = lazy(() => import('./TokenGuideModal').then((m) => ({ default: m.TokenGuideModal })));
 
 // IGKV Raipur Agro-Scientist Seasonal Advisory Engine (Dynamic by Month)
 const getIgkvSeasonalAdvisory = (isChhattisgarhi) => {
@@ -359,7 +360,7 @@ export const HomeTab = ({
           setCustomVillageMode(true);
           if (res?.error) notify.info(res.error);
         }
-      } catch (err) {
+      } catch {
         setCustomVillageMode(true);
       } finally {
         setPincodeLoading(false);
@@ -518,7 +519,7 @@ export const HomeTab = ({
         if (isMounted && res && res.rates && res.rates.length > 0) {
           setLiveMandiRates(res.rates.slice(0, 3));
         }
-      } catch (e) {
+      } catch {
         // quiet
       }
     };
@@ -4151,52 +4152,68 @@ export const HomeTab = ({
     <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
       {renderFarmerDashboard()}
 
-      {/* Modals & Dialogs */}
-      <MeraKhetModal
-        open={openMeraKhet}
-        onClose={() => setOpenMeraKhet(false)}
-        selectedDistrict={selectedDistrict}
-        weatherContext={weather}
-      />
+      {/* Modals & Dialogs (On-Demand Lazy Loaded) */}
+      <Suspense fallback={null}>
+        {openMeraKhet && (
+          <MeraKhetModal
+            open={openMeraKhet}
+            onClose={() => setOpenMeraKhet(false)}
+            selectedDistrict={selectedDistrict}
+            weatherContext={weather}
+          />
+        )}
 
-      <FieldGpsTrackerModal
-        open={openGpsTracker}
-        onClose={() => setOpenGpsTracker(false)}
-        onSaveArea={() => setOpenMeraKhet(true)}
-      />
+        {openGpsTracker && (
+          <FieldGpsTrackerModal
+            open={openGpsTracker}
+            onClose={() => setOpenGpsTracker(false)}
+            onSaveArea={() => setOpenMeraKhet(true)}
+          />
+        )}
 
-      <SoilIotSensorModal
-        open={openSoilIot}
-        onClose={() => setOpenSoilIot(false)}
-        onApplyToCalculator={() => onNavigate('schemes')}
-      />
+        {openSoilIot && (
+          <SoilIotSensorModal
+            open={openSoilIot}
+            onClose={() => setOpenSoilIot(false)}
+            onApplyToCalculator={() => onNavigate('schemes')}
+          />
+        )}
 
-      <MotorControllerModal
-        open={openMotorModal}
-        onClose={() => setOpenMotorModal(false)}
-        weatherContext={weather}
-      />
+        {openMotorModal && (
+          <MotorControllerModal
+            open={openMotorModal}
+            onClose={() => setOpenMotorModal(false)}
+            weatherContext={weather}
+          />
+        )}
 
-      <DeviceHubModal
-        open={openDeviceHub}
-        onClose={() => setOpenDeviceHub(false)}
-        onOpenGpsTracker={() => setOpenGpsTracker(true)}
-        onOpenSoilIot={() => setOpenSoilIot(true)}
-        onOpenMotorModal={() => setOpenMotorModal(true)}
-        onApplySoilToCalc={() => onNavigate('schemes')}
-      />
+        {openDeviceHub && (
+          <DeviceHubModal
+            open={openDeviceHub}
+            onClose={() => setOpenDeviceHub(false)}
+            onOpenGpsTracker={() => setOpenGpsTracker(true)}
+            onOpenSoilIot={() => setOpenSoilIot(true)}
+            onOpenMotorModal={() => setOpenMotorModal(true)}
+            onApplySoilToCalc={() => onNavigate('schemes')}
+          />
+        )}
 
-      <ShareModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-      />
+        {shareModalOpen && (
+          <ShareModal
+            open={shareModalOpen}
+            onClose={() => setShareModalOpen(false)}
+          />
+        )}
 
-      <TokenGuideModal
-        open={openTokenGuide}
-        onClose={() => setOpenTokenGuide(false)}
-        initialAcres={Number(activeFarmer?.totalAcres || activeFarmer?.totalLandAcres) || 1.0}
-        farmerName={activeFarmer?.name || ''}
-      />
+        {openTokenGuide && (
+          <TokenGuideModal
+            open={openTokenGuide}
+            onClose={() => setOpenTokenGuide(false)}
+            initialAcres={Number(activeFarmer?.totalAcres || activeFarmer?.totalLandAcres) || 1.0}
+            farmerName={activeFarmer?.name || ''}
+          />
+        )}
+      </Suspense>
 
       {/* Quick Farmer Login & Registration Modal (Zero Friction, Public First) */}
       <Dialog

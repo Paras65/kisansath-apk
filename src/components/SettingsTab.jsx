@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   Box,
   Typography,
@@ -44,12 +44,13 @@ import { checkForAppUpdate } from '../services/updateService';
 import { notify } from '../services/notificationService';
 import { CG_DISTRICT_COORDS, detectCurrentLocationDistrict } from '../services/weatherService';
 import { isNativePlatform } from '../utils/capacitorUtils';
-import { DeviceHubModal } from './DeviceHubModal';
-import { FaqModal } from './FaqModal';
-import { ShareModal } from './ShareModal';
-import { FieldGpsTrackerModal } from './FieldGpsTrackerModal';
-import { SoilIotSensorModal } from './SoilIotSensorModal';
-import { MotorControllerModal } from './MotorControllerModal';
+
+const DeviceHubModal = lazy(() => import('./DeviceHubModal').then((m) => ({ default: m.DeviceHubModal })));
+const FaqModal = lazy(() => import('./FaqModal').then((m) => ({ default: m.FaqModal })));
+const ShareModal = lazy(() => import('./ShareModal').then((m) => ({ default: m.ShareModal })));
+const FieldGpsTrackerModal = lazy(() => import('./FieldGpsTrackerModal').then((m) => ({ default: m.FieldGpsTrackerModal })));
+const SoilIotSensorModal = lazy(() => import('./SoilIotSensorModal').then((m) => ({ default: m.SoilIotSensorModal })));
+const MotorControllerModal = lazy(() => import('./MotorControllerModal').then((m) => ({ default: m.MotorControllerModal })));
 
 export const SettingsTab = ({
   selectedDistrict,
@@ -873,20 +874,24 @@ export const SettingsTab = ({
         </DialogContent>
       </Dialog>
 
-      {/* Shared Modals */}
-      <DeviceHubModal
-        open={openDeviceHub}
-        onClose={() => setOpenDeviceHub(false)}
-        onOpenGpsTracker={() => setOpenGpsTracker(true)}
-        onOpenSoilIot={() => setOpenSoilIot(true)}
-        onOpenMotorModal={() => setOpenMotorModal(true)}
-        onApplySoilToCalc={() => onNavigate('schemes')}
-      />
-      <FaqModal open={openFaq} onClose={() => setOpenFaq(false)} />
-      <ShareModal open={openShare} onClose={() => setShareModalOpen(false)} />
-      <FieldGpsTrackerModal open={openGpsTracker} onClose={() => setOpenGpsTracker(false)} />
-      <SoilIotSensorModal open={openSoilIot} onClose={() => setOpenSoilIot(false)} onApplyToCalculator={() => onNavigate('schemes')} />
-      <MotorControllerModal open={openMotorModal} onClose={() => setOpenMotorModal(false)} />
+      {/* Shared Modals (On-Demand Lazy Loaded) */}
+      <Suspense fallback={null}>
+        {openDeviceHub && (
+          <DeviceHubModal
+            open={openDeviceHub}
+            onClose={() => setOpenDeviceHub(false)}
+            onOpenGpsTracker={() => setOpenGpsTracker(true)}
+            onOpenSoilIot={() => setOpenSoilIot(true)}
+            onOpenMotorModal={() => setOpenMotorModal(true)}
+            onApplySoilToCalc={() => onNavigate('schemes')}
+          />
+        )}
+        {openFaq && <FaqModal open={openFaq} onClose={() => setOpenFaq(false)} />}
+        {openShare && <ShareModal open={openShare} onClose={() => setShareModalOpen(false)} />}
+        {openGpsTracker && <FieldGpsTrackerModal open={openGpsTracker} onClose={() => setOpenGpsTracker(false)} />}
+        {openSoilIot && <SoilIotSensorModal open={openSoilIot} onClose={() => setOpenSoilIot(false)} onApplyToCalculator={() => onNavigate('schemes')} />}
+        {openMotorModal && <MotorControllerModal open={openMotorModal} onClose={() => setOpenMotorModal(false)} />}
+      </Suspense>
 
     </Box>
   );

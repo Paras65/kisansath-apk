@@ -117,14 +117,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.73';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.74';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🛡️ सम्पूर्ण सुरक्षा कवच (Zero-PII PIN सुरक्षा), ⚡ ऑन-डिमांड कोड-स्प्लिटिंग (50-70% हल्का इनिशियल लोड), 🧩 DRY कॉन्फ़िगरेशन एवं मेमोरी-बाउंडेड रेट लिमिटर।',
+    releaseNotes: '⚡ ऑन-डिमांड डायलॉग व मॉडल कोड-स्प्लिटिंग (मापक, सेंसर, मोटर, शेयर व खाता टूल्स का अलग चंक), 🚀 मुख्य होम बंडल में भारी कमी एवं वॉयस रकबा एक्सट्रैक्टर सुधार।',
     updatedAt: new Date().toISOString()
   });
 });

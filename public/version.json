@@ -1,8 +1,8 @@
 {
-  "version": "1.0.73",
+  "version": "1.0.74",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.73",
-  "releaseNotes": "🛡️ सम्पूर्ण सुरक्षा कवच (Zero-PII PIN सुरक्षा), ⚡ ऑन-डिमांड कोड-स्प्लिटिंग (50-70% हल्का इनिशियल लोड), 🧩 DRY कॉन्फ़िगरेशन एवं मेमोरी-बाउंडेड रेट लिमिटर।",
+  "releaseName": "किसान साथी v1.0.74",
+  "releaseNotes": "⚡ ऑन-डिमांड डायलॉग व मॉडल कोड-स्प्लिटिंग (मापक, सेंसर, मोटर, शेयर व खाता टूल्स का अलग चंक), 🚀 मुख्य होम बंडल में भारी कमी एवं वॉयस रकबा एक्सट्रैक्टर सुधार।",
   "updatedAt": "2026-10-09"
 }
