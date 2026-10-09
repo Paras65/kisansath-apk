@@ -42,10 +42,12 @@ import { detectCurrentLocationDistrict, CG_DISTRICT_COORDS, getCachedWeather } f
 import { getActiveFarmer } from './services/farmerService';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
+import { FaqModal } from './components/FaqModal';
 import { AdminPortal } from './components/AdminPortal';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import EmailIcon from '@mui/icons-material/Email';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutlineRounded';
 import SecurityIcon from '@mui/icons-material/Security';
 import AndroidIcon from '@mui/icons-material/Android';
 import ShareIcon from '@mui/icons-material/Share';
@@ -155,6 +157,7 @@ function App() {
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
+  const [openFaqModal, setOpenFaqModal] = useState(false);
   const [globalCheckingUpdate, setGlobalCheckingUpdate] = useState(false);
 
   const handleGlobalCheckUpdate = async () => {
@@ -233,10 +236,22 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // Synchronize modal opening events
+  useEffect(() => {
+    const handleOpenModalEvent = (e) => {
+      if (e.detail?.modal === 'faq') {
+        setOpenFaqModal(true);
+      }
+    };
+    window.addEventListener('kisan-open-modal', handleOpenModalEvent);
+    return () => window.removeEventListener('kisan-open-modal', handleOpenModalEvent);
+  }, []);
+
   // Safe modal dismissal before voice navigation
   const closeAllActiveModals = () => {
     setOpenDeviceHub(false);
     setOpenAdminModal(false);
+    setOpenFaqModal(false);
     if (typeof document !== 'undefined') {
       const openDialog = document.querySelector('.MuiDialog-root');
       if (openDialog) {
@@ -342,6 +357,8 @@ function App() {
           closeAllActiveModals();
           if (targetRoute.type === 'tab') {
             handleTabChange(targetRoute.target);
+          } else if (targetRoute.target === 'faq') {
+            setOpenFaqModal(true);
           } else if (targetRoute.target === 'token') {
             handleTabChange('mandi');
             window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
@@ -353,6 +370,9 @@ function App() {
 
         // 4. Dispatch Agentic Action Event (Immediate + 300ms post-render for component spotlight & auto-calculation)
         if (brain.action) {
+          if (brain.action.type === 'OPEN_FAQ') {
+            setOpenFaqModal(true);
+          }
           window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
           setTimeout(() => {
             window.dispatchEvent(new CustomEvent('kisan_kaka_action', { detail: brain.action }));
@@ -614,6 +634,29 @@ function App() {
                 </Typography>
               </Box>
             </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<HelpOutlineIcon sx={{ fontSize: 16 }} />}
+                onClick={() => setOpenFaqModal(true)}
+                sx={{
+                  color: '#1b5e20',
+                  borderColor: '#a7f3d0',
+                  bgcolor: '#f0fdf4',
+                  fontWeight: 800,
+                  fontSize: '0.74rem',
+                  borderRadius: '9999px',
+                  py: 0.35,
+                  px: 1.5,
+                  textTransform: 'none',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  '&:hover': { bgcolor: '#dcfce7', borderColor: '#16a34a' }
+                }}
+              >
+                {isChhattisgarhi ? '❓ अक्सर पूछे जाने वाले सवाल (FAQs)' : '❓ अक्सर पूछे जाने वाले सवाल (FAQs)'}
+              </Button>
+            </Box>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap', pt: 0.8, borderTop: '1px dashed #e2e8f0' }}>
               <Typography
                 component="a"
@@ -763,6 +806,27 @@ function App() {
                     }}
                   >
                     कृषि प्रशासन पोर्टल (Admin)
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<HelpOutlineIcon sx={{ fontSize: 17 }} />}
+                    onClick={() => setOpenFaqModal(true)}
+                    sx={{
+                      justifyContent: 'flex-start',
+                      color: '#166534',
+                      borderColor: '#bbf7d0',
+                      bgcolor: '#f0fdf4',
+                      fontWeight: 800,
+                      fontSize: '0.76rem',
+                      py: 0.6,
+                      px: 1.5,
+                      borderRadius: 2,
+                      textTransform: 'none',
+                      '&:hover': { bgcolor: '#dcfce7', borderColor: '#16a34a' }
+                    }}
+                  >
+                    अक्सर पूछे जाने वाले सवाल (FAQs)
                   </Button>
                   {appConfig.apkDownloadUrl && !isNativePlatform() && (
                     <Button
@@ -949,6 +1013,11 @@ function App() {
         <SuperAdminModal
           open={openAdminModal}
           onClose={() => setOpenAdminModal(false)}
+        />
+        {/* Frequently Asked Questions (FAQs) Modal with Voice Readout */}
+        <FaqModal
+          open={openFaqModal}
+          onClose={() => setOpenFaqModal(false)}
         />
       </Box>
     </ThemeProvider>

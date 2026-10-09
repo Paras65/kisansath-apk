@@ -20,8 +20,8 @@
     "path": "./kisan-release-key.keystore",
     "alias": "kisan-alias"
   },
-  "appVersionName": "1.0.51",
-  "appVersionCode": 52,
+  "appVersionName": "1.0.52",
+  "appVersionCode": 53,
   "shortcuts": [
     {
       "name": "फसल डॉक्टर",

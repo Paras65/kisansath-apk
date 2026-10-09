@@ -356,7 +356,47 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     };
   }
 
-  // 10. Persona & Greetings
+  // 10. FAQ & Common Questions Intent (Zero-Paperwork, Offline, FAQs Modal)
+  const zeroPaperworkTriggers = ['खसरा', 'कागजात', 'जमीन का कागज', 'ऋण पुस्तिका', 'पट्टा', 'khasra', 'kagaj', 'paper', 'b1'];
+  if (zeroPaperworkTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'बिल्कुल नहीं भैया! किसान साथी 100% सुरक्षित और कागजात-मुक्त ऐप है। इसमें कोई खसरा नंबर या जमीन के सरकारी कागज नहीं देने होते। अक्सर पूछे जाने वाले सवाल खोल रहे हैं!',
+      textCg: 'बिलुकुल नोहय संगी! किसान साथी 100% सुरक्षित अउ कागजात-मुक्त हे। कोनो खसरा नंबर या जमीन के कागजात नई लगे। अक्सर पूछे जाने वाले सवाल खोलत हंव!',
+      route: { target: 'faq', type: 'modal', label: 'अक्सर पूछे जाने वाले सवाल' },
+      action: { type: 'OPEN_FAQ' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  const offlineTriggers = ['बिना इंटरनेट', 'नेटवर्क नहीं', 'ऑफलाइन चलेगा', 'offline', 'bina internet'];
+  if (offlineTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'हाँ भैया! खाद कैलकुलेटर, मेड़ नाप GPS, फसल डायरी और मौसम डेटा बिना इंटरनेट के भी 100% काम करता है। अक्सर पूछे जाने वाले सवाल खोल रहे हैं!',
+      textCg: 'हव संगी! खाद कैलकुलेटर, मेड़ नाप GPS, डायरी अउ मौसम बिना इंटरनेट के घलो 100% काम करथे। अक्सर पूछे जाने वाले सवाल खोलत हंव!',
+      route: { target: 'faq', type: 'modal', label: 'अक्सर पूछे जाने वाले सवाल' },
+      action: { type: 'OPEN_FAQ' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.96,
+    };
+  }
+
+  const faqTriggers = ['faq', 'faqs', 'सवाल', 'प्रश्न', 'शंका', 'पूछे जाने वाले', 'sawal', 'prashna', 'question'];
+  if (faqTriggers.some((t) => clean.includes(t))) {
+    return {
+      textHi: 'किसान भाई, अक्सर पूछे जाने वाले सवालों (FAQs) का पूरा संग्रह खोल रहे हैं। आप किसी भी सवाल को छूकर मेरी आवाज़ में भी उत्तर सुन सकते हैं!',
+      textCg: 'संगी, अक्सर पूछे जाने वाले सवाल (FAQs) खोलत हंव। कोनो भी सवाल ला छूके मोर आवाज़ म घलो उत्तर सुन सकथव!',
+      route: { target: 'faq', type: 'modal', label: 'अक्सर पूछे जाने वाले सवाल' },
+      action: { type: 'OPEN_FAQ' },
+      needsClarification: false,
+      extractedAcre,
+      confidence: 0.95,
+    };
+  }
+
+  // 11. Persona & Greetings
   const greetingTriggers = ['काका', 'बहिरा काका', 'जय जोहार', 'नमस्ते', 'प्रणाम', 'राम राम', 'कइसे हस', 'कैसे हो', 'kaka', 'bhaira', 'johar', 'jay johar', 'ram ram', 'namaste', 'hello', 'hi', 'kaise ho'];
   if (greetingTriggers.some((t) => clean.includes(t))) {
     return {
