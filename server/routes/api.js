@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.64';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.65';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🏛️ मंडी भाव व सीधा किसान बाज़ार का संपूर्ण कायाकल्प: 7 स्टैक्ड कार्ड्स हटाकर स्लिम लाइव स्टेटस कैप्सूल व सेगमेंटेड टैब स्विच (मंडी भाव vs सीधा बाज़ार), मुख्य मॉडल भाव के साथ प्रति-किलो व 40kg कट्टा ब्रेकडाउन, सरकारी नीतियां व CACP समर्थन मूल्य कोलैप्सिबल इनसाइट्स ट्रे में व्यवस्थित तथा 100% Agmarknet बेसलाइन कोल्ड-कैश सिंक।',
+    releaseNotes: '🌾 किसान चौपाल व कस्टम हायरिंग का संपूर्ण कायाकल्प: कोल्ड-स्टार्ट पर खाली स्क्रीन समाप्त (CHC मशीनरी व IGKV सवाल-जवाब बेसलाइन सिंक), 1-टैप यंत्र श्रेणी फ़िल्टर (ट्रैक्टर, हार्वेस्टर, ड्रोन, लेवलर), बोल्ड किराया पिल व 1-टैप कॉल/व्हाट्सएप, तथा फसल डायरी में 1-टैप KCC रिपोर्ट प्रिंट सुविधा।',
     updatedAt: new Date().toISOString()
   });
 });
