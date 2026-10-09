@@ -77,7 +77,7 @@ app.use(
       if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true); // Keep permissive with secure headers
+        callback(null, false); // Strict enterprise policy: Block unapproved browser origins
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

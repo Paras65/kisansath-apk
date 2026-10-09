@@ -1,8 +1,8 @@
 {
-  "version": "1.0.69",
+  "version": "1.0.70",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.69",
-  "releaseNotes": "💻 एडमिन ऑडिट लॉग्स में विस्तृत तकनीकी कंसोल एरर व कम्पलीट स्टैक ट्रेस एकीकरण, 1-टैप लॉग कॉपी, रिक्वेस्ट पैरामीटर्स/क्वेरी पेलोड एवं ज़ीरो-PII सुरक्षा संवर्धन।",
+  "releaseName": "किसान साथी v1.0.70",
+  "releaseNotes": "🛡️ सम्पूर्ण API सुरक्षा ऑडिट एवं सुदृढ़ीकरण: सख्त CORS व्हाइटलिस्टिंग, ReDoS प्रहार रोकथाम एवं चौपाल उत्तर स्पैम रोधी दर-सीमा एकीकरण।",
   "updatedAt": "2026-10-09"
 }

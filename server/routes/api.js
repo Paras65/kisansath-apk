@@ -87,6 +87,12 @@ const sanitize = (str, maxLen = 200) => {
     .slice(0, maxLen);
 };
 
+// Helper: Escape regex special characters to prevent ReDoS (Regular Expression Denial of Service)
+const escapeRegex = (str) => {
+  if (typeof str !== 'string') return '';
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 // Helper: Validate Indian phone numbers (10 digits starting with 6, 7, 8, or 9)
 const isValidIndianPhone = (phone) => {
   const cleanPhone = phone.replace(/[\s\-\+]/g, '').slice(-10);
@@ -97,14 +103,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.69';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.70';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '💻 एडमिन ऑडिट लॉग्स में विस्तृत तकनीकी कंसोल एरर व कम्पलीट स्टैक ट्रेस एकीकरण, 1-टैप लॉग कॉपी, रिक्वेस्ट पैरामीटर्स/क्वेरी पेलोड एवं ज़ीरो-PII सुरक्षा संवर्धन।',
+    releaseNotes: '🛡️ सम्पूर्ण API सुरक्षा ऑडिट एवं सुदृढ़ीकरण: सख्त CORS व्हाइटलिस्टिंग, ReDoS प्रहार रोकथाम एवं चौपाल उत्तर स्पैम रोधी दर-सीमा एकीकरण।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -546,6 +552,12 @@ router.post('/community-qa', validateBody('CreateCommunityQARequest', Schemas.Cr
 // 7b. Reply to Community Question
 router.post('/community-qa/:id/reply', validateBody('CreateCommunityReplyRequest', Schemas.CreateCommunityReplyRequest), async (req, res) => {
   try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`community-reply:${clientIp}`, 20, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({ error: 'कृपया थोड़ा रुकें। प्रति मिनट अधिकतम 20 उत्तर दर्ज किए जा सकते हैं।' });
+    }
+
     const { id } = req.params;
     const { author, authorName, role, text, reply } = req.body || {};
     const cleanText = sanitize(text || reply || '', 500);
@@ -1168,10 +1180,11 @@ router.get('/admin/farmers', requireAdminAuth, async (req, res) => {
       filter.district = district;
     }
     if (search) {
+      const safeSearch = escapeRegex(search);
       filter.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { village: { $regex: search, $options: 'i' } },
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { phone: { $regex: safeSearch, $options: 'i' } },
+        { village: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
