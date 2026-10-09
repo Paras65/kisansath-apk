@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.61';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.62';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '✨ बहिरा काका सीधा जवाब बॉटमशीट का नीट व क्लीन मेकओवर: अनावश्यक बॉक्स, गहरे रंग और डुप्लिकेट टाइटल्स हटाकर एक स्वच्छ, सांस लेने योग्य व मोबाइल-अनुकूल कार्ड डिज़ाइन।',
+    releaseNotes: '🩺 फसल डॉक्टर (रोग निदान) का संपूर्ण मेकओवर: अनावश्यक कार्ड्स व 10-लेयर नेस्टिंग हटाकर स्वच्छ व सांस लेने योग्य UI, 15L स्प्रे पंप (टंकी) सटीक नाप, CIB&RC सरकारी कीटनाशी लेबल क्लेम (तुड़ाई पूर्व अंतराल - PHI) एवं वास्तविक IGKV/ICAR डेटा सिंक।',
     updatedAt: new Date().toISOString()
   });
 });

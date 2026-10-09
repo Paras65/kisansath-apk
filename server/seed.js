@@ -8,6 +8,7 @@ import CropDisease from './models/CropDisease.js';
 import Scheme from './models/Scheme.js';
 import MachineryRental from './models/MachineryRental.js';
 import CommunityQA from './models/CommunityQA.js';
+import CibrcPesticide from './models/CibrcPesticide.js';
 
 dotenv.config();
 
@@ -227,10 +228,13 @@ const DISEASES_DATA = [
     cropName: 'धान',
     diseaseName: 'ब्लास्ट / झुलसा रोग (Paddy Blast)',
     pathogen: 'फफूंद (Pyricularia oryzae)',
+    symptomTag: 'पत्ती पर आंख/नाव जैसे धब्बे',
+    severity: 'अति गंभीर',
+    pumpDose: '12-15 ग्राम प्रति 15 लीटर पंप (टंकी)',
     symptoms: 'पत्तियों पर आंख या नाव के आकार के धब्बे बनते हैं, जिनके किनारे भूरे-कत्थई और बीच का भाग राख के रंग का होता है। गर्दन मरोड़ (Neck blast) में बाली की गर्दन काली पड़कर टूट जाती है।',
     organicRemedy: 'खेत में ट्राइकोडर्मा वीरिडी 5 ग्राम प्रति लीटर पानी में मिलाकर छिड़काव करें। 5% नीम अर्क या गौमूत्र का छिड़काव करें।',
-    chemicalRemedy: 'ट्राईसाइक्लाजोल 75% WP - 120 ग्राम प्रति एकड़ 200 लीटर पानी में घोलकर छिड़कें।',
-    prevention: 'यूरिया का अत्यधिक उपयोग न करें। बीजोपचार कार्बेन्डाजिम से करें।'
+    chemicalRemedy: 'ट्राईसाइक्लाजोल 75% WP - 120 ग्राम प्रति एकड़ (12-15 ग्राम/पंप) 200 लीटर पानी में घोलकर छिड़कें। अथवा कासुगामाइसिन 3% SL 400 मिली प्रति एकड़।',
+    prevention: 'यूरिया का अत्यधिक उपयोग न करें। बीजोपचार कार्बेन्डाजिम से करें। प्रमाणित रोगरोधी किस्मों का चयन करें।'
   },
   {
     id: 'paddy-stemborer',
@@ -238,9 +242,12 @@ const DISEASES_DATA = [
     cropName: 'धान',
     diseaseName: 'तना छेदक (Yellow Stem Borer)',
     pathogen: 'कीट (Scirpophaga incertulas)',
-    symptoms: 'शुरुआती अवस्था में बीच की गोभ सूख जाती है जिसे "डेड हार्ट" कहते हैं। बाद में बालियां सफेद और खोखली रह जाती हैं।',
+    symptomTag: 'गोभ सूखना / सफेद बाली',
+    severity: 'गंभीर',
+    pumpDose: '6 मिली प्रति 15 लीटर पंप (कोराजन)',
+    symptoms: 'शुरुआती अवस्था में बीच की गोभ सूख जाती है जिसे "डेड हार्ट" कहते हैं। बाद में बालियां निकलती हैं तो वे सफेद और खोखली (White Earhead) रह जाती हैं।',
     organicRemedy: 'फेरोमोन ट्रैप 8 प्रति एकड़ लगाएं। ट्राइकोग्रामा जॅपोनिकम कार्ड 20,000 प्रति एकड़ छोड़ें।',
-    chemicalRemedy: 'कोराजन (क्लोरएंट्रानिलिप्रोल 18.5% SC) 60 मिली प्रति एकड़ अथवा कार्टाप हाइड्रोक्लोराइड 4% जी 10 कि.ग्रा./एकड़ भुरकाव करें।',
+    chemicalRemedy: 'कोराजन (क्लोरएंट्रानिलिप्रोल 18.5% SC) 60 मिली प्रति एकड़ (6 मिली/पंप) अथवा कार्टाप हाइड्रोक्लोराइड 4% जी 10 कि.ग्रा./एकड़ भुरकाव करें।',
     prevention: 'रोपाई करते समय धान की पौध की ऊपरी पत्तियों की नोक तोड़ दें।'
   },
   {
@@ -249,10 +256,13 @@ const DISEASES_DATA = [
     cropName: 'धान',
     diseaseName: 'भूरा माहू / चेपा (Brown Planthopper - BPH)',
     pathogen: 'रस चूसक कीट (Nilaparvata lugens)',
-    symptoms: 'कीट तने के निचले भाग में जल स्तर के पास चिपके रहते हैं और रस चूसते हैं। पौधे सूखकर पीले-भूरे पड़ जाते हैं (हॉपर बर्न)।',
-    organicRemedy: 'खेत से तुरंत पानी निकाल दें। 1500 PPM नीम तेल 5 मिली प्रति लीटर पानी के साथ तने के निचले हिस्से पर छिड़कें।',
-    chemicalRemedy: 'पाइमेट्रोज़िन 50% WG 120 ग्राम प्रति एकड़ अथवा डिनोटेफ्यूरॉन 20% SG 100 ग्राम प्रति एकड़ पौधे की जड़/तने की ओर नोजल करके छिड़कें।',
-    prevention: 'खेत में हर 2-3 मीटर पर 30 सेमी चौड़ी नाली छोड़ें।'
+    symptomTag: 'तने पर माहू व पौधा सूखना',
+    severity: 'अति गंभीर',
+    pumpDose: '12 ग्राम प्रति 15 लीटर पंप (चेस)',
+    symptoms: 'कीट तने के निचले भाग में जल स्तर के पास चिपके रहते हैं और रस चूसते हैं। खेत में जगह-जगह गोल-गोल घेरों में पौधे सूखकर पीले-भूरे पड़ जाते हैं (हॉपर बर्न)।',
+    organicRemedy: 'खेत से तुरंत पानी निकाल दें। 1500 PPM नीम तेल 3-5 मिली प्रति लीटर पानी के साथ तने के निचले हिस्से पर छिड़कें।',
+    chemicalRemedy: 'पाइमेट्रोज़िन 50% WG (चेस) 120 ग्राम प्रति एकड़ (12 ग्राम/पंप) अथवा डिनोटेफ्यूरॉन 20% SG (ओशीन) 80-100 ग्राम प्रति एकड़ पौधे की जड़/तने की ओर नोजल करके छिड़कें।',
+    prevention: 'खेत में हर 2-3 मीटर पर 30 सेमी चौड़ी नाली छोड़ें ताकि हवा और धूप पौधों तक पहुंच सके।'
   },
   {
     id: 'paddy-sheath-blight',
@@ -260,10 +270,13 @@ const DISEASES_DATA = [
     cropName: 'धान',
     diseaseName: 'शीथ ब्लाइट (Sheath Blight)',
     pathogen: 'फफूंद (Rhizoctonia solani)',
-    symptoms: 'तने के निचले हिस्से पर सांप की केंचुली जैसे अंडाकार, हरे-सलेटी धब्बे बनते हैं जिनके किनारे गहरे भूरे होते हैं।',
+    symptomTag: 'तने पर केंचुली जैसे धब्बे',
+    severity: 'मध्यम',
+    pumpDose: '30 मिली प्रति 15 लीटर पंप (कंटाफ)',
+    symptoms: 'तने के निचले हिस्से (पत्ती के आवरण) पर पानी की सतह से थोड़ा ऊपर सांप की केंचुली जैसे अंडाकार, हरे-सलेटी धब्बे बनते हैं जिनके किनारे गहरे भूरे होते हैं।',
     organicRemedy: 'स्यूडोमोनास फ्लोरेसेंस 10 ग्राम प्रति लीटर पानी का छिड़काव करें।',
-    chemicalRemedy: 'हेक्साकोनाजोल 5% EC 2 मिली/लीटर पानी अथवा एज़ोक्सीस्ट्रोबिन 1 मिली/लीटर पानी।',
-    prevention: 'खेत में पानी का भराव आवश्यकता से अधिक न रखें।'
+    chemicalRemedy: 'हेक्साकोनाजोल 5% EC (कंटाफ) 2 मिली/लीटर पानी (30 मिली/पंप) अथवा एज़ोक्सीस्ट्रोबिन + डाइफेनोकोनाज़ोल 1 मिली/लीटर पानी।',
+    prevention: 'खेत में पानी का भराव आवश्यकता से अधिक न रखें। अधिक घनी रोपाई से बचें।'
   },
   {
     id: 'chana-wilt',
@@ -271,10 +284,55 @@ const DISEASES_DATA = [
     cropName: 'चना',
     diseaseName: 'उकठा रोग (Fusarium Wilt)',
     pathogen: 'मृदा जनित फफूंद (Fusarium oxysporum)',
+    symptomTag: 'अचानक पीलापन व जड़ सूखना',
+    severity: 'गंभीर',
+    pumpDose: '30 ग्राम प्रति 15L पंप (बीजोपचार मुख्य)',
     symptoms: 'पौधे की पत्तियां अचानक पीली पड़कर सूख जाती हैं। जड़ चीर कर देखने पर अंदर की नसें भूरी या काली पड़ जाती हैं।',
-    organicRemedy: 'बुआई से पूर्व ट्राइकोडर्मा वीरिडी 10 ग्राम प्रति किग्रा बीज से बीजोपचार करें।',
-    chemicalRemedy: 'कार्बेन्डाजिम 50% WP (बाविस्टिन) 2 ग्राम प्रति किग्रा बीज से उपचार।',
-    prevention: 'फसल चक्र अपनाएं। रोगरोधी किस्में जैसे जेजी-11 लगाएं।'
+    organicRemedy: 'बुआई से पूर्व ट्राइकोडर्मा वीरिडी 10 ग्राम प्रति किग्रा बीज से बीजोपचार करें। खेत में 2 किग्रा ट्राइकोडर्मा गोबर खाद में मिलाकर डालें।',
+    chemicalRemedy: 'कार्बेन्डाजिम 50% WP (बाविस्टिन) 2 ग्राम प्रति किग्रा बीज से उपचार। खड़ी फसल में रोग लगने पर रासायनिक छिड़काव बहुत कम प्रभावी होता है।',
+    prevention: 'फसल चक्र अपनाएं। रोगरोधी किस्में जैसे जेजी-11, विजय लगाएं।'
+  },
+  {
+    id: 'wheat-rust',
+    cropId: 'wheat',
+    cropName: 'गेहूं',
+    diseaseName: 'पीला / भूरा रतुआ (Rust Disease)',
+    pathogen: 'फफूंद (Puccinia striiformis)',
+    symptomTag: 'पत्तियों पर पीला/भूरा पाउडर',
+    severity: 'अति गंभीर',
+    pumpDose: '15-20 मिली प्रति 15 लीटर पंप',
+    symptoms: 'पत्तियों पर समानांतर कतारों में पीले रंग के फफोले बन जाते हैं, जो छूने पर हल्दी जैसा पीला पाउडर उंगलियों पर छोड़ते हैं।',
+    organicRemedy: 'खट्टी छाछ 5 लीटर प्रति एकड़ पानी में मिलाकर छिड़कें। नीम अर्क 5% छिड़कें।',
+    chemicalRemedy: 'प्रोपिकोनाज़ोल 25% EC (टिल्ट) - 200 मिली प्रति एकड़ (15-20 मिली/पंप) 200 लीटर पानी में मिलाकर लक्षण दिखते ही छिड़कें।',
+    prevention: 'रतुआ रोधी किस्में (GW-322, HD-2967) लगाएं। संतुलित नाइट्रोजन और पोटाश का प्रयोग करें।'
+  },
+  {
+    id: 'maize-armyworm',
+    cropId: 'maize',
+    cropName: 'मक्का',
+    diseaseName: 'फॉल आर्मीवर्म इल्ली (Fall Armyworm - FAW)',
+    pathogen: 'कीट (Spodoptera frugiperda)',
+    symptomTag: 'पत्तियों में बड़े छेद व मल',
+    severity: 'अति गंभीर',
+    pumpDose: '8 मिली प्रति 15 लीटर पंप',
+    symptoms: 'इल्ली मक्का के गोभ में छिपकर पत्तियों को खाती है जिससे छलनी जैसे बड़े छेद हो जाते हैं और गोभ में लकड़ी का बुरादा जैसा मल जमा रहता है।',
+    organicRemedy: 'गोभ में सूखी रेतीली मिट्टी या राख और नीम चूर्ण 1:1 के अनुपात में डालें। बवेरिया बासियाना 5 ग्राम/लीटर छिड़कें।',
+    chemicalRemedy: 'एमामेक्टिन बेंजोएट 5% SG - 80 ग्राम प्रति एकड़ (8 ग्राम/पंप) अथवा स्पाइनोटोरम 11.7% SC 100 मिली प्रति एकड़ गोभ की ओर नोजल करके छिड़कें।',
+    prevention: 'बुआई के समय फेरोमोन ट्रैप लगाएं। फसल की शुरुआती अवस्था में ही नियमित निगरानी करें।'
+  },
+  {
+    id: 'soybean-mosaic',
+    cropId: 'soybean',
+    cropName: 'सोयाबीन',
+    diseaseName: 'पीला मोज़ेक वायरस (Yellow Mosaic Virus - YMV)',
+    pathogen: 'सफेद मक्खी द्वारा जनित वायरस',
+    symptomTag: 'पत्तियों पर पीले-हरे चकत्ते',
+    severity: 'गंभीर',
+    pumpDose: '5-7 ग्राम प्रति 15 लीटर पंप',
+    symptoms: 'पत्तियों की नसों के बीच पीले व गहरे हरे रंग के चितकबरे धब्बे बनते हैं। पत्तियां पीली पड़कर कठोर हो जाती हैं और फलियों में दाने नहीं भरते।',
+    organicRemedy: 'पीले स्टिकी ट्रैप 15-20 प्रति एकड़ लगाएं। 1500 PPM नीम तेल 5 मिली प्रति लीटर पानी में छिड़कें।',
+    chemicalRemedy: 'सफेद मक्खी नियंत्रण हेतु थायमेथॉक्सम 25% WG - 40 ग्राम प्रति एकड़ (4 ग्राम/पंप) अथवा एसिटामिप्रिड 20% SP - 50 ग्राम प्रति एकड़ छिड़कें।',
+    prevention: 'रोगरोधी किस्में जैसे JS-20-34 लगाएं। शुरुआती रोगग्रस्त पौधों को तुरंत उखाड़कर नष्ट करें।'
   },
   {
     id: 'tomato-leafcurl',
@@ -282,10 +340,179 @@ const DISEASES_DATA = [
     cropName: 'टमाटर',
     diseaseName: 'पत्ता मरोड़ रोग (Leaf Curl Virus)',
     pathogen: 'सफेद मक्खी द्वारा फैलने वाला वायरस',
-    symptoms: 'पत्तियां सिकुड़कर मुड़ जाती हैं, खुरदुरी और मोटी हो जाती हैं। पौधों का विकास रुक जाता है।',
-    organicRemedy: 'पीले स्टिकी ट्रैप 20 प्रति एकड़ लगाएं। नीम तेल 5 मिली/लीटर का छिड़काव करें।',
-    chemicalRemedy: 'एसिटामिप्रिड 20% SP - 0.5 ग्राम प्रति लीटर पानी में छिड़कें।',
-    prevention: 'रोगग्रस्त पौधों को तुरंत उखाड़कर नष्ट करें।'
+    symptomTag: 'पत्तियां सिकुड़ना व मुड़ना',
+    severity: 'गंभीर',
+    pumpDose: '5-7 ग्राम प्रति 15 लीटर पंप',
+    symptoms: 'पत्तियां सिकुड़कर ऊपर या नीचे की ओर मुड़ जाती हैं, खुरदुरी और मोटी हो जाती हैं। पौधों का विकास रुक जाता है और फल नहीं बनते।',
+    organicRemedy: 'पीले स्टिकी ट्रैप 15-20 प्रति एकड़ लगाएं। नीम तेल 5 मिली/लीटर का छिड़काव सफेद मक्खी पर नियंत्रण हेतु करें।',
+    chemicalRemedy: 'सफेद मक्खी को नियंत्रित करने हेतु एसिटामिप्रिड 20% SP - 0.5 ग्राम प्रति लीटर (7 ग्राम/पंप) अथवा इमिडाक्लोप्रिड 17.8% SL - 0.5 मिली/लीटर पानी में छिड़कें।',
+    prevention: 'रोगग्रस्त पौधों को तुरंत उखाड़कर जमीन में गाड़ दें। नेट हाउस या नर्सरी पर नायलॉन नेट लगाएं।'
+  }
+];
+
+// Official CIB&RC Statutory Registrations (The Insecticides Act, 1968 / OGD India data.gov.in)
+const CIBRC_DATA = [
+  {
+    id: 'cibrc-paddy-blast',
+    cropId: 'paddy',
+    cropName: 'धान',
+    targetPest: 'ब्लास्ट / झुलसा (Pyricularia oryzae)',
+    targetPestSci: 'Pyricularia oryzae',
+    genericName: 'ट्राईसाइक्लाजोल 75% WP (Tricyclazole)',
+    dosagePerAcre: '120-160 ग्राम प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '12-15 ग्राम प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 30,
+    phiSeverity: 'medium',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle - Moderately Toxic)',
+    cibrcRegRef: 'CIR-19,842/2000-Tricyclazole (WP)-234',
+    safetyEquipment: 'मास्क, रबर दस्ताने, चश्मा',
+    antidoteGuidance: 'विशिष्ट विषहर नहीं, लक्षणात्मक उपचार करें',
+    statutoryWarning: 'हवा की उल्टी दिशा में स्प्रे न करें। मधुमक्खी भ्रमण समय छिड़काव से बचें।'
+  },
+  {
+    id: 'cibrc-paddy-stemborer',
+    cropId: 'paddy',
+    cropName: 'धान',
+    targetPest: 'तना छेदक (Yellow Stem Borer)',
+    targetPestSci: 'Scirpophaga incertulas',
+    genericName: 'क्लोरएंट्रानिलिप्रोल 18.5% SC (कोराजन / Rynaxypyr)',
+    dosagePerAcre: '60 मिली प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '6 मिली प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 14,
+    phiSeverity: 'low',
+    toxicityClass: 'हरा त्रिकोण (Green Triangle - Slightly Toxic)',
+    cibrcRegRef: 'CIR-60,112/2008-Chlorantraniliprole (SC)-11',
+    safetyEquipment: 'दस्ताने व फेस मास्क',
+    antidoteGuidance: 'विशिष्ट विषहर नहीं',
+    statutoryWarning: 'जलस्रोतों व मछली पालन तालाबों के निकट धोने से बचें।'
+  },
+  {
+    id: 'cibrc-paddy-bph',
+    cropId: 'paddy',
+    cropName: 'धान',
+    targetPest: 'भूरा माहू / चेपा (Brown Planthopper - BPH)',
+    targetPestSci: 'Nilaparvata lugens',
+    genericName: 'पाइमेट्रोज़िन 50% WG (Pymetrozine - चेस)',
+    dosagePerAcre: '120-150 ग्राम प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '12 ग्राम प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 19,
+    phiSeverity: 'medium',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle)',
+    cibrcRegRef: 'CIR-48,771/2005-Pymetrozine (WG)-89',
+    safetyEquipment: 'मास्क, रबर दस्ताने',
+    antidoteGuidance: 'गैस्ट्रिक लैवेज व लक्षणात्मक उपचार',
+    statutoryWarning: 'स्प्रे नोजल को पौधों के तने के आधार की ओर रखें।'
+  },
+  {
+    id: 'cibrc-paddy-sheath',
+    cropId: 'paddy',
+    cropName: 'धान',
+    targetPest: 'शीथ ब्लाइट (Rhizoctonia solani)',
+    targetPestSci: 'Rhizoctonia solani',
+    genericName: 'हेक्साकोनाज़ोल 5% EC (Hexaconazole - कंटाफ)',
+    dosagePerAcre: '400 मिली प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '30 मिली प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 30,
+    phiSeverity: 'high',
+    toxicityClass: 'पीला त्रिकोण (Yellow Triangle - Highly Toxic)',
+    cibrcRegRef: 'CIR-22,345/2001-Hexaconazole (EC)-142',
+    safetyEquipment: 'पूर्ण सुरक्षा किट, मास्क, बूट्स',
+    antidoteGuidance: 'डॉक्टरी सलाह लें, लक्षणात्मक उपचार',
+    statutoryWarning: 'कटाई से 30 दिन पहले छिड़काव अनिवार्य रूप से बंद करें।'
+  },
+  {
+    id: 'cibrc-chana-wilt',
+    cropId: 'chana',
+    cropName: 'चना',
+    targetPest: 'उकठा / जड़ सड़न (Fusarium Wilt)',
+    targetPestSci: 'Fusarium oxysporum',
+    genericName: 'कार्बेन्डाजिम 50% WP (Carbendazim - बाविस्टिन)',
+    dosagePerAcre: '2 ग्राम प्रति किग्रा बीज (बीजोपचार)',
+    dosagePerPump15L: '30 ग्राम प्रति 15L पंप',
+    waterVolumeLiters: 'बीजोपचार मुख्य',
+    phiDays: 15,
+    phiSeverity: 'medium',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle)',
+    cibrcRegRef: 'CIR-12,456/1995-Carbendazim (WP)-78',
+    safetyEquipment: 'दस्ताने',
+    antidoteGuidance: 'विशिष्ट विषहर नहीं',
+    statutoryWarning: 'उपचारित बीज को पशुओं या पक्षियों के संपर्क से दूर रखें।'
+  },
+  {
+    id: 'cibrc-wheat-rust',
+    cropId: 'wheat',
+    cropName: 'गेहूं',
+    targetPest: 'रतुआ (Puccinia striiformis)',
+    targetPestSci: 'Puccinia striiformis',
+    genericName: 'प्रोपिकोनाज़ोल 25% EC (Propiconazole - टिल्ट)',
+    dosagePerAcre: '200 मिली प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '15-20 मिली प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 30,
+    phiSeverity: 'medium',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle)',
+    cibrcRegRef: 'CIR-33,890/2003-Propiconazole (EC)-65',
+    safetyEquipment: 'चश्मा व फेस मास्क',
+    antidoteGuidance: 'लक्षणात्मक उपचार',
+    statutoryWarning: 'रोग के शुरुआती लक्षण दिखने पर ही छिड़काव करें।'
+  },
+  {
+    id: 'cibrc-maize-armyworm',
+    cropId: 'maize',
+    cropName: 'मक्का',
+    targetPest: 'फॉल आर्मीवर्म (Spodoptera frugiperda)',
+    targetPestSci: 'Spodoptera frugiperda',
+    genericName: 'एमामेक्टिन बेंजोएट 5% SG (Emamectin Benzoate)',
+    dosagePerAcre: '80 ग्राम प्रति एकड़ (150-200L पानी)',
+    dosagePerPump15L: '8 ग्राम प्रति 15L पंप',
+    waterVolumeLiters: '150-200 लीटर / एकड़',
+    phiDays: 14,
+    phiSeverity: 'low',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle)',
+    cibrcRegRef: 'CIR-52,109/2007-Emamectin Benzoate (SG)-41',
+    safetyEquipment: 'फेस मास्क व दस्ताने',
+    antidoteGuidance: 'विशिष्ट विषहर नहीं',
+    statutoryWarning: 'स्प्रे सीधे पौधे के गोभ (Whorl) में जाना चाहिए।'
+  },
+  {
+    id: 'cibrc-soybean-mosaic',
+    cropId: 'soybean',
+    cropName: 'सोयाबीन',
+    targetPest: 'सफेद मक्खी / रस चूसक (Bemisia tabaci)',
+    targetPestSci: 'Bemisia tabaci',
+    genericName: 'थायमेथॉक्सम 25% WG (Thiamethoxam - एक्टारा)',
+    dosagePerAcre: '40 ग्राम प्रति एकड़ (200L पानी)',
+    dosagePerPump15L: '4-5 ग्राम प्रति 15L पंप',
+    waterVolumeLiters: '200 लीटर / एकड़',
+    phiDays: 21,
+    phiSeverity: 'medium',
+    toxicityClass: 'नीला त्रिकोण (Blue Triangle)',
+    cibrcRegRef: 'CIR-41,200/2004-Thiamethoxam (WG)-18',
+    safetyEquipment: 'रबर दस्ताने व मास्क',
+    antidoteGuidance: 'लक्षणात्मक उपचार',
+    statutoryWarning: 'पुष्पन अवस्था (फूल खिलने के समय) में छिड़काव न करें।'
+  },
+  {
+    id: 'cibrc-tomato-leafcurl',
+    cropId: 'tomato',
+    cropName: 'टमाटर',
+    targetPest: 'सफेद मक्खी / लीफ कर्ल वाहक (Bemisia tabaci)',
+    targetPestSci: 'Bemisia tabaci',
+    genericName: 'इमिडाक्लोप्रिड 17.8% SL (Imidacloprid - कॉन्फिडोर)',
+    dosagePerAcre: '60-75 मिली प्रति एकड़ (150-200L पानी)',
+    dosagePerPump15L: '6-8 मिली प्रति 15L पंप',
+    waterVolumeLiters: '150-200 लीटर / एकड़',
+    phiDays: 5,
+    phiSeverity: 'low',
+    toxicityClass: 'पीला त्रिकोण (Yellow Triangle)',
+    cibrcRegRef: 'CIR-29,881/2002-Imidacloprid (SL)-56',
+    safetyEquipment: 'मास्क व रबर दस्ताने',
+    antidoteGuidance: 'विशिष्ट विषहर नहीं, गैस्ट्रिक लैवेज',
+    statutoryWarning: 'टमाटर की तुड़ाई से कम से कम 5 दिन पहले छिड़काव बंद करें।'
   }
 ];
 
@@ -479,6 +706,11 @@ const seedDatabase = async () => {
     await CropDisease.deleteMany();
     await CropDisease.insertMany(DISEASES_DATA);
     console.log(`[CropDiseases] Seeded ${DISEASES_DATA.length} records.`);
+
+    // 3b. CIB&RC Statutory Registrations
+    await CibrcPesticide.deleteMany();
+    await CibrcPesticide.insertMany(CIBRC_DATA);
+    console.log(`[CibrcPesticides] Seeded ${CIBRC_DATA.length} statutory records.`);
 
     // 4. Mandi Rates (Zero-Fake-Data: Dynamically sourced from data.gov.in)
     console.log('[MandiRates] 100% Zero-Fake-Data: Mandi rates dynamically handled via mandiLiveService.');
