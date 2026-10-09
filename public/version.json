@@ -1,8 +1,8 @@
 {
-  "version": "1.0.76",
+  "version": "1.0.77",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.76",
-  "releaseNotes": "🌾 बहिरा काका AI कृषि इंजन का सम्पूर्ण मॉड्यूलर पुनर्गठन (9 विशिष्ट डोमेन हैंडलर्स में विभाजन), 🚀 मुख्य वॉयस सर्विस में 2,150+ लाइनों की कटौती (-80% साइज) एवं बिजली जैसी तेज आवाज प्रतिक्रिया।",
+  "releaseName": "किसान साथी v1.0.77",
+  "releaseNotes": "🌾 मुख्य होम स्क्रीन (HomeTab) का ऐतिहासिक मॉड्यूलर रिफैक्टरिंग (LoggedInNativeDashboard, GuestDashboard एवं ActivePlotsAndDailyTasksCard में पूर्ण पृथक्करण), 🚀 होम कॉम्पोनेन्ट में 2,640+ लाइनों की कटौती (-83%) एवं 3.17 MB अनुकूलित ऐप साइज।",
   "updatedAt": "2026-10-09"
 }
