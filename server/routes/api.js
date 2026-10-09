@@ -11,7 +11,7 @@ import FarmerProfile from '../models/FarmerProfile.js';
 import BroadcastAdvisory from '../models/BroadcastAdvisory.js';
 import { signJwt } from '../utils/jwt.js';
 import { requireFarmerAuth, requireAdminAuth } from '../middleware/auth.js';
-import { diagnoseWithGeminiVision, chatWithGeminiCropDoctor } from '../services/geminiVisionService.js';
+import { diagnoseWithGeminiVision, chatWithGeminiCropDoctor, queryGeminiAgriculturalExpert } from '../services/geminiVisionService.js';
 import { getOrFetchLiveMandiRates } from '../services/mandiLiveService.js';
 import { externalApisConfig } from '../config/externalApis.js';
 import {
@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.58';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.60';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '👴🏻 प्राकृतिक व यथार्थवादी वॉयस एज-केस संवाद: "नहीं सुनाई दिया", "समझ नहीं आया" व "नहीं पता" का सच्चा समाधान, 1-टैप सहायता चिप्स एवं अनावश्यक "बहिरा" शब्द का दोहराव समाप्त।',
+    releaseNotes: '🌤️ छत्तीसगढ़ 33-जिला स्तरीय वॉयस मौसम व मंडी भाव समाधान एवं 🔬 Google Gemini AI कृषि वैज्ञानिक विशेषज्ञ परामर्श: दुर्लभ कृषि सवालों पर वैज्ञानिक सलाह, 15L टंकी नाप, एवं गैर-कृषि विषयों पर सख्त सुरक्षा गार्डरेल।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -255,6 +255,53 @@ router.post('/crop-doctor/chat', validateBody('CropDoctorChatRequest', Schemas.C
     res.json(chatResponse);
   } catch (err) {
     logApiError('POST /crop-doctor/chat', req, err);
+    res.status(500).json({
+      success: false,
+      error: 'सलाह प्राप्त करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
+      technicalError: err.message
+    });
+  }
+});
+
+// 3b. Bhaira Kaka AI Agricultural Expert Engine (Powered by Google Gemini IGKV/ICAR Role)
+router.post('/kaka-brain/expert', async (req, res) => {
+  try {
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const rateCheck = checkRateLimit(`kaka-expert:${clientIp}`, 20, 60000);
+    if (rateCheck.isBlocked) {
+      return res.status(429).json({
+        success: false,
+        error: 'कृपया कुछ सेकंड रुकें। वॉयस प्रश्न पूछने की सीमा प्रति मिनट 20 बार है।'
+      });
+    }
+
+    const { query = '', district = 'रायपुर', isChhattisgarhi = false } = req.body || {};
+    const cleanQuery = sanitize(query, 300);
+    const cleanDistrict = sanitize(district, 50);
+
+    if (!cleanQuery || cleanQuery.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'कृपया सही प्रश्न पूछें।'
+      });
+    }
+
+    const expertResponse = await queryGeminiAgriculturalExpert({
+      query: cleanQuery,
+      district: cleanDistrict,
+      isChhattisgarhi: Boolean(isChhattisgarhi),
+    });
+
+    if (!expertResponse.success) {
+      logApiError('POST /kaka-brain/expert', req, {
+        message: expertResponse.technicalError || expertResponse.error,
+        modelErrors: expertResponse.modelErrors,
+      });
+    }
+
+    res.json(expertResponse);
+  } catch (err) {
+    logApiError('POST /kaka-brain/expert', req, err);
     res.status(500).json({
       success: false,
       error: 'सलाह प्राप्त करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',

@@ -2,8 +2,9 @@
 // Authentic Chhattisgarhi & Hindi Rural Dialogues with IGKV Raipur recommendations
 // Handles 40+ Agricultural Intents, Dialect Edge-cases, Rustic Number Extraction & Persona responses
 
-import { appConfig } from '../config/appConfig';
-import { calculatePaddyProcurement } from '../utils/unitConverter';
+import { appConfig } from '../config/appConfig.js';
+import { calculatePaddyProcurement } from '../utils/unitConverter.js';
+import { getCachedWeather } from './weatherService.js';
 
 /**
  * Extracts numeric quintals from colloquial speech (e.g. "50 क्विंटल", "100 quintal", "25 बोरा धान")
@@ -238,6 +239,60 @@ const detectCommodityFromText = (text) => {
 };
 
 /**
+ * Detects any of the 33 Chhattisgarh districts from colloquial spoken speech
+ * Supports standard Hindi, Chhattisgarhi, phonetic English, and regional block/tehsil aliases
+ */
+export const detectDistrictFromText = (text) => {
+  if (!text) return null;
+  const c = text.toLowerCase();
+
+  // 1. रायपुर संभाग (Raipur Division)
+  if (c.includes('बलौदाबाजार') || c.includes('बलौदा बाजार') || c.includes('balodabazar') || c.includes('भाटापारा') || c.includes('bhatapara')) return 'बलौदाबाजार';
+  if (c.includes('गरियाबंद') || c.includes('gariaband') || c.includes('राजिम') || c.includes('rajim')) return 'गरियाबंद';
+  if (c.includes('धमतरी') || c.includes('dhamtari') || c.includes('कुरूद') || c.includes('kurud')) return 'धमतरी';
+  if (c.includes('महासमुंद') || c.includes('mahasamund') || c.includes('सरायपाली') || c.includes('पिथौरा')) return 'महासमुंद';
+  if (c.includes('रायपुर') || c.includes('raipur') || c.includes('आरंग') || c.includes('तिलदा')) return 'रायपुर';
+
+  // 2. दुर्ग संभाग (Durg Division)
+  if (c.includes('राजनांदगांव') || c.includes('राजनंदगांव') || c.includes('rajnandgaon') || c.includes('nandgaon') || c.includes('डोंगरगढ़')) return 'राजनांदगांव';
+  if (c.includes('कवर्धा') || c.includes('कबीरधाम') || c.includes('kawardha') || c.includes('kabirdham')) return 'कवर्धा';
+  if (c.includes('बेमेतरा') || c.includes('bemetara') || c.includes('bemetra') || c.includes('साजा') || c.includes('नवागढ़')) return 'बेमेतरा';
+  if (c.includes('बालोद') || c.includes('balod') || c.includes('गुंडरदेही') || c.includes('दल्लीराजहरा')) return 'बालोद';
+  if (c.includes('मोहला') || c.includes('मानपुर') || c.includes('mohla') || c.includes('अंबागढ़')) return 'मोहला-मानपुर';
+  if (c.includes('खैरागढ़') || c.includes('छुईखदान') || c.includes('गंडई') || c.includes('khairagarh')) return 'खैरागढ़';
+  if (c.includes('दुर्ग') || c.includes('durg') || c.includes('भिलाई') || c.includes('bhilai') || c.includes('पाटन') || c.includes('patan')) return 'दुर्ग';
+
+  // 3. बिलासपुर संभाग (Bilaspur Division)
+  if (c.includes('गौरेला') || c.includes('पेंड्रा') || c.includes('मरवाही') || c.includes('pendra') || c.includes('gaurela')) return 'गौरेला-पेंड्रा';
+  if (c.includes('मुंगेली') || c.includes('mungeli') || c.includes('लोरमी') || c.includes('lormi')) return 'मुंगेली';
+  if (c.includes('कोरबा') || c.includes('korba') || c.includes('कटघोरा')) return 'कोरबा';
+  if (c.includes('जांजगीर') || c.includes('चांपा') || c.includes('janjgir') || c.includes('champa') || c.includes('अकलतरा')) return 'जांजगीर-चांपा';
+  if (c.includes('सक्ती') || c.includes('sakti') || c.includes('डभरा') || c.includes('मालखरौदा')) return 'सक्ती';
+  if (c.includes('सारंगढ़') || c.includes('बिलाईगढ़') || c.includes('sarangarh') || c.includes('bilaigarh')) return 'सारंगढ़-बिलाईगढ़';
+  if (c.includes('रायगढ़') || c.includes('raigarh') || c.includes('खरसिया') || c.includes('घरघोड़ा')) return 'रायगढ़';
+  if (c.includes('बिलासपुर') || c.includes('bilaspur') || c.includes('बिल्हा') || c.includes('तखतपुर') || c.includes('रतनपुर') || c.includes('मस्तूरी')) return 'बिलासपुर';
+
+  // 4. सरगुजा संभाग (Surguja Division - Northern Hills)
+  if (c.includes('मनेंद्रगढ़') || c.includes('चिरमिरी') || c.includes('भरतपुर') || c.includes('manendragarh') || c.includes('chirmiri')) return 'मनेंद्रगढ़';
+  if (c.includes('कोरिया') || c.includes('बैकुंठपुर') || c.includes('koriya') || c.includes('korea') || c.includes('baikunthpur')) return 'कोरिया';
+  if (c.includes('सूरजपुर') || c.includes('surajpur') || c.includes('प्रतापपुर') || c.includes('भटगांव')) return 'सूरजपुर';
+  if (c.includes('बलरामपुर') || c.includes('balrampur') || c.includes('रामानुजगंज') || c.includes('कुसमी')) return 'बलरामपुर';
+  if (c.includes('जशपुर') || c.includes('jashpur') || c.includes('पत्थलगांव') || c.includes('बगीचा')) return 'जशपुर';
+  if (c.includes('अंबिकापुर') || c.includes('अम्बिकापुर') || c.includes('सरगुजा') || c.includes('ambikapur') || c.includes('surguja') || c.includes('सीतापुर') || c.includes('मैनपाट')) return 'अंबिकापुर';
+
+  // 5. बस्तर संभाग (Bastar Division - Bastar Plateau)
+  if (c.includes('कांकेर') || c.includes('kanker') || c.includes('भानुप्रतापपुर') || c.includes('चारामा') || c.includes('अंतागढ़') || c.includes('पखांजूर')) return 'कांकेर';
+  if (c.includes('कोंडागांव') || c.includes('kondagaon') || c.includes('केशकाल') || c.includes('फरसगांव')) return 'कोंडागांव';
+  if (c.includes('नारायणपुर') || c.includes('narayanpur') || c.includes('ओरछा')) return 'नारायणपुर';
+  if (c.includes('दंतेवाड़ा') || c.includes('दंतेवाडा') || c.includes('dantewada') || c.includes('किरंदुल') || c.includes('बचेली') || c.includes('गीदम')) return 'दंतेवाड़ा';
+  if (c.includes('सुकमा') || c.includes('sukma') || c.includes('कोन्टा') || c.includes('दोरनापाल')) return 'सुकमा';
+  if (c.includes('बीजापुर') || c.includes('bijapur') || c.includes('भोपालपटनम') || c.includes('भैरमगढ़')) return 'बीजापुर';
+  if (c.includes('बस्तर') || c.includes('जगदलपुर') || c.includes('bastar') || c.includes('jagdalpur') || c.includes('तोकापाल')) return 'जगदलपुर';
+
+  return null;
+};
+
+/**
  * Process any spoken query through Bhaira Kaka's AI Conversational Agent
  * Returns structured directAnswer for zero-navigation popup + backward-compatible routes
  */
@@ -274,7 +329,16 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 
   const clean = transcript.toLowerCase().trim();
   const session = getKakaSession();
-  const selectedDistrict = context?.district || appConfig?.geography?.defaultDistrict || 'रायपुर';
+  const spokenDistrict = detectDistrictFromText(clean);
+  const effectiveDistrict =
+    spokenDistrict ||
+    context?.district ||
+    context?.selectedDistrict ||
+    session.collectedSlots?.district ||
+    (typeof localStorage !== 'undefined' ? localStorage.getItem('kisan_selected_district') : null) ||
+    appConfig?.geography?.defaultDistrict ||
+    'रायपुर';
+  const selectedDistrict = effectiveDistrict;
   const extractedAcre = extractAcreage(clean);
   // Edge Case: 0 एकड़ or negative input
   if (clean.includes('0 एकड़') || clean.includes('शून्य एकड़') || clean.includes('0 acre') || clean.includes('शून्य एकड')) {
@@ -434,6 +498,68 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     const detectedCommodity = detectCommodityFromText(clean) || 'टमाटर';
     resetKakaSession();
     return generateMandiDirectAnswer(detectedCommodity, selectedDistrict, transcript);
+  }
+
+  // 0E. Crop Doctor Follow-up ("धान", "चना", "टमाटर", "गेहूं", "माहू", "झुलसा", "इल्ली", "उकठा", "फोटो", etc.)
+  if (activeIntent === 'DOCTOR') {
+    if (clean.includes('फोटो') || clean.includes('कैमरा') || clean.includes('camera') || clean.includes('photo')) {
+      resetKakaSession();
+      return {
+        textHi: 'फसल डॉक्टर कैमरा खोल रहे हैं भैया! रोगग्रस्त पत्ती की साफ फोटो खींचें, AI तुरंत रोग पहचान लेगा।',
+        textCg: 'फसल डॉक्टर कैमरा खोलत हंव संगी! पाना के साफ फोटो खींचव, AI तुरते बीमारी बता दिही!',
+        directAnswer: {
+          intent: 'DOCTOR_CAMERA',
+          icon: '📸',
+          headline: 'फसल डॉक्टर AI कैमरा स्कैन',
+          headlineCg: 'फसल डॉक्टर कैमरा स्कैन',
+          queryEcho: transcript,
+          cards: [
+            { icon: '📸', label: 'कैमरा स्कैनर', value: 'पत्ती की फोटो लें', sub: '10-15 सेमी पास रखें', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+            { icon: '☀️', label: 'रोशनी', value: 'दिन का अच्छा प्रकाश', sub: 'छाया से बचें', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          ],
+          advisoryText: 'कैमरे को रोगग्रस्त पत्ती के 10-15 सेमी पास रखें और स्थिर हाथ से साफ फोटो खींचें।',
+          advisoryTextCg: 'कैमरा ला पाना के 10-15 सेमी तीर राखव अउ साफ फोटो खींचव!',
+          whatsappShareText: '',
+          needsClarification: false,
+          missingSlot: null,
+          slotSuggestions: [],
+          deepLink: { tab: 'doctor', label: 'कैमरा चालू करें' },
+        },
+        route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+        action: { type: 'OPEN_CAMERA' },
+        needsClarification: false,
+        extractedAcre: null,
+        confidence: 0.99,
+      };
+    }
+    if (clean.includes('चना') || clean.includes('chana')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('chana', transcript);
+    }
+    if (clean.includes('टमाटर') || clean.includes('tamatar')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('tomato', transcript);
+    }
+    if (clean.includes('गेहूं') || clean.includes('wheat') || clean.includes('gehu')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('wheat', transcript);
+    }
+    if (clean.includes('धान') || clean.includes('चावल') || clean.includes('dhan')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('paddy', transcript);
+    }
+    if (clean.includes('सोयाबीन') || clean.includes('soyabean')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('soyabean', transcript);
+    }
+    if (clean.includes('मक्का') || clean.includes('maize') || clean.includes('makka')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('maize', transcript);
+    }
+    if (clean.includes('सरसों') || clean.includes('mustard') || clean.includes('sarson') || clean.includes('राई')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('sarson', transcript);
+    }
   }
 
   // ── 1. धान ₹3,100 उपार्जन व बारदाना Intent (Paddy Sale) ──
@@ -643,8 +769,15 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   }
 
   // ── 3. लाइव मंडी भाव Intent (Mandi Rates) ──
+  const isDiseasePestQuery = [
+    'दवा', 'दवाई', 'दवाएं', 'कीड़ा', 'कीरा', 'कीट', 'रोग', 'बीमारी', 'स्प्रे', 'छिड़काव',
+    'इलाज', 'उपचार', 'कीटनाशक', 'फफूंदनाशक', 'डॉक्टर', 'doctor', 'dawa', 'dawai', 'bimari',
+    'keeda', 'keera', 'spray', 'सूख', 'पीला', 'पियरिया', 'झुलसा', 'ब्लास्ट', 'उकठा', 'इल्ली', 'सुंडी',
+    'पिल्लू', 'सूंड़ी', 'फंगस', 'सुर्रा', 'जड़ सड़न', 'सड़न', 'मरोड़िया', 'माहू', 'chepa', 'illi'
+  ].some((d) => clean.includes(d));
+
   const mandiTriggers = ['मंडी', 'भाव', 'दाम', 'रेट', 'टमाटर', 'सोयाबीन', 'चना भाव', 'प्याज', 'mandi', 'rate', 'price', 'dam', 'daam'];
-  if (mandiTriggers.some((t) => clean.includes(t))) {
+  if (!isDiseasePestQuery && mandiTriggers.some((t) => clean.includes(t))) {
     const commodity = detectCommodityFromText(clean);
     if (commodity) {
       return generateMandiDirectAnswer(commodity, selectedDistrict, transcript);
@@ -686,16 +819,20 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   // ── 4. लाइव मौसम व स्प्रे एडवाइजरी Intent (Weather) ──
   const weatherTriggers = ['मौसम', 'बारिश', 'पानी गिरही', 'पानी गिरेगा', 'हवा', 'धूप', 'घाम', 'बादल', 'मावठा', 'mausam', 'mosam', 'barish', 'baarish', 'rain', 'weather', 'pani'];
   if (weatherTriggers.some((t) => clean.includes(t))) {
-    const weather = context?.weather || {};
-    const temp = weather.temp ?? 29;
-    const condText = weather.conditionText || 'साफ मौसम';
-    const wind = weather.windSpeed ?? 11;
-    const rainChance = weather.rainChance ?? 15;
+    let weather = context?.weather;
+    if (spokenDistrict || !weather || (weather.district && weather.district !== selectedDistrict)) {
+      weather = getCachedWeather(selectedDistrict);
+    }
+    const temp = weather?.temp ?? 29;
+    const condText = weather?.conditionText || 'साफ मौसम';
+    const condTextCg = weather?.conditionTextCg || condText;
+    const wind = weather?.windSpeed ?? 10;
+    const rainChance = weather?.rainProbability ?? weather?.rainChance ?? 15;
     const canSpray = wind <= 15 && rainChance <= 40;
     const sprayStatus = canSpray ? '✓ छिड़काव अनुकूल' : '⚠️ छिड़काव रोकें';
 
     const textHi = `आज ${selectedDistrict} में तापमान ${temp}°C और मौसम ${condText} है भैया! ${canSpray ? 'आज कीटनाशक व खाद का छिड़काव सुरक्षित है।' : 'बारिश या तेज हवा के कारण छिड़काव टालें!'}`;
-    const textCg = `आज ${selectedDistrict} म तापमान ${temp}°C अउ मौसम ${condText} हे संगी! ${canSpray ? 'आज स्प्रे करे बर मौसम बने हे।' : 'पानी या तेज हवा म छिड़काव रोक देवव ताकि दवाई बोहा झन जाय!'}`;
+    const textCg = `आज ${selectedDistrict} म तापमान ${temp}°C अउ मौसम ${condTextCg} हे संगी! ${canSpray ? 'आज स्प्रे करे बर मौसम बने हे।' : 'पानी या तेज हवा म छिड़काव रोक देवव ताकि दवाई बोहा झन जाय!'}`;
 
     return {
       textHi,
@@ -712,16 +849,16 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
           { icon: '💨', label: 'हवा की गति', value: `${wind} km/h`, sub: wind > 15 ? 'तेज हवा' : 'सामान्य गति', bg: '#f8fafc', border: '#cbd5e1', color: '#1e293b' },
           { icon: '🚜', label: 'छिड़काव सलाह', value: sprayStatus, sub: canSpray ? 'छिड़काव कर सकते हैं' : 'तेज हवा/बारिश से टालें', bg: canSpray ? '#f0fdf4' : '#fef2f2', border: canSpray ? '#86efac' : '#fecaca', color: canSpray ? '#166534' : '#991b1b' },
         ],
-        advisoryText: canSpray ? 'आज मौसम सामान्य है। सुबह या शाम के समय कीटनाशक व खाद का छिड़काव उत्तम रहेगा।' : 'सावधान: बारिश या 15 किमी से तेज हवा में छिड़काव करने से दवा धुल जाती है और उड़ जाती है।',
-        advisoryTextCg: canSpray ? 'आज मौसम बने हे, बिहनिया या संझा बेरा स्प्रे कर सकथव।' : 'चेत रखव: पानी या तेज हवा म स्प्रे झन करव, दवाई बोहा जाही!',
+        advisoryText: canSpray ? `आज ${selectedDistrict} में मौसम सामान्य है। सुबह या शाम के समय कीटनाशक व खाद का छिड़काव उत्तम रहेगा।` : `सावधान: ${selectedDistrict} में बारिश या तेज हवा में छिड़काव करने से दवा धुल जाती है और उड़ जाती है।`,
+        advisoryTextCg: canSpray ? `आज ${selectedDistrict} म मौसम बने हे, बिहनिया या संझा बेरा स्प्रे कर सकथव।` : `चेत रखव: ${selectedDistrict} म पानी या तेज हवा म स्प्रे झन करव, दवाई बोहा जाही!`,
         whatsappShareText: `🌤️ किसान साथी मौसम बुलेटिन (${selectedDistrict}):\n• तापमान: ${temp}°C (${condText})\n• बारिश संभावना: ${rainChance}%\n• हवा: ${wind} km/h\n• छिड़काव सलाह: ${sprayStatus}\n🌾 100% सटीक कृषि मौसम परामर्श`,
         needsClarification: false,
         missingSlot: null,
-        slotSuggestions: [],
-        deepLink: { tab: 'home', label: '16-दिवसीय मौसम देखें' },
+        slotSuggestions: [`${selectedDistrict} मंडी भाव`, 'खाद हिसाब', 'धान ₹3,100 भाव'],
+        deepLink: { tab: 'home', label: `${selectedDistrict} मौसम देखें` },
       },
       route: { target: 'home', type: 'tab', label: 'मौसम डैशबोर्ड' },
-      action: { type: 'SHOW_WEATHER' },
+      action: { type: 'SHOW_WEATHER', district: selectedDistrict },
       needsClarification: false,
       extractedAcre: null,
       confidence: 0.98,
@@ -732,6 +869,15 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   const mahuTriggers = ['माहू', 'माहुर', 'माहूर', 'bph', 'चेपा', 'भूरा माहू', 'हरा माहू', 'रस चूसक', 'mahu', 'mahur', 'chepa'];
   if (mahuTriggers.some((t) => clean.includes(t))) {
     resetKakaSession();
+    if (clean.includes('सरसों') || clean.includes('mustard') || clean.includes('राई') || clean.includes('sarson')) {
+      return generateCropDoctorDirectAnswer('sarson', transcript);
+    }
+    if (clean.includes('चना') || clean.includes('chana')) {
+      return generateCropDoctorDirectAnswer('chana', transcript);
+    }
+    if (clean.includes('टमाटर') || clean.includes('tamatar')) {
+      return generateCropDoctorDirectAnswer('tomato', transcript);
+    }
     const textHi = 'सावधान किसान भाई! धान में माहू का प्रकोप है तो खेत का पानी तुरंत निकालें। तने के पास 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड का छिड़काव करें।';
     const textCg = 'अरे भइया! धान म माहू लग गे हे त खेत के पानी ला तुरते निकालव! 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड के स्प्रे सीधे तना तीर करव।';
 
@@ -769,6 +915,18 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   const blastTriggers = ['पीला', 'पियरिया', 'पीलापन', 'झुलसा', 'ब्लास्ट', 'केंचुली', 'शीथ ब्लाइट', 'खैरा', 'पाना पीयर', 'peela', 'peeli', 'jhulsa', 'blast', 'khaira'];
   if (blastTriggers.some((t) => clean.includes(t))) {
     resetKakaSession();
+    if (clean.includes('टमाटर') || clean.includes('tamatar')) {
+      return generateCropDoctorDirectAnswer('tomato', transcript);
+    }
+    if (clean.includes('सोयाबीन') || clean.includes('soyabean')) {
+      return generateCropDoctorDirectAnswer('soyabean', transcript);
+    }
+    if (clean.includes('मक्का') || clean.includes('maize')) {
+      return generateCropDoctorDirectAnswer('maize', transcript);
+    }
+    if (clean.includes('गेहूं') || clean.includes('wheat') || clean.includes('gehu')) {
+      return generateCropDoctorDirectAnswer('wheat', transcript);
+    }
     const textHi = 'पत्तियां पीली पड़ रही हैं तो जिंक की कमी से खैरा या फफूंद का झुलसा हो सकता है। 5 किलो जिंक सल्फेट या ट्राइसाइक्लाजोल 120 ग्राम प्रति एकड़ छिड़कें।';
     const textCg = 'का कहिथस, पाना पीयर परत हे? खैरा रोग बर जिंक सल्फेट अउ झुलसा बर ट्राइसाइक्लाजोल 120 ग्राम प्रति एकड़ छिड़कव संगी!';
 
@@ -803,8 +961,10 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     };
   }
 
-  const stemBorerTriggers = ['तना छेदक', 'गाभा छेदक', 'इल्ली', 'सुंडी', 'कीड़ा', 'कीरा', 'पत्ता लपेटक', 'tana chhedak', 'illi', 'sundi', 'kida'];
-  if (stemBorerTriggers.some((t) => clean.includes(t))) {
+  const stemBorerTriggers = ['तना छेदक', 'गाभा छेदक', 'गाभा कीड़ा', 'पत्ता लपेटक', 'dead heart', 'tana chhedak'];
+  const isPaddyStemBorer = stemBorerTriggers.some((t) => clean.includes(t)) ||
+    ((clean.includes('धान') || clean.includes('चावल') || clean.includes('dhan')) && (clean.includes('इल्ली') || clean.includes('गाभा') || clean.includes('सुंडी')));
+  if (isPaddyStemBorer) {
     resetKakaSession();
     const textHi = 'तना छेदक और इल्ली के नियंत्रण हेतु कारटाप हाइड्रोक्लोराइड 4G दानेदार या कोराजन 60ml प्रति एकड़ का छिड़काव करें।';
     const textCg = 'गाभा छेदक कीरा तना ला भीतर ले काट देथे! कारटाप हाइड्रोक्लोराइड दानेदार या कोराजन 60ml के छिड़काव करव संगी!';
@@ -1023,6 +1183,54 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       extractedAcre,
       confidence: 0.98,
     };
+  }
+
+  // ── 5I. Comprehensive Crop Doctor & General Crop Disease Intent ──
+  const generalDoctorTriggers = [
+    'बीमारी', 'रोग', 'कीड़ा', 'कीरा', 'कीट', 'दवाई', 'दवा', 'दवाएं', 'कीटनाशक', 'फफूंदनाशक',
+    'इलाज', 'उपचार', 'फसल खराब', 'पौधा सूख', 'पत्ती खराब', 'पत्ता खराब', 'फसल डॉक्टर', 'डॉक्टर',
+    'कृषि डॉक्टर', 'स्प्रे', 'छिड़काव', 'टंकी दवा', 'छिड़कना', 'दवा छिड़कना', 'दवा डालना',
+    'कवक', 'फफूंद', 'सड़न', 'पत्ता मरोड़', 'सफेद धब्बा', 'काला धब्बा', 'रस चूसक', 'कीट नियंत्रण',
+    'रोकथाम', 'दवा बताओ', 'दवाई बताव', 'दवा क्या है', 'दवाई कौन',
+    'इल्ली', 'सुंडी', 'पिल्लू', 'सूंड़ी', 'सेंवड़ा', 'कैटरपिलर', 'caterpillar', 'illi', 'sundi', 'pillu',
+    'फंगस', 'fungus', 'सुर्रा', 'जड़ सड़न', 'तना सड़न', 'सड़ रहा', 'गल रहा', 'मुरझा', 'मुरझान', 'धब्बा', 'मरोड़िया', 'माहू',
+    'bimari', 'bimaari', 'rog', 'keeda', 'keera', 'kira', 'kitnashak', 'dawai', 'dawa',
+    'fasal doctor', 'doctor', 'ilaj', 'spray', 'fasal kharab'
+  ];
+  if (generalDoctorTriggers.some((t) => clean.includes(t))) {
+    // If specific crop is mentioned in the voice query e.g. "धान में बीमारी लगी है", "चना में कीड़ा लगा है"
+    if (clean.includes('धान') || clean.includes('चावल') || clean.includes('dhan')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('paddy', transcript);
+    }
+    if (clean.includes('चना') || clean.includes('chana')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('chana', transcript);
+    }
+    if (clean.includes('टमाटर') || clean.includes('tamatar') || clean.includes('tomato')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('tomato', transcript);
+    }
+    if (clean.includes('गेहूं') || clean.includes('wheat') || clean.includes('gehu')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('wheat', transcript);
+    }
+    if (clean.includes('मक्का') || clean.includes('maize') || clean.includes('makka')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('maize', transcript);
+    }
+    if (clean.includes('सरसों') || clean.includes('mustard') || clean.includes('sarson')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('sarson', transcript);
+    }
+    if (clean.includes('सोयाबीन') || clean.includes('soyabean')) {
+      resetKakaSession();
+      return generateCropDoctorDirectAnswer('soyabean', transcript);
+    }
+
+    // General Crop Doctor query without specific crop e.g. "फसल बीमारी के बारे में बताओ", "दवाई बताओ", "फसल डॉक्टर"
+    setKakaSession('DOCTOR');
+    return generateCropDoctorDirectAnswer('general', transcript);
   }
 
   // ── 6. मोटर कंट्रोलर Intent (Motor & Borewell) ──
@@ -1434,6 +1642,291 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 };
 
 /**
+ * Helper to generate Crop Doctor direct answers across all major Chhattisgarh crops
+ * Handles general disease questions, crop-specific outbreaks, approved CIBRC dosages, and AI camera guidance
+ */
+export const generateCropDoctorDirectAnswer = (crop = 'general', queryEcho = '') => {
+  if (crop === 'paddy' || crop === 'dhan') {
+    const textHi = 'धान में मुख्य रूप से 3 बीमारियां आती हैं भैया: तने का रस चूसक भूरा माहू (पाइमेट्रोजिन 120 ग्राम), पत्तियों का झुलसा/ब्लास्ट (ट्राइसाइक्लाजोल 120 ग्राम), और तना छेदक इल्ली (कोराजन 60 ml प्रति एकड़)। नीचे दिए विकल्पों से रोग चुनें या फोटो खींचें!';
+    const textCg = 'धान म 3 ठन मुख्य बीमारी लगथे संगी: रस चूसक भूरा माहू (पाइमेट्रोजिन दवाई 120g), पाना के झुलसा (ट्राइसाइक्लाजोल दवाई 120g), अऊ गाभा छेदक इल्ली (कोराजन 60 ml प्रति एकड़)। नीचे ले बीमारी चुनव या पाना के फोटो खींचव!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌾',
+        headline: 'धान के प्रमुख रोग, कीट व प्रमाणित दवा',
+        headlineCg: 'धान के मुख्य बीमारी अऊ पक्का इलाज',
+        queryEcho: queryEcho || 'धान में बीमारी',
+        cards: [
+          { icon: '🐛', label: 'भूरा माहू (BPH)', value: 'पाइमेट्रोजिन 50% WDG', sub: '120g/एकड़ (15L टंकी: 12g)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🍂', label: 'झुलसा (Blast)', value: 'ट्राइसाइक्लाजोल 75% WP', sub: '120g/एकड़ • पत्ती धब्बे', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '🐛', label: 'तना छेदक (गाभा)', value: 'कोराजन 18.5% SC', sub: '60ml/एकड़ (15L टंकी: 6ml)', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'पत्ती की फोटो खींचें', sub: '5 सेकंड में लाइव रोग पहचान', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'दवा का सही माप: 15 लीटर स्प्रे पंप टंकी में 10-15 ग्राम दवा डालें। साफ फोटो खींचने पर AI डॉक्टर तुरंत रोग पकड़ लेता है।',
+        advisoryTextCg: '15 लीटर स्प्रे पंप म 10-15 ग्राम दवाई मिलाव। साफ फोटो खींचव त AI डॉक्टर तुरते बीमारी बता दिही!',
+        whatsappShareText: `🌾 किसान साथी - धान रोग व दवा परामर्श:\n• भूरा माहू: पाइमेट्रोजिन 120g/एकड़\n• झुलसा/ब्लास्ट: ट्राइसाइक्लाजोल 120g/एकड़\n• तना छेदक: कोराजन 60ml/एकड़\n💧 15L पंप टंकी नाप: 10-15 ग्राम या 6ml`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['माहू की दवा', 'झुलसा रोग दवा', 'तना छेदक दवा', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'bph', disease: 'माहू' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'chana') {
+    const textHi = 'चना (दलहन) में 2 प्रमुख समस्याएं होती हैं भैया: उकठा रोग (Wilt) जिसमें पौधे अचानक सूखते हैं (ट्राइकोडर्मा 1 kg गोबर खाद में), और घांटी छेदक इल्ली (इमामेक्टिन बेंजोएट 5% SG 80 ग्राम प्रति एकड़)।';
+    const textCg = 'चना म 2 ठन मुख्य बीमारी होथे संगी: उकठा रोग (Wilt) जेमा पौधा सूखथे (ट्राइकोडर्मा दवाई), अऊ घांटी छेदक इल्ली (इमामेक्टिन बेंजोएट 80g प्रति एकड़)।';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌱',
+        headline: 'चना (दलहन) के प्रमुख रोग व कीटनाशक उपाय',
+        headlineCg: 'चना के मुख्य बीमारी अऊ पक्का इलाज',
+        queryEcho: queryEcho || 'चना में बीमारी',
+        cards: [
+          { icon: '🌱', label: 'उकठा रोग (Wilt)', value: 'ट्राइकोडर्मा वीरिडी', sub: '1 kg सड़ी गोबर खाद में मिलाकर डालें', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🐛', label: 'घांटी छेदक इल्ली', value: 'इमामेक्टिन बेंजोएट 5% SG', sub: '80g/एकड़ (15L टंकी: 8g)', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '🌿', label: 'जैविक नियंत्रण', value: 'नीम तेल 1500 PPM', sub: 'फूल आने से पहले 5ml/L स्प्रे', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'फोटो खींचकर जांचें', sub: 'पत्ती या तने की लाइव जांच', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'उकठा रोग से बचाव हेतु बुआई पूर्व बीजोपचार अनिवार्य है। फूल खिलते समय रासायनिक कीटनाशक छिड़काव से बचें ताकि परागण न रुके।',
+        advisoryTextCg: 'उकठा रोग बर बीजोपचार जरूरी हे। फूल खिले बेरा कीटनाशक झन छिड़कव संगी!',
+        whatsappShareText: `🌱 किसान साथी - चना रोग व कीट परामर्श:\n• उकठा रोग (Wilt): ट्राइकोडर्मा वीरिडी 1kg/एकड़\n• घांटी छेदक इल्ली: इमामेक्टिन बेंजोएट 80g/एकड़\n• जैविक: नीम तेल 5ml प्रति लीटर`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['उकठा रोग दवा', 'चना इल्ली दवा', 'नीम तेल स्प्रे', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'wilt', disease: 'उकठा रोग' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'tomato') {
+    const textHi = 'टमाटर में मुख्य रूप से अगेती/पछेती झुलसा (कॉपर ऑक्सीक्लोराइड 500g प्रति एकड़), सफेद मक्खी व पर्ण कुंचन मरोड़िया (थायमेथॉक्सम 80g), और फल छेदक इल्ली (कोराजन 60ml) लगती है।';
+    const textCg = 'टमाटर म झुलसा रोग बर कॉपर दवाई 500g, सफेद मक्खी बर थायमेथॉक्सम 80g, अऊ फल छेदक कीरा बर कोराजन 60ml छिड़कव संगी!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🍅',
+        headline: 'टमाटर के प्रमुख रोग व कीटनाशक सलाह',
+        headlineCg: 'टमाटर के बीमारी अऊ दवाई सलाह',
+        queryEcho: queryEcho || 'टमाटर में बीमारी',
+        cards: [
+          { icon: '🍂', label: 'झुलसा रोग (Blight)', value: 'कॉपर ऑक्सीक्लोराइड 50% WP', sub: '500g/एकड़ (15L टंकी: 40g)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🪰', label: 'सफेद मक्खी / मरोड़िया', value: 'थायमेथॉक्सम 25% WG', sub: '80g/एकड़ • पीले स्टिकी ट्रैप', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '🐛', label: 'फल छेदक इल्ली', value: 'कोराजन 18.5% SC', sub: '60ml/एकड़ (15L टंकी: 6ml)', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'पत्ती की फोटो खींचें', sub: '5 सेकंड में लाइव रोग पहचान', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'पत्तियां मुड़ रही हैं तो रस चूसक सफेद मक्खी का प्रकोप है। पीले स्टिकी ट्रैप (10 प्रति एकड़) लगाएं और थायमेथॉक्सम का छिड़काव करें।',
+        advisoryTextCg: 'पाना मुड़त हे त सफेद मक्खी दवाई छिड़कव अऊ पीला स्टिकी ट्रैप लगावव!',
+        whatsappShareText: `🍅 किसान साथी - टमाटर रोग नियंत्रण:\n• झुलसा रोग: कॉपर ऑक्सीक्लोराइड 500g/एकड़\n• सफेद मक्खी (मरोड़िया): थायमेथॉक्सम 80g/एकड़\n• फल छेदक: कोराजन 60ml/एकड़`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['टमाटर झुलसा दवा', 'सफेद मक्खी दवा', 'फल छेदक दवा', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'spot', disease: 'झुलसा' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'wheat') {
+    const textHi = 'गेहूं में पत्तियों पर पीली/भूरी धूल (गेरुई/रतुआ रोग) पर प्रोपिकोनाजोल 25% EC 200 ml प्रति एकड़ छिड़कें, और दीमक के लिए सिंचाई जल के साथ क्लोरपायरीफॉस 20% EC 1.5 लीटर दें भैया!';
+    const textCg = 'गेहूं म रतुआ रोग बर प्रोपिकोनाजोल 200ml/एकड़ छिड़कव, अऊ दीमक बर क्लोरपायरीफॉस पानी के संग 1.5L देवव संगी!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌾',
+        headline: 'गेहूं के प्रमुख रोग व दीमक नियंत्रण',
+        headlineCg: 'गेहूं के बीमारी अऊ दीमक रोकथाम',
+        queryEcho: queryEcho || 'गेहूं में बीमारी',
+        cards: [
+          { icon: '🍂', label: 'गेरुई / रतुआ (Rust)', value: 'प्रोपिकोनाजोल 25% EC', sub: '200ml/एकड़ (15L टंकी: 20ml)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🐜', label: 'दीमक (Termite)', value: 'क्लोरपायरीफॉस 20% EC', sub: '1.5L/एकड़ सिंचाई जल के साथ', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '🌾', label: 'खेत तैयारी', value: 'कच्ची गोबर खाद न डालें', sub: 'सड़ी कम्पोस्ट ही उपयोग करें', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'फोटो खींचकर जांचें', sub: 'पत्ती या तने की लाइव जांच', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'रतुआ रोग हवा से तेजी से फैलता है, लक्षण दिखते ही तुरंत छिड़काव करें। खेत में कच्ची गोबर खाद कभी न डालें।',
+        advisoryTextCg: 'रतुआ रोग दिखते ही प्रोपिकोनाजोल छिड़कव, कच्ची गोबर खाद खेत म झन डालव!',
+        whatsappShareText: `🌾 किसान साथी - गेहूं रोग नियंत्रण:\n• गेरुई/रतुआ: प्रोपिकोनाजोल 200ml/एकड़\n• दीमक: क्लोरपायरीफॉस 1.5L/एकड़ सिंचाई के साथ`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['गेहूं रतुआ दवा', 'दीमक नियंत्रण', 'माहू नियंत्रण', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'spot', disease: 'रतुआ' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'soyabean' || crop === 'soybean') {
+    const textHi = 'सोयाबीन में पीला मोजेक वायरस (सफेद मक्खी वाहक) हेतु थायमेथॉक्सम 80 ग्राम, और सेमीलूपर व तंबाकू इल्ली हेतु इमामेक्टिन बेंजोएट 80 ग्राम प्रति एकड़ छिड़कें भैया!';
+    const textCg = 'सोयाबीन म पीला मोजेक बर थायमेथॉक्सम 80g, अऊ इल्ली बर इमामेक्टिन 80 ग्राम प्रति एकड़ के स्प्रे करव संगी!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌱',
+        headline: 'सोयाबीन के प्रमुख रोग व इल्ली नियंत्रण',
+        headlineCg: 'सोयाबीन के बीमारी अऊ इल्ली रोकथाम',
+        queryEcho: queryEcho || 'सोयाबीन में बीमारी',
+        cards: [
+          { icon: '🪰', label: 'पीला मोजेक / मक्खी', value: 'थायमेथॉक्सम 25% WG', sub: '80g/एकड़ (15L टंकी: 8g)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🐛', label: 'सेमीलूपर व तंबाकू इल्ली', value: 'इमामेक्टिन 5% SG', sub: '80g/एकड़ (15L टंकी: 8g)', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '🍂', label: 'फली झुलसा (Anthracnose)', value: 'टेबुकोनाजोल 25.9% EC', sub: '250ml/एकड़ (15L टंकी: 25ml)', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'पत्ती की फोटो खींचें', sub: '5 सेकंड में लाइव रोग पहचान', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'सफेद मक्खी पीला मोजेक वायरस फैलाती है। खेत में पीले चिपचिपे कार्ड लगाएं और इल्ली का पहला प्रकोप दिखते ही तुरंत छिड़काव करें।',
+        advisoryTextCg: 'सफेद मक्खी पीला मोजेक फइलाथे। पियरिया दिखते ही थायमेथॉक्सम दवाई छिड़कव!',
+        whatsappShareText: `🌱 किसान साथी - सोयाबीन रोग नियंत्रण:\n• पीला मोजेक/मक्खी: थायमेथॉक्सम 80g/एकड़\n• सेमीलूपर इल्ली: इमामेक्टिन 80g/एकड़\n• फली झुलसा: टेबुकोनाजोल 250ml/एकड़`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['सोयाबीन इल्ली दवा', 'पीला मोजेक दवा', 'झुलसा दवा', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'spot', disease: 'सोयाबीन रोग' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'maize') {
+    const textHi = 'मक्का में फॉल आर्मीवर्म (सैनिक इल्ली) गोभ काटती है, इसके लिए कोराजन 18.5% SC 80 मिली या इमामेक्टिन 80 ग्राम का सीधे गोभ में छिड़काव करें भैया!';
+    const textCg = 'मक्का म फॉल आर्मीवर्म इल्ली गोभ ला काटथे! कोराजन 80ml या इमामेक्टिन दवाई के स्प्रे सीधे गोभ म करव संगी!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌽',
+        headline: 'मक्का में फॉल आर्मीवर्म व तना छेदक नियंत्रण',
+        headlineCg: 'मक्का म सैनिक इल्ली के पक्का रोकथाम',
+        queryEcho: queryEcho || 'मक्का में बीमारी',
+        cards: [
+          { icon: '🐛', label: 'फॉल आर्मीवर्म (सैनिक कीट)', value: 'कोराजन 18.5% SC', sub: '80ml/एकड़ (सीधे गोभ में डालें)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '💊', label: 'इल्ली स्प्रे विकल्प', value: 'इमामेक्टिन 5% SG', sub: '80g/एकड़ (15L टंकी: 8g)', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '🍂', label: 'पत्ती झुलसा (Blight)', value: 'मैंकोजेब 75% WP', sub: '600g/एकड़ (15L टंकी: 50g)', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'फोटो खींचकर जांचें', sub: 'पत्ती या गोभ की लाइव जांच', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'फॉल आर्मीवर्म कीड़े पौधे की गोभ (Whorl) में छिपकर बैठते हैं। नोजल को सीधे पौधे की गोभ के ऊपर रखकर छिड़काव करें।',
+        advisoryTextCg: 'इल्ली गोभ म लुका के रहिथे! दवाई के स्प्रे सीधे गोभ के मुंह म करव!',
+        whatsappShareText: `🌽 किसान साथी - मक्का रोग व कीट सलाह:\n• फॉल आर्मीवर्म: कोराजन 80ml या इमामेक्टिन 80g/एकड़\n• पत्ती झुलसा: मैंकोजेब 600g/एकड़\n💧 स्प्रे सीधे गोभ (Whorl) के भीतर करें`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['मक्का इल्ली दवा', 'फॉल आर्मीवर्म दवा', 'पत्ती झुलसा दवा', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'stemborer', disease: 'फॉल आर्मीवर्म' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  if (crop === 'sarson') {
+    const textHi = 'सरसों में माहू (चेपा कीट) पत्तियों व फूलों का रस चूसता है, इसके लिए इमिडाक्लोप्रिड 17.8% SL 60 मिली या थायमेथॉक्सम 80 ग्राम प्रति एकड़ छिड़कें!';
+    const textCg = 'सरसों म माहू (चेपा) फूल के रस चूसथे! इमिडाक्लोप्रिड 60ml या थायमेथॉक्सम 80 ग्राम के छिड़काव करव संगी!';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'DOCTOR',
+        icon: '🌼',
+        headline: 'सरसों में माहू (चेपा) व सफेद रतुआ नियंत्रण',
+        headlineCg: 'सरसों म माहू अऊ सफेद रतुआ के रोकथाम',
+        queryEcho: queryEcho || 'सरसों में बीमारी',
+        cards: [
+          { icon: '🐛', label: 'माहू / चेपा (Aphids)', value: 'इमिडाक्लोप्रिड 17.8% SL', sub: '60ml/एकड़ (15L टंकी: 6ml)', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '🍂', label: 'सफेद रतुआ (White Rust)', value: 'रिडोमिल MZ (मेटालैक्सिल)', sub: '500g/एकड़ (15L टंकी: 40g)', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '💧', label: 'जैविक विकल्प', value: 'नीम तेल 1500 PPM', sub: 'फूल आने से पहले 5ml/L स्प्रे', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '📸', label: 'AI कैमरा जांच', value: 'फोटो खींचकर जांचें', sub: 'पत्ती या तने की लाइव जांच', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'सरसों में बादल छाए रहने या नमी बढ़ने पर माहू का प्रकोप तेजी से फैलता है। फूल आने के समय शाम को ही छिड़काव करें ताकि मधुमक्खियां प्रभावित न हों।',
+        advisoryTextCg: 'बादल छाए म माहू जल्दी बाढ़थे। संझा बेरा स्प्रे करव ताकि मउमाखी मन ला नुकसान झन होवय!',
+        whatsappShareText: `🌼 किसान साथी - सरसों रोग नियंत्रण:\n• माहू (Aphids): इमिडाक्लोप्रिड 60ml/एकड़\n• सफेद रतुआ: रिडोमिल MZ 500g/एकड़\n• जैविक: नीम तेल 5ml प्रति लीटर`,
+        needsClarification: true,
+        missingSlot: 'disease',
+        slotSuggestions: ['सरसों माहू दवा', 'सफेद रतुआ दवा', 'नीम तेल स्प्रे', '📸 पत्ती की फोटो जांचें'],
+        deepLink: { tab: 'doctor', label: 'फसल डॉक्टर में फोटो जांचें' },
+      },
+      route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+      action: { type: 'SHOW_DISEASE', symptom: 'bph', disease: 'सरसों माहू' },
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.98,
+    };
+  }
+
+  // General Crop Doctor fallback (when crop is not specified)
+  const textHi = 'फसल डॉक्टर में स्वागत है भैया! यदि खेत में कोई रोग या कीड़ा लगा है, तो नीचे से अपनी फसल चुनें — धान, चना, या टमाटर, अथवा रोगग्रस्त पत्ती की फोटो खींचें — तुरंत प्रमाणित दवा व 15 लीटर टंकी का नाप बताएंगे!';
+  const textCg = 'फसल डॉक्टर म स्वागत हे संगी! खेत म कोनो बीमारी या कीरा लगे हे त नीचे ले अपन फसल चुनव — धान, चना या टमाटर, या पाना के फोटो खींचव — तुरते पक्की दवाई अऊ 15 लीटर टंकी के नाप बताबो!';
+
+  return {
+    textHi,
+    textCg,
+    directAnswer: {
+      intent: 'DOCTOR',
+      icon: '🌿',
+      headline: 'फसल डॉक्टर: रोग पहचान व प्रमाणित उपचार',
+      headlineCg: 'फसल डॉक्टर: बीमारी पहचान अऊ पक्का इलाज',
+      queryEcho: queryEcho || 'फसल बीमारी',
+      cards: [
+        { icon: '🌾', label: 'धान के रोग', value: 'माहू, झुलसा, तना छेदक', sub: 'पाइमेट्रोजिन, ट्राइसाइक्लाजोल दवा', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+        { icon: '🌱', label: 'चना व दलहन', value: 'उकठा व घांटी छेदक इल्ली', sub: 'ट्राइकोडर्मा, इमामेक्टिन दवा', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+        { icon: '🍅', label: 'सब्जी फसलें', value: 'झुलसा व सफेद मक्खी', sub: 'कॉपर, थायमेथॉक्सम कीटनाशक', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        { icon: '📸', label: 'AI कैमरा डॉक्टर', value: 'पत्ती की फोटो खींचें', sub: '5 सेकंड में लाइव रोग पहचान', bg: '#fdf2f8', border: '#fbcfe8', color: '#9d174d' },
+      ],
+      advisoryText: 'रोग की सटीक पहचान के लिए नीचे "फसल डॉक्टर खोलें" दबाकर मोबाइल कैमरे से पत्ती की साफ फोटो लें। 15 लीटर स्प्रे पंप में हमेशा अनुशंसित मात्रा ही मिलाएं।',
+      advisoryTextCg: 'बीमारी के पक्का इलाज बर नीचे "फसल डॉक्टर खोलव" दबाके मोबाइल कैमरा ले पाना के फोटो खींचव! 15 लीटर टंकी म नाप अनुसार दवाई मिलाव।',
+      whatsappShareText: `🌿 किसान साथी - फसल डॉक्टर रोग निदान:\n• धान: माहू, झुलसा, तना छेदक\n• चना: उकठा रोग, घांटी छेदक इल्ली\n• टमाटर: झुलसा, सफेद मक्खी\n📸 मोबाइल कैमरे से तुरंत पत्ती जांचें`,
+      needsClarification: true,
+      missingSlot: 'crop',
+      slotSuggestions: ['धान में बीमारी', 'चना में बीमारी', 'टमाटर में बीमारी', 'माहू की दवा', '📸 पत्ती की फोटो जांचें'],
+      deepLink: { tab: 'doctor', label: 'फसल डॉक्टर (कैमरा जांच) खोलें' },
+    },
+    route: { target: 'doctor', type: 'tab', label: 'फसल डॉक्टर' },
+    action: { type: 'SHOW_DISEASE', symptom: 'bph', disease: 'माहू' },
+    needsClarification: false,
+    extractedAcre: null,
+    confidence: 0.98,
+  };
+};
+
+/**
  * Helper to generate Fertilizer direct answers cleanly across all crops with Weather rain interlock
  */
 export const generateFertilizerDirectAnswer = (crop = 'paddy', acreVal = 1.0, weather = {}, queryEcho = '') => {
@@ -1835,5 +2328,47 @@ export const getKakaWalkthrough = (featureId, isChhattisgarhi = false) => {
 
   const item = walkthroughs[featureId] || walkthroughs.home;
   return isChhattisgarhi ? item.cg : item.hi;
+};
+
+/**
+ * Asynchronously query Google Gemini AI Agricultural Expert (IGKV/ICAR Role)
+ * Used as an intelligent fallback when query is not matched by local offline rules.
+ * Strictly filters out non-agricultural topics and provides certified agricultural diagnoses.
+ */
+export const queryKakaAiExpert = async (query, isChhattisgarhi = false, context = {}) => {
+  if (!query || typeof query !== 'string' || query.trim().length < 2) return null;
+  const district = context?.district || context?.selectedDistrict || 'रायपुर';
+
+  try {
+    const apiBase = appConfig?.apiBaseUrl || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch(`${apiBase}/kaka-brain/expert`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: query.trim(),
+        district,
+        isChhattisgarhi: Boolean(isChhattisgarhi),
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.success && json.data) {
+        return json.data;
+      }
+    }
+  } catch (err) {
+    console.warn('[KakaBrain] AI Agricultural Expert consultation failed or timed out:', err.message);
+  }
+
+  return null;
 };
 

@@ -350,3 +350,153 @@ STRICT RULES:
     modelErrors
   };
 };
+
+/**
+ * Senior Agricultural Scientist / IGKV / ICAR AI Expert Engine for Bhaira Kaka
+ * Strict Domain Filtering:
+ * - If query is NOT agricultural (cricket, bollywood, politics, songs, etc.), strictly sets isAgricultural: false and returns respectful domain refusal.
+ * - If query IS agricultural, provides certified IGKV/ICAR advice, dosages per 15L pump, practical cards, and follow-up chips.
+ */
+export const queryGeminiAgriculturalExpert = async ({
+  query,
+  district = 'रायपुर',
+  isChhattisgarhi = false,
+}) => {
+  const { apiKey, baseUrl, models, timeoutMs } = externalApisConfig.gemini;
+
+  if (!apiKey) {
+    return {
+      success: false,
+      error: 'AI कृषि विशेषज्ञ सेवा सक्रिय नहीं है (API कुंजी उपलब्ध नहीं है)।',
+      technicalError: 'GEMINI_API_KEY is not configured in .env',
+      isAgricultural: false,
+    };
+  }
+
+  const prompt = `You are a Senior Indian Agricultural Scientist and Agronomist (वरिष्ठ कृषि वैज्ञानिक व पादप विशेषज्ञ) at Indira Gandhi Krishi Vishwavidyalaya (IGKV) Raipur and ICAR, advising a farmer in Chhattisgarh (District: ${district}).
+You deliver your advice through the beloved, warm, respectful rural village elder persona of "बहिरा काका" (Bhaira Kaka).
+
+FARMER'S QUESTION: "${query}"
+
+CRITICAL RULES:
+1. STRICT DOMAIN FILTER:
+   Determine if the query is genuinely related to AGRICULTURE, CROPS, FARMING, HORTICULTURE, VEGETABLES, FRUITS, SOIL, IRRIGATION, FERTILIZERS, WEEDS, PESTS & DISEASES, LIVESTOCK / DAIRY / ANIMAL HUSBANDRY (cows, buffaloes, goats, poultry, fisheries), WEATHER / AGRO-CLIMATOLOGY, AGRICULTURAL MACHINERY, or GOVERNMENT FARMER SCHEMES.
+
+   IF THE QUESTION IS NOT ABOUT AGRICULTURE (e.g., cricket, Bollywood, movies, songs, actors, politics, elections, general chit-chat, gossip, astrology, non-agri topics):
+   You MUST return:
+   {
+     "isAgricultural": false,
+     "intent": "UNKNOWN_TOPIC",
+     "icon": "❓",
+     "headline": "इसकी जानकारी उपलब्ध नहीं है",
+     "headlineCg": "एकर जानकारी नइ हे",
+     "textHi": "माफ़ कीजिए, इसकी जानकारी मुझे नहीं है भैया। मैं सिर्फ खेती-किसानी — धान का भाव (₹3,100), खाद गणना, मंडी भाव, मौसम व फसल रोग में सहायता कर सकता हूँ।",
+     "textCg": "माफ करव, एकर जानकारी मोला नइ हे संगी। मैं सिरिफ किसानी — धान खरीदी (₹3,100), खाद के हिसाब, मंडी भाव, मौसम अउ फसल बीमारी के बात बता सकथंव।",
+     "cards": [
+       { "icon": "🌾", "label": "धान खरीदी", "value": "₹3,100 / क्विंटल", "sub": "21 क्विंटल प्रति एकड़ कोटा", "bg": "#f0fdf4", "border": "#86efac", "color": "#166534" },
+       { "icon": "🧮", "label": "खाद हिसाब", "value": "DAP + यूरिया", "sub": "एकड़ अनुसार गणना", "bg": "#fefce8", "border": "#fef08a", "color": "#854d0e" },
+       { "icon": "🏪", "label": "मंडी भाव", "value": "${district} मंडी", "sub": "टमाटर, चना, सोयाबीन", "bg": "#eff6ff", "border": "#bfdbfe", "color": "#1d4ed8" },
+       { "icon": "🌤️", "label": "मौसम सलाह", "value": "आज का पूर्वानुमान", "sub": "छिड़काव व बारिश अलर्ट", "bg": "#f8fafc", "border": "#cbd5e1", "color": "#1e293b" }
+     ],
+     "advisoryText": "मैं केवल खेती-किसानी से जुड़े सवालों का उत्तर दे सकता हूँ। कृपया नीचे दिए गए कृषि विकल्पों में से चुनें:",
+     "advisoryTextCg": "मैं सिरिफ किसानी से जुड़े सवाल के जवाब दे सकथंव। नीचे कोनो भी किसानी विकल्प ला चुनव:",
+     "slotSuggestions": ["धान ₹3,100 भाव", "खाद हिसाब", "टमाटर मंडी भाव", "आज का मौसम", "माहू की दवा"],
+     "whatsappShareText": ""
+   }
+
+2. IF THE QUESTION IS ABOUT AGRICULTURE:
+   Provide an authentic, scientifically sound, practical response tailored to Chhattisgarh farmers:
+   - "isAgricultural": true
+   - "intent": "AI_EXPERT_ADVISORY"
+   - "icon": An appropriate agricultural emoji (e.g. 🌿, 💊, 🌾, 🐮, 💧, 🌽, 🐛, 🍎)
+   - "headline": Crisp, bold title in Hindi (e.g. "पपीता में पत्ती मुड़ना (लीफ कर्ल): पक्का इलाज")
+   - "headlineCg": In Chhattisgarhi
+   - "textHi": 2-3 warm, grandfatherly sentences spoken by Bhaira Kaka explaining the diagnosis or solution in clear Hindi with exact dosages (e.g. 10-15 ग्राम प्रति 15 लीटर टंकी).
+   - "textCg": Same in warm Chhattisgarhi dialect.
+   - "cards": 3 or 4 visual cards with icon, label, value, sub, bg, border, color.
+     Examples:
+     { "icon": "💊", "label": "अनुशंसित दवा", "value": "इमिडाक्लोप्रिड 17.8% SL", "sub": "CIBRC प्रमाणित", "bg": "#f0fdf4", "border": "#86efac", "color": "#166534" }
+     { "icon": "⚖️", "label": "15L पंप नाप", "value": "6 से 8 ml प्रति टंकी", "sub": "स्प्रे घोल", "bg": "#fefce8", "border": "#fef08a", "color": "#854d0e" }
+     { "icon": "🌿", "label": "जैविक विकल्प", "value": "नीम तेल 5 ml/L", "sub": "देसी सुरक्षा", "bg": "#eff6ff", "border": "#bfdbfe", "color": "#1d4ed8" }
+     { "icon": "⏰", "label": "छिड़काव समय", "value": "शाम को धूप ढलने पर", "sub": "सावधानी", "bg": "#f8fafc", "border": "#cbd5e1", "color": "#1e293b" }
+   - "advisoryText": Practical guidance (2-3 sentences) on application method, irrigation timing, or prevention in Hindi.
+   - "advisoryTextCg": In Chhattisgarhi.
+   - "slotSuggestions": 3 to 4 related follow-up question chips the farmer can tap next.
+   - "whatsappShareText": A clean text bulletin ready for WhatsApp sharing.
+
+OUTPUT FORMAT: Return ONLY a valid JSON object matching the requested schema. No markdown backticks, no comments, no extra text.`;
+
+  const defaultModels = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
+  const modelsToTry = models.length > 0 ? Array.from(new Set([...defaultModels, ...models])) : defaultModels;
+
+  const modelErrors = [];
+  const redactSecret = (str) => {
+    if (!str || typeof str !== 'string' || !apiKey) return str;
+    return str.split(apiKey).join('[REDACTED_API_KEY]');
+  };
+
+  for (const model of modelsToTry) {
+    try {
+      const url = `${baseUrl}/${model}:generateContent?key=${apiKey}`;
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), Math.min(timeoutMs, 10000));
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey
+        },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }]
+            }
+          ],
+          generationConfig: {
+            temperature: 0.2,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        const errDetail = redactSecret(`[Model ${model}] HTTP ${res.status}: ${errorText.slice(0, 300)}`);
+        modelErrors.push(errDetail);
+        continue;
+      }
+
+      const json = await res.json();
+      const rawText = json?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) {
+        modelErrors.push(`[Model ${model}] Empty content`);
+        continue;
+      }
+
+      const cleanedText = rawText.replace(/```json\s*/g, '').replace(/```\s*$/g, '').trim();
+      const parsed = JSON.parse(cleanedText);
+
+      return {
+        success: true,
+        isLiveAi: true,
+        source: `gemini-agricultural-expert (${model})`,
+        data: parsed
+      };
+    } catch (err) {
+      const errDetail = redactSecret(`[Model ${model}] Exception: ${err.message}`);
+      modelErrors.push(errDetail);
+    }
+  }
+
+  return {
+    success: false,
+    error: 'AI कृषि विशेषज्ञ से संपर्क नहीं हो सका।',
+    technicalError: modelErrors.join(' | ') || 'All models failed',
+    modelErrors
+  };
+};

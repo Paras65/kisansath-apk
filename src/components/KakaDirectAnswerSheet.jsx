@@ -9,6 +9,7 @@ import {
   Chip,
   Paper,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
@@ -159,84 +160,138 @@ export const KakaDirectAnswerSheet = ({
           </Box>
         )}
 
-        {/* Headline Banner */}
-        {headline && (
+        {/* 🌟 AI Agricultural Expert Thinking State */}
+        {answer.isLoadingAiExpert ? (
           <Paper
             elevation={0}
             sx={{
-              p: 1.5,
+              p: 3,
               mb: 2,
               borderRadius: 3,
               bgcolor: '#f0fdf4',
-              border: '1.5px solid #86efac',
+              border: '2px dashed #86efac',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              gap: 1.2,
+              justifyContent: 'center',
+              textAlign: 'center',
+              gap: 2,
             }}
           >
-            <Typography sx={{ fontSize: '1.5rem', lineHeight: 1 }}>
-              {answer.icon || '🌾'}
-            </Typography>
-            <Typography sx={{ fontWeight: 900, color: '#166534', fontSize: { xs: '0.98rem', sm: '1.05rem' }, lineHeight: 1.3 }}>
-              {headline}
-            </Typography>
-          </Paper>
-        )}
-
-        {/* Structured Bold Answer Cards (KPI Grid) */}
-        {answer.cards && answer.cards.length > 0 && (
-          <Box sx={{ display: 'grid', gridTemplateColumns: answer.cards.length === 1 ? '1fr' : 'repeat(2, 1fr)', gap: 1.2, mb: 2 }}>
-            {answer.cards.map((card, idx) => (
-              <Paper
-                key={idx}
-                elevation={0}
+            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+              <CircularProgress size={54} sx={{ color: '#16a34a' }} thickness={4.5} />
+              <Box
                 sx={{
-                  p: 1.4,
-                  borderRadius: 2.5,
-                  bgcolor: card.bg || '#ffffff',
-                  border: `1.5px solid ${card.border || '#e2e8f0'}`,
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: 'absolute',
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.4,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.4rem',
                 }}
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                  <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>{card.icon}</Typography>
-                  <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
-                    {card.label}
-                  </Typography>
-                </Box>
-                <Typography sx={{ fontWeight: 900, color: card.color || '#0f172a', fontSize: '1.15rem', lineHeight: 1.2 }}>
-                  {card.value}
+                🔬
+              </Box>
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 900, color: '#166534', fontSize: '1rem', mb: 0.5 }}>
+                {headline || (isChhattisgarhi ? '👴🏻 काका सोचत हे… वैज्ञानिक सलाह आ रही है' : '👴🏻 काका सोच रहे हैं… वैज्ञानिक सलाह आ रही है')}
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
+                {advisory || (isChhattisgarhi ? 'IGKV रायपुर व ICAR अनुसंधान ले प्रमाणिक उत्तर लोड होवत हे...' : 'IGKV रायपुर व ICAR अनुसंधान से प्रमाणिक उत्तर लोड हो रहा है...')}
+              </Typography>
+            </Box>
+            <Chip
+              size="small"
+              label={isChhattisgarhi ? '🌾 कृषि विशेषज्ञ एआई • 100% प्रमाणिक' : '🌾 कृषि विशेषज्ञ एआई • 100% प्रमाणिक'}
+              sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.72rem', border: '1px solid #86efac' }}
+            />
+          </Paper>
+        ) : (
+          <>
+            {/* Headline Banner */}
+            {headline && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 1.5,
+                  mb: 2,
+                  borderRadius: 3,
+                  bgcolor: '#f0fdf4',
+                  border: '1.5px solid #86efac',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.2,
+                }}
+              >
+                <Typography sx={{ fontSize: '1.5rem', lineHeight: 1 }}>
+                  {answer.icon || '🌾'}
                 </Typography>
-                {card.sub && (
-                  <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 600 }}>
-                    {card.sub}
-                  </Typography>
-                )}
+                <Typography sx={{ fontWeight: 900, color: '#166534', fontSize: { xs: '0.98rem', sm: '1.05rem' }, lineHeight: 1.3 }}>
+                  {headline}
+                </Typography>
               </Paper>
-            ))}
-          </Box>
-        )}
+            )}
 
-        {/* Spoken Text / Advisory Box */}
-        {advisory && (
-          <Box
-            sx={{
-              p: 1.4,
-              mb: 2,
-              borderRadius: 2.5,
-              bgcolor: '#fffbeb',
-              border: '1.2px solid #fef08a',
-            }}
-          >
-            <Typography variant="caption" sx={{ color: '#854d0e', fontWeight: 800, fontSize: '0.72rem', display: 'block', mb: 0.3 }}>
-              💡 {isChhattisgarhi ? 'काका के सीख / सलाह:' : 'काका की सलाह:'}
-            </Typography>
-            <Typography sx={{ color: '#713f12', fontWeight: 700, fontSize: '0.84rem', lineHeight: 1.45 }}>
-              {advisory}
-            </Typography>
-          </Box>
+            {/* Structured Bold Answer Cards (KPI Grid) */}
+            {answer.cards && answer.cards.length > 0 && (
+              <Box sx={{ display: 'grid', gridTemplateColumns: answer.cards.length === 1 ? '1fr' : 'repeat(2, 1fr)', gap: 1.2, mb: 2 }}>
+                {answer.cards.map((card, idx) => (
+                  <Paper
+                    key={idx}
+                    elevation={0}
+                    sx={{
+                      p: 1.4,
+                      borderRadius: 2.5,
+                      bgcolor: card.bg || '#ffffff',
+                      border: `1.5px solid ${card.border || '#e2e8f0'}`,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 0.4,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                      <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>{card.icon}</Typography>
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
+                        {card.label}
+                      </Typography>
+                    </Box>
+                    <Typography sx={{ fontWeight: 900, color: card.color || '#0f172a', fontSize: '1.15rem', lineHeight: 1.2 }}>
+                      {card.value}
+                    </Typography>
+                    {card.sub && (
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 600 }}>
+                        {card.sub}
+                      </Typography>
+                    )}
+                  </Paper>
+                ))}
+              </Box>
+            )}
+
+            {/* Spoken Text / Advisory Box */}
+            {advisory && (
+              <Box
+                sx={{
+                  p: 1.4,
+                  mb: 2,
+                  borderRadius: 2.5,
+                  bgcolor: '#fffbeb',
+                  border: '1.2px solid #fef08a',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#854d0e', fontWeight: 800, fontSize: '0.72rem', display: 'block', mb: 0.3 }}>
+                  💡 {isChhattisgarhi ? 'काका के सीख / सलाह:' : 'काका की सलाह:'}
+                </Typography>
+                <Typography sx={{ color: '#713f12', fontWeight: 700, fontSize: '0.84rem', lineHeight: 1.45 }}>
+                  {advisory}
+                </Typography>
+              </Box>
+            )}
+          </>
         )}
 
         {/* Missing Slot Prompt (Multi-turn Slot Collector) */}

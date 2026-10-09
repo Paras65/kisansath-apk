@@ -320,21 +320,7 @@ export const calculateDiseaseOutbreakRisk = (hourly = {}) => {
   };
 };
 
-/**
- * Synchronously retrieves last known valid weather data from localStorage
- * Returns null if no cached data exists (enables 0ms instant render without 200ms flicker).
- */
-export const getCachedWeather = (districtName = 'रायपुर') => {
-  if (typeof window === 'undefined' || !window.localStorage) return null;
-  const cacheKey = `kisan_weather_${districtName}`;
-  try {
-    const raw = localStorage.getItem(cacheKey);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch (e) {
-    return null;
-  }
-};
+// Note: getCachedWeather is exported comprehensively below with full agro-climatic fallbacks.
 
 /**
  * Detect Unseasonal Cyclonic / Post-Monsoon Rain ("मावठा") in Chhattisgarh
@@ -654,53 +640,101 @@ export const fetchLiveWeather = async (districtName = 'रायपुर') => {
     logClientNetworkError('open-meteo', err, { method: 'GET' });
   }
 
-  // Fallback to cache if offline
-  const cached = localStorage.getItem(cacheKey);
-  if (cached) {
+  // Fallback to offline cache or authentic agro-climatic defaults
+  return getCachedWeather(districtName);
+};
+
+/**
+ * Synchronous cached weather resolver with authentic agro-climatic fallbacks for all 33 CG districts
+ */
+export const getCachedWeather = (districtName = 'रायपुर') => {
+  const target = districtName || 'रायपुर';
+  const cacheKey = `kisan_weather_${target}`;
+
+  // 1. Check offline localStorage cache
+  if (typeof window !== 'undefined' && window.localStorage) {
     try {
-      const parsed = JSON.parse(cached);
-      parsed.isLive = false;
-      parsed.sprayAdvisory = getSprayAdvisory(parsed);
-      if (!parsed.soilMoisture) parsed.soilMoisture = calculateSoilMoistureAdvisory(0.26, 0.28);
-      if (!parsed.diseaseRisk) parsed.diseaseRisk = calculateDiseaseOutbreakRisk();
-      if (!parsed.lightningRisk) parsed.lightningRisk = calculateLightningRisk();
-      if (!parsed.harvestDryingWindow) parsed.harvestDryingWindow = calculateHarvestDryingWindow({}, parsed.forecast3Days);
-      parsed.mawathaAlert = calculateMawathaRainAlert({}, parsed.forecast3Days || [], new Date().getMonth());
-      parsed.updatedAt = parsed.displayTime ? `सहेजा डेटा (${parsed.displayTime})` : 'ऑफ़लाइन सहेजा डेटा';
-      return parsed;
-    } catch (e) {}
+      const cached = localStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        parsed.isLive = false;
+        parsed.sprayAdvisory = getSprayAdvisory(parsed);
+        if (!parsed.soilMoisture) parsed.soilMoisture = calculateSoilMoistureAdvisory(0.26, 0.28);
+        if (!parsed.diseaseRisk) parsed.diseaseRisk = calculateDiseaseOutbreakRisk();
+        if (!parsed.lightningRisk) parsed.lightningRisk = calculateLightningRisk();
+        if (!parsed.harvestDryingWindow) parsed.harvestDryingWindow = calculateHarvestDryingWindow({}, parsed.forecast3Days);
+        parsed.mawathaAlert = calculateMawathaRainAlert({}, parsed.forecast3Days || [], new Date().getMonth());
+        parsed.updatedAt = parsed.displayTime ? `सहेजा डेटा (${parsed.displayTime})` : 'ऑफ़लाइन सहेजा डेटा';
+        return parsed;
+      }
+    } catch {}
   }
 
-  // Safe regional default
+  // 2. Zone-Specific Agro-Climatic Defaults (Northern Hills, Bastar Plateau, Central Plains)
+  const northernHills = ['अंबिकापुर', 'कोरिया', 'सूरजपुर', 'बलरामपुर', 'जशपुर', 'मनेंद्रगढ़', 'गौरेला-पेंड्रा'];
+  const bastarPlateau = ['जगदलपुर', 'दंतेवाड़ा', 'सुकमा', 'बीजापुर', 'नारायणपुर', 'कोंडागांव', 'कांकेर'];
+
+  let temp = 31;
+  let tempMax = 34;
+  let tempMin = 24;
+  let humidity = 62;
+  let windSpeed = 9;
+  let rainProb = 15;
+  let condHi = 'सामान्य धूप व अनुकूल';
+  let condCg = 'बने घाम अउ अनुकूर मौसम';
+  let condIcon = '🌤️';
+
+  if (northernHills.includes(target)) {
+    temp = 27;
+    tempMax = 30;
+    tempMin = 19;
+    humidity = 58;
+    windSpeed = 8;
+    rainProb = 10;
+    condHi = 'पहाड़ी धूप व मुख्यतः साफ';
+    condCg = 'पहाड़ी घाम अउ उघरा मौसम';
+    condIcon = '☀️';
+  } else if (bastarPlateau.includes(target)) {
+    temp = 28;
+    tempMax = 32;
+    tempMin = 21;
+    humidity = 68;
+    windSpeed = 9;
+    rainProb = 20;
+    condHi = 'आंशिक बादल व सुहावना';
+    condCg = 'हल्का बादर अउ सुहावन मौसम';
+    condIcon = '⛅';
+  }
+
   const defaultWeather = {
-    district: districtName,
-    temp: 31,
-    tempMax: 34,
-    tempMin: 24,
-    humidity: 62,
-    windSpeed: 9,
+    district: target,
+    temp,
+    tempMax,
+    tempMin,
+    humidity,
+    windSpeed,
     precipitation: 0,
-    rainProbability: 15,
+    rainProbability: rainProb,
     isRaining: false,
-    conditionText: 'सामान्य धूप व अनुकूल',
-    conditionTextCg: 'बने घाम अउ अनुकूर मौसम',
-    conditionIcon: '🌤️',
+    conditionText: condHi,
+    conditionTextCg: condCg,
+    conditionIcon: condIcon,
     conditionName: 'Sunny',
     updatedAt: 'ऑफ़लाइन सुरक्षित डेटा',
     isLive: false,
-    soilTemperature: 28,
+    soilTemperature: temp - 2,
     soilMoisture: calculateSoilMoistureAdvisory(0.26, 0.28),
     diseaseRisk: calculateDiseaseOutbreakRisk(),
     lightningRisk: calculateLightningRisk(),
     harvestDryingWindow: calculateHarvestDryingWindow({}, [
-      { day: 'आज', rainProb: 15 },
-      { day: 'बिहान', rainProb: 10 },
-      { day: 'पर्सों', rainProb: 20 }
+      { day: 'आज', rainProb },
+      { day: 'बिहान', rainProb: Math.max(0, rainProb - 5) },
+      { day: 'पर्सों', rainProb: Math.max(0, rainProb - 10) }
     ]),
     forecast3Days: [
-      { day: 'आज (Today)', dayCg: 'आज', tempMax: 34, tempMin: 24, rainProb: 15, icon: '🌤️', condition: 'सामान्य धूप', conditionCg: 'बने घाम' },
-      { day: 'कल (Tomorrow)', dayCg: 'बिहान', tempMax: 35, tempMin: 24, rainProb: 10, icon: '⛅', condition: 'धूप व बादल', conditionCg: 'घाम अउ बादर' },
-      { day: 'परसों (Day 3)', dayCg: 'पर्सों', tempMax: 33, tempMin: 23, rainProb: 20, icon: '🌤️', condition: 'मुख्यतः साफ', conditionCg: 'जादातर उघरा' }
+      { day: 'आज (Today)', dayCg: 'आज', tempMax, tempMin, rainProb, icon: condIcon, condition: condHi, conditionCg: condCg },
+      { day: 'कल (Tomorrow)', dayCg: 'बिहान', tempMax: tempMax + 1, tempMin, rainProb: Math.max(0, rainProb - 5), icon: '⛅', condition: 'धूप व बादल', conditionCg: 'घाम अउ बादर' },
+      { day: 'परसों (Day 3)', dayCg: 'पर्सों', tempMax, tempMin: tempMin - 1, rainProb: Math.max(0, rainProb - 10), icon: '🌤️', condition: 'मुख्यतः साफ', conditionCg: 'जादातर उघरा' }
     ]
   };
   defaultWeather.sprayAdvisory = getSprayAdvisory(defaultWeather);
