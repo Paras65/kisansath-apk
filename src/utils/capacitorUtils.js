@@ -16,6 +16,74 @@ export const isNativePlatform = () => {
 };
 
 /**
+ * Comprehensive check if the application is already installed, running in standalone/TWA/PWA, or native APK
+ */
+export const isAppAlreadyInstalled = () => {
+  if (typeof window === 'undefined') return false;
+
+  // 1. Native Capacitor APK platform
+  if (isNativePlatform()) return true;
+
+  // 2. Running in standalone / fullscreen / minimal-ui display mode (Installed PWA on Android, iOS, Windows, Mac)
+  try {
+    if (
+      window.matchMedia?.('(display-mode: standalone)')?.matches ||
+      window.matchMedia?.('(display-mode: fullscreen)')?.matches ||
+      window.matchMedia?.('(display-mode: minimal-ui)')?.matches
+    ) {
+      return true;
+    }
+  } catch {}
+
+  // 3. iOS Safari standalone home-screen mode
+  if (window.navigator?.standalone === true) return true;
+
+  // 4. Android TWA package referrer (android-app://in.co.init65.kisan)
+  if (typeof document !== 'undefined' && document.referrer?.includes('android-app://')) return true;
+
+  // 5. Android TWA custom user-agent signature
+  if (typeof navigator !== 'undefined' && /in\.co\.init65\.kisan|TWA/i.test(navigator.userAgent || '')) {
+    return true;
+  }
+
+  // 6. User previously installed the application on this device/browser
+  try {
+    if (localStorage.getItem('kisan_app_installed') === 'true') return true;
+  } catch {}
+
+  return false;
+};
+
+/**
+ * Check if the user has dismissed the install banner
+ */
+export const isInstallBannerDismissed = () => {
+  try {
+    return localStorage.getItem('kisan_install_dismissed') === 'true';
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Persist user dismissal of install banner
+ */
+export const dismissInstallBanner = () => {
+  try {
+    localStorage.setItem('kisan_install_dismissed', 'true');
+  } catch {}
+};
+
+/**
+ * Record that app was installed
+ */
+export const recordAppInstalled = () => {
+  try {
+    localStorage.setItem('kisan_app_installed', 'true');
+  } catch {}
+};
+
+/**
  * Safely open Android phone dialer with a given phone number
  */
 export const openNativeDialer = (phone) => {

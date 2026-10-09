@@ -53,6 +53,7 @@ import { MotorControllerModal } from './MotorControllerModal';
 
 export const SettingsTab = ({
   selectedDistrict,
+  exactLocation = '',
   onDistrictChange,
   isGpsLocation = false,
   onOpenAdmin = () => {},
@@ -99,11 +100,12 @@ export const SettingsTab = ({
       const res = await detectCurrentLocationDistrict(true);
       setDetectingGps(false);
       if (res && res.district) {
+        const resolvedExact = res.exactLocation || (res.locality ? `${res.locality}, ${res.district}` : res.district);
         if (typeof onDistrictChange === 'function') {
-          onDistrictChange(res.district, true);
+          onDistrictChange(res.district, true, resolvedExact);
         }
-        notify.success(tCg(`📍 GPS ले मिले जगह: ${res.district}`, `📍 वर्तमान स्थान सेट हुआ: ${res.district}`));
-        speakText(isChhattisgarhi ? `अपन जगह ${res.district} सेट होगे` : `आपके स्थान ${res.district} सेट हो गया`);
+        notify.success(tCg(`📍 GPS ले मिले जगह: ${resolvedExact}`, `📍 वर्तमान स्थान सेट हुआ: ${resolvedExact}`));
+        speakText(isChhattisgarhi ? `अपन जगह ${resolvedExact} सेट होगे` : `आपके स्थान ${resolvedExact} सेट हो गया`);
       }
     } catch {
       setDetectingGps(false);
@@ -461,7 +463,7 @@ export const SettingsTab = ({
                 वर्तमान चयनित जिला:
               </Typography>
               <Typography variant="h6" sx={{ fontWeight: 900, color: '#166534', fontSize: '1.1rem' }}>
-                📍 {activeFarmer?.village ? `${activeFarmer.village}, ` : ''}{selectedDistrict} {isGpsLocation && <span style={{ fontSize: '0.72rem', color: '#15803d' }}>(लाइव GPS)</span>}
+                📍 {exactLocation || (activeFarmer?.village ? `${activeFarmer.village}, ` : '') + selectedDistrict} {isGpsLocation && <span style={{ fontSize: '0.72rem', color: '#15803d' }}>(लाइव GPS)</span>}
               </Typography>
             </Box>
             <Button

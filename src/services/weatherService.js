@@ -56,12 +56,139 @@ export const findClosestDistrict = (latitude, longitude) => {
   return closestDistrict;
 };
 
+// Common Chhattisgarh Tehsil/Block/Town English-to-Hindi Mapping Dictionary
+const CG_LOCALITY_HI_MAP = {
+  'raipur': 'रायपुर', 'durg': 'दुर्ग', 'bhilai': 'भिलाई', 'bilaspur': 'बिलासपुर',
+  'rajnandgaon': 'राजनांदगांव', 'dhamtari': 'धमतरी', 'mahasamund': 'महासमुंद',
+  'balod': 'बालोद', 'bemetara': 'बेमेतरा', 'gariaband': 'गरियाबंद', 'kanker': 'कांकेर',
+  'kawardha': 'कवर्धा', 'korba': 'कोरबा', 'raigarh': 'रायगढ़', 'janjgir': 'जांजगीर',
+  'champa': 'चांपा', 'mungeli': 'मुंगेली', 'jagdalpur': 'जगदलपुर', 'bastar': 'बस्तर',
+  'ambikapur': 'अंबिकापुर', 'surguja': 'सरगुजा', 'surajpur': 'सूरजपुर', 'balrampur': 'बलरामपुर',
+  'koriya': 'कोरिया', 'baikunthpur': 'बैकुंठपुर', 'jashpur': 'जशपुर', 'sakti': 'सक्ती',
+  'sarangarh': 'सारंगढ़', 'manendragarh': 'मनेंद्रगढ़', 'chirmiri': 'चिरमिरी',
+  'pendra': 'पेंड्रा', 'gaurela': 'गौरेला', 'kondagaon': 'कोंडागांव', 'narayanpur': 'नारायणपुर',
+  'bijapur': 'बीजापुर', 'dantewada': 'दंतेवाड़ा', 'sukma': 'सुकमा',
+  'abhanpur': 'अभनपुर', 'arang': 'आरंग', 'tilda': 'तिल्दा', 'tilda newra': 'तिल्दा नेवरा',
+  'dharsiwa': 'धरसींवा', 'patan': 'पाटन', 'gunderdehi': 'गुंडरदेही', 'kurud': 'कुरुद',
+  'nagri': 'नगरी', 'sihawa': 'सिहावा', 'simga': 'सिमगा', 'bhatapara': 'भाटापारा',
+  'kasdol': 'कसडोल', 'palari': 'पलारी', 'lormi': 'लोरमी', 'kota': 'कोटा',
+  'takhatpur': 'तखतपुर', 'masturi': 'मस्तूरी', 'bilha': 'बिल्हा',
+  'chhuikhadan': 'छुईखदान', 'gandai': 'गंडई', 'dongargarh': 'डोंगरगढ़',
+  'dongargaon': 'डोंगरगांव', 'ambagarh chowki': 'अंबागढ़ चौकी', 'mohla': 'मोहला',
+  'manpur': 'मानपुर', 'saja': 'साजा', 'berla': 'बेरला', 'nawagarh': 'नवागढ़',
+  'pandariya': 'पंडरिया', 'bodla': 'बोडला', 'rajim': 'राजिम', 'chhura': 'छुरा',
+  'fingeshwar': 'फिंगेश्वर', 'mainpur': 'मैनपुर', 'deobhog': 'देवभोग',
+  'saraipali': 'सरायपाली', 'basna': 'बसना', 'pithora': 'पिथौरा', 'bagbahara': 'बागबाहरा',
+  'dabhra': 'डभरा', 'malkharoda': 'मालखरौदा', 'baramkela': 'बरमकेला', 'bilaigarh': 'बिलाईगढ़',
+  'kharsia': 'खरसिया', 'gharghoda': 'घरघोड़ा', 'tamnar': 'तमनार', 'lailunga': 'लैलूंगा',
+  'dharamjaigarh': 'धरमजयगढ़', 'katghora': 'कटघोरा', 'pali': 'पाली', 'kartala': 'करतला',
+  'pasan': 'पसान', 'kunkuri': 'कुनकुरी', 'pathalgaon': 'पत्थलगांव', 'bagicha': 'बगीचा',
+  'sitapur': 'सीतापुर', 'lundra': 'लुंड्रा', 'batouli': 'बतौली', 'udaypur': 'उदयपुर',
+  'lakhanpur': 'लखनपुर', 'pratappur': 'प्रतापपुर', 'wadrafnagar': 'वाड्रफनगर',
+  'ramanujganj': 'रामानुजगंज', 'kusmi': 'कुसमी', 'rajpur': 'राजपुर',
+  'bhaiyathan': 'भैयाथान', 'odagi': 'ओड़गी', 'premnagar': 'प्रेमनगर',
+  'bhanupratappur': 'भानुप्रतापपुर', 'charama': 'चारामा', 'antagarh': 'अंतागढ़',
+  'keshkal': 'केशकाल', 'makdi': 'माकड़ी', 'farashgaon': 'फरसगांव'
+};
+
+const formatLocalityHindi = (name) => {
+  if (!name || typeof name !== 'string') return '';
+  const clean = name.trim();
+  const lower = clean.toLowerCase();
+  if (CG_LOCALITY_HI_MAP[lower]) return CG_LOCALITY_HI_MAP[lower];
+  if (/[\u0900-\u097F]/.test(clean)) return clean;
+  return clean;
+};
+
+/**
+ * Reverse Geocode exact location (village/tehsil/locality + district) from GPS coordinates.
+ * High-speed, zero-API-key, completely offline-safe with immediate fallbacks.
+ */
+export const reverseGeocodeExactLocation = async (lat, lon, districtFallback = 'रायपुर') => {
+  if (typeof lat !== 'number' || typeof lon !== 'number') {
+    return { locality: districtFallback, district: districtFallback, exactLocation: districtFallback };
+  }
+
+  try {
+    // 1. BigDataCloud Reverse Geocoding (CORS-friendly, <300ms, Hindi support, zero API key)
+    const bdcUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=hi`;
+    const res = await fetch(bdcUrl, { signal: AbortSignal.timeout(2800) });
+    if (res.ok) {
+      const data = await res.json();
+      const rawLocality = data.locality || data.city || data.localityInfo?.administrative?.[3]?.name || data.localityInfo?.administrative?.[2]?.name;
+      const rawDistrict = data.localityInfo?.administrative?.[2]?.name || districtFallback;
+      const locality = formatLocalityHindi(rawLocality);
+      const district = formatLocalityHindi(rawDistrict) || districtFallback;
+
+      if (locality && district && locality !== district) {
+        return { locality, district, exactLocation: `${locality}, ${district}` };
+      } else if (locality || district) {
+        const finalDist = district || districtFallback;
+        return { locality: locality || finalDist, district: finalDist, exactLocation: finalDist };
+      }
+    }
+  } catch {}
+
+  try {
+    // 2. OpenStreetMap Nominatim Reverse Geocoding Fallback
+    const osmUrl = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=hi,en`;
+    const res = await fetch(osmUrl, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(2800)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const addr = data.address || {};
+      const rawLocality = addr.village || addr.suburb || addr.town || addr.city_district || addr.neighbourhood || addr.county || addr.city;
+      const rawDistrict = addr.state_district || addr.district || districtFallback;
+      const locality = formatLocalityHindi(rawLocality);
+      const district = formatLocalityHindi(rawDistrict) || districtFallback;
+
+      if (locality && district && locality !== district) {
+        return { locality, district, exactLocation: `${locality}, ${district}` };
+      } else if (locality || district) {
+        const finalDist = district || districtFallback;
+        return { locality: locality || finalDist, district: finalDist, exactLocation: finalDist };
+      }
+    }
+  } catch {}
+
+  return {
+    locality: districtFallback,
+    district: districtFallback,
+    exactLocation: districtFallback
+  };
+};
+
 /**
  * Auto-detect user's current GPS location and resolve closest agricultural center
  * Seamlessly integrates Native Android Hardware Location Manager & Web Geolocation
+ * Resolves exact location (tehsil/village/town) alongside district with zero maps.
  */
 export const detectCurrentLocationDistrict = (highAccuracy = false) => {
   return new Promise((resolve, reject) => {
+    const resolveWithLocation = async (lat, lon, accuracy) => {
+      const fallbackDistrict = findClosestDistrict(lat, lon);
+      try {
+        const geo = await reverseGeocodeExactLocation(lat, lon, fallbackDistrict);
+        resolve({
+          district: geo.district || fallbackDistrict,
+          locality: geo.locality || '',
+          exactLocation: geo.exactLocation || fallbackDistrict,
+          coords: { latitude: lat, longitude: lon, accuracy },
+          isLiveGps: true,
+        });
+      } catch {
+        resolve({
+          district: fallbackDistrict,
+          locality: '',
+          exactLocation: fallbackDistrict,
+          coords: { latitude: lat, longitude: lon, accuracy },
+          isLiveGps: true,
+        });
+      }
+    };
+
     // 1. Check Native Android Hardware GPS Bridge (Instant 0ms Hardware Fix for APK)
     if (
       typeof window !== 'undefined' &&
@@ -73,12 +200,7 @@ export const detectCurrentLocationDistrict = (highAccuracy = false) => {
         if (raw) {
           const parsed = JSON.parse(raw);
           if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
-            const district = findClosestDistrict(parsed.lat, parsed.lon);
-            resolve({
-              district,
-              coords: { latitude: parsed.lat, longitude: parsed.lon, accuracy: parsed.accuracy },
-              isLiveGps: true,
-            });
+            resolveWithLocation(parsed.lat, parsed.lon, parsed.accuracy);
             return;
           }
         }
@@ -103,12 +225,7 @@ export const detectCurrentLocationDistrict = (highAccuracy = false) => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude, accuracy } = pos.coords;
-        const district = findClosestDistrict(latitude, longitude);
-        resolve({
-          district,
-          coords: { latitude, longitude, accuracy },
-          isLiveGps: true,
-        });
+        resolveWithLocation(latitude, longitude, accuracy);
       },
       (err) => {
         // Fallback retry to native bridge if navigator returned permission or timeout error
@@ -122,12 +239,7 @@ export const detectCurrentLocationDistrict = (highAccuracy = false) => {
             if (raw) {
               const parsed = JSON.parse(raw);
               if (parsed && typeof parsed.lat === 'number' && typeof parsed.lon === 'number') {
-                const district = findClosestDistrict(parsed.lat, parsed.lon);
-                resolve({
-                  district,
-                  coords: { latitude: parsed.lat, longitude: parsed.lon, accuracy: parsed.accuracy },
-                  isLiveGps: true,
-                });
+                resolveWithLocation(parsed.lat, parsed.lon, parsed.accuracy);
                 return;
               }
             }

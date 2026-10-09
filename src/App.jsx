@@ -14,7 +14,6 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
-import SettingsIcon from '@mui/icons-material/Settings';
 
 import { theme } from './theme';
 import { Header } from './components/Header';
@@ -27,8 +26,14 @@ import { ChaupalTab } from './components/ChaupalTab';
 import { SettingsTab } from './components/SettingsTab';
 import { GlobalNotification } from './components/GlobalNotification';
 import { notify } from './services/notificationService';
-import { appConfig } from './config/appConfig';
-import { isNativePlatform, setNativeNavContext } from './utils/capacitorUtils';
+import {
+  isNativePlatform,
+  isAppAlreadyInstalled,
+  isInstallBannerDismissed,
+  dismissInstallBanner,
+  recordAppInstalled,
+  setNativeNavContext,
+} from './utils/capacitorUtils';
 import { speakText, stopSpeech, subscribeSpeechState } from './utils/speech';
 import {
   startVoiceRecognition,
@@ -67,6 +72,7 @@ import ShareIcon from '@mui/icons-material/Share';
 import PublicIcon from '@mui/icons-material/Public';
 import SyncIcon from '@mui/icons-material/Sync';
 import { checkForAppUpdate } from './services/updateService';
+import { appConfig } from './config/appConfig';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -130,15 +136,55 @@ function App() {
       return false;
     }
   });
+  const [exactLocation, setExactLocation] = useState(() => {
+    try {
+      return localStorage.getItem('kisan_exact_location') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [detectingGps, setDetectingGps] = useState(false);
 
-  // Handler for district changes (manual or GPS)
-  const handleDistrictChange = (newDistrict, fromGps = false) => {
+  // Handler for district and exact location changes (manual or GPS)
+  const handleDistrictChange = (newDistrict, fromGps = false, newExactLocation = '') => {
     setSelectedDistrict(newDistrict);
     setIsGpsLocation(fromGps);
+    const resolvedExact = newExactLocation || (fromGps ? newDistrict : '');
+    setExactLocation(resolvedExact);
     try {
       localStorage.setItem('kisan_selected_district', newDistrict);
       localStorage.setItem('kisan_is_gps_location', fromGps ? 'true' : 'false');
+      if (resolvedExact) {
+        localStorage.setItem('kisan_exact_location', resolvedExact);
+      } else {
+        localStorage.removeItem('kisan_exact_location');
+      }
     } catch (e) {}
+  };
+
+  // 1-Tap Live GPS Location Detection (No Map, pure direct exact location)
+  const handleDetectLiveGps = async () => {
+    const hasBridgeGps = typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getNativeLocation === 'function';
+    if (!hasBridgeGps && (typeof navigator === 'undefined' || !navigator.geolocation)) {
+      notify.warning(isChhattisgarhi ? 'मोबाइल म GPS सुविधा नइये।' : 'डिवाइस में GPS सुविधा उपलब्ध नहीं है।');
+      return;
+    }
+    setDetectingGps(true);
+    notify.info(isChhattisgarhi ? '📡 GPS ले तीर के सटीक जगह अऊ मौसम केंद्र खोजे जावत हे...' : '📡 GPS द्वारा सटीक स्थान व मौसम केंद्र खोजा जा रहा है...');
+    try {
+      const res = await detectCurrentLocationDistrict(true);
+      setDetectingGps(false);
+      if (res && res.district) {
+        const resolvedExact = res.exactLocation || res.district;
+        handleDistrictChange(res.district, true, resolvedExact);
+        notify.success(isChhattisgarhi ? `📍 लाइव जगह मिलिस: ${resolvedExact}` : `📍 लाइव स्थान प्राप्त: ${resolvedExact}`);
+        speakText(isChhattisgarhi ? `अपन जगह ${resolvedExact} सेट होगे` : `आपके स्थान ${resolvedExact} का मौसम सेट हो गया`);
+      }
+    } catch {
+      setDetectingGps(false);
+      notify.warning(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। फोन के Location चालू करव।' : 'GPS अनुमति नहीं मिली। कृपया फोन की Location चालू करें।');
+      speakText(isChhattisgarhi ? 'GPS अनुमति नइ मिलिस। फोन के लोकेशन चालू करव।' : 'GPS अनुमति नहीं मिली। कृपया लोकेशन चालू करें।');
+    }
   };
 
   // Automatically detect user's current GPS location on app mount
@@ -147,11 +193,14 @@ function App() {
     detectCurrentLocationDistrict(false)
       .then((res) => {
         if (!isCancelled && res?.district) {
+          const resolvedExact = res.exactLocation || res.district;
           setSelectedDistrict(res.district);
           setIsGpsLocation(true);
+          setExactLocation(resolvedExact);
           try {
             localStorage.setItem('kisan_selected_district', res.district);
             localStorage.setItem('kisan_is_gps_location', 'true');
+            localStorage.setItem('kisan_exact_location', resolvedExact);
           } catch (e) {}
         }
       })
@@ -679,35 +728,64 @@ function App() {
     }
   }, []);
 
-  // Listen for PWA beforeinstallprompt event (suppressed in native APK)
+  // Listen for PWA beforeinstallprompt event (suppressed if already installed, in standalone PWA/TWA/APK, or dismissed)
   useEffect(() => {
-    if (isNativePlatform()) {
+    // If already installed or dismissed by farmer, never show the banner
+    if (isAppAlreadyInstalled() || isInstallBannerDismissed()) {
       setShowInstallBanner(false);
       return;
+    }
+
+    // Modern Chrome API: check if related PWA or native app is already installed on device
+    if (typeof navigator !== 'undefined' && 'getInstalledRelatedApps' in navigator) {
+      navigator.getInstalledRelatedApps().then((relatedApps) => {
+        if (relatedApps && relatedApps.length > 0) {
+          recordAppInstalled();
+          setShowInstallBanner(false);
+        }
+      }).catch(() => {});
     }
 
     const handleBeforeInstall = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallBanner(true);
+      if (!isAppAlreadyInstalled() && !isInstallBannerDismissed()) {
+        setShowInstallBanner(true);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      recordAppInstalled();
+      setDeferredPrompt(null);
+      setShowInstallBanner(false);
+      notify.success(isChhattisgarhi ? '🎉 किसान साथी ऐप इंस्टॉल होगे!' : '🎉 किसान साथी ऐप सफलतापूर्वक इंस्टॉल हो गया!');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
-  }, []);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, [isChhattisgarhi]);
 
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        console.log('[PWA] User accepted install prompt');
+        recordAppInstalled();
+        setShowInstallBanner(false);
       }
       setDeferredPrompt(null);
-      setShowInstallBanner(false);
     } else {
       notify.info('ऐप इंस्टॉल करने के लिए ब्राउज़र के 3 बिंदुओं (Menu) पर दबाकर "Add to Home screen" चुनें।');
     }
+  };
+
+  const handleDismissInstallBanner = () => {
+    dismissInstallBanner();
+    setShowInstallBanner(false);
   };
 
   // Synchronize native Android APK navigation state with Capacitor hardware back button
@@ -821,21 +899,21 @@ function App() {
         {/* Top Header (Adaptive Desktop Nav & Mobile Header) */}
         <Header
           selectedDistrict={selectedDistrict}
-          onDistrictChange={handleDistrictChange}
+          exactLocation={exactLocation}
           isGpsLocation={isGpsLocation}
-          onInstallClick={handleInstallClick}
-          isInstallable={Boolean(deferredPrompt)}
+          detectingGps={detectingGps}
+          onDetectLiveGps={handleDetectLiveGps}
           currentTab={currentTab}
           onNavigate={handleTabChange}
           onOpenDeviceHub={() => setOpenDeviceHub(true)}
           onOpenAdmin={handleOpenAdminPortal}
         />
 
-        {/* PWA Install Banner */}
-        {showInstallBanner && (
+        {/* PWA Install Banner (Hidden if already installed, in standalone mode, or dismissed) */}
+        {showInstallBanner && !isAppAlreadyInstalled() && !isInstallBannerDismissed() && (
           <InstallPrompt
             onInstall={handleInstallClick}
-            onDismiss={() => setShowInstallBanner(false)}
+            onDismiss={handleDismissInstallBanner}
           />
         )}
 
@@ -857,6 +935,7 @@ function App() {
               <HomeTab
                 onNavigate={handleTabChange}
                 selectedDistrict={selectedDistrict}
+                exactLocation={exactLocation}
                 isGpsLocation={isGpsLocation}
                 onDistrictChange={handleDistrictChange}
               />
@@ -868,6 +947,7 @@ function App() {
             {currentTab === 'settings' && (
               <SettingsTab
                 selectedDistrict={selectedDistrict}
+                exactLocation={exactLocation}
                 onDistrictChange={handleDistrictChange}
                 isGpsLocation={isGpsLocation}
                 onOpenAdmin={handleOpenAdminPortal}
@@ -1253,37 +1333,57 @@ function App() {
         >
           <Box sx={{ maxWidth: { xs: '100%', md: 680 }, mx: 'auto', width: '100%' }}>
           <BottomNavigation
-            value={currentTab}
+            value={currentTab === 'settings' ? false : currentTab}
             onChange={(e, newTab) => handleTabChange(newTab)}
             showLabels
             sx={{
-              height: 64,
+              height: 62,
               bgcolor: 'transparent',
               '& .MuiBottomNavigationAction-root': {
                 color: '#64748b',
                 minWidth: 0,
-                px: 0.5,
-                py: 0.6,
+                flex: 1,
+                px: 0.2,
+                py: 0.4,
                 transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                '& .nav-icon-pill': {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 44,
+                  height: 28,
+                  borderRadius: '14px',
+                  bgcolor: 'transparent',
+                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                  mb: 0.2,
+                },
                 '& .MuiSvgIcon-root': {
                   fontSize: 22,
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  borderRadius: '14px',
-                  px: 1,
-                  py: 0.2
+                  color: '#64748b',
+                  transition: 'all 0.2s ease',
+                  p: 0,
+                  m: 0,
+                },
+                '& .MuiBottomNavigationAction-label': {
+                  fontWeight: 600,
+                  fontSize: '0.68rem',
+                  color: '#64748b',
+                  whiteSpace: 'nowrap',
+                  letterSpacing: '-0.2px',
+                  transition: 'all 0.2s ease',
                 },
                 '&.Mui-selected': {
-                  color: '#1b7a2d',
-                  fontWeight: 800,
+                  '& .nav-icon-pill': {
+                    bgcolor: '#dcfce7',
+                  },
                   '& .MuiSvgIcon-root': {
-                    bgcolor: '#e8f5e9',
-                    color: '#1b5e20',
-                    transform: 'scale(1.06)'
+                    color: '#166534',
+                    transform: 'scale(1.08)',
                   },
                   '& .MuiBottomNavigationAction-label': {
-                    fontWeight: 900,
-                    fontSize: '0.76rem',
-                    color: '#1b5e20'
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    color: '#166534',
                   }
                 }
               }
@@ -1292,32 +1392,27 @@ function App() {
             <BottomNavigationAction
               label={t('tab_home')}
               value="home"
-              icon={<HomeIcon sx={{ fontSize: 24 }} />}
+              icon={<Box className="nav-icon-pill"><HomeIcon /></Box>}
             />
             <BottomNavigationAction
               label={t('tab_doctor')}
               value="doctor"
-              icon={<LocalHospitalIcon sx={{ fontSize: 24 }} />}
+              icon={<Box className="nav-icon-pill"><LocalHospitalIcon /></Box>}
             />
             <BottomNavigationAction
               label={t('tab_schemes')}
               value="schemes"
-              icon={<CalculateIcon sx={{ fontSize: 24 }} />}
+              icon={<Box className="nav-icon-pill"><CalculateIcon /></Box>}
             />
             <BottomNavigationAction
               label={t('tab_mandi')}
               value="mandi"
-              icon={<StorefrontIcon sx={{ fontSize: 24 }} />}
+              icon={<Box className="nav-icon-pill"><StorefrontIcon /></Box>}
             />
             <BottomNavigationAction
               label={t('tab_chaupal')}
               value="chaupal"
-              icon={<ForumIcon sx={{ fontSize: 24 }} />}
-            />
-            <BottomNavigationAction
-              label={t('tab_settings')}
-              value="settings"
-              icon={<SettingsIcon sx={{ fontSize: 24 }} />}
+              icon={<Box className="nav-icon-pill"><ForumIcon /></Box>}
             />
           </BottomNavigation>
           </Box>

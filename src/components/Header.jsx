@@ -6,11 +6,9 @@ import {
   Box,
   IconButton,
   Chip,
-  Select,
-  MenuItem,
-  FormControl,
   Tooltip,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import EmailIcon from '@mui/icons-material/Email';
@@ -25,27 +23,23 @@ import CalculateIcon from '@mui/icons-material/Calculate';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import ForumIcon from '@mui/icons-material/Forum';
 import AndroidIcon from '@mui/icons-material/Android';
-import ShareIcon from '@mui/icons-material/Share';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
 import SettingsIcon from '@mui/icons-material/Settings';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
 import { speakText, stopSpeech, subscribeSpeechState } from '../utils/speech';
 import { isNativePlatform } from '../utils/capacitorUtils';
 import { appConfig } from '../config/appConfig';
-import { shareApp } from '../utils/shareUtils';
-import { ShareModal } from './ShareModal';
 import { notify } from '../services/notificationService';
-import { CG_DISTRICT_COORDS, detectCurrentLocationDistrict } from '../services/weatherService';
 import { useLanguage } from '../utils/i18n';
 
 export const Header = ({
-  selectedDistrict,
-  onDistrictChange,
+  selectedDistrict = 'रायपुर',
+  exactLocation = '',
   isGpsLocation = false,
-  onInstallClick,
-  isInstallable,
+  detectingGps = false,
+  onDetectLiveGps = () => {},
   currentTab = 'home',
   onNavigate = () => {},
   onOpenDeviceHub = () => {},
@@ -54,8 +48,6 @@ export const Header = ({
   const { isChhattisgarhi, isHindi, setLanguage, t, tCg } = useLanguage();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [speaking, setSpeaking] = useState(false);
-  const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [detectingGps, setDetectingGps] = useState(false);
 
   const navItems = [
     { id: 'home', label: t('tab_home'), icon: HomeIcon },
@@ -63,28 +55,7 @@ export const Header = ({
     { id: 'schemes', label: t('tab_schemes'), icon: CalculateIcon },
     { id: 'mandi', label: t('tab_mandi'), icon: StorefrontIcon },
     { id: 'chaupal', label: t('tab_chaupal'), icon: ForumIcon },
-    { id: 'settings', label: t('tab_settings'), icon: SettingsIcon },
   ];
-
-  const handleGpsLocation = async () => {
-    if (!navigator.geolocation) {
-      notify.warning(tCg('आपके मोबाइल म GPS सुविधा नइये।', 'आपके डिवाइस में GPS सुविधा उपलब्ध नहीं है।'));
-      return;
-    }
-    setDetectingGps(true);
-    notify.info(tCg('📡 GPS ले तीर के मौसम केंद्र खोजे जावत हे...', '📡 GPS द्वारा नजदीकी कृषि मौसम केंद्र का पता लगाया जा रहा है...'));
-    try {
-      const res = await detectCurrentLocationDistrict(true);
-      setDetectingGps(false);
-      if (res && res.district) {
-        onDistrictChange(res.district, true);
-        notify.success(tCg('📍 GPS ले मिले जगह: {district} (लाइव मौसम चालू)', '📍 GPS स्थान प्राप्त: {district} (लाइव मौसम सक्रिय)', { district: res.district }));
-      }
-    } catch (err) {
-      setDetectingGps(false);
-      notify.info(tCg('GPS अनुमति नइ मिलिस। सूची ले अपन जिला चुनव।', 'GPS अनुमति नहीं मिली। कृपया सूची से अपना जिला चुनें।'));
-    }
-  };
 
   useEffect(() => {
     const handleOnline = () => {
@@ -337,75 +308,70 @@ export const Header = ({
         </Box>
 
         {/* Action Controls */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1 }, flexShrink: 0 }}>
-          {/* Unified District & GPS Pill */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              bgcolor: 'rgba(255,255,255,0.14)',
-              border: '1px solid rgba(255,255,255,0.25)',
-              borderRadius: 2.5,
-              height: { xs: 34, sm: 36 },
-              px: { xs: 0.3, sm: 0.5 },
-              transition: 'all 0.2s',
-              '&:hover': {
-                bgcolor: 'rgba(255,255,255,0.2)',
-                borderColor: 'rgba(255,255,255,0.4)'
-              }
-            }}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.6, sm: 1 }, flexShrink: 0 }}>
+          {/* Exact Live GPS Location Pill (Matches User Uploaded Badge - 100% Live, Zero Map) */}
+          <Tooltip
+            title={
+              isGpsLocation
+                ? (isChhattisgarhi
+                    ? `📍 लाइव GPS सक्रिय: ${exactLocation || selectedDistrict} (स्थान रिफ्रेश करे बर दबाओ)`
+                    : `📍 लाइव GPS सक्रिय: ${exactLocation || selectedDistrict} (लोकेशन रिफ्रेश करने हेतु दबाएं)`)
+                : (isChhattisgarhi
+                    ? "🎯 अपन लाइव जगह खोजव (1-टैप GPS)"
+                    : "🎯 मेरी लाइव लोकेशन लें (1-टैप GPS)")
+            }
           >
-            <Tooltip title={isGpsLocation
-              ? (isChhattisgarhi ? `📍 GPS सक्रिय: ${selectedDistrict} (अपन जगह)` : `📍 GPS सक्रिय: ${selectedDistrict} (वर्तमान स्थान)`)
-              : (isChhattisgarhi ? "📍 मोर अभी के जगह (GPS ले अपने-आप पहचानव)" : "📍 मेरा वर्तमान स्थान (GPS द्वारा स्वतः पहचानें)")}>
-              <span>
-                <IconButton
-                  onClick={handleGpsLocation}
-                  disabled={detectingGps}
-                  size="small"
-                  aria-label="GPS द्वारा जिला पहचानें"
+            <Button
+              size="small"
+              onClick={onDetectLiveGps}
+              disabled={detectingGps}
+              startIcon={
+                detectingGps ? (
+                  <CircularProgress size={13} sx={{ color: '#166534' }} />
+                ) : (
+                  <MyLocationIcon sx={{ fontSize: 16, color: '#166534' }} />
+                )
+              }
+              sx={{
+                bgcolor: '#f0fdf4',
+                color: '#166534',
+                border: '1px solid #86efac',
+                borderRadius: '9999px',
+                height: { xs: 32, sm: 35 },
+                px: { xs: 1, sm: 1.4 },
+                fontWeight: 800,
+                fontSize: { xs: '0.72rem', sm: '0.78rem' },
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                '&:hover': {
+                  bgcolor: '#dcfce7',
+                  borderColor: '#4ade80',
+                  transform: 'scale(1.02)',
+                  boxShadow: '0 2px 8px rgba(22, 101, 52, 0.16)'
+                }
+              }}
+            >
+              {detectingGps ? (
+                <span>{isChhattisgarhi ? 'खोजत हन...' : 'खोज रहे हैं...'}</span>
+              ) : (
+                <Box
+                  component="span"
                   sx={{
-                    color: (detectingGps || isGpsLocation) ? '#4ade80' : '#ffffff',
-                    bgcolor: isGpsLocation ? 'rgba(74, 222, 128, 0.2)' : 'transparent',
-                    p: { xs: 0.4, sm: 0.6 },
-                    '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' }
+                    maxWidth: { xs: 105, sm: 160, md: 220 },
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    display: 'inline-block',
+                    verticalAlign: 'bottom'
                   }}
                 >
-                  <MyLocationIcon sx={{ fontSize: { xs: 16, sm: 18 } }} />
-                </IconButton>
-              </span>
-            </Tooltip>
-
-            <FormControl size="small" variant="standard" sx={{ minWidth: { xs: 75, sm: 110, md: 125 } }}>
-              <Select
-                value={selectedDistrict}
-                onChange={(e) => onDistrictChange(e.target.value, false)}
-                disableUnderline
-                aria-label="जिला चुनें"
-                sx={{
-                  color: '#ffffff',
-                  fontSize: { xs: '0.74rem', sm: '0.8rem' },
-                  fontWeight: 700,
-                  '.MuiSelect-select': {
-                    py: 0.5,
-                    pr: '18px !important',
-                    pl: 0.4
-                  },
-                  '.MuiSvgIcon-root': {
-                    color: 'rgba(255,255,255,0.85)',
-                    fontSize: '1.1rem',
-                    right: 0
-                  }
-                }}
-              >
-                {Object.entries(CG_DISTRICT_COORDS).map(([distKey, info]) => (
-                  <MenuItem key={distKey} value={distKey}>
-                    {info.name || distKey}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
+                  {exactLocation ? exactLocation : (isGpsLocation ? `लाइव GPS • ${selectedDistrict}` : 'लाइव GPS')}
+                </Box>
+              )}
+            </Button>
+          </Tooltip>
 
           {/* Language Switcher Segmented Capsule [ 🌾 छत्ती. | हिंदी ] */}
           <Box
@@ -568,32 +534,31 @@ export const Header = ({
             </Tooltip>
           )}
 
-          {/* Share App Button (Universal on all screens) */}
-          <Tooltip title={isChhattisgarhi ? "किसान संगी मन ला ऐप शेयर करव" : "किसान भाइयों को ऐप शेयर करें"}>
+          {/* Settings & Profile Hub Button (Universal on all screens - Mobile & Desktop) */}
+          <Tooltip title={isChhattisgarhi ? "ऐप सेटिंग्स अउ किसान प्रोफ़ाइल" : "ऐप सेटिंग्स व किसान प्रोफ़ाइल"}>
             <IconButton
-              onClick={() => setShareModalOpen(true)}
-              aria-label="ऐप शेयर करें"
+              onClick={() => onNavigate('settings')}
+              aria-label="सेटिंग्स व प्रोफ़ाइल"
               sx={{
-                bgcolor: 'rgba(255,255,255,0.14)',
-                color: '#fff',
+                bgcolor: currentTab === 'settings' ? '#ffeb3b' : 'rgba(255,255,255,0.14)',
+                color: currentTab === 'settings' ? '#1b5e20' : '#ffffff',
                 width: { xs: 34, sm: 36 },
                 height: { xs: 34, sm: 36 },
                 borderRadius: 2.5,
-                transition: 'all 0.2s',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                border: currentTab === 'settings' ? '1.5px solid #ffffff' : '1px solid rgba(255,255,255,0.2)',
+                boxShadow: currentTab === 'settings' ? '0 2px 8px rgba(0,0,0,0.25)' : 'none',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                '&:hover': {
+                  bgcolor: currentTab === 'settings' ? '#fff59d' : 'rgba(255,255,255,0.25)',
+                  transform: 'scale(1.05)'
+                }
               }}
             >
-              <ShareIcon fontSize="small" />
+              <SettingsIcon sx={{ fontSize: { xs: 19, sm: 21 } }} />
             </IconButton>
           </Tooltip>
         </Box>
       </Toolbar>
-
-      {/* Share Modal */}
-      <ShareModal
-        open={shareModalOpen}
-        onClose={() => setShareModalOpen(false)}
-      />
     </AppBar>
   );
 };

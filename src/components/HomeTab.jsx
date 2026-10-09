@@ -164,6 +164,7 @@ const getIgkvSeasonalAdvisory = (isChhattisgarhi) => {
 export const HomeTab = ({
   onNavigate,
   selectedDistrict,
+  exactLocation = '',
   isGpsLocation = false,
   onDistrictChange
 }) => {
@@ -219,11 +220,12 @@ export const HomeTab = ({
       const res = await detectCurrentLocationDistrict(true);
       setDetectingGps(false);
       if (res && res.district) {
+        const resolvedExact = res.exactLocation || res.district;
         if (typeof onDistrictChange === 'function') {
-          onDistrictChange(res.district, true);
+          onDistrictChange(res.district, true, resolvedExact);
         }
-        notify.success(isChhattisgarhi ? `📍 लाइव जगह मिलिस: ${res.district}` : `📍 वर्तमान स्थान सेट हुआ: ${res.district}`);
-        speakText(isChhattisgarhi ? `अपन जगह ${res.district} के मौसम सेट होगे` : `आपके स्थान ${res.district} का मौसम सेट हो गया`);
+        notify.success(isChhattisgarhi ? `📍 लाइव जगह मिलिस: ${resolvedExact}` : `📍 वर्तमान स्थान सेट हुआ: ${resolvedExact}`);
+        speakText(isChhattisgarhi ? `अपन जगह ${resolvedExact} के मौसम सेट होगे` : `आपके स्थान ${resolvedExact} का मौसम सेट हो गया`);
       }
     } catch {
       setDetectingGps(false);
@@ -1371,7 +1373,7 @@ export const HomeTab = ({
               {isChhattisgarhi ? 'जय जोहार, किसान संगवारी' : 'नमस्ते, किसान साथी'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.78rem', display: 'block', mt: 0.3 }}>
-              📍 {selectedDistrict}{isGpsLocation ? (isChhattisgarhi ? ' (वर्तमान जगह)' : ' (वर्तमान स्थान)') : ''} • {isChhattisgarhi ? 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे' : 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली'}
+              📍 {exactLocation || selectedDistrict}{isGpsLocation ? (isChhattisgarhi ? ' (लाइव GPS)' : ' (लाइव GPS)') : ''} • {isChhattisgarhi ? 'मौसम, मंडी भाव अऊ खाद हिसाब सबो बर मुफ्त अऊ खुला हे' : 'मौसम, मंडी भाव व खाद गणना सभी के लिए निशुल्क व खुली'}
             </Typography>
           </Box>
         </Box>
@@ -2663,7 +2665,7 @@ export const HomeTab = ({
                           '&:hover': { bgcolor: 'rgba(27,94,32,0.16)' }
                         }}
                       >
-                        📍 {activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
+                        📍 {exactLocation || (activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict)} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
                       </Typography>
                     </Box>
                   </Box>

@@ -7,10 +7,25 @@ import ShareIcon from '@mui/icons-material/Share';
 import { appConfig } from '../config/appConfig';
 import { ShareModal } from './ShareModal';
 import { useLanguage } from '../utils/i18n';
+import {
+  isAppAlreadyInstalled,
+  isInstallBannerDismissed,
+  dismissInstallBanner,
+} from '../utils/capacitorUtils';
 
 export const InstallPrompt = ({ onInstall, onDismiss }) => {
   const { isChhattisgarhi } = useLanguage();
   const [shareModalOpen, setShareModalOpen] = useState(false);
+
+  // Suppress banner if already installed in standalone/TWA/APK or dismissed by farmer
+  if (isAppAlreadyInstalled() || isInstallBannerDismissed()) {
+    return null;
+  }
+
+  const handleDismiss = () => {
+    dismissInstallBanner();
+    if (onDismiss) onDismiss();
+  };
 
   return (
     <Box sx={{ width: '100%', maxWidth: '1536px', mx: 'auto', px: { xs: 1, sm: 2, md: 3, lg: 4, xl: 5 } }}>
@@ -135,7 +150,7 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
           <Tooltip title={isChhattisgarhi ? 'हटाव' : 'हटाएं'}>
             <IconButton
               size="small"
-              onClick={onDismiss}
+              onClick={handleDismiss}
               sx={{
                 color: '#78909c',
                 p: 0.4,

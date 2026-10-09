@@ -103,14 +103,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.70';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.72';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🛡️ सम्पूर्ण API सुरक्षा ऑडिट एवं सुदृढ़ीकरण: सख्त CORS व्हाइटलिस्टिंग, ReDoS प्रहार रोकथाम एवं चौपाल उत्तर स्पैम रोधी दर-सीमा एकीकरण।',
+    releaseNotes: '🎯 शीर्ष हेडर लाइव GPS सटीक स्थान पिल (शून्य-नक्शा) व स्वर्णिम 5-टैब नेविगेशन: हेडर में 1-टैप लाइव GPS पिल से ब्लॉक/तहसील व जिला सीधा प्रदर्शन (बिना नक्शे के), मोबाइल बॉटम बार में 5 मुख्य कृषि टैब (24px आइकॉन्स), एवं शीर्ष हेडर सेटिंग्स हब।',
     updatedAt: new Date().toISOString()
   });
 });
