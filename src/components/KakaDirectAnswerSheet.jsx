@@ -7,8 +7,6 @@ import {
   Button,
   IconButton,
   Chip,
-  Paper,
-  Divider,
   CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -77,248 +75,186 @@ export const KakaDirectAnswerSheet = ({
       PaperProps={{
         sx: {
           m: { xs: 0, sm: 2 },
-          width: { xs: '100%', sm: '460px' },
-          maxHeight: { xs: '88vh', sm: '85vh' },
-          borderRadius: { xs: '24px 24px 0 0', sm: '28px' },
-          border: '2px solid #2e7d32',
-          boxShadow: '0 -8px 32px rgba(0,0,0,0.25)',
+          width: { xs: '100%', sm: '450px' },
+          maxHeight: { xs: '85vh', sm: '80vh' },
+          borderRadius: { xs: '24px 24px 0 0', sm: '24px' },
+          boxShadow: '0 -8px 30px rgba(0,0,0,0.15)',
           bgcolor: '#ffffff',
           overflow: 'hidden',
         },
       }}
     >
-      {/* 1. Header: Bhaira Kaka Persona Badge */}
-      <Box
-        sx={{
-          bgcolor: '#1b5e20',
-          color: '#ffffff',
-          px: 2,
-          py: 1.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '2px solid #2e7d32',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
-          <Box
-            component="img"
-            src="/icons/kaka-speaking-cg.png"
-            onError={(e) => { e.currentTarget.src = '/icons/kaka-idle-cg.png'; }}
-            alt="बहिरा काका"
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '50%',
-              bgcolor: '#ffffff',
-              border: '2px solid #facc15',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-              objectFit: 'cover',
-            }}
-          />
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, fontSize: '0.95rem', color: '#fef08a', lineHeight: 1.2 }}>
-              👴🏻 {isChhattisgarhi ? 'काका के सीधा जवाब' : 'काका का सीधा जवाब'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#bbf7d0', fontSize: '0.72rem', fontWeight: 600 }}>
-              {isSpeaking ? (isChhattisgarhi ? '📢 काका बोलत हे...' : '📢 काका बोल रहे हैं...') : (isChhattisgarhi ? '✓ उत्तर तैयार हे' : '✓ उत्तर तैयार है')}
-            </Typography>
+      {/* 1. Header: Pull Handle & Clean Persona Bar */}
+      <Box sx={{ pt: 1.2, pb: 1, px: 2, bgcolor: '#ffffff', borderBottom: '1px solid #f1f5f9' }}>
+        <Box sx={{ width: 36, height: 4, bgcolor: '#cbd5e1', borderRadius: 2, mx: 'auto', mb: 1.2 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+            <Box
+              component="img"
+              src={isSpeaking ? '/icons/kaka-speaking.png' : '/icons/kaka-idle.png'}
+              onError={(e) => { e.currentTarget.src = isSpeaking ? '/icons/kaka-speaking-cg.png' : '/icons/kaka-idle-cg.png'; }}
+              alt="बहिरा काका"
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '50%',
+                bgcolor: '#f8fafc',
+                border: isSpeaking ? '2px solid #eab308' : '1.5px solid #e2e8f0',
+                objectFit: 'cover',
+                transition: 'all 0.2s ease',
+              }}
+            />
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f172a', lineHeight: 1.2 }}>
+                👴🏻 {isChhattisgarhi ? 'काका के सीधा जवाब' : 'काका का सीधा जवाब'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: isSpeaking ? '#ca8a04' : '#64748b', fontSize: '0.72rem', fontWeight: 600 }}>
+                {isSpeaking ? (isChhattisgarhi ? '📢 काका बोलत हे...' : '📢 काका बोल रहे हैं...') : (isChhattisgarhi ? 'उत्तर तैयार हे' : 'उत्तर तैयार है')}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-          <IconButton
-            size="small"
-            onClick={handleToggleSpeech}
-            sx={{
-              bgcolor: isSpeaking ? '#ef4444' : '#22c55e',
-              color: '#ffffff',
-              p: 0.7,
-              '&:hover': { bgcolor: isSpeaking ? '#dc2626' : '#16a34a' },
-            }}
-            aria-label={isSpeaking ? 'रोकें' : 'सुनें'}
-          >
-            {isSpeaking ? <StopIcon sx={{ fontSize: 20 }} /> : <VolumeUpIcon sx={{ fontSize: 20 }} />}
-          </IconButton>
-          <IconButton size="small" onClick={onClose} sx={{ color: '#ffffff' }} aria-label="close">
-            <CloseIcon sx={{ fontSize: 22 }} />
-          </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <IconButton
+              size="small"
+              onClick={handleToggleSpeech}
+              sx={{
+                bgcolor: isSpeaking ? '#fee2e2' : '#f0fdf4',
+                color: isSpeaking ? '#dc2626' : '#16a34a',
+                p: 0.8,
+                '&:hover': { bgcolor: isSpeaking ? '#fecaca' : '#dcfce7' },
+              }}
+              aria-label={isSpeaking ? 'रोकें' : 'सुनें'}
+            >
+              {isSpeaking ? <StopIcon sx={{ fontSize: 18 }} /> : <VolumeUpIcon sx={{ fontSize: 18 }} />}
+            </IconButton>
+            <IconButton size="small" onClick={onClose} sx={{ color: '#64748b', p: 0.8 }} aria-label="close">
+              <CloseIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          </Box>
         </Box>
       </Box>
 
-      {/* 2. Main Content Body */}
-      <DialogContent sx={{ p: { xs: 2, sm: 2.5 }, bgcolor: '#fafbf9' }}>
-        {/* User Query Echo */}
-        {answer.queryEcho && (
-          <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700 }}>
-              🗣️ {isChhattisgarhi ? 'तुंहर सवाल:' : 'आपका सवाल:'}
+      {/* 2. Main Content Body - Neat & Breathable */}
+      <DialogContent sx={{ p: { xs: 2, sm: 2.5 }, bgcolor: '#ffffff' }}>
+        {/* Answer Hero: Clean Question & Headline */}
+        <Box sx={{ mb: 2 }}>
+          {answer.queryEcho && (
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', fontWeight: 600, display: 'block', mb: 0.3 }}>
+              🗣️ "{answer.queryEcho}"
             </Typography>
-            <Typography variant="caption" sx={{ color: '#0f172a', fontSize: '0.78rem', fontWeight: 800, bgcolor: '#f1f5f9', px: 1, py: 0.3, borderRadius: 1.5 }}>
-              "{answer.queryEcho}"
-            </Typography>
-          </Box>
-        )}
+          )}
+          <Typography sx={{ fontWeight: 900, color: '#0f172a', fontSize: { xs: '1.05rem', sm: '1.15rem' }, lineHeight: 1.35 }}>
+            {answer.icon ? `${answer.icon} ` : ''}{headline}
+          </Typography>
+        </Box>
 
-        {/* 🌟 AI Agricultural Expert Thinking State */}
+        {/* AI Agricultural Expert Loading State */}
         {answer.isLoadingAiExpert ? (
-          <Paper
-            elevation={0}
+          <Box
             sx={{
-              p: 3,
+              py: 3.5,
+              px: 2,
               mb: 2,
               borderRadius: 3,
-              bgcolor: '#f0fdf4',
-              border: '2px dashed #86efac',
+              bgcolor: '#f8fafc',
+              border: '1px dashed #cbd5e1',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               textAlign: 'center',
-              gap: 2,
+              gap: 1.5,
             }}
           >
-            <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-              <CircularProgress size={54} sx={{ color: '#16a34a' }} thickness={4.5} />
-              <Box
-                sx={{
-                  top: 0,
-                  left: 0,
-                  bottom: 0,
-                  right: 0,
-                  position: 'absolute',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.4rem',
-                }}
-              >
-                🔬
-              </Box>
-            </Box>
+            <CircularProgress size={38} sx={{ color: '#16a34a' }} thickness={4} />
             <Box>
-              <Typography sx={{ fontWeight: 900, color: '#166534', fontSize: '1rem', mb: 0.5 }}>
-                {headline || (isChhattisgarhi ? '👴🏻 काका सोचत हे… वैज्ञानिक सलाह आ रही है' : '👴🏻 काका सोच रहे हैं… वैज्ञानिक सलाह आ रही है')}
+              <Typography sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.92rem', mb: 0.3 }}>
+                {headline || (isChhattisgarhi ? 'काका सोचत हे…' : 'काका सोच रहे हैं…')}
               </Typography>
-              <Typography variant="body2" sx={{ color: '#15803d', fontSize: '0.82rem', fontWeight: 600 }}>
-                {advisory || (isChhattisgarhi ? 'IGKV रायपुर व ICAR अनुसंधान ले प्रमाणिक उत्तर लोड होवत हे...' : 'IGKV रायपुर व ICAR अनुसंधान से प्रमाणिक उत्तर लोड हो रहा है...')}
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.78rem', fontWeight: 500 }}>
+                {advisory || (isChhattisgarhi ? 'वैज्ञानिक सलाह लोड होवत हे...' : 'वैज्ञानिक सलाह लोड हो रही है...')}
               </Typography>
             </Box>
-            <Chip
-              size="small"
-              label={isChhattisgarhi ? '🌾 कृषि विशेषज्ञ एआई • 100% प्रमाणिक' : '🌾 कृषि विशेषज्ञ एआई • 100% प्रमाणिक'}
-              sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 800, fontSize: '0.72rem', border: '1px solid #86efac' }}
-            />
-          </Paper>
+          </Box>
         ) : (
           <>
-            {/* Headline Banner */}
-            {headline && (
-              <Paper
-                elevation={0}
+            {/* Structured KPI Stats Panel - Neat, Clean, Borderless */}
+            {answer.cards && answer.cards.length > 0 && (
+              <Box
                 sx={{
-                  p: 1.5,
+                  p: 1.8,
                   mb: 2,
                   borderRadius: 3,
-                  bgcolor: '#f0fdf4',
-                  border: '1.5px solid #86efac',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.2,
+                  bgcolor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  display: 'grid',
+                  gridTemplateColumns: answer.cards.length === 1 ? '1fr' : 'repeat(2, 1fr)',
+                  gap: 1.5,
                 }}
               >
-                <Typography sx={{ fontSize: '1.5rem', lineHeight: 1 }}>
-                  {answer.icon || '🌾'}
-                </Typography>
-                <Typography sx={{ fontWeight: 900, color: '#166534', fontSize: { xs: '0.98rem', sm: '1.05rem' }, lineHeight: 1.3 }}>
-                  {headline}
-                </Typography>
-              </Paper>
-            )}
-
-            {/* Structured Bold Answer Cards (KPI Grid) */}
-            {answer.cards && answer.cards.length > 0 && (
-              <Box sx={{ display: 'grid', gridTemplateColumns: answer.cards.length === 1 ? '1fr' : 'repeat(2, 1fr)', gap: 1.2, mb: 2 }}>
                 {answer.cards.map((card, idx) => (
-                  <Paper
-                    key={idx}
-                    elevation={0}
-                    sx={{
-                      p: 1.4,
-                      borderRadius: 2.5,
-                      bgcolor: card.bg || '#ffffff',
-                      border: `1.5px solid ${card.border || '#e2e8f0'}`,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 0.4,
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                      <Typography sx={{ fontSize: '1.2rem', lineHeight: 1 }}>{card.icon}</Typography>
-                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
+                  <Box key={idx} sx={{ display: 'flex', flexDirection: 'column', gap: 0.2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                      <Typography sx={{ fontSize: '1rem', lineHeight: 1 }}>{card.icon}</Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.74rem' }}>
                         {card.label}
                       </Typography>
                     </Box>
-                    <Typography sx={{ fontWeight: 900, color: card.color || '#0f172a', fontSize: '1.15rem', lineHeight: 1.2 }}>
+                    <Typography sx={{ fontWeight: 900, color: card.color || '#0f172a', fontSize: '1.2rem', lineHeight: 1.2 }}>
                       {card.value}
                     </Typography>
                     {card.sub && (
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 600 }}>
+                      <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.68rem', fontWeight: 600 }}>
                         {card.sub}
                       </Typography>
                     )}
-                  </Paper>
+                  </Box>
                 ))}
               </Box>
             )}
 
-            {/* Spoken Text / Advisory Box */}
+            {/* Advisory / Practical Recommendation */}
             {advisory && (
               <Box
                 sx={{
-                  p: 1.4,
+                  p: 1.5,
                   mb: 2,
                   borderRadius: 2.5,
                   bgcolor: '#fffbeb',
-                  border: '1.2px solid #fef08a',
+                  border: '1px solid #fef08a',
                 }}
               >
-                <Typography variant="caption" sx={{ color: '#854d0e', fontWeight: 800, fontSize: '0.72rem', display: 'block', mb: 0.3 }}>
-                  💡 {isChhattisgarhi ? 'काका के सीख / सलाह:' : 'काका की सलाह:'}
-                </Typography>
-                <Typography sx={{ color: '#713f12', fontWeight: 700, fontSize: '0.84rem', lineHeight: 1.45 }}>
-                  {advisory}
+                <Typography sx={{ color: '#854d0e', fontSize: '0.82rem', fontWeight: 600, lineHeight: 1.45 }}>
+                  💡 {advisory}
                 </Typography>
               </Box>
             )}
           </>
         )}
 
-        {/* Missing Slot Prompt (Multi-turn Slot Collector) */}
+        {/* Missing Slot Prompt (Multi-turn Slot Collector - Only when needed) */}
         {answer.needsClarification && (
-          <Box sx={{ p: 1.5, mb: 2, borderRadius: 2.5, bgcolor: '#eff6ff', border: '1.5px dashed #60a5fa' }}>
-            <Typography sx={{ fontWeight: 800, color: '#1e40af', fontSize: '0.85rem', mb: 1, display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              ❓ {isChhattisgarhi ? 'काका पूछत हन — नीचे छूव या बोलव:' : 'काका पूछ रहे हैं — नीचे चुनें या बोलें:'}
+          <Box sx={{ p: 1.5, mb: 2, borderRadius: 2.5, bgcolor: '#eff6ff', border: '1px dashed #93c5fd' }}>
+            <Typography sx={{ fontWeight: 700, color: '#1e40af', fontSize: '0.82rem', mb: 1 }}>
+              ❓ {isChhattisgarhi ? 'नीचे छूव या बोलव:' : 'नीचे चुनें या बोलें:'}
             </Typography>
 
-            {/* Quick Tap Suggestion Chips */}
             {answer.slotSuggestions && answer.slotSuggestions.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 1.5 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 1.2 }}>
                 {answer.slotSuggestions.map((suggestion, sIdx) => (
                   <Chip
                     key={sIdx}
                     label={suggestion}
                     onClick={() => onSuggestionClick && onSuggestionClick(suggestion)}
                     sx={{
-                      fontWeight: 800,
+                      fontWeight: 700,
                       fontSize: '0.8rem',
-                      py: 2,
-                      px: 0.5,
+                      py: 1.8,
                       bgcolor: '#ffffff',
-                      border: '1.5px solid #3b82f6',
+                      border: '1px solid #3b82f6',
                       color: '#1d4ed8',
                       cursor: 'pointer',
-                      boxShadow: '0 1px 4px rgba(59,130,246,0.15)',
                       '&:hover': { bgcolor: '#dbeafe' },
                     }}
                   />
@@ -326,20 +262,20 @@ export const KakaDirectAnswerSheet = ({
               </Box>
             )}
 
-            {/* Tap to Speak continuation */}
             <Button
               fullWidth
-              variant="contained"
-              startIcon={<MicIcon />}
+              size="small"
+              variant="outlined"
+              startIcon={<MicIcon sx={{ fontSize: 18 }} />}
               onClick={onStartVoice}
               sx={{
-                bgcolor: '#2563eb',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.82rem',
+                color: '#1d4ed8',
+                borderColor: '#93c5fd',
+                fontWeight: 700,
+                fontSize: '0.8rem',
                 borderRadius: 2,
-                py: 0.8,
-                '&:hover': { bgcolor: '#1d4ed8' },
+                py: 0.7,
+                textTransform: 'none',
               }}
             >
               {isChhattisgarhi ? '🎤 मुँह ले बोलके बताव' : '🎤 बोलकर बताएं'}
@@ -347,100 +283,47 @@ export const KakaDirectAnswerSheet = ({
           </Box>
         )}
 
-        {/* Continuous Conversational Follow-up when answer is complete */}
-        {!answer.needsClarification && (
-          <Box sx={{ p: 1.2, mb: 2, borderRadius: 2.5, bgcolor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="caption" sx={{ color: '#475569', fontWeight: 800, fontSize: '0.74rem' }}>
-                💬 {isChhattisgarhi ? 'कछु अउ पूछना हे काका ले?' : 'काका से कुछ और पूछना है?'}
-              </Typography>
-              <Button
-                size="small"
-                startIcon={<MicIcon sx={{ fontSize: 16 }} />}
-                onClick={onStartVoice}
-                sx={{
-                  color: '#1d4ed8',
-                  fontWeight: 800,
-                  fontSize: '0.74rem',
-                  py: 0.3,
-                  px: 1,
-                  bgcolor: '#dbeafe',
-                  borderRadius: 1.5,
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#bfdbfe' },
-                }}
-              >
-                {isChhattisgarhi ? 'बोलव' : 'बोलें'}
-              </Button>
-            </Box>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.6 }}>
-              {['खाद हिसाब', 'टमाटर भाव', 'आज का मौसम', 'माहू की दवा'].map((chip, cIdx) => (
-                <Chip
-                  key={cIdx}
-                  label={chip}
-                  size="small"
-                  onClick={() => onSuggestionClick && onSuggestionClick(chip)}
-                  sx={{
-                    fontSize: '0.72rem',
-                    fontWeight: 700,
-                    bgcolor: '#ffffff',
-                    border: '1px solid #94a3b8',
-                    cursor: 'pointer',
-                    '&:hover': { bgcolor: '#e2e8f0' },
-                  }}
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
-
-        <Divider sx={{ my: 1.5 }} />
-
-        {/* 3. Action Bar: WhatsApp Share + Optional Deep Link + Close */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {/* 3. Action Bar: Clean, Single Primary Action + Quiet Secondary Links */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8, mt: 1 }}>
           <Button
             fullWidth
             variant="contained"
-            startIcon={<WhatsAppIcon sx={{ fontSize: 22 }} />}
+            startIcon={<WhatsAppIcon sx={{ fontSize: 20 }} />}
             onClick={handleWhatsAppShare}
             sx={{
               bgcolor: '#16a34a',
               color: '#ffffff',
-              fontWeight: 900,
+              fontWeight: 800,
               fontSize: '0.88rem',
               py: 1.1,
-              borderRadius: 3,
-              boxShadow: '0 4px 12px rgba(22,163,74,0.3)',
+              borderRadius: 2.5,
+              boxShadow: 'none',
               textTransform: 'none',
-              '&:hover': { bgcolor: '#15803d' },
+              '&:hover': { bgcolor: '#15803d', boxShadow: 'none' },
             }}
           >
-            {isChhattisgarhi ? '📲 व्हाट्सएप म शेयर करव' : '📲 व्हाट्सएप पर शेयर करें'}
+            {isChhattisgarhi ? 'व्हाट्सएप म शेयर करव' : 'व्हाट्सएप पर साझा करें'}
           </Button>
 
-          {/* Optional Deep Link Button (Only if user explicitly wants full tab) */}
+          {/* Optional Deep Link (Clean text button) */}
           {answer.deepLink && (
             <Button
               fullWidth
-              variant="outlined"
+              variant="text"
               endIcon={<ArrowForwardIcon sx={{ fontSize: 16 }} />}
               onClick={() => {
                 onClose();
                 if (onDeepLink) onDeepLink(answer.deepLink);
               }}
               sx={{
-                color: '#1b5e20',
-                borderColor: '#a5d6a7',
-                fontWeight: 800,
-                fontSize: '0.78rem',
-                py: 0.7,
-                borderRadius: 2.5,
+                color: '#166534',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                py: 0.5,
                 textTransform: 'none',
-                bgcolor: '#f0fdf4',
-                '&:hover': { bgcolor: '#dcfce7', borderColor: '#2e7d32' },
               }}
             >
-              {answer.deepLink.label || (isChhattisgarhi ? '🔍 पूरा कैलकुलेटर देखव' : '🔍 पूरा कैलकुलेटर देखें')}
+              {answer.deepLink.label || (isChhattisgarhi ? 'विस्तार से देखव →' : 'विस्तार से देखें →')}
             </Button>
           )}
 
@@ -448,14 +331,15 @@ export const KakaDirectAnswerSheet = ({
             fullWidth
             onClick={onClose}
             sx={{
-              color: '#64748b',
-              fontWeight: 800,
-              fontSize: '0.8rem',
-              py: 0.5,
+              color: '#94a3b8',
+              fontWeight: 600,
+              fontSize: '0.78rem',
+              py: 0.4,
               textTransform: 'none',
+              '&:hover': { color: '#64748b' },
             }}
           >
-            {isChhattisgarhi ? '✕ समझ गेन (बंद करव)' : '✕ समझ गए (बंद करें)'}
+            {isChhattisgarhi ? '✕ बंद करव' : '✕ बंद करें'}
           </Button>
         </Box>
       </DialogContent>

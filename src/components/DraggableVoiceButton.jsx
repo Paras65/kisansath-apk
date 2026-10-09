@@ -390,8 +390,14 @@ export const DraggableVoiceButton = ({
                 borderRadius: '50%',
                 overflow: 'hidden',
                 flexShrink: 0,
-                border: '1.5px solid rgba(255, 255, 255, 0.85)',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                border: isSpeakingActive
+                  ? '2px solid #facc15'
+                  : isVoiceListening
+                  ? '2px solid #93c5fd'
+                  : '1.5px solid rgba(255, 255, 255, 0.85)',
+                boxShadow: isSpeakingActive
+                  ? '0 0 10px rgba(250, 204, 21, 0.6)'
+                  : '0 2px 8px rgba(0,0,0,0.25)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -423,6 +429,13 @@ export const DraggableVoiceButton = ({
               </Box>
             </Box>
             <span>{label}</span>
+            {isSpeakingActive && (
+              <Box sx={{ display: 'inline-flex', alignItems: 'flex-end', gap: '2px', height: 12, ml: 0.3 }}>
+                <Box sx={{ width: 2.5, bgcolor: '#ffffff', borderRadius: 1, animation: 'miniEq 0.6s infinite alternate ease-in-out', '@keyframes miniEq': { '0%': { height: 3 }, '100%': { height: 12 } } }} />
+                <Box sx={{ width: 2.5, bgcolor: '#ffffff', borderRadius: 1, animation: 'miniEq 0.45s infinite alternate ease-in-out 0.1s' }} />
+                <Box sx={{ width: 2.5, bgcolor: '#ffffff', borderRadius: 1, animation: 'miniEq 0.7s infinite alternate ease-in-out 0.2s' }} />
+              </Box>
+            )}
           </Box>
         )}
       </Box>

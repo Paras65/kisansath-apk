@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.60';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.61';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🌤️ छत्तीसगढ़ 33-जिला स्तरीय वॉयस मौसम व मंडी भाव समाधान एवं 🔬 Google Gemini AI कृषि वैज्ञानिक विशेषज्ञ परामर्श: दुर्लभ कृषि सवालों पर वैज्ञानिक सलाह, 15L टंकी नाप, एवं गैर-कृषि विषयों पर सख्त सुरक्षा गार्डरेल।',
+    releaseNotes: '✨ बहिरा काका सीधा जवाब बॉटमशीट का नीट व क्लीन मेकओवर: अनावश्यक बॉक्स, गहरे रंग और डुप्लिकेट टाइटल्स हटाकर एक स्वच्छ, सांस लेने योग्य व मोबाइल-अनुकूल कार्ड डिज़ाइन।',
     updatedAt: new Date().toISOString()
   });
 });
