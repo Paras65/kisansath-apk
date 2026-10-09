@@ -124,6 +124,46 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
     return () => window.removeEventListener('kisan_kaka_action', handleKakaAction);
   }, []);
 
+  // URL subtab parsing and inter-tab event listener
+  useEffect(() => {
+    const parseSubTab = (val) => {
+      if (val === null || val === undefined) return null;
+      const lower = String(val).toLowerCase();
+      if (['dhan', 'paddy', 'msp', '1'].includes(lower)) return 1;
+      if (['schemes', 'yojana', 'yojna', '2'].includes(lower)) return 2;
+      if (['fert', 'fertilizer', 'khad', '0'].includes(lower)) return 0;
+      return null;
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const subtabParam = params.get('subtab');
+    const parsed = parseSubTab(subtabParam);
+    if (parsed !== null) {
+      setSubTab(parsed);
+    }
+
+    const handleSwitchSubTab = (e) => {
+      const target = e?.detail?.subTab ?? e?.detail?.subtab;
+      const p = parseSubTab(target);
+      if (p !== null) {
+        setSubTab(p);
+      }
+    };
+
+    window.addEventListener('kisan_switch_subtab', handleSwitchSubTab);
+    return () => window.removeEventListener('kisan_switch_subtab', handleSwitchSubTab);
+  }, []);
+
+  const handleSubTabChange = (idx) => {
+    setSubTab(idx);
+    try {
+      const url = new URL(window.location.href);
+      const subtabNames = ['fert', 'dhan', 'yojana'];
+      url.searchParams.set('subtab', subtabNames[idx]);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search);
+    } catch (e) {}
+  };
+
   const loadFromMongo = async () => {
     const liveFert = await getFertilizers();
     if (liveFert && Object.keys(liveFert).length > 0) setFertData(liveFert);
@@ -256,7 +296,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           <Button
             key={idx}
             fullWidth
-            onClick={() => setSubTab(idx)}
+            onClick={() => handleSubTabChange(idx)}
             startIcon={item.icon}
             sx={{
               py: 0.9,

@@ -1084,7 +1084,11 @@ export const HomeTab = ({
               <Button
                 size="small"
                 variant="outlined"
-                onClick={() => { stopSpeech(); onNavigate('schemes'); }}
+                onClick={() => {
+                  stopSpeech();
+                  onNavigate('schemes');
+                  window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 1 } }));
+                }}
                 endIcon={<ArrowForwardIcon sx={{ fontSize: 13 }} />}
                 sx={{
                   borderColor: '#16a34a',
@@ -1384,7 +1388,10 @@ export const HomeTab = ({
         <Chip
           label={isChhattisgarhi ? 'योजना देखव' : 'योजना देखें'}
           size="small"
-          onClick={() => onNavigate('schemes')}
+          onClick={() => {
+            onNavigate('schemes');
+            window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 1 } }));
+          }}
           sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 700, height: 20, fontSize: '0.65rem', cursor: 'pointer' }}
         />
       </Box>
@@ -2343,7 +2350,10 @@ export const HomeTab = ({
                   border: '#c8e6c9',
                   badge: 'NPK',
                   badgeBg: '#2e7d32',
-                  action: () => onNavigate('schemes')
+                  action: () => {
+                    onNavigate('schemes');
+                    window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 0 } }));
+                  }
                 },
                 {
                   title: isChhattisgarhi ? 'मंडी भाव' : 'मंडी भाव',
@@ -2361,7 +2371,10 @@ export const HomeTab = ({
                   border: '#ffe082',
                   badge: isChhattisgarhi ? 'बोनस' : 'बोनस',
                   badgeBg: '#e65100',
-                  action: () => onNavigate('schemes')
+                  action: () => {
+                    onNavigate('schemes');
+                    window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 1 } }));
+                  }
                 },
                 {
                   title: isChhattisgarhi ? 'खेत GPS' : 'खेत GPS',

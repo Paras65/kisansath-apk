@@ -43,6 +43,7 @@ import { getActiveFarmer } from './services/farmerService';
 import { DeviceHubModal } from './components/DeviceHubModal';
 import { SuperAdminModal } from './components/SuperAdminModal';
 import { FaqModal } from './components/FaqModal';
+import { TokenGuideModal } from './components/TokenGuideModal';
 import { AdminPortal } from './components/AdminPortal';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
@@ -158,6 +159,7 @@ function App() {
   const [openDeviceHub, setOpenDeviceHub] = useState(false);
   const [openAdminModal, setOpenAdminModal] = useState(false);
   const [openFaqModal, setOpenFaqModal] = useState(false);
+  const [openTokenModal, setOpenTokenModal] = useState(false);
   const [globalCheckingUpdate, setGlobalCheckingUpdate] = useState(false);
 
   const handleGlobalCheckUpdate = async () => {
@@ -210,12 +212,14 @@ function App() {
   };
 
   const handleExitAdminPortal = () => {
-    if (window.location.hash === '#admin') {
-      try {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
-      } catch {
-        window.location.hash = '';
-      }
+    try {
+      const url = new URL(window.location.href);
+      url.hash = '';
+      url.searchParams.delete('portal');
+      const cleanUrl = url.pathname + (url.searchParams.toString() ? `?${url.searchParams.toString()}` : '');
+      window.history.replaceState(null, '', cleanUrl);
+    } catch {
+      window.location.hash = '';
     }
     setPortalMode('farmer');
   };
@@ -241,6 +245,8 @@ function App() {
     const handleOpenModalEvent = (e) => {
       if (e.detail?.modal === 'faq') {
         setOpenFaqModal(true);
+      } else if (e.detail?.modal === 'token') {
+        setOpenTokenModal(true);
       }
     };
     window.addEventListener('kisan-open-modal', handleOpenModalEvent);
@@ -252,13 +258,19 @@ function App() {
     setOpenDeviceHub(false);
     setOpenAdminModal(false);
     setOpenFaqModal(false);
+    setOpenTokenModal(false);
     if (typeof document !== 'undefined') {
       const openDialog = document.querySelector('.MuiDialog-root');
       if (openDialog) {
         const closeBtn =
           openDialog.querySelector('button[aria-label="close"]') ||
           openDialog.querySelector('button[aria-label="Close"]') ||
-          openDialog.querySelector('button[data-action="close"]');
+          openDialog.querySelector('button[data-action="close"]') ||
+          openDialog.querySelector('button[data-testid="close"]') ||
+          Array.from(openDialog.querySelectorAll('button')).find((b) =>
+            /(?:बंद|रद्द|बाद में|cancel|close)/i.test(b.textContent || '') ||
+            b.querySelector('svg[data-testid="CloseIcon"]')
+          );
         if (closeBtn) {
           try { closeBtn.click(); } catch {}
         }
@@ -366,8 +378,7 @@ function App() {
           } else if (targetRoute.target === 'faq') {
             setOpenFaqModal(true);
           } else if (targetRoute.target === 'token') {
-            handleTabChange('mandi');
-            window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: 'token' } }));
+            setOpenTokenModal(true);
           } else if (targetRoute.target === 'motor' || targetRoute.target === 'khet') {
             handleTabChange('home');
             window.dispatchEvent(new CustomEvent('kisan-open-modal', { detail: { modal: targetRoute.target } }));
@@ -410,10 +421,12 @@ function App() {
     );
   };
 
-  // Read URL query param if opened from PWA shortcut
+  // Read URL query param if opened from PWA shortcut or external link
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
+    let tabParam = params.get('tab');
+    if (tabParam === 'calculator' || tabParam === 'fertilizer') tabParam = 'schemes';
+    if (tabParam === 'market') tabParam = 'mandi';
     if (tabParam && ['home', 'doctor', 'schemes', 'mandi', 'chaupal'].includes(tabParam)) {
       setCurrentTab(tabParam);
     }
@@ -469,16 +482,52 @@ function App() {
         const closeBtn =
           openDialog.querySelector('button[aria-label="close"]') ||
           openDialog.querySelector('button[aria-label="Close"]') ||
-          openDialog.querySelector('button[data-action="close"]');
+          openDialog.querySelector('button[data-action="close"]') ||
+          openDialog.querySelector('button[data-testid="close"]') ||
+          Array.from(openDialog.querySelectorAll('button')).find((b) =>
+            /(?:बंद|रद्द|बाद में|cancel|close)/i.test(b.textContent || '') ||
+            b.querySelector('svg[data-testid="CloseIcon"]')
+          );
+
         if (closeBtn) {
           closeBtn.click();
+          // Restore tab entry in browser history so next back press returns to home
+          try {
+            const currentUrl = currentTab === 'home' ? window.location.pathname : `${window.location.pathname}?tab=${currentTab}`;
+            window.history.pushState({ tab: currentTab }, '', currentUrl);
+          } catch (err) {}
           return;
         }
+
+        // Fallback: Dispatch Escape keydown to trigger MUI Dialog onClose
+        const escEvent = new KeyboardEvent('keydown', {
+          key: 'Escape',
+          code: 'Escape',
+          keyCode: 27,
+          bubbles: true,
+          cancelable: true
+        });
+        document.dispatchEvent(escEvent);
+
+        // Also trigger backdrop click if dialog supports backdrop dismissal
+        const backdrop = openDialog.querySelector('.MuiBackdrop-root');
+        if (backdrop) {
+          backdrop.click();
+        }
+
+        try {
+          const currentUrl = currentTab === 'home' ? window.location.pathname : `${window.location.pathname}?tab=${currentTab}`;
+          window.history.pushState({ tab: currentTab }, '', currentUrl);
+        } catch (err) {}
+        return;
       }
 
       // 2) Return smoothly to home tab if on another tab
       if (e.state && e.state.tab) {
-        setCurrentTab(e.state.tab);
+        let destTab = e.state.tab;
+        if (destTab === 'calculator' || destTab === 'fertilizer') destTab = 'schemes';
+        if (destTab === 'market') destTab = 'mandi';
+        setCurrentTab(destTab);
       } else if (currentTab !== 'home') {
         setCurrentTab('home');
       }
@@ -489,16 +538,20 @@ function App() {
 
   const handleTabChange = (newTab) => {
     stopSpeech(); // Stop any active speech when switching tabs
-    if (newTab !== currentTab) {
+    let normalizedTab = newTab;
+    if (normalizedTab === 'calculator' || normalizedTab === 'fertilizer') normalizedTab = 'schemes';
+    if (normalizedTab === 'market') normalizedTab = 'mandi';
+
+    if (normalizedTab !== currentTab) {
       try {
-        if (newTab === 'home') {
+        if (normalizedTab === 'home') {
           window.history.replaceState({ tab: 'home' }, '', window.location.pathname);
         } else {
           // Push state for non-home tabs so Android/browser back button returns to home cleanly
-          window.history.pushState({ tab: newTab }, '', window.location.pathname + `?tab=${newTab}`);
+          window.history.pushState({ tab: normalizedTab }, '', window.location.pathname + `?tab=${normalizedTab}`);
         }
       } catch (e) {}
-      setCurrentTab(newTab);
+      setCurrentTab(normalizedTab);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -1034,6 +1087,11 @@ function App() {
         <FaqModal
           open={openFaqModal}
           onClose={() => setOpenFaqModal(false)}
+        />
+        {/* CG Paddy Token Tuhar Hath & Bardana Guide Modal */}
+        <TokenGuideModal
+          open={openTokenModal}
+          onClose={() => setOpenTokenModal(false)}
         />
       </Box>
     </ThemeProvider>

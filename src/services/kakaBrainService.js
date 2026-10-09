@@ -103,7 +103,7 @@ const KAKA_KNOWLEDGE_BASE = [
   // ── 6. खाद की मात्रा व यूरिया (NPK Doses) ──
   {
     triggers: ['खाद', 'यूरिया', 'dap', 'पोटाश', 'कितना खाद', 'खाद कैलकुलेटर', 'खाद कते डारना', 'khad', 'khaad', 'urea', 'yuriya', 'potash'],
-    route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+    route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
     spokenCg: 'धान म बुआई बेरा DAP अउ पोटाश डालना हे, अउ यूरिया ला 2 बार म छिड़कना हे। कते एकड़ खेत हे? चल कैलकुलेटर म बोरी गिनथंव!',
     spokenHi: 'बुआई के समय बेसल डोज में DAP व पोटाश दें, और यूरिया को दो किस्तों में कल्ले फूटते समय डालें। सही बोरी की गणना हेतु खाद कैलकुलेटर खोल रहे हैं।',
   },
@@ -119,7 +119,7 @@ const KAKA_KNOWLEDGE_BASE = [
   // ── 8. रबी चना, गेहूं व सरसों तैयारी ──
   {
     triggers: ['चना', 'गेहूं', 'सरसों', 'रबी', 'उतेरा', 'पैरा', 'पराली', 'chana', 'gehu', 'sarson', 'rabi'],
-    route: { target: 'calculator', type: 'tab', label: 'रबी योजना' },
+    route: { target: 'schemes', type: 'tab', label: 'रबी योजना' },
     spokenCg: 'धान कटाई बाद पैरा झन जलाव—रोटावेटर ले माटी म मिलाव! रबी चना JG-11 या राधे लगावत हव त ट्राइकोडर्मा ले बीजोपचार जरूर करव।',
     spokenHi: 'धान कटाई के बाद पराली खेत में न जलाएं। रबी दलहन चना JG-11 व सरसों की बुआई पूर्व ट्राइकोडर्मा व राइजोबियम से बीजोपचार अवश्य करें।',
   },
@@ -236,7 +236,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       return {
         textHi: `${extractedAcre} एकड़ रबी चना के लिए ${dapBags} बोरी DAP लगेगी भैया! खाद कैलकुलेटर में हिसाब सेट कर दिया है।`,
         textCg: `${extractedAcre} एकड़ रबी चना बर ${dapBags} बोरी DAP लगही संगी! चल कैलकुलेटर म पूरा हिसाब सेट कर दे हंव!`,
-        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
         action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'chana' },
         needsClarification: false,
         extractedAcre,
@@ -249,7 +249,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       return {
         textHi: `${extractedAcre} एकड़ धान के लिए ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी भैया!`,
         textCg: `${extractedAcre} एकड़ धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी!`,
-        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
         action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
         needsClarification: false,
         extractedAcre,
@@ -271,7 +271,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       return {
         textHi: `${extractedAcre} एकड़ धान के लिए ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी भैया! खाद कैलकुलेटर में हिसाब सेट कर दिया है।`,
         textCg: `${extractedAcre} एकड़ धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी! चल कैलकुलेटर म पूरा हिसाब सेट कर दे हंव!`,
-        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
         action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
         needsClarification: false,
         extractedAcre,
@@ -282,7 +282,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       return {
         textHi: 'धान में खाद के लिए आपका खेत कितने एकड़ है भैया? अपना रकबा बताएं — 1 एकड़, 2 एकड़ या ढाई एकड़?',
         textCg: 'धान म खाद बर कतका एकड़ खेत हे संगी? अपन रकबा बताव — 1 एकड़, 2 एकड़ या ढाई एकड़?',
-        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
         action: { type: 'ASK_ACRES', crop: 'paddy' },
         needsClarification: true,
         extractedAcre: null,
@@ -398,7 +398,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     return {
       textHi: 'धान कटाई के बाद पराली खेत में न जलाएं। रबी दलहन चना JG-11 व सरसों की बुआई पूर्व ट्राइकोडर्मा व राइजोबियम से बीजोपचार अवश्य करें।',
       textCg: 'धान कटाई बाद पैरा झन जलाव—रोटावेटर ले माटी म मिलाव! रबी चना JG-11 या राधे लगावत हव त ट्राइकोडर्मा ले बीजोपचार जरूर करव।',
-      route: { target: 'calculator', type: 'tab', label: 'रबी योजना' },
+      route: { target: 'schemes', type: 'tab', label: 'रबी योजना' },
       action: { type: 'AUTO_CALC_FERTILIZER', crop: 'chana' },
       needsClarification: false,
       extractedAcre,
@@ -513,7 +513,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     return {
       textHi: `खेत का रकबा ${extractedAcre} एकड़ सेट हो गया। धान हेतु ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी।`,
       textCg: `तोर खेत के रकबा ${extractedAcre} एकड़ सेट होगे! धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी!`,
-      route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+      route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
       action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
       needsClarification: false,
       extractedAcre,

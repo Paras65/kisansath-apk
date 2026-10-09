@@ -178,9 +178,9 @@ export const initCapacitor = () => {
           return;
         }
 
-        // Try cancel / dismiss button
+        // Try cancel / dismiss button (Hindi, Chhattisgarhi & English)
         const cancelBtn = Array.from(openDialog.querySelectorAll('button')).find(
-          (b) => b.textContent && (b.textContent.includes('रद्द करें') || b.textContent.includes('बंद करें') || b.textContent.includes('बाद में'))
+          (b) => b.textContent && /(?:रद्द|बंद|बाद में|cancel|close)/i.test(b.textContent)
         );
         if (cancelBtn) {
           cancelBtn.click();

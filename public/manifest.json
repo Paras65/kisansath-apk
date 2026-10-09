@@ -1,7 +1,7 @@
 {
   "name": "किसान साथी - फसल से बिक्री तक",
   "short_name": "किसान साथी",
-  "version": "1.0.55",
+  "version": "1.0.56",
   "description": "फसल बुआई, मौसम, खाद कैलकुलेटर, रोग निदान, कृषक उन्नति योजना और लाइव मंडी भाव - किसानों का सम्पूर्ण साथी",
   "start_url": "/",
   "id": "/",
@@ -64,7 +64,7 @@
       "name": "टोकन व धान योजना (Krishi Unnati)",
       "short_name": "धान योजना",
       "description": "₹3100 प्रति क्विंटल धान खरीदी व टोकन तुंहर हाथ",
-      "url": "/?tab=schemes",
+      "url": "/?tab=schemes&subtab=dhan",
       "icons": [{ "src": "/icons/kisan-icon.svg", "sizes": "96x96" }]
     }
   ]

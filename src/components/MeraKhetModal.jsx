@@ -1043,7 +1043,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         </DialogContent>
 
         <DialogActions sx={{ px: 2, py: 1.5, bgcolor: '#f0f4ec' }}>
-          <Button onClick={onClose} sx={{ color: '#2e7d32', fontWeight: 700 }}>
+          <Button onClick={onClose} aria-label="close" data-action="close" sx={{ color: '#2e7d32', fontWeight: 700 }}>
             {isChhattisgarhi ? 'बंद करव' : 'बंद करें'}
           </Button>
         </DialogActions>
@@ -1059,8 +1059,13 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
         fullWidth
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
-        <DialogTitle sx={{ bgcolor: '#1b5e20', color: '#fff', py: 1.5 }}>
-          {isChhattisgarhi ? '📅 नवा फसल अऊ बोवाई तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
+        <DialogTitle sx={{ bgcolor: '#1b5e20', color: '#fff', py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.98rem' }}>
+            {isChhattisgarhi ? '📅 नवा फसल अऊ बोवाई तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
+          </Typography>
+          <IconButton size="small" onClick={() => setOpenAddPlotDialog(false)} sx={{ color: '#fff' }} aria-label="close">
+            <CloseIcon />
+          </IconButton>
         </DialogTitle>
         <DialogContent sx={{ pt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box sx={{ p: 1.2, borderRadius: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
@@ -1148,7 +1153,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
           </TextField>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenAddPlotDialog(false)} color="inherit">
+          <Button onClick={() => setOpenAddPlotDialog(false)} aria-label="close" data-action="close" color="inherit">
             {isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}
           </Button>
           <Button
