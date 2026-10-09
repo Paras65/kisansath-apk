@@ -222,11 +222,11 @@ export const DraggableVoiceButton = ({
     ? (isChhattisgarhi ? 'काका ला रोको' : 'काका को रोकें')
     : isVoiceListening
     ? (isChhattisgarhi ? 'काका सुनत हे… बोलव!' : 'काका सुन रहे हैं… बोलें!')
-    : (isChhattisgarhi ? 'बहिरा काका ले पूछव' : 'बहिरा काका से पूछें');
+    : (isChhattisgarhi ? 'काका ले पूछव' : 'काका से पूछें');
 
   const tooltipTitle = isModalOpen
-    ? (isChhattisgarhi ? '👴🏻 बहिरा काका (खिसकाए बर पकड़व)' : '👴🏻 बहिरा काका (खिसकाने के लिए पकड़ें)')
-    : (isChhattisgarhi ? '👴🏻 बहिरा काका ले पूछव (उंगली ले खिसकावव)' : '👴🏻 बहिरा काका से पूछें (उंगली से खिसकाएं)');
+    ? (isChhattisgarhi ? '👴🏻 काका (खिसकाए बर पकड़व)' : '👴🏻 काका (खिसकाने के लिए पकड़ें)')
+    : (isChhattisgarhi ? '👴🏻 काका ले पूछव (उंगली ले खिसकावव)' : '👴🏻 काका से पूछें (उंगली से खिसकाएं)');
 
   if (!position) return null;
 

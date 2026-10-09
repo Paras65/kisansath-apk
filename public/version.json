@@ -1,8 +1,8 @@
 {
-  "version": "1.0.57",
+  "version": "1.0.58",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.57",
-  "releaseNotes": "👴🏻 बहिरा काका सीधा जवाब बॉटमशीट (Conversational Slot-Filling Agent): UI के चक्कर से पूर्ण मुक्ति, 3 सेकंड में स्पष्ट उत्तर व कार्ड्स (धान ₹3,100, खाद, मंडी, मौसम, बीमारी, मोटर), 1-टैप सुझाव चिप्स एवं व्हाट्सएप साझाकरण।",
+  "releaseName": "किसान साथी v1.0.58",
+  "releaseNotes": "👴🏻 प्राकृतिक व यथार्थवादी वॉयस एज-केस संवाद: 'नहीं सुनाई दिया', 'समझ नहीं आया' व 'नहीं पता' का सच्चा व सटीक समाधान, 1-टैप सहायता चिप्स एवं अनावश्यक 'बहिरा' शब्द का दोहराव समाप्त।",
   "updatedAt": "2026-10-09"
 }

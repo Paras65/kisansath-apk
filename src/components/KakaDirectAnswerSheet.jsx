@@ -117,7 +117,7 @@ export const KakaDirectAnswerSheet = ({
           />
           <Box>
             <Typography variant="subtitle2" sx={{ fontWeight: 900, fontSize: '0.95rem', color: '#fef08a', lineHeight: 1.2 }}>
-              👴🏻 {isChhattisgarhi ? 'बहिरा काका के सीधा जवाब' : 'बहिरा काका का सीधा जवाब'}
+              👴🏻 {isChhattisgarhi ? 'काका के सीधा जवाब' : 'काका का सीधा जवाब'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#bbf7d0', fontSize: '0.72rem', fontWeight: 600 }}>
               {isSpeaking ? (isChhattisgarhi ? '📢 काका बोलत हे...' : '📢 काका बोल रहे हैं...') : (isChhattisgarhi ? '✓ उत्तर तैयार हे' : '✓ उत्तर तैयार है')}

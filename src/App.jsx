@@ -296,7 +296,18 @@ function App() {
 
     startVoiceRecognition(
       (transcript, route) => {
-        if (!transcript) return;
+        if (!transcript || transcript.trim().length < 2) {
+          const cachedWeather = getCachedWeather(selectedDistrict);
+          const brain = queryKakaBrain('', isChhattisgarhi, {
+            weather: cachedWeather,
+            selectedDistrict,
+          });
+          if (brain.directAnswer) {
+            setDirectAnswerData(brain.directAnswer);
+            speakText(isChhattisgarhi ? brain.textCg : brain.textHi);
+          }
+          return;
+        }
 
         // In-Modal Action 1: Close active modal
         if (route?.type === 'modal_action' && route?.action === 'close') {
@@ -428,21 +439,57 @@ function App() {
         if (errCode === 'not-allowed') {
           speakText(
             isChhattisgarhi
-              ? 'अरे बेटा, तोर मोबाइल के माइक बंद हे! सेटिंग म जाके चालू करव तभे न तोर काका सुनही!'
-              : 'अरे भैया, मोबाइल का माइक बंद है! सेटिंग में जाकर चालू करें तभी आपका काका सुनेगा!'
+              ? 'मोबाइल के माइक बंद हे संगी! सेटिंग म जाके माइक चालू करव।'
+              : 'मोबाइल का माइक बंद है भैया! ब्राउज़र सेटिंग में जाकर माइक चालू करें।'
           );
+          setDirectAnswerData({
+            intent: 'MIC_DENIED',
+            icon: '🎤',
+            headline: 'माइक की अनुमति बंद है',
+            headlineCg: 'माइक के अनुमति बंद हे',
+            queryEcho: 'माइक बंद',
+            cards: [
+              { icon: '🔒', label: 'माइक स्थिति', value: 'अनुमति नहीं मिली', sub: 'ब्राउज़र सेटिंग से चालू करें', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+              { icon: '👆', label: 'सुझाव', value: 'नीचे छूकर देखें', sub: 'बिना बोले जानकारी पाएं', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+            ],
+            advisoryText: 'ब्राउज़र ने माइक का उपयोग रोक दिया है। आप नीचे दिए गए सुझावों को छूकर भी जानकारी देख सकते हैं:',
+            advisoryTextCg: 'माइक बंद हे संगी। नीचे दिए सुझाव ला छू के भी जानकारी देख सकथव:',
+            whatsappShareText: '',
+            needsClarification: true,
+            missingSlot: 'topic',
+            slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम'],
+            deepLink: null,
+          });
         } else if (errCode === 'network') {
           speakText(
             isChhattisgarhi
-              ? 'इंटरनेट थोरकिन सुस्त चलत हे संगी, थोड़ा धीरज धरव, काका सुनत हे!'
-              : 'इंटरनेट धीमा चल रहा है भैया, थोड़ा धीरज रखें, काका सुन रहा है!'
+              ? 'इंटरनेट धीमा चलत हे संगी, थोड़ा धीरज धरव।'
+              : 'इंटरनेट धीमा चल रहा है भैया, थोड़ा धीरज रखें।'
           );
         } else if (errCode === 'no-speech' || errCode === 'timeout') {
           speakText(
             isChhattisgarhi
-              ? 'अरे भइया, कछु बोलव त सही! तोर बहिरा काका कान लगाके बइठे हे!'
-              : 'अरे भैया, कुछ बोलिए तो सही! आपका काका कान लगाकर बैठा है!'
+              ? 'कछु आवाज सुनाई नइ परिस संगी। माइक दबाके फेर बोलव।'
+              : 'कोई आवाज़ सुनाई नहीं दी भैया। माइक दबाकर दोबारा बोलें।'
           );
+          setDirectAnswerData({
+            intent: 'NO_SPEECH',
+            icon: '👂🏻',
+            headline: 'आवाज़ सुनाई नहीं दी',
+            headlineCg: 'आवाज सुनाई नइ परिस',
+            queryEcho: '...',
+            cards: [
+              { icon: '🎙️', label: 'माइक स्थिति', value: 'आवाज़ नहीं आई', sub: 'शांत जगह पर बोलें', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+              { icon: '💡', label: 'सुझाव', value: 'साफ शब्द बोलें', sub: 'जैसे— धान भाव या खाद', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+            ],
+            advisoryText: 'माइक ने कोई आवाज़ नहीं पकड़ी। कृपया नीचे बटन दबाकर दोबारा बोलें या सुझाव छुएं:',
+            advisoryTextCg: 'माइक म कोनो आवाज नइ आइस। नीचे बटन दबाके फेर बोलव या सुझाव चुनव:',
+            whatsappShareText: '',
+            needsClarification: true,
+            missingSlot: 'topic',
+            slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम'],
+            deepLink: null,
+          });
         }
       }
     );

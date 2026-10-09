@@ -156,8 +156,8 @@ const KAKA_KNOWLEDGE_BASE = [
   {
     triggers: ['काका', 'बहिरा काका', 'जय जोहार', 'नमस्ते', 'प्रणाम', 'राम राम', 'कइसे हस', 'कैसे हो', 'kaka', 'bhaira', 'johar', 'jay johar', 'ram ram', 'namaste', 'hello', 'hi', 'kaise ho'],
     route: null,
-    spokenCg: 'जय जोहार संगी! मैं तोर बहिरा काका हंव। कान म थोड़ा कम सुनाई देथे बाक़ी किसानी के सब बात जानथंव! बोल, खेत म का समस्या हे?',
-    spokenHi: 'जय जोहार किसान भाई! मैं आपका बहिरा काका हूँ। थोड़ा ज़ोर से बोलिए—धान का भाव जानना है, खाद का हिसाब, या खेत में कोई बीमारी लगी है?',
+    spokenCg: 'जय जोहार संगी! मैं तोर काका हंव। बताव खेत-खार म का सेवा करंव — धान के भाव, खाद के हिसाब, मौसम कि कोनो बीमारी?',
+    spokenHi: 'जय जोहार किसान भाई! मैं आपका काका हूँ। बताइए खेती-किसानी में क्या मदद करूँ — धान का भाव, खाद का हिसाब, मौसम या कोई फसल रोग?',
   },
 
   // ── 10. मोटर कंट्रोलर (बोरवेल) ──
@@ -244,12 +244,29 @@ const detectCommodityFromText = (text) => {
 export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}) => {
   if (!transcript || typeof transcript !== 'string' || transcript.trim().length < 2) {
     return {
-      textHi: 'कुछ सुनाई नहीं दिया। शांत जगह पर थोड़ा ज़ोर से बोलें।',
-      textCg: 'अरे भइया, कछु सुनाई नई परिस! थोड़ा जोर ले बोलव, तोर काका कान लगाके बइठे हे!',
-      directAnswer: null,
+      textHi: 'कोई आवाज़ सुनाई नहीं दी भैया। शांत जगह पर माइक दबाकर दोबारा बोलें।',
+      textCg: 'कछु आवाज सुनाई नइ परिस संगी। शांत जगह म माइक दबाके फेर बोलव।',
+      directAnswer: {
+        intent: 'NO_SPEECH',
+        icon: '👂🏻',
+        headline: 'आवाज़ सुनाई नहीं दी',
+        headlineCg: 'आवाज सुनाई नइ परिस',
+        queryEcho: '...',
+        cards: [
+          { icon: '🎙️', label: 'माइक स्थिति', value: 'आवाज़ नहीं आई', sub: 'शांत जगह पर बोलें', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+          { icon: '💡', label: 'सुझाव', value: 'साफ शब्द बोलें', sub: 'जैसे— धान भाव या खाद', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+        ],
+        advisoryText: 'माइक ने कोई आवाज़ नहीं पकड़ी। कृपया नीचे दिए गए कृषि सुझावों में से चुनें या दोबारा बोलें:',
+        advisoryTextCg: 'माइक म कोनो आवाज नइ आइस। नीचे दिए किसानी सुझाव ला छूव या फेर बोलव:',
+        whatsappShareText: '',
+        needsClarification: true,
+        missingSlot: 'topic',
+        slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम'],
+        deepLink: null,
+      },
       route: null,
       action: null,
-      needsClarification: false,
+      needsClarification: true,
       extractedAcre: null,
       confidence: 0,
     };
@@ -1269,8 +1286,8 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   const greetingTriggers = ['काका', 'बहिरा काका', 'जय जोहार', 'नमस्ते', 'प्रणाम', 'राम राम', 'कइसे हस', 'कैसे हो', 'kaka', 'bhaira', 'johar', 'jay johar', 'ram ram', 'namaste', 'hello', 'hi', 'kaise ho'];
   if (greetingTriggers.some((t) => clean.includes(t))) {
     resetKakaSession();
-    const textHi = 'जय जोहार किसान भाई! मैं आपका बहिरा काका हूँ। थोड़ा ज़ोर से बोलिए—धान का भाव जानना है, खाद का हिसाब, या खेत में कोई बीमारी लगी है?';
-    const textCg = 'जय जोहार संगी! मैं तोर बहिरा काका हंव। कान म थोड़ा कम सुनाई देथे बाक़ी किसानी के सब बात जानथंव! बोल, खेत म का समस्या हे?';
+    const textHi = 'जय जोहार किसान भाई! मैं आपका काका हूँ। बताइए खेत-किसानी में क्या मदद करूँ — धान का भाव, खाद का हिसाब, मौसम या कोई फसल रोग?';
+    const textCg = 'जय जोहार संगी! मैं तोर काका हंव। बताव खेत-खार म का सेवा करंव — धान के भाव, खाद के हिसाब, मौसम कि कोनो बीमारी?';
 
     return {
       textHi,
@@ -1278,8 +1295,8 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
       directAnswer: {
         intent: 'GREETING',
         icon: '👴🏻',
-        headline: 'जय जोहार! मैं तोर बहिरा काका हंव',
-        headlineCg: 'जय जोहार संगी! बोल काका का सेवा करय?',
+        headline: 'जय जोहार! बताइए क्या सेवा करूँ',
+        headlineCg: 'जय जोहार संगी! बताव का सेवा करंव',
         queryEcho: transcript,
         cards: [
           { icon: '🌾', label: 'धान खरीदी', value: '₹3,100 / क्विंटल', sub: '21 क्विंटल प्रति एकड़ कोटा', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
@@ -1341,29 +1358,71 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
     };
   }
 
-  // ── 10. Fallback: Warm Bhaira Kaka hard-of-hearing persona ──
-  const textHi = 'काका समझ नहीं पाए। थोड़ा ज़ोर से बोलिए—धान के भाव, खाद की बोरी या फसल में लगी बीमारी के बारे में पूछ रहे हैं?';
-  const textCg = 'अरे भइया, तोला पता हे न मैं थोड़ा बहिरा हंव! थोड़ा जोर ले बोलव — धान के भाव जानना हे, खाद के हिसाब, कि कोनो दवाई?';
+  // ── 10. Intelligent Fallback: Differentiate "नहीं पता" (Unknown Domain) vs "समझ नहीं आया" (Muffled / Unclear) ──
+  const words = clean.split(/\s+/).filter(Boolean);
+  const isQuestionOrTopic =
+    words.length >= 2 ||
+    /(?:क्या|कहाँ|कहा|कब|कौन|कइसे|काहे|कैसे|कितना|बताओ|बताव|बोल|सुना|गाना|क्रिकेट|मैच|फिल्म|सिनेमा|न्यूज|समाचार|राजनीति|गाड़ी|दुकान|स्कूल|अस्पताल|दवाखाना|रेलवे|ट्रेन|बस|टिकट|लॉटरी|मोदी|राहुल|मुख्यमंत्री|सरकार)/.test(clean);
+
+  if (isQuestionOrTopic) {
+    // Edge Case: "नहीं पता" — User asked a question outside agricultural domain
+    const textHi = 'माफ़ कीजिए, इसकी जानकारी मुझे नहीं है भैया। मैं सिर्फ खेती-किसानी — धान का भाव (₹3,100), खाद गणना, मंडी भाव, मौसम व फसल रोग में सहायता कर सकता हूँ।';
+    const textCg = 'माफ करव, एकर जानकारी मोला नइ हे संगी। मैं सिरिफ किसानी — धान खरीदी (₹3,100), खाद के हिसाब, मंडी भाव, मौसम अउ फसल बीमारी के बात बता सकथंव।';
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'UNKNOWN_TOPIC',
+        icon: '❓',
+        headline: 'इसकी जानकारी उपलब्ध नहीं है',
+        headlineCg: 'एकर जानकारी नइ हे',
+        queryEcho: transcript,
+        cards: [
+          { icon: '🌾', label: 'धान खरीदी', value: '₹3,100 / क्विंटल', sub: '21 क्विंटल प्रति एकड़ कोटा', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+          { icon: '🧮', label: 'खाद हिसाब', value: 'DAP + यूरिया', sub: 'एकड़ अनुसार गणना', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+          { icon: '🏪', label: 'मंडी भाव', value: `${selectedDistrict} मंडी`, sub: 'टमाटर, चना, सोयाबीन', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+          { icon: '🌤️', label: 'मौसम सलाह', value: 'आज का पूर्वानुमान', sub: 'छिड़काव व बारिश अलर्ट', bg: '#f8fafc', border: '#cbd5e1', color: '#1e293b' },
+        ],
+        advisoryText: 'मैं केवल खेती-किसानी से जुड़े सवालों का उत्तर दे सकता हूँ। कृपया नीचे दिए गए कृषि विकल्पों में से चुनें:',
+        advisoryTextCg: 'मैं सिरिफ किसानी से जुड़े सवाल के जवाब दे सकथंव। नीचे कोनो भी किसानी विकल्प ला चुनव:',
+        whatsappShareText: '',
+        needsClarification: true,
+        missingSlot: 'topic',
+        slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम', 'माहू की दवा'],
+        deepLink: null,
+      },
+      route: null,
+      action: null,
+      needsClarification: false,
+      extractedAcre: null,
+      confidence: 0.2,
+    };
+  }
+
+  // Edge Case: "समझ नहीं आया" — Mumbled / unclear speech or single noise word
+  const textHi = 'आपकी बात समझ नहीं आई भैया। कृपया साफ शब्दों में दोबारा बोलें — जैसे "2 एकड़ में धान का पैसा" या "खाद का हिसाब"।';
+  const textCg = 'बात समझ म नइ आइस संगी। एक पइत फेर साफ-साफ बोलव — जइसे "2 एकड़ म धान के पइसा" या "खाद के हिसाब"।';
 
   return {
     textHi,
     textCg,
     directAnswer: {
-      intent: 'FALLBACK',
-      icon: '👴🏻',
-      headline: 'काका समझ नहीं पाए — थोड़ा ज़ोर से बोलें',
-      headlineCg: 'काका सुन नइ पाइन — थोड़ा जोर ले बोलव',
+      intent: 'NOT_UNDERSTOOD',
+      icon: '🤔',
+      headline: 'बात समझ नहीं आई — दोबारा बोलें',
+      headlineCg: 'बात समझ म नइ आइस — फेर बोलव',
       queryEcho: transcript,
       cards: [
         { icon: '🌾', label: 'धान भाव', value: '₹3,100 / क्विंटल', sub: 'समर्थन मूल्य खरीदी', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
         { icon: '🧮', label: 'खाद हिसाब', value: 'DAP + यूरिया', sub: 'एकड़ अनुसार गणना', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
       ],
-      advisoryText: 'आप नीचे दिए गए विकल्पों में से किसी एक को छू सकते हैं या दोबारा ज़ोर से बोल सकते हैं:',
-      advisoryTextCg: 'नीचे कोनो भी विकल्प ला छूव या फेर जोर ले बोलव संगी:',
+      advisoryText: 'कृपया साफ शब्दों में फसल या विषय का नाम बोलें, अथवा नीचे दिए गए विकल्पों को छुएं:',
+      advisoryTextCg: 'साफ शब्द म फसल या विषय बताव संगी, या नीचे दिए विकल्प ला छूव:',
       whatsappShareText: '',
       needsClarification: true,
       missingSlot: 'topic',
-      slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम', 'माहू की दवा'],
+      slotSuggestions: ['2 एकड़ धान का पैसा', '1 एकड़ खाद हिसाब', 'टमाटर मंडी रेट', 'धान में माहू रोग'],
       deepLink: null,
     },
     route: null,
