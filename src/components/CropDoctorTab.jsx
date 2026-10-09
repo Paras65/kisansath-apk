@@ -665,13 +665,17 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
       speakText(disease.voiceAdvice);
       return;
     }
-    const text = `${disease.cropName} में ${disease.diseaseName} का इलाज। 15 लीटर स्प्रे पंप (टंकी) की खुराक है: ${disease.pumpDose || 'अनुशंसा अनुसार'}। रासायनिक उपाय है: ${disease.chemicalRemedy}। जैविक उपाय है: ${disease.organicRemedy}।`;
+    const text = isChhattisgarhi
+      ? `${disease.cropName} म ${disease.diseaseName} के इलाज। 15 लीटर टंकी (पंप) के दवाई खुराक हे: ${disease.pumpDose || 'नियम अनुसार'}। रासायनिक दवाई हे: ${disease.chemicalRemedy}। जैविक उपाय हे: ${disease.organicRemedy}।`
+      : `${disease.cropName} में ${disease.diseaseName} का इलाज। 15 लीटर स्प्रे पंप (टंकी) की खुराक है: ${disease.pumpDose || 'अनुशंसा अनुसार'}। रासायनिक उपाय है: ${disease.chemicalRemedy}। जैविक उपाय है: ${disease.organicRemedy}।`;
     speakText(text);
   };
 
   const handleVoiceReadWeather = () => {
     if (!sprayAdvisory) return;
-    const text = `${selectedDistrict} मौसम एवं छिड़काव सलाह: ${sprayAdvisory.advisory}`;
+    const text = isChhattisgarhi
+      ? `${selectedDistrict} म आज के मौसम अऊ दवाई छिड़काव सलाह: ${sprayAdvisory.advisory}`
+      : `${selectedDistrict} मौसम एवं छिड़काव सलाह: ${sprayAdvisory.advisory}`;
     speakText(text);
   };
 
@@ -1128,7 +1132,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
                   <VerifiedIcon sx={{ color: '#2e7d32', fontSize: 18 }} />
                   <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.9rem' }}>
-                    {isChhattisgarhi ? 'पहचान:' : 'पहचान:'} {aiReport.disease}
+                    {isChhattisgarhi ? 'चिन्हारी (रोग):' : 'पहचान:'} {aiReport.disease}
                   </Typography>
                   <Chip
                     label={`${aiReport.confidence}% ${isChhattisgarhi ? 'पक्का' : 'निश्चित'}`}
@@ -1148,7 +1152,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   />
                 </Box>
                 <Typography variant="caption" sx={{ color: '#555', display: 'block', fontSize: '0.74rem', mt: 0.3 }}>
-                  {isChhattisgarhi ? 'फसल:' : 'फसल:'} <strong>{aiReport.crop}</strong> • 15L {isChhattisgarhi ? 'पंप खुराक:' : 'पंप खुराक:'} <strong>{aiReport.pumpDose}</strong>
+                  {isChhattisgarhi ? 'फसल:' : 'फसल:'} <strong>{aiReport.crop}</strong> • 15L {isChhattisgarhi ? 'टंकी खुराक:' : 'पंप खुराक:'} <strong>{aiReport.pumpDose}</strong>
                 </Typography>
               </Box>
 
@@ -1621,7 +1625,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                   const sevStyle = getSeverityStyle(activeDisease.severity);
                   return (
                     <Chip
-                      label={`${sevStyle.dot} ${isChhattisgarhi ? 'गंभीरता:' : 'गंभीरता:'} ${activeDisease.severity || 'गंभीर'}`}
+                      label={`${sevStyle.dot} ${isChhattisgarhi ? 'नुकसान:' : 'गंभीरता:'} ${activeDisease.severity || 'गंभीर'}`}
                       size="small"
                       sx={{
                         bgcolor: sevStyle.bgcolor,
@@ -1890,7 +1894,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
 
                             <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 0.8 }}>
                               <Chip
-                                label={isChhattisgarhi ? `⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन` : `⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन`}
+                                label={isChhattisgarhi ? `⏳ तुड़ाई पहिली (PHI): ${matchedCibrc.phiDays} दिन` : `⏳ सुरक्षित PHI: ${matchedCibrc.phiDays} दिन`}
                                 size="small"
                                 sx={{
                                   bgcolor: matchedCibrc.phiDays <= 7 ? '#e8f5e9' : matchedCibrc.phiDays <= 21 ? '#fff8e1' : '#ffebee',
@@ -1900,7 +1904,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                                 }}
                               />
                               <Chip
-                                label={`🎒 15L ${isChhattisgarhi ? 'पंप' : 'पंप'}: ${matchedCibrc.dosagePerPump15L}`}
+                                label={`🎒 15L ${isChhattisgarhi ? 'टंकी' : 'पंप'}: ${matchedCibrc.dosagePerPump15L}`}
                                 size="small"
                                 sx={{ bgcolor: '#f0fdf4', color: '#15803d', fontWeight: 700, fontSize: '0.68rem' }}
                               />
@@ -1940,7 +1944,7 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
                               onClick={() => openNativeDialer('18001801551')}
                               sx={{ mt: 0.5, py: 0.2, px: 1, fontSize: '0.68rem', color: '#e65100', borderColor: '#ffb74d', bgcolor: '#fff', border: '1px solid' }}
                             >
-                              {isChhattisgarhi ? 'किसान कॉल सेंटर (1800-180-1551)' : 'किसान कॉल सेंटर (1800-180-1551)'}
+                              {isChhattisgarhi ? 'किसान कॉल सेंटर म फोन लगाव (1800-180-1551)' : 'किसान कॉल सेंटर (1800-180-1551)'}
                             </Button>
                           </Alert>
                         )}

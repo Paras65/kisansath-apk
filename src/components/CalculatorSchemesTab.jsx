@@ -265,7 +265,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           <Card sx={{ p: 2, mb: 2.5, borderRadius: 3.5, border: '1.5px solid #c8e6c9' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1rem' }}>
-                {isChhattisgarhi ? '🌾 खाद नाप-जोख कैलकुलेटर' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
+                {isChhattisgarhi ? '🌾 खाद नाप-जोख (खाद हिसाब)' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <KakaWalkthroughButton featureId="calculator" />
@@ -975,7 +975,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
-                  🌾 {appConfig.stateName} {isChhattisgarhi ? 'कृषक उन्नति धान उपार्जन हिसाब' : 'कृषक उन्नति धान उपार्जन कैलकुलेटर'}
+                  🌾 {appConfig.stateName} {isChhattisgarhi ? 'कृषक उन्नति धान खरीदी हिसाब' : 'कृषक उन्नति धान उपार्जन कैलकुलेटर'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#556958', fontSize: '0.74rem' }}>
                   {appConfig.paddyScheme.maxQuintalsPerAcre} {isChhattisgarhi ? `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल पक्का भाव` : `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य`}
@@ -1338,7 +1338,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   '&:hover': { bgcolor: '#1e40af' }
                 }}
               >
-                {isChhattisgarhi ? '🎯 टोकन तुंहर हाथ: पात्रता, बोरी अऊ ऑनलाइन गाइड देखव ➔' : '🎯 टोकन तुंहर हाथ: पात्रता, बोरी व ऑनलाइन टोकन गाइड देखें ➔'}
+                {isChhattisgarhi ? '🎯 टोकन तुंहर हाथ: नियम, बोरी अऊ ऑनलाइन गाइड देखव ➔' : '🎯 टोकन तुंहर हाथ: पात्रता, बोरी व ऑनलाइन टोकन गाइड देखें ➔'}
               </Button>
             </Box>
           </Card>

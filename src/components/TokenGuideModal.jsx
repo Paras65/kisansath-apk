@@ -56,7 +56,7 @@ export const TokenGuideModal = ({
   const handleSpeakCalculation = () => {
     stopSpeech();
     const text = isChhattisgarhi
-      ? `${acres} एकड़ रकबा म कुल ${proc.maxQuintals} क्विंटल धान बेचे के पात्रता हे। एखर बर लगभग ${proc.bardanaBags} बोरा बारदाना लगिही। ₹3,100 समर्थन मूल्य के हिसाब ले कुल ₹${proc.totalPayout.toLocaleString('en-IN')} तुंहर बैंक खाता म आही।`
+      ? `${acres} एकड़ रकबा म कुल ${proc.maxQuintals} क्विंटल धान बेचे के कोटा हे। एखर बर लगभग ${proc.bardanaBags} बोरा बारदाना लगही। ₹3,100 समर्थन मूल्य के हिसाब ले कुल ₹${proc.totalPayout.toLocaleString('en-IN')} तुंहर बैंक खाता म आही।`
       : `${acres} एकड़ रकबे में कुल ${proc.maxQuintals} क्विंटल धान विक्रय की पात्रता है। इसके लिए लगभग ${proc.bardanaBags} बोरी बारदाना लगेगा। ₹3,100 प्रति क्विंटल की दर से कुल ₹${proc.totalPayout.toLocaleString('en-IN')} की राशि आपके बैंक खाते में आएगी।`;
     speakText(text);
   };
@@ -110,11 +110,11 @@ export const TokenGuideModal = ({
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.2, fontSize: { xs: '0.95rem', sm: '1.15rem' } }}>
               {isChhattisgarhi
-                ? '🌾 टोकन तुंहर हाथ: धान उपार्जन अऊ बोरी गाइड'
+                ? '🌾 टोकन तुंहर हाथ: धान खरीदी अऊ बोरी गाइड'
                 : '🌾 टोकन तुंहर हाथ: धान उपार्जन, बोरी व टोकन गाइड'}
             </Typography>
             <Typography variant="caption" sx={{ color: '#dcedc8', fontSize: '0.72rem', display: 'block' }}>
-              🔒 {isChhattisgarhi ? '100% सुरक्छित • शून्य कागजात • छत्तीसगढ़ शासन खाद्य विभाग' : '100% सुरक्षित • शून्य कागज़ात • छत्तीसगढ़ शासन खाद्य विभाग'}
+              🔒 {isChhattisgarhi ? '100% सुरक्षित • कोनो कागजात नई चाही • छत्तीसगढ़ शासन खाद्य विभाग' : '100% सुरक्षित • शून्य कागज़ात • छत्तीसगढ़ शासन खाद्य विभाग'}
             </Typography>
           </Box>
         </Box>
@@ -157,7 +157,7 @@ export const TokenGuideModal = ({
           <Tab
             icon={<MonetizationOnIcon sx={{ fontSize: 16 }} />}
             iconPosition="start"
-            label={isChhattisgarhi ? '1. बोरी अऊ पात्रता' : '1. बोरी व पात्रता कैलकुलेटर'}
+            label={isChhattisgarhi ? '1. बोरी अऊ कोटा हिसाब' : '1. बोरी व पात्रता कैलकुलेटर'}
           />
           <Tab
             icon={<ReceiptLongIcon sx={{ fontSize: 16 }} />}
@@ -285,7 +285,7 @@ export const TokenGuideModal = ({
                 }}
               >
                 <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.72rem', display: 'block' }}>
-                  🌾 {isChhattisgarhi ? 'धान पात्रता' : 'धान पात्रता'}
+                  🌾 {isChhattisgarhi ? 'धान कोटा (सीमा)' : 'धान पात्रता'}
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 900, color: '#14532d', my: 0.3, fontSize: { xs: '1.25rem', sm: '1.45rem' } }}>
                   {proc.maxQuintals}
@@ -307,7 +307,7 @@ export const TokenGuideModal = ({
                 }}
               >
                 <Typography variant="caption" sx={{ color: '#1d4ed8', fontWeight: 800, fontSize: '0.72rem', display: 'block' }}>
-                  🎒 {isChhattisgarhi ? 'आवश्यक बारदाना' : 'आवश्यक बारदाना'}
+                  🎒 {isChhattisgarhi ? 'जरूरी बारदाना' : 'आवश्यक बारदाना'}
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 900, color: '#1e40af', my: 0.3, fontSize: { xs: '1.25rem', sm: '1.45rem' } }}>
                   {proc.bardanaBags}
@@ -329,7 +329,7 @@ export const TokenGuideModal = ({
                 }}
               >
                 <Typography variant="caption" sx={{ color: '#b45309', fontWeight: 800, fontSize: '0.72rem', display: 'block' }}>
-                  💰 {isChhattisgarhi ? 'कुल बैंक भुगतान' : 'कुल बैंक भुगतान'}
+                  💰 {isChhattisgarhi ? 'कुल बैंक म जमा' : 'कुल बैंक भुगतान'}
                 </Typography>
                 <Typography variant="h5" sx={{ fontWeight: 900, color: '#92400e', my: 0.3, fontSize: { xs: '1.15rem', sm: '1.35rem' } }}>
                   ₹{proc.totalPayout.toLocaleString('en-IN')}
@@ -529,7 +529,7 @@ export const TokenGuideModal = ({
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8 }}>
                   <span>🎯</span>
-                  <span><strong>{isChhattisgarhi ? 'अधिकतम सीमा:' : 'अधिकतम सीमा:'}</strong> {isChhattisgarhi ? '21 क्विंटल प्रति एकड़ (रकबा × 21 = कुल पात्रता)।' : '21 क्विंटल प्रति एकड़ (रकबा × 21 = कुल पात्रता)।'}</span>
+                  <span><strong>{isChhattisgarhi ? 'अधिकतम कोटा:' : 'अधिकतम सीमा:'}</strong> {isChhattisgarhi ? '21 क्विंटल प्रति एकड़ (रकबा × 21 = कुल कोटा)।' : '21 क्विंटल प्रति एकड़ (रकबा × 21 = कुल पात्रता)।'}</span>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.8 }}>
                   <span>📅</span>
@@ -553,7 +553,7 @@ export const TokenGuideModal = ({
               }}
             >
               <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#166534', fontSize: '0.88rem', mb: 1 }}>
-                📋 {isChhattisgarhi ? 'समिति म तुलाई बेरा साथ म ले जाए बर कागजात:' : 'समिति में धान तुलाई हेतु साथ ले जाने वाले दस्तावेज़:'}
+                📋 {isChhattisgarhi ? 'सोसायटी म तुलाई बेरा संग म ले जाए बर कागजात:' : 'समिति में धान तुलाई हेतु साथ ले जाने वाले दस्तावेज़:'}
               </Typography>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1 }}>

@@ -585,11 +585,13 @@ function App() {
                 sx={{ width: 28, height: 28, borderRadius: 1.5 }}
               />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
-                {appConfig.appName} • {appConfig.appTagline}
+                {appConfig.appName} • {isChhattisgarhi ? 'फसल ले लेके बिक्री तक संगवारी' : appConfig.appTagline}
               </Typography>
             </Box>
             <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', mb: 0.8 }}>
-              {appConfig.stateName} के किसानों का भरोसेमंद डिजिटल मंच
+              {isChhattisgarhi
+                ? 'छत्तीसगढ़ के किसान मन के अपन भरोसेमंद डिजिटल साथी'
+                : `${appConfig.stateName} के किसानों का भरोसेमंद डिजिटल मंच`}
             </Typography>
 
             {/* User Reference Image 1: Compact Dark Capsule Pill */}
@@ -654,7 +656,7 @@ function App() {
                   '&:hover': { bgcolor: '#dcfce7', borderColor: '#16a34a' }
                 }}
               >
-                {isChhattisgarhi ? '❓ अक्सर पूछे जाने वाले सवाल (FAQs)' : '❓ अक्सर पूछे जाने वाले सवाल (FAQs)'}
+                {isChhattisgarhi ? '❓ जरूरी सवाल-जवाब (काका ले पूछव)' : '❓ अक्सर पूछे जाने वाले सवाल (FAQs)'}
               </Button>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap', pt: 0.8, borderTop: '1px dashed #e2e8f0' }}>
@@ -664,7 +666,7 @@ function App() {
                 variant="caption"
                 sx={{ color: '#1b5e20', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                📞 कृषि सलाह (किसान कॉल सेंटर): {appConfig.helpline?.phone || '1800-180-1551'}
+                📞 {isChhattisgarhi ? 'खेती सलाह (किसान कॉल सेंटर):' : 'कृषि सलाह (किसान कॉल सेंटर):'} {appConfig.helpline?.phone || '1800-180-1551'}
               </Typography>
               <Typography
                 component="a"
@@ -672,10 +674,10 @@ function App() {
                 variant="caption"
                 sx={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 0.5 }}
               >
-                ✉️ ऐप तकनीकी सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
+                ✉️ {isChhattisgarhi ? 'ऐप सहायता:' : 'ऐप तकनीकी सहायता:'} {appConfig.supportEmail || 'support@init65.co.in'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                🔒 100% सुरक्षित • ऑफलाइन सुलभ
+                {isChhattisgarhi ? '🔒 100% सुरक्षित • बिना नेट के भी चलही' : '🔒 100% सुरक्षित • ऑफलाइन सुलभ'}
               </Typography>
             </Box>
           </Box>
@@ -724,7 +726,9 @@ function App() {
                   </Box>
                 </Box>
                 <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem', lineHeight: 1.6, mb: 1.5 }}>
-                  {appConfig.stateName} के किसान भाइयों के लिए बुआई पूर्व मिट्टी परीक्षण, संतुलित NPK पोषण, फसल रोग निदान से लेकर ₹3,100/क्विंटल धान उपार्जन एवं मंडी बिक्री तक का संपूर्ण डिजिटल समाधान।
+                  {isChhattisgarhi
+                    ? 'छत्तीसगढ़ के किसान संगी मन बर बुआई ले पहिली माटी जांच, संतुलित खाद पोषण, फसल रोग के इलाज ले लेके ₹3,100/क्विंटल धान खरीदी अऊ मंडी म बेचे तक के पूरा डिजिटल समाधान।'
+                    : `${appConfig.stateName} के किसान भाइयों के लिए बुआई पूर्व मिट्टी परीक्षण, संतुलित NPK पोषण, फसल रोग निदान से लेकर ₹3,100/क्विंटल धान उपार्जन एवं मंडी बिक्री तक का संपूर्ण डिजिटल समाधान।`}
                 </Typography>
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', px: 1.2, py: 0.4, borderRadius: 2 }}>
                   <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.74rem' }}>
@@ -736,17 +740,19 @@ function App() {
               {/* Column 2: Government Crop Advisory vs App Technical Support */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  📞 आधिकारिक हेल्पलाइन व ऐप सहायता
+                  📞 {isChhattisgarhi ? 'हेल्पलाइन अऊ ऐप सहायता' : 'आधिकारिक हेल्पलाइन व ऐप सहायता'}
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
                     <PhoneInTalkIcon sx={{ fontSize: 18, color: '#16a34a', mt: 0.2 }} />
                     <Box>
                       <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.8rem', display: 'block' }}>
-                        सरकारी किसान कॉल सेंटर (कृषि विभाग): {appConfig.helpline.phone}
+                        {isChhattisgarhi ? 'सरकारी किसान कॉल सेंटर (कृषि विभाग):' : 'सरकारी किसान कॉल सेंटर (कृषि विभाग):'} {appConfig.helpline.phone}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        सुबह 6:00 से रात 10:00 बजे तक (केवल फसल, रोग, खाद व खेती सलाह हेतु)
+                        {isChhattisgarhi
+                          ? 'बिहनिया 6:00 ले रात 10:00 बजे तक (केवल फसल, कीरा, खाद अऊ खेती सलाह बर)'
+                          : 'सुबह 6:00 से रात 10:00 बजे तक (केवल फसल, रोग, खाद व खेती सलाह हेतु)'}
                       </Typography>
                     </Box>
                   </Box>
@@ -759,10 +765,12 @@ function App() {
                         variant="caption"
                         sx={{ color: '#0284c7', fontWeight: 800, fontSize: '0.8rem', display: 'block', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
                       >
-                        ऐप तकनीकी सहायता: {appConfig.supportEmail || 'support@init65.co.in'}
+                        {isChhattisgarhi ? 'ऐप सहायता:' : 'ऐप तकनीकी सहायता:'} {appConfig.supportEmail || 'support@init65.co.in'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        किसान साथी ऐप में समस्या, लॉगिन कठिनाई या सुझाव हेतु (Init65 सपोर्ट)
+                        {isChhattisgarhi
+                          ? 'किसान साथी ऐप म कोनो दिक्कत, लॉगिन या सुझाव बर (Init65 सपोर्ट)'
+                          : 'किसान साथी ऐप में समस्या, लॉगिन कठिनाई या सुझाव हेतु (Init65 सपोर्ट)'}
                       </Typography>
                     </Box>
                   </Box>
@@ -770,10 +778,12 @@ function App() {
                     <SecurityIcon sx={{ fontSize: 18, color: '#0284c7', mt: 0.2 }} />
                     <Box>
                       <Typography variant="caption" sx={{ color: '#334155', fontWeight: 700, fontSize: '0.8rem', display: 'block' }}>
-                        सुरक्षा व डेटा गोपनीयता (Zero-PII)
+                        {isChhattisgarhi ? 'डेटा सुरक्षा अऊ गोपनीयता (Zero-PII)' : 'सुरक्षा व डेटा गोपनीयता (Zero-PII)'}
                       </Typography>
                       <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-                        OWASP / ISO 27001 दिशानिर्देशों का अनुपालन • संवेदनशील किसान डेटा डिवाइस पर सुरक्षित
+                        {isChhattisgarhi
+                          ? 'किसान मन के कोनो व्यक्तिगत ब्यौरा सर्वर म नहीं रखिन जाय • सबो डेटा मोबाइल म सुरक्षित'
+                          : 'OWASP / ISO 27001 दिशानिर्देशों का अनुपालन • संवेदनशील किसान डेटा डिवाइस पर सुरक्षित'}
                       </Typography>
                     </Box>
                   </Box>
@@ -783,7 +793,7 @@ function App() {
               {/* Column 3: Quick Administrative & Download Actions */}
               <Box>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem', mb: 1.5 }}>
-                  ⚙️ त्वरित पोर्टल व सेवाएं
+                  ⚙️ {isChhattisgarhi ? 'जरूरी सेवा अऊ पोर्टल' : 'त्वरित पोर्टल व सेवाएं'}
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
                   <Button
@@ -805,7 +815,7 @@ function App() {
                       '&:hover': { bgcolor: '#e0f2fe', borderColor: '#0284c7' }
                     }}
                   >
-                    कृषि प्रशासन पोर्टल (Admin)
+                    {isChhattisgarhi ? '🏛️ कृषि प्रशासन पोर्टल (Admin)' : 'कृषि प्रशासन पोर्टल (Admin)'}
                   </Button>
                   <Button
                     size="small"
@@ -826,7 +836,7 @@ function App() {
                       '&:hover': { bgcolor: '#dcfce7', borderColor: '#16a34a' }
                     }}
                   >
-                    अक्सर पूछे जाने वाले सवाल (FAQs)
+                    {isChhattisgarhi ? '❓ जरूरी सवाल-जवाब (काका ले पूछव)' : 'अक्सर पूछे जाने वाले सवाल (FAQs)'}
                   </Button>
                   {appConfig.apkDownloadUrl && !isNativePlatform() && (
                     <Button

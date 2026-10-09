@@ -736,7 +736,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         ({query.mandi})
                       </Typography>
                       <Chip
-                        label={query.status === 'resolved' ? (isChhattisgarhi ? 'सत्यापित' : 'सत्यापित') : (isChhattisgarhi ? 'सिंक बाकी' : 'लंबित सिंक')}
+                        label={query.status === 'resolved' ? (isChhattisgarhi ? 'पक्का (सत्यापित)' : 'सत्यापित') : (isChhattisgarhi ? 'सिंक बाकी' : 'लंबित सिंक')}
                         size="small"
                         color={query.status === 'resolved' ? 'success' : 'default'}
                         sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800 }}
@@ -744,7 +744,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                     </Box>
                     {query.status === 'resolved' && query.resolvedRate ? (
                       <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, display: 'block', mt: 0.3 }}>
-                        {isChhattisgarhi ? `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}` : `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}`}
+                        {isChhattisgarhi ? `ताजा भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}` : `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}`}
                       </Typography>
                     ) : (
                       <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
@@ -805,7 +805,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
               }}
             >
               <MenuItem value="all">{isChhattisgarhi ? "🌾 सबो जिंस (सब)" : "🌾 सभी जिंसें (All Commodities)"}</MenuItem>
-              <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर - ₹3,100 उपार्जन)" : "🌾 धान (Paddy - ₹3,100 उपार्जन)"}</MenuItem>
+              <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर - ₹3,100 सरकारी खरीदी)" : "🌾 धान (Paddy - ₹3,100 उपार्जन)"}</MenuItem>
               <MenuItem value="चना">{isChhattisgarhi ? "🟤 चना (बूट)" : "🟤 चना (Gram / Chickpea)"}</MenuItem>
               <MenuItem value="सोयाबीन">{isChhattisgarhi ? "🟡 सोयाबीन" : "🟡 सोयाबीन (Soybean)"}</MenuItem>
               <MenuItem value="मक्का">{isChhattisgarhi ? "🌽 मक्का (जुनहरी)" : "🌽 मक्का (Maize)"}</MenuItem>
@@ -1148,7 +1148,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         <Grid item xs={5}>
                           <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '2px solid #66bb6a', borderRadius: '12px', textAlign: 'center', boxShadow: '0 2px 6px rgba(46,125,50,0.12)' }}>
                             <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 900, display: 'block', fontSize: '0.7rem', letterSpacing: 0.3 }}>
-                              ⭐ {isChhattisgarhi ? 'मुख्य मॉडल भाव' : 'मुख्य मॉडल भाव'}
+                              ⭐ {isChhattisgarhi ? 'मुख्य भाव' : 'मुख्य मॉडल भाव'}
                             </Typography>
                             <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.15rem', sm: '1.25rem' }, lineHeight: 1.1, my: 0.2 }}>
                               ₹{rate.modalRate}
@@ -1183,20 +1183,20 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
                         {isPositive ? (
                           <Chip
                             icon={<TrendingUpIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
-                            label={`${isChhattisgarhi ? 'तेजी' : 'तेजी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
+                            label={`${isChhattisgarhi ? 'चढ़ती (तेजी)' : 'तेजी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
                             size="small"
                             sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />
                         ) : isNegative ? (
                           <Chip
                             icon={<TrendingDownIcon sx={{ fontSize: '13px !important', color: '#c62828' }} />}
-                            label={`${isChhattisgarhi ? 'मंदी' : 'मंदी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
+                            label={`${isChhattisgarhi ? 'मंदी (उतरती)' : 'मंदी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
                             size="small"
                             sx={{ bgcolor: '#ffebee', color: '#c62828', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />
                         ) : (
                           <Chip
-                            label={`${isChhattisgarhi ? 'स्थिर' : 'स्थिर'} ${rate.trend || '0'}`}
+                            label={`${isChhattisgarhi ? 'समान (स्थिर)' : 'स्थिर'} ${rate.trend || '0'}`}
                             size="small"
                             sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
                           />

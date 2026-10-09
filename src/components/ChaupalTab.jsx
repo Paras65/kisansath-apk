@@ -356,7 +356,7 @@ export const ChaupalTab = () => {
           <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.1 }}>
-                {isChhattisgarhi ? '🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल' : '🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल'}
+                {isChhattisgarhi ? '🚜 ट्रैक्टर अऊ खेती मशीन किराया' : '🚜 कस्टम हायरिंग व कृषि मशीनरी रेंटल'}
               </Typography>
               <Typography variant="caption" sx={{ color: '#666', fontSize: '0.75rem' }}>
                 {isChhattisgarhi ? 'ट्रैक्टर, कंबाइन हार्वेस्टर अउ कृषि ड्रोन सही दर म' : 'ट्रैक्टर, कंबाइन हार्वेस्टर और कृषि ड्रोन उचित दरों पर'}
@@ -669,7 +669,7 @@ export const ChaupalTab = () => {
                         <Button
                           size="small"
                           startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
-                          onClick={() => speakText(`${q.question}. ${isChhattisgarhi ? 'समाधान' : 'समाधान'}: ${q.bestAnswer}`)}
+                          onClick={() => speakText(`${q.question}. ${isChhattisgarhi ? 'जवाब' : 'समाधान'}: ${q.bestAnswer}`)}
                           sx={{ color: '#1b5e20', fontSize: '0.7rem', p: 0.4, borderRadius: '6px' }}
                         >
                           {isChhattisgarhi ? 'सुनव' : 'सुनें'}
@@ -696,12 +696,12 @@ export const ChaupalTab = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                             <QuestionAnswerIcon sx={{ color: '#1b5e20', fontSize: 15 }} />
                             <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                              ताजा समाधान ({q.answersCount || (q.replies?.length ?? 1)} {isChhattisgarhi ? 'उत्तर' : 'उत्तर'}):
+                              {isChhattisgarhi ? 'ताजा जवाब' : 'ताजा समाधान'} ({q.answersCount || (q.replies?.length ?? 1)} {isChhattisgarhi ? 'जवाब' : 'उत्तर'}):
                             </Typography>
                           </Box>
                         </Box>
                         <Typography variant="body2" sx={{ color: '#2e7d32', fontSize: { xs: '0.8rem', sm: '0.84rem' }, lineHeight: 1.45 }}>
-                          {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || (isChhattisgarhi ? 'समाधान प्रक्रिया म हे।' : 'समाधान प्रक्रियाधीन है।')}
+                          {q.bestAnswer || (q.replies && q.replies[q.replies.length - 1]?.text) || (isChhattisgarhi ? 'जवाब आवत हे।' : 'समाधान प्रक्रियाधीन है।')}
                         </Typography>
 
                         {/* Recent Replies Thread */}
@@ -709,7 +709,7 @@ export const ChaupalTab = () => {
                           <Box sx={{ mt: 1, pt: 1, borderTop: '1px dashed #a5d6a7' }}>
                             {q.replies.slice(-2).map((rep) => (
                               <Box key={rep.id || rep._id} sx={{ mb: 0.5, p: 0.6, bgcolor: 'rgba(255,255,255,0.7)', borderRadius: '6px', fontSize: '0.72rem', color: '#1b5e20' }}>
-                                <strong>{rep.author}</strong> ({rep.role || (isChhattisgarhi ? 'किसान भाई' : 'किसान भाई')}): {rep.text}
+                                <strong>{rep.author}</strong> ({rep.role || (isChhattisgarhi ? 'किसान संगी' : 'किसान भाई')}): {rep.text}
                               </Box>
                             ))}
                           </Box>
@@ -742,7 +742,7 @@ export const ChaupalTab = () => {
                           '&:hover': { bgcolor: '#e8f5e9', borderColor: '#2e7d32' }
                         }}
                       >
-                        {isChhattisgarhi ? '💬 अपन समाधान / उत्तर लिखव' : '💬 अपना समाधान / उत्तर लिखें'}
+                        {isChhattisgarhi ? '💬 अपन जवाब लिखव' : '💬 अपना समाधान / उत्तर लिखें'}
                       </Button>
                     </Box>
                   </CardContent>
@@ -1141,7 +1141,7 @@ export const ChaupalTab = () => {
           <TextField
             fullWidth
             size="small"
-            label={isChhattisgarhi ? 'बुआई के तारीख' : 'बुआई की तारीख'}
+            label={isChhattisgarhi ? 'बोवाई के तारीख' : 'बुआई की तारीख'}
             type="date"
             InputLabelProps={{ shrink: true }}
             value={newCropEntry.sowDate}
@@ -1178,7 +1178,7 @@ export const ChaupalTab = () => {
             value={newMachine.category}
             onChange={(e) => setNewMachine({ ...newMachine, category: e.target.value })}
           >
-            <MenuItem value="जुताई एवं खेत तैयारी">{isChhattisgarhi ? 'जुताई एवं खेत तैयारी' : 'जुताई एवं खेत तैयारी'}</MenuItem>
+            <MenuItem value="जुताई एवं खेत तैयारी">{isChhattisgarhi ? 'जोताई अऊ खेत तैयारी' : 'जुताई एवं खेत तैयारी'}</MenuItem>
             <MenuItem value="कटाई व थ्रेशिंग">{isChhattisgarhi ? 'कटाई व थ्रेशिंग (मिंजाई)' : 'कटाई व थ्रेशिंग'}</MenuItem>
             <MenuItem value="आधुनिक छिड़काव तकनीक">{isChhattisgarhi ? 'आधुनिक छिड़काव तकनीक (ड्रोन)' : 'आधुनिक छिड़काव तकनीक (ड्रोन)'}</MenuItem>
             <MenuItem value="जल संरक्षण एवं लेवलिंग">{isChhattisgarhi ? 'जल संरक्षण एवं लेवलिंग' : 'जल संरक्षण एवं लेवलिंग'}</MenuItem>
@@ -1244,7 +1244,7 @@ export const ChaupalTab = () => {
       {/* Reply to Community Question Dialog */}
       <Dialog open={openReplyModal} onClose={() => setOpenReplyModal(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.1rem' }}>
-          {isChhattisgarhi ? '💬 चौपाल म समाधान / उत्तर लिखव' : '💬 चौपाल में समाधान / उत्तर लिखें'}
+          {isChhattisgarhi ? '💬 चौपाल म अपन जवाब लिखव' : '💬 चौपाल में समाधान / उत्तर लिखें'}
         </DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
           {selectedQuestionForReply && (
@@ -1272,7 +1272,7 @@ export const ChaupalTab = () => {
             value={replyForm.role}
             onChange={(e) => setReplyForm({ ...replyForm, role: e.target.value })}
           >
-            <MenuItem value="किसान भाई">{isChhattisgarhi ? 'किसान भाई' : 'किसान भाई (Farmer)'}</MenuItem>
+            <MenuItem value="किसान भाई">{isChhattisgarhi ? 'किसान संगी' : 'किसान भाई (Farmer)'}</MenuItem>
             <MenuItem value="कृषि वैज्ञानिक / विशेषज्ञ">{isChhattisgarhi ? 'कृषि वैज्ञानिक / विशेषज्ञ' : 'कृषि वैज्ञानिक / विशेषज्ञ (Scientist)'}</MenuItem>
             <MenuItem value="समिति प्रबंधक / RAEO">{isChhattisgarhi ? 'समिति प्रबंधक / RAEO' : 'समिति प्रबंधक / RAEO'}</MenuItem>
           </TextField>
@@ -1280,7 +1280,7 @@ export const ChaupalTab = () => {
             fullWidth
             multiline
             rows={3}
-            label={isChhattisgarhi ? 'तुंहर अनुभव व वैज्ञानिक समाधान *' : 'आपका अनुभव व वैज्ञानिक समाधान *'}
+            label={isChhattisgarhi ? 'तुंहर अनुभव व खेती समाधान *' : 'आपका अनुभव व वैज्ञानिक समाधान *'}
             placeholder={isChhattisgarhi ? 'विस्तार ले उपाय, दवाई के नाव, मात्रा अउ सावधानी लिखव...' : 'विस्तार से उपाय, दवा का नाम, मात्रा व सावधानी लिखें...'}
             value={replyForm.text}
             onChange={(e) => setReplyForm({ ...replyForm, text: e.target.value })}
@@ -1289,7 +1289,7 @@ export const ChaupalTab = () => {
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setOpenReplyModal(false)} sx={{ color: '#666' }}>{isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}</Button>
           <Button variant="contained" onClick={handlePostReply} sx={{ bgcolor: '#1b5e20', borderRadius: 2 }}>
-            {isChhattisgarhi ? 'उत्तर भेजव' : 'उत्तर भेजें'}
+            {isChhattisgarhi ? 'जवाब भेजव' : 'उत्तर भेजें'}
           </Button>
         </DialogActions>
       </Dialog>
