@@ -11,7 +11,8 @@ import {
   Chip,
   Paper,
   Divider,
-  Alert
+  Alert,
+  Collapse
 } from '@mui/material';
 import CalculateIcon from '@mui/icons-material/Calculate';
 import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
@@ -24,6 +25,9 @@ import ScienceIcon from '@mui/icons-material/Science';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { speakText, stopSpeech } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { getFertilizers, getSchemes, getCachedModuleData, getDistrictSoilHealth } from '../services/apiService';
@@ -34,19 +38,22 @@ import { KakaWalkthroughButton } from './KakaWalkthroughButton';
 import { notify } from '../services/notificationService';
 import { useLanguage } from '../utils/i18n';
 import { acreToDismil, dismilToAcre, stepAcre, stepDismil, calculatePaddyProcurement } from '../utils/unitConverter';
+import { FERTILIZER_DOSES, SCHEMES } from '../data/kisanData';
 
 export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }) => {
   const [subTab, setSubTab] = useState(0);
   const [openTokenGuide, setOpenTokenGuide] = useState(false);
 
-  // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
+  // 100% Real Statutory & IGKV Baseline Initialization (Guaranteed Zero Empty Screen on cold start)
   const [fertData, setFertData] = useState(() => {
     const cached = getCachedModuleData('fertilizers');
-    return cached && cached.data && Object.keys(cached.data).length > 0 ? cached.data : null;
+    if (cached && cached.data && Object.keys(cached.data).length > 0) return cached.data;
+    return FERTILIZER_DOSES;
   });
   const [schemesList, setSchemesList] = useState(() => {
     const cached = getCachedModuleData('schemes');
-    return cached && Array.isArray(cached.data) ? cached.data : [];
+    if (cached && Array.isArray(cached.data) && cached.data.length > 0) return cached.data;
+    return SCHEMES;
   });
 
   // District Soil Health Card Survey State (DAC&FW / OGD India)
@@ -61,6 +68,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
   const [topography, setTopography] = useState('dand'); // 'dand' | 'bahra'
   const [openSoilIot, setOpenSoilIot] = useState(false);
   const [soilSensorData, setSoilSensorData] = useState(null);
+  const [showAdvancedSoil, setShowAdvancedSoil] = useState(false);
 
   // Paddy Kharidi Calculator State
   const [paddyUnit, setPaddyUnit] = useState('acre'); // 'acre' | 'dismil'
@@ -161,7 +169,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
       const subtabNames = ['fert', 'dhan', 'yojana'];
       url.searchParams.set('subtab', subtabNames[idx]);
       window.history.replaceState(window.history.state, '', url.pathname + url.search);
-    } catch (e) {}
+    } catch {}
   };
 
   const loadFromMongo = async () => {
@@ -224,7 +232,6 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
   const pAcresNum = paddyUnit === 'dismil' ? dismilToAcre(paddyAcres) : (parseFloat(paddyAcres) || 0);
   const paddyMath = calculatePaddyProcurement(pAcresNum, appConfig.paddyScheme.maxQuintalsPerAcre);
   const maxQuintals = paddyMath.maxQuintals.toFixed(1);
-  const totalRate = appConfig.paddyScheme.totalRate;
   const totalPaddyAmount = paddyMath.totalPayout;
   const mspPart = paddyMath.mspCommon;
   const bonusPart = paddyMath.bonusCommon;
@@ -276,11 +283,52 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
     speakText(text);
   };
 
+  const handleShareFert = () => {
+    if (!activeFert) return;
+    notify.info('व्हाट्सएप पर खाद हिसाब साझा किया जा रहा है...');
+    const text = `🌾 *किसान साथी - खाद नाप-जोख हिसाब* 🧮
+━━━━━━━━━━━━━━━━━━
+🌾 *फसल:* ${activeFert.name}
+📐 *रकबा:* ${acresNum} एकड़ (${Math.round(acresNum * 100)} डिसमिल)
+
+📦 *कुल आवश्यक खाद मात्रा:*
+🟢 *यूरिया (46% N):* ${ureaBags} बोरी (${totalUreaKg} kg)
+🔵 *डीएपी (18:46:0):* ${dapBags} बोरी (${totalDapKg} kg)
+🟠 *पोटाश (60% K):* ${mopBags} बोरी (${totalMopKg} kg)
+🟣 *जिंक सल्फेट (21% Zn):* ${totalZincKg} kg
+━━━━━━━━━━━━━━━━━━
+📍 IGKV रायपुर कृषि वैज्ञानिक अनुशंसा आधारित
+📲 किसान साथी ऐप: https://kisan.init65.co.in/`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const handleReadPaddyMath = () => {
     const text = isChhattisgarhi
       ? `${pAcresNum} एकड़ (${paddyMath.dismil} डिसमिल) रकबा म 21 क्विंटल प्रति एकड़ हिसाब ले आप अधिकतम ${paddyMath.maxQuintals} क्विंटल धान बेच सकथो। ₹${paddyMath.totalPayout.toLocaleString('en-IN')} के कुल भुगतान मिलही। ${paddyMath.bardanaBags} जूट बारदाना लगही, जेकर ₹${paddyMath.bardanaReimbursement.toLocaleString('en-IN')} प्रतिपूर्ति अलग ले मिलही।`
       : `${pAcresNum} एकड़ रकबे में ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल प्रति एकड़ के हिसाब से आप अधिकतम ${paddyMath.maxQuintals} क्विंटल धान बेच सकते हैं। ₹${paddyMath.totalPayout.toLocaleString('en-IN')} की कुल राशि बनेगी। कुल ${paddyMath.bardanaBags} बारदाने लगेंगे।`;
     speakText(text);
+  };
+
+  const handleSharePaddy = () => {
+    notify.info('व्हाट्सएप पर धान हिसाब साझा किया जा रहा है...');
+    const text = `🌾 *किसान साथी - सरकारी धान उपार्जन रसीद हिसाब* 🌾
+━━━━━━━━━━━━━━━━━━
+📍 *राज्य:* ${appConfig.stateName} (कृषक उन्नति योजना)
+📐 *दर्ज रकबा:* ${pAcresNum} एकड़ (${paddyMath.dismil} डिसमिल)
+⚖️ *अधिकतम धान खरीदी:* ${maxQuintals} क्विंटल (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़)
+💰 *कुल बैंक भुगतान (@ ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}):* ₹${totalPaddyAmount.toLocaleString('en-IN')}
+
+📊 *भुगतान विवरण:*
+1. समिति MSP (@ ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}): ₹${mspPart.toLocaleString('en-IN')}
+2. अंतर राशि / बोनस DBT (@ ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}): ₹${bonusPart.toLocaleString('en-IN')}
+
+🎒 *बारदाना व टोकन:*
+• जूट बोरी (40kg मानक): ~${paddyMath.bardanaBags} बोरी
+• शासन प्रतिपूर्ति: ₹${paddyMath.bardanaReimbursement.toLocaleString('en-IN')} (₹25/बोरा वापसी)
+• टोकन तुंहर हाथ कोटा: अधिकतम ${paddyMath.tokenLimit} टोकन
+━━━━━━━━━━━━━━━━━━
+📲 किसान साथी ऐप: https://kisan.init65.co.in/`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -322,405 +370,224 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
       {/* TAB 0: FERTILIZER CALCULATOR */}
       {subTab === 0 && (
         <Box>
-          <Card sx={{ p: 2, mb: 2.5, borderRadius: 3.5, border: '1.5px solid #c8e6c9' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1rem' }}>
-                {isChhattisgarhi ? '🌾 खाद नाप-जोख (खाद हिसाब)' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Card
+            sx={{
+              p: { xs: 1.8, sm: 2.5 },
+              mb: 2.5,
+              borderRadius: '20px',
+              border: '1.5px solid #c8e6c9',
+              bgcolor: '#ffffff',
+              boxShadow: '0 4px 16px rgba(27, 94, 32, 0.06)'
+            }}
+          >
+            {/* Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: { xs: '1rem', sm: '1.1rem' } }}>
+                  {isChhattisgarhi ? '🌾 खाद नाप-जोख (खाद हिसाब)' : '🌾 स्मार्ट खाद मात्रा कैलकुलेटर'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+                  {isChhattisgarhi ? 'इंदिरा गांधी कृषि वि.वि. (IGKV) अनुशंसित वैज्ञानिक पैमाना' : 'इंदिरा गांधी कृषि विश्वविद्यालय (IGKV) अनुशंसित वैज्ञानिक मानक'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
                 <KakaWalkthroughButton featureId="calculator" />
                 <Button
                   size="small"
                   variant="outlined"
                   startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
                   onClick={handleReadFertSummary}
-                  sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: 2 }}
+                  sx={{ fontSize: '0.72rem', py: 0.4, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
                 >
                   {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<WhatsAppIcon sx={{ fontSize: 16, color: '#25D366' }} />}
+                  onClick={handleShareFert}
+                  sx={{ fontSize: '0.72rem', py: 0.4, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
+                >
+                  {isChhattisgarhi ? 'शेयर' : 'शेयर'}
                 </Button>
               </Box>
             </Box>
 
-            <Grid container spacing={1.5} sx={{ mb: 2 }}>
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  select
-                  fullWidth
-                  size="small"
-                  label={isChhattisgarhi ? 'फसल चुनव' : 'फसल चुनें'}
-                  value={fertCrop}
-                  onChange={(e) => setFertCrop(e.target.value)}
+            {/* Input Console: Crop + Rakba with Steppers */}
+            <Box sx={{ p: 1.8, bgcolor: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', mb: 2 }}>
+              <Grid container spacing={1.5} alignItems="center">
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label={isChhattisgarhi ? 'फसल चुनव' : 'फसल चुनें'}
+                    value={fertCrop}
+                    onChange={(e) => setFertCrop(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: '#ffffff' } }}
+                  >
+                    <MenuItem value="paddy">{isChhattisgarhi ? 'धान (चांउर)' : 'धान (Paddy)'}</MenuItem>
+                    <MenuItem value="wheat">{isChhattisgarhi ? 'गेहूं (गहुं)' : 'गेहूं (Wheat)'}</MenuItem>
+                    <MenuItem value="chana">{isChhattisgarhi ? 'चना (बूट)' : 'चना (Chickpea)'}</MenuItem>
+                    <MenuItem value="maize">{isChhattisgarhi ? 'मक्का (जुनहरी)' : 'मक्का (Maize)'}</MenuItem>
+                  </TextField>
+                </Grid>
+
+                <Grid
+                  item
+                  xs={12}
+                  sm={6}
+                  id="kaka-fert-input-card"
+                  className={highlightCard === 'fert-input' ? 'kaka-spotlight-pulse' : ''}
                 >
-                  <MenuItem value="paddy">{isChhattisgarhi ? 'धान (चांउर)' : 'धान (Paddy)'}</MenuItem>
-                  <MenuItem value="wheat">{isChhattisgarhi ? 'गेहूं (गहुं)' : 'गेहूं (Wheat)'}</MenuItem>
-                  <MenuItem value="chana">{isChhattisgarhi ? 'चना (बूट)' : 'चना (Chickpea)'}</MenuItem>
-                  <MenuItem value="maize">{isChhattisgarhi ? 'मक्का (जुनहरी)' : 'मक्का (Maize)'}</MenuItem>
-                </TextField>
-              </Grid>
-              <Grid
-                item
-                xs={12}
-                sm={4}
-                id="kaka-fert-input-card"
-                className={highlightCard === 'fert-input' ? 'kaka-spotlight-pulse' : ''}
-                sx={{ borderRadius: 2, transition: 'all 0.3s ease' }}
-              >
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
-                      {fertUnit === 'acre' ? (isChhattisgarhi ? 'रकबा (एकड़ म)' : 'रकबा (एकड़)') : (isChhattisgarhi ? 'रकबा (डिसमिल म)' : 'रकबा (डिसमिल)')}
-                    </Typography>
-                    {/* Unit Switcher */}
-                    <Box sx={{ display: 'inline-flex', bgcolor: '#e2e8f0', p: 0.2, borderRadius: 1.5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
+                        {fertUnit === 'acre' ? (isChhattisgarhi ? 'खेत के रकबा (एकड़)' : 'खेत का रकबा (एकड़)') : (isChhattisgarhi ? 'खेत के रकबा (डिसमिल)' : 'खेत का रकबा (डिसमिल)')}
+                      </Typography>
+                      {/* Unit Switcher */}
+                      <Box sx={{ display: 'inline-flex', bgcolor: '#e2e8f0', p: 0.2, borderRadius: 1.5 }}>
+                        <Button
+                          size="small"
+                          onClick={() => handleToggleFertUnit('acre')}
+                          sx={{
+                            py: 0.1,
+                            px: 0.8,
+                            minWidth: 0,
+                            fontSize: '0.66rem',
+                            fontWeight: fertUnit === 'acre' ? 800 : 600,
+                            bgcolor: fertUnit === 'acre' ? '#1b5e20' : 'transparent',
+                            color: fertUnit === 'acre' ? '#fff' : '#475569',
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {isChhattisgarhi ? 'एकड़' : 'एकड़'}
+                        </Button>
+                        <Button
+                          size="small"
+                          onClick={() => handleToggleFertUnit('dismil')}
+                          sx={{
+                            py: 0.1,
+                            px: 0.8,
+                            minWidth: 0,
+                            fontSize: '0.66rem',
+                            fontWeight: fertUnit === 'dismil' ? 800 : 600,
+                            bgcolor: fertUnit === 'dismil' ? '#1b5e20' : 'transparent',
+                            color: fertUnit === 'dismil' ? '#fff' : '#475569',
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {isChhattisgarhi ? 'डिसमिल' : 'डिसमिल'}
+                        </Button>
+                      </Box>
+                    </Box>
+
+                    {/* Input with Steppers */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <Button
                         size="small"
-                        onClick={() => handleToggleFertUnit('acre')}
+                        variant="outlined"
+                        onClick={() => handleStepFert(-0.5)}
+                        aria-label="रकबा घटाएं"
                         sx={{
-                          py: 0.1,
-                          px: 0.8,
-                          minWidth: 0,
-                          fontSize: '0.66rem',
-                          fontWeight: fertUnit === 'acre' ? 800 : 600,
-                          bgcolor: fertUnit === 'acre' ? '#1b5e20' : 'transparent',
-                          color: fertUnit === 'acre' ? '#fff' : '#475569',
-                          borderRadius: 1,
-                          textTransform: 'none',
-                          lineHeight: 1.2
+                          minWidth: 36,
+                          height: 40,
+                          p: 0,
+                          borderRadius: '10px',
+                          borderColor: '#cbd5e1',
+                          color: '#1b5e20',
+                          fontWeight: 900,
+                          bgcolor: '#ffffff'
                         }}
                       >
-                        {isChhattisgarhi ? 'एकड़' : 'एकड़'}
+                        <RemoveIcon sx={{ fontSize: 18 }} />
                       </Button>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        type="number"
+                        inputProps={{
+                          min: fertUnit === 'dismil' ? 10 : 0.25,
+                          step: fertUnit === 'dismil' ? 5 : 0.25,
+                          inputMode: 'decimal',
+                          style: { fontSize: '1.05rem', fontWeight: 800, textAlign: 'center' }
+                        }}
+                        value={fertAcres}
+                        onChange={(e) => setFertAcres(e.target.value)}
+                        helperText={
+                          fertUnit === 'acre'
+                            ? `≈ ${Math.round(parseFloat(fertAcres || 0) * 100)} डिसमिल`
+                            : `≈ ${(parseFloat(fertAcres || 0) / 100).toFixed(2)} एकड़`
+                        }
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#ffffff' }, '& .MuiFormHelperText-root': { textAlign: 'center', mt: 0.3 } }}
+                      />
                       <Button
                         size="small"
-                        onClick={() => handleToggleFertUnit('dismil')}
+                        variant="outlined"
+                        onClick={() => handleStepFert(0.5)}
+                        aria-label="रकबा बढ़ाएं"
                         sx={{
-                          py: 0.1,
-                          px: 0.8,
-                          minWidth: 0,
-                          fontSize: '0.66rem',
-                          fontWeight: fertUnit === 'dismil' ? 800 : 600,
-                          bgcolor: fertUnit === 'dismil' ? '#1b5e20' : 'transparent',
-                          color: fertUnit === 'dismil' ? '#fff' : '#475569',
-                          borderRadius: 1,
-                          textTransform: 'none',
-                          lineHeight: 1.2
+                          minWidth: 36,
+                          height: 40,
+                          p: 0,
+                          borderRadius: '10px',
+                          borderColor: '#cbd5e1',
+                          color: '#1b5e20',
+                          fontWeight: 900,
+                          bgcolor: '#ffffff'
                         }}
                       >
-                        {isChhattisgarhi ? 'डिसमिल' : 'डिसमिल'}
+                        <AddIcon sx={{ fontSize: 18 }} />
                       </Button>
                     </Box>
                   </Box>
-
-                  {/* Input with Steppers */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleStepFert(-0.5)}
-                      aria-label="रकबा घटाएं"
-                      sx={{
-                        minWidth: 36,
-                        height: 40,
-                        p: 0,
-                        borderRadius: 2,
-                        borderColor: '#cbd5e1',
-                        color: '#1b5e20',
-                        fontWeight: 900
-                      }}
-                    >
-                      <RemoveIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                    <TextField
-                      fullWidth
-                      size="small"
-                      type="number"
-                      inputProps={{
-                        min: fertUnit === 'dismil' ? 10 : 0.25,
-                        step: fertUnit === 'dismil' ? 5 : 0.25,
-                        inputMode: 'decimal'
-                      }}
-                      value={fertAcres}
-                      onChange={(e) => setFertAcres(e.target.value)}
-                      helperText={
-                        fertUnit === 'acre'
-                          ? `≈ ${Math.round(parseFloat(fertAcres || 0) * 100)} डिसमिल`
-                          : `≈ ${(parseFloat(fertAcres || 0) / 100).toFixed(2)} एकड़`
-                      }
-                      sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-                    />
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleStepFert(0.5)}
-                      aria-label="रकबा बढ़ाएं"
-                      sx={{
-                        minWidth: 36,
-                        height: 40,
-                        p: 0,
-                        borderRadius: 2,
-                        borderColor: '#cbd5e1',
-                        color: '#1b5e20',
-                        fontWeight: 900
-                      }}
-                    >
-                      <AddIcon sx={{ fontSize: 18 }} />
-                    </Button>
-                  </Box>
-                </Box>
+                </Grid>
               </Grid>
-              <Grid item xs={6} sm={4}>
-                <TextField
-                  select
-                  fullWidth
-                  size="small"
-                  label={isChhattisgarhi ? 'माटी के प्रकार (वैकल्पिक)' : 'मिट्टी का प्रकार (वैकल्पिक)'}
-                  value={soilType}
-                  onChange={(e) => setSoilType(e.target.value)}
-                >
-                  <MenuItem value="सामान्य">{isChhattisgarhi ? 'सामान्य (दोमट माटी)' : 'सामान्य (मानक दोमट)'}</MenuItem>
-                  <MenuItem value="मटासी">{isChhattisgarhi ? 'मटासी (पियरा-दोमट)' : 'मटासी (पीली-दोमट)'}</MenuItem>
-                  <MenuItem value="डोर्सा">{isChhattisgarhi ? 'डोर्सा (मध्यम भारी)' : 'डोर्सा (मध्यम भारी)'}</MenuItem>
-                  <MenuItem value="कन्हार">{isChhattisgarhi ? 'कन्हार (करिया चिकनी माटी)' : 'कन्हार (काली चिकनी)'}</MenuItem>
-                  <MenuItem value="भाठा">{isChhattisgarhi ? 'भाठा (लाल कंकरीली माटी)' : 'भाठा (लाल कंकरीली)'}</MenuItem>
-                </TextField>
-              </Grid>
-            </Grid>
 
-            {/* Quick Acre/Dismil Selector Buttons */}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
-                {isChhattisgarhi ? `⚡ तुरंत ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनव:` : `⚡ त्वरित ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:`}
-              </Typography>
-              <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
-                {(fertUnit === 'acre' ? [0.5, 1, 2, 3, 5] : [50, 75, 100, 150, 250]).map((val) => {
-                  const isSelected = parseFloat(fertAcres) === val;
-                  return (
-                    <Button
-                      key={val}
-                      size="small"
-                      variant={isSelected ? 'contained' : 'outlined'}
-                      onClick={() => setFertAcres(val)}
-                      sx={{
-                        py: 0.4,
-                        px: 0.5,
-                        fontSize: { xs: '0.72rem', sm: '0.78rem' },
-                        fontWeight: isSelected ? 800 : 600,
-                        bgcolor: isSelected ? '#1b5e20' : '#fff',
-                        color: isSelected ? '#fff' : '#1b5e20',
-                        borderColor: '#a5d6a7',
-                        minWidth: 0,
-                        borderRadius: '10px',
-                        textTransform: 'none',
-                        '&:hover': {
-                          bgcolor: isSelected ? '#144a19' : '#e8f5e9',
-                          borderColor: '#2e7d32'
-                        }
-                      }}
-                    >
-                      {val} {fertUnit === 'acre' ? (isChhattisgarhi ? 'एकड़' : 'एकड़') : (isChhattisgarhi ? 'डिस.' : 'डिस.')}
-                    </Button>
-                  );
-                })}
-              </Box>
-            </Box>
-
-            {/* Topography Selector (डांड/टिकरा vs बाहरा/गहिरा) */}
-            <Box sx={{ mb: 2, bgcolor: '#f8fafc', p: 1.2, borderRadius: 2.5, border: '1px solid #e2e8f0' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.5 }}>
-                <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, fontSize: '0.78rem' }}>
-                  {isChhattisgarhi ? '🏞️ खेत के ढलान व स्थिति:' : '🏞️ खेत के ढलान व स्थिति (Topography):'}
+              {/* Quick Acre Chips */}
+              <Box sx={{ mt: 1.5 }}>
+                <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
+                  {isChhattisgarhi ? `⚡ तुरंत ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनव:` : `⚡ त्वरित ${fertUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:`}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 0.6 }}>
-                  <Chip
-                    label={isChhattisgarhi ? 'डांड / टिकरा (ऊंचा खेत)' : 'डांड / टिकरा (ऊंचा)'}
-                    size="small"
-                    onClick={() => setTopography('dand')}
-                    sx={{
-                      cursor: 'pointer',
-                      fontWeight: topography === 'dand' ? 800 : 600,
-                      bgcolor: topography === 'dand' ? '#e8f5e9' : '#fff',
-                      color: topography === 'dand' ? '#1b5e20' : '#64748b',
-                      border: topography === 'dand' ? '1.5px solid #2e7d32' : '1px solid #cbd5e1',
-                      fontSize: '0.72rem'
-                    }}
-                  />
-                  <Chip
-                    label={isChhattisgarhi ? 'बाहरा / गहिरा (निचला खेत)' : 'बाहरा / गहिरा (निचला)'}
-                    size="small"
-                    onClick={() => setTopography('bahra')}
-                    sx={{
-                      cursor: 'pointer',
-                      fontWeight: topography === 'bahra' ? 800 : 600,
-                      bgcolor: topography === 'bahra' ? '#e0f2fe' : '#fff',
-                      color: topography === 'bahra' ? '#0369a1' : '#64748b',
-                      border: topography === 'bahra' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
-                      fontSize: '0.72rem'
-                    }}
-                  />
-                </Box>
-              </Box>
-              <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', lineHeight: 1.35 }}>
-                💡 <strong>{isChhattisgarhi ? 'सलाह:' : 'छत्तीसगढ़ी सलाह:'}</strong> {topography === 'dand' ? t('topo_dand_tip') : t('topo_bahra_tip')}
-              </Typography>
-            </Box>
-
-            {/* Smart Soil IoT Sensor Integration */}
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#e0f2f1', p: 1.3, borderRadius: 2.5, border: '1.2px solid #80cbc4', flexWrap: 'wrap', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ScienceIcon sx={{ color: '#00796b', fontSize: 24 }} />
-                <Box>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#004d40' }}>
-                    {isChhattisgarhi ? '🔬 माटी IoT सेंसर' : '🔬 स्मार्ट मिट्टी IoT सेंसर'}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#00695c', fontSize: '0.73rem', display: 'block' }}>
-                    {soilSensorData ? `सेंसर सक्रिय: pH ${soilSensorData.soilReading.ph} (${soilSensorData.analysis.phStatus}) • N: ${soilSensorData.soilReading.nitrogen}, P: ${soilSensorData.soilReading.phosphorus}, K: ${soilSensorData.soilReading.potassium} kg/ha` : (isChhattisgarhi ? 'ब्लूटूथ ले असली pH अऊ N-P-K नाप के सटीक खाद मात्रा पाव' : 'ब्लूटूथ प्रोब से वास्तविक pH व N-P-K मापकर सटीक संशोधित खाद मात्रा पाएं')}
-                  </Typography>
-                </Box>
-              </Box>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={() => setOpenSoilIot(true)}
-                sx={{ bgcolor: '#00796b', color: '#fff', fontSize: '0.72rem', fontWeight: 700, borderRadius: 2, whiteSpace: 'nowrap', '&:hover': { bgcolor: '#004d40' } }}
-              >
-                {soilSensorData ? (isChhattisgarhi ? 'फेर जांचव' : 'पुनः जांचें') : (isChhattisgarhi ? 'सेंसर जोड़व' : 'सेंसर कनेक्ट करें')}
-              </Button>
-            </Box>
-
-            {soilSensorData && (
-              <Alert
-                severity={soilSensorData.soilReading?.isDemo ? 'warning' : 'success'}
-                sx={{ mb: 2, borderRadius: 2.5, fontSize: '0.8rem' }}
-                onClose={() => setSoilSensorData(null)}
-              >
-                <strong>
-                  {soilSensorData.soilReading?.isDemo ? '⚠️ डेमो खाद समायोजन लागू (केवल तकनीकी परीक्षण हेतु): ' : '🟢 लाइव स्मार्ट खाद समायोजन लागू: '}
-                </strong>
-                यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
-              </Alert>
-            )}
-
-            {/* Official DAC&FW Soil Health Card District Baseline Insight (Zero-Fake-Data Enforced) */}
-            {districtSoilHealth && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1.8,
-                  mb: 2,
-                  borderRadius: '16px',
-                  bgcolor: districtSoilHealth.isDistrictVerified ? '#f0fdf4' : '#fffbeb',
-                  border: `1.5px solid ${districtSoilHealth.isDistrictVerified ? '#86efac' : '#fde68a'}`,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                    <ScienceIcon sx={{ color: districtSoilHealth.isDistrictVerified ? '#16a34a' : '#d97706', fontSize: 20 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: districtSoilHealth.isDistrictVerified ? '#15803d' : '#b45309', fontSize: '0.88rem' }}>
-                      🧪 {districtSoilHealth.district} मृदा स्वास्थ्य कार्ड (DAC&FW Soil Health Survey)
-                    </Typography>
-                  </Box>
-                  <Chip
-                    icon={districtSoilHealth.isDistrictVerified ? <CheckCircleIcon sx={{ fontSize: '13px !important' }} /> : <InfoOutlinedIcon sx={{ fontSize: '13px !important' }} />}
-                    label={districtSoilHealth.statusLabel}
-                    size="small"
-                    sx={{
-                      bgcolor: districtSoilHealth.isDistrictVerified ? '#dcfce7' : '#fef3c7',
-                      color: districtSoilHealth.isDistrictVerified ? '#166534' : '#92400e',
-                      fontWeight: 800,
-                      fontSize: '0.68rem',
-                      height: 22
-                    }}
-                  />
-                </Box>
-
-                {/* Nutrient Status Chips Strip */}
-                <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 1 }}>
-                  <Chip
-                    label={`नाइट्रोजन (N): ${districtSoilHealth.nitrogenStatus}`}
-                    size="small"
-                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
-                  />
-                  <Chip
-                    label={`फास्फोरस (P): ${districtSoilHealth.phosphorusStatus}`}
-                    size="small"
-                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
-                  />
-                  <Chip
-                    label={`पोटाश (K): ${districtSoilHealth.potashStatus}`}
-                    size="small"
-                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
-                  />
-                  <Chip
-                    label={`pH: ${districtSoilHealth.phAverage}`}
-                    size="small"
-                    sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
-                  />
-                </Box>
-
-                {/* Micronutrient Deficiencies if present */}
-                {districtSoilHealth.micronutrientDeficiencies && districtSoilHealth.micronutrientDeficiencies.length > 0 && (
-                  <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap', mb: 1 }}>
-                    {districtSoilHealth.micronutrientDeficiencies.map((m, idx) => (
-                      <Chip
-                        key={idx}
-                        label={`⚠️ ${m.nutrient}: ${m.deficiencyPercent}% खेतों में कमी (${m.severity})`}
+                <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 0.8 }}>
+                  {(fertUnit === 'acre' ? [0.5, 1, 2, 3, 5] : [50, 75, 100, 150, 250]).map((val) => {
+                    const isSelected = parseFloat(fertAcres) === val;
+                    return (
+                      <Button
+                        key={val}
                         size="small"
-                        sx={{ bgcolor: '#fee2e2', color: '#991b1b', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
-                      />
-                    ))}
-                  </Box>
-                )}
-
-                {/* District Recommendation Note */}
-                <Typography variant="body2" sx={{ color: '#1e293b', fontSize: '0.78rem', lineHeight: 1.45, mb: 0.8 }}>
-                  💡 <strong>जिला विशिष्ट खाद समायोजन:</strong> {districtSoilHealth.fertilizerRecommendationNote}
-                </Typography>
-
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
-                  📜 {districtSoilHealth.officialSurveySource} • शून्य फर्जी डेटा नीति अनुपालित (Zero False Data Guarantee)
-                </Typography>
-              </Paper>
-            )}
-
-            {/* Regional Soil Health Advisory Box */}
-            {soilType !== 'सामान्य' && CG_SOIL_PROFILES[soilType] && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 1.5,
-                  mb: 2,
-                  borderRadius: 2.5,
-                  bgcolor: '#f1f8e9',
-                  border: '1.2px solid #aed581',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 1.2,
-                }}
-              >
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.85rem' }}>
-                      🌱 {CG_SOIL_PROFILES[soilType].name}
-                    </Typography>
-                    <Chip
-                      label={`pH: ${CG_SOIL_PROFILES[soilType].phRange}`}
-                      size="small"
-                      sx={{ bgcolor: '#dcedc8', color: '#1b5e20', fontWeight: 700, fontSize: '0.68rem', height: 20 }}
-                    />
-                    <Chip
-                      label={`जलधारण: ${CG_SOIL_PROFILES[soilType].waterRetention}`}
-                      size="small"
-                      sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 600, fontSize: '0.68rem', height: 20 }}
-                    />
-                  </Box>
-                  <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.78rem', display: 'block', lineHeight: 1.35 }}>
-                    💡 <strong>कृषि सलाह:</strong> {CG_SOIL_PROFILES[soilType].advice}
-                  </Typography>
+                        variant={isSelected ? 'contained' : 'outlined'}
+                        onClick={() => setFertAcres(val)}
+                        sx={{
+                          py: 0.4,
+                          px: 0.5,
+                          fontSize: { xs: '0.72rem', sm: '0.78rem' },
+                          fontWeight: isSelected ? 800 : 600,
+                          bgcolor: isSelected ? '#1b5e20' : '#fff',
+                          color: isSelected ? '#fff' : '#1b5e20',
+                          borderColor: '#a5d6a7',
+                          minWidth: 0,
+                          borderRadius: '10px',
+                          textTransform: 'none',
+                          '&:hover': {
+                            bgcolor: isSelected ? '#144a19' : '#e8f5e9',
+                            borderColor: '#2e7d32'
+                          }
+                        }}
+                      >
+                        {val} {fertUnit === 'acre' ? (isChhattisgarhi ? 'एकड़' : 'एकड़') : (isChhattisgarhi ? 'डिस.' : 'डिस.')}
+                      </Button>
+                    );
+                  })}
                 </Box>
-              </Paper>
-            )}
+              </Box>
+            </Box>
 
+            {/* DIRECT HERO SACK METRIC CARDS (Immediate results without scroll fatigue) */}
             {!activeFert ? (
               <Paper
                 elevation={0}
@@ -755,14 +622,13 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               <Box
                 id="kaka-fert-result-card"
                 className={highlightCard === 'fert-result' ? 'kaka-spotlight-pulse' : ''}
-                sx={{ borderRadius: 3, p: 0.5, transition: 'all 0.3s ease' }}
+                sx={{ borderRadius: 3, mb: 2.5 }}
               >
-                {/* Total Bags Display Cards (Visual Sack/Bag Modern Cards) */}
                 <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, mb: 1.2, display: 'block', fontSize: '0.82rem' }}>
                   {isChhattisgarhi ? `📦 कुल जरूरी खाद के बोरी अउ मात्रा (${acresNum} एकड़ बर):` : `📦 कुल आवश्यक खाद की बोरी व मात्रा (${acresNum} एकड़ हेतु):`}
                 </Typography>
 
-                <Grid container spacing={1.5} sx={{ mb: 2.5 }}>
+                <Grid container spacing={1.5}>
                   {/* Urea */}
                   <Grid item xs={6} sm={3} sx={{ display: 'flex' }}>
                     <Paper
@@ -793,7 +659,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ my: 0.5, textAlign: 'center' }}>
                         <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.4rem', sm: '1.6rem' }, lineHeight: 1 }}>
                             {ureaBags}
                           </Typography>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.86rem' }}>
@@ -806,7 +672,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ bgcolor: '#f1f8e9', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.66rem', fontWeight: 700 }}>
-                          {isChhattisgarhi ? 'नाइट्रोजन पोषण (हरियर बाढ़ बर)' : 'नाइट्रोजन पोषण'}
+                          {isChhattisgarhi ? 'नाइट्रोजन पोषण' : 'नाइट्रोजन पोषण'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -842,7 +708,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ my: 0.5, textAlign: 'center' }}>
                         <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: { xs: '1.4rem', sm: '1.6rem' }, lineHeight: 1 }}>
                             {dapBags}
                           </Typography>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.86rem' }}>
@@ -855,7 +721,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ bgcolor: '#e3f2fd', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#0d47a1', fontSize: '0.66rem', fontWeight: 700 }}>
-                          {isChhattisgarhi ? 'फास्फोरस अउ जड़ के बाढ़ बर' : 'फास्फोरस व जड़ विकास'}
+                          {isChhattisgarhi ? 'फास्फोरस व जड़ विकास' : 'फास्फोरस व जड़ विकास'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -891,7 +757,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ my: 0.5, textAlign: 'center' }}>
                         <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#bf360c', fontSize: { xs: '1.4rem', sm: '1.6rem' }, lineHeight: 1 }}>
                             {mopBags}
                           </Typography>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.86rem' }}>
@@ -904,7 +770,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ bgcolor: '#fff3e0', p: 0.5, borderRadius: '8px', textAlign: 'center', mt: 0.5 }}>
                         <Typography variant="caption" sx={{ color: '#bf360c', fontSize: '0.66rem', fontWeight: 700 }}>
-                          {isChhattisgarhi ? 'दाना म चमक अउ कीरा-बीमारी ले बचाव' : 'दाने चमक व रोग प्रतिरोध'}
+                          {isChhattisgarhi ? 'दाने चमक व रोग प्रतिरोध' : 'दाने चमक व रोग प्रतिरोध'}
                         </Typography>
                       </Box>
                     </Paper>
@@ -940,7 +806,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       </Box>
                       <Box sx={{ my: 0.5, textAlign: 'center' }}>
                         <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#4a148c', fontSize: { xs: '1.35rem', sm: '1.5rem' }, lineHeight: 1 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 900, color: '#4a148c', fontSize: { xs: '1.4rem', sm: '1.6rem' }, lineHeight: 1 }}>
                             {totalZincKg}
                           </Typography>
                           <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#7b1fa2', fontSize: '0.86rem' }}>
@@ -959,10 +825,253 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     </Paper>
                   </Grid>
                 </Grid>
+              </Box>
+            )}
 
-                {/* Schedule Accordion / Timeline */}
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1, fontSize: '0.85rem' }}>
-                  {isChhattisgarhi ? '⏱️ खाद कब अउ कतका डाले के हे (बेरा अनुसूची):' : '⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):'}
+            {/* COLLAPSIBLE ADVANCED SOIL & IOT TRAY */}
+            <Box sx={{ mb: 2.5 }}>
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={() => setShowAdvancedSoil((prev) => !prev)}
+                endIcon={showAdvancedSoil ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                sx={{
+                  py: 1,
+                  borderRadius: '12px',
+                  borderColor: '#cbd5e1',
+                  color: '#334155',
+                  fontWeight: 700,
+                  fontSize: '0.82rem',
+                  textTransform: 'none',
+                  bgcolor: showAdvancedSoil ? '#f1f5f9' : '#ffffff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  px: 1.5,
+                  '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' }
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <span>🌾</span>
+                  <span>{isChhattisgarhi ? 'उन्नत समायोजन (माटी प्रकार, ढलान अऊ IoT सेंसर)' : 'उन्नत समायोजन (मिट्टी प्रकार, ढलान व IoT सेंसर)'}</span>
+                  {(soilType !== 'सामान्य' || topography !== 'dand' || soilSensorData) && (
+                    <Chip label="सक्रिय" size="small" sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, height: 18, fontSize: '0.62rem' }} />
+                  )}
+                </Box>
+              </Button>
+
+              <Collapse in={showAdvancedSoil}>
+                <Box sx={{ pt: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {/* Soil Type Selector */}
+                  <TextField
+                    select
+                    fullWidth
+                    size="small"
+                    label={isChhattisgarhi ? 'माटी के प्रकार' : 'मिट्टी का प्रकार'}
+                    value={soilType}
+                    onChange={(e) => setSoilType(e.target.value)}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                  >
+                    <MenuItem value="सामान्य">{isChhattisgarhi ? 'सामान्य (दोमट माटी)' : 'सामान्य (मानक दोमट)'}</MenuItem>
+                    <MenuItem value="मटासी">{isChhattisgarhi ? 'मटासी (पियरा-दोमट)' : 'मटासी (पीली-दोमट)'}</MenuItem>
+                    <MenuItem value="डोर्सा">{isChhattisgarhi ? 'डोर्सा (मध्यम भारी)' : 'डोर्सा (मध्यम भारी)'}</MenuItem>
+                    <MenuItem value="कन्हार">{isChhattisgarhi ? 'कन्हार (करिया चिकनी माटी)' : 'कन्हार (काली चिकनी)'}</MenuItem>
+                    <MenuItem value="भाठा">{isChhattisgarhi ? 'भाठा (लाल कंकरीली माटी)' : 'भाठा (लाल कंकरीली)'}</MenuItem>
+                  </TextField>
+
+                  {/* Topography Selector (डांड/टिकरा vs बाहरा/गहिरा) */}
+                  <Box sx={{ bgcolor: '#f8fafc', p: 1.4, borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8, flexWrap: 'wrap', gap: 0.5 }}>
+                      <Typography variant="caption" sx={{ color: '#334155', fontWeight: 800, fontSize: '0.78rem' }}>
+                        {isChhattisgarhi ? '🏞️ खेत के ढलान व स्थिति:' : '🏞️ खेत के ढलान व स्थिति (Topography):'}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.6 }}>
+                        <Chip
+                          label={isChhattisgarhi ? 'डांड / टिकरा (ऊंचा खेत)' : 'डांड / टिकरा (ऊंचा)'}
+                          size="small"
+                          onClick={() => setTopography('dand')}
+                          sx={{
+                            cursor: 'pointer',
+                            fontWeight: topography === 'dand' ? 800 : 600,
+                            bgcolor: topography === 'dand' ? '#e8f5e9' : '#fff',
+                            color: topography === 'dand' ? '#1b5e20' : '#64748b',
+                            border: topography === 'dand' ? '1.5px solid #2e7d32' : '1px solid #cbd5e1',
+                            fontSize: '0.72rem'
+                          }}
+                        />
+                        <Chip
+                          label={isChhattisgarhi ? 'बाहरा / गहिरा (निचला खेत)' : 'बाहरा / गहिरा (निचला)'}
+                          size="small"
+                          onClick={() => setTopography('bahra')}
+                          sx={{
+                            cursor: 'pointer',
+                            fontWeight: topography === 'bahra' ? 800 : 600,
+                            bgcolor: topography === 'bahra' ? '#e0f2fe' : '#fff',
+                            color: topography === 'bahra' ? '#0369a1' : '#64748b',
+                            border: topography === 'bahra' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                            fontSize: '0.72rem'
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.74rem', display: 'block', lineHeight: 1.35 }}>
+                      💡 <strong>{isChhattisgarhi ? 'सलाह:' : 'छत्तीसगढ़ी सलाह:'}</strong> {topography === 'dand' ? t('topo_dand_tip') : t('topo_bahra_tip')}
+                    </Typography>
+                  </Box>
+
+                  {/* Smart Soil IoT Sensor Integration */}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', bgcolor: '#e0f2f1', p: 1.4, borderRadius: '12px', border: '1.2px solid #80cbc4', flexWrap: 'wrap', gap: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <ScienceIcon sx={{ color: '#00796b', fontSize: 24 }} />
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.85rem', color: '#004d40' }}>
+                          {isChhattisgarhi ? '🔬 माटी IoT सेंसर' : '🔬 स्मार्ट मिट्टी IoT सेंसर'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#00695c', fontSize: '0.73rem', display: 'block' }}>
+                          {soilSensorData ? `सेंसर सक्रिय: pH ${soilSensorData.soilReading.ph} (${soilSensorData.analysis.phStatus}) • N: ${soilSensorData.soilReading.nitrogen}, P: ${soilSensorData.soilReading.phosphorus}, K: ${soilSensorData.soilReading.potassium} kg/ha` : (isChhattisgarhi ? 'ब्लूटूथ ले असली pH अऊ N-P-K नाप के सटीक खाद मात्रा पाव' : 'ब्लूटूथ प्रोब से वास्तविक pH व N-P-K मापकर सटीक संशोधित खाद मात्रा पाएं')}
+                        </Typography>
+                      </Box>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      onClick={() => setOpenSoilIot(true)}
+                      sx={{ bgcolor: '#00796b', color: '#fff', fontSize: '0.72rem', fontWeight: 700, borderRadius: '8px', whiteSpace: 'nowrap', '&:hover': { bgcolor: '#004d40' } }}
+                    >
+                      {soilSensorData ? (isChhattisgarhi ? 'फेर जांचव' : 'पुनः जांचें') : (isChhattisgarhi ? 'सेंसर जोड़व' : 'सेंसर कनेक्ट करें')}
+                    </Button>
+                  </Box>
+
+                  {soilSensorData && (
+                    <Alert
+                      severity={soilSensorData.soilReading?.isDemo ? 'warning' : 'success'}
+                      sx={{ borderRadius: '12px', fontSize: '0.8rem' }}
+                      onClose={() => setSoilSensorData(null)}
+                    >
+                      <strong>
+                        {soilSensorData.soilReading?.isDemo ? '⚠️ डेमो खाद समायोजन लागू (केवल तकनीकी परीक्षण हेतु): ' : '🟢 लाइव स्मार्ट खाद समायोजन लागू: '}
+                      </strong>
+                      यूरिया ({soilSensorData.analysis.ureaAdjustment}), डीएपी ({soilSensorData.analysis.dapAdjustment}), पोटाश ({soilSensorData.analysis.mopAdjustment})। {soilSensorData.analysis.phAdvice}
+                    </Alert>
+                  )}
+
+                  {/* Official DAC&FW Soil Health Card Baseline Insight */}
+                  {districtSoilHealth && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.6,
+                        borderRadius: '14px',
+                        bgcolor: districtSoilHealth.isDistrictVerified ? '#f0fdf4' : '#fffbeb',
+                        border: `1.5px solid ${districtSoilHealth.isDistrictVerified ? '#86efac' : '#fde68a'}`
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                          <ScienceIcon sx={{ color: districtSoilHealth.isDistrictVerified ? '#16a34a' : '#d97706', fontSize: 20 }} />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: districtSoilHealth.isDistrictVerified ? '#15803d' : '#b45309', fontSize: '0.86rem' }}>
+                            🧪 {districtSoilHealth.district} मृदा स्वास्थ्य कार्ड (DAC&FW Soil Health Survey)
+                          </Typography>
+                        </Box>
+                        <Chip
+                          icon={districtSoilHealth.isDistrictVerified ? <CheckCircleIcon sx={{ fontSize: '13px !important' }} /> : <InfoOutlinedIcon sx={{ fontSize: '13px !important' }} />}
+                          label={districtSoilHealth.statusLabel}
+                          size="small"
+                          sx={{
+                            bgcolor: districtSoilHealth.isDistrictVerified ? '#dcfce7' : '#fef3c7',
+                            color: districtSoilHealth.isDistrictVerified ? '#166534' : '#92400e',
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 22
+                          }}
+                        />
+                      </Box>
+
+                      {/* Nutrient Status Chips */}
+                      <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 1 }}>
+                        <Chip
+                          label={`नाइट्रोजन (N): ${districtSoilHealth.nitrogenStatus}`}
+                          size="small"
+                          sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                        />
+                        <Chip
+                          label={`फास्फोरस (P): ${districtSoilHealth.phosphorusStatus}`}
+                          size="small"
+                          sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                        />
+                        <Chip
+                          label={`पोटाश (K): ${districtSoilHealth.potashStatus}`}
+                          size="small"
+                          sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                        />
+                        <Chip
+                          label={`pH: ${districtSoilHealth.phAverage}`}
+                          size="small"
+                          sx={{ bgcolor: '#fff', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: '0.68rem', color: '#334155' }}
+                        />
+                      </Box>
+
+                      {districtSoilHealth.micronutrientDeficiencies && districtSoilHealth.micronutrientDeficiencies.length > 0 && (
+                        <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap', mb: 1 }}>
+                          {districtSoilHealth.micronutrientDeficiencies.map((m, idx) => (
+                            <Chip
+                              key={idx}
+                              label={`⚠️ ${m.nutrient}: ${m.deficiencyPercent}% खेतों में कमी (${m.severity})`}
+                              size="small"
+                              sx={{ bgcolor: '#fee2e2', color: '#991b1b', fontWeight: 800, fontSize: '0.68rem', height: 22 }}
+                            />
+                          ))}
+                        </Box>
+                      )}
+
+                      <Typography variant="body2" sx={{ color: '#1e293b', fontSize: '0.78rem', lineHeight: 1.45, mb: 0.5 }}>
+                        💡 <strong>जिला विशिष्ट खाद समायोजन:</strong> {districtSoilHealth.fertilizerRecommendationNote}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
+                        📜 {districtSoilHealth.officialSurveySource} • शून्य फर्जी डेटा नीति अनुपालित
+                      </Typography>
+                    </Paper>
+                  )}
+
+                  {/* Regional Soil Health Advisory Box */}
+                  {soilType !== 'सामान्य' && CG_SOIL_PROFILES[soilType] && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.4,
+                        borderRadius: '12px',
+                        bgcolor: '#f1f8e9',
+                        border: '1.2px solid #aed581'
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.4 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#2e7d32', fontSize: '0.85rem' }}>
+                          🌱 {CG_SOIL_PROFILES[soilType].name}
+                        </Typography>
+                        <Chip
+                          label={`pH: ${CG_SOIL_PROFILES[soilType].phRange}`}
+                          size="small"
+                          sx={{ bgcolor: '#dcedc8', color: '#1b5e20', fontWeight: 700, fontSize: '0.68rem', height: 20 }}
+                        />
+                        <Chip
+                          label={`जलधारण: ${CG_SOIL_PROFILES[soilType].waterRetention}`}
+                          size="small"
+                          sx={{ bgcolor: '#e8f5e9', color: '#2e7d32', fontWeight: 600, fontSize: '0.68rem', height: 20 }}
+                        />
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#33691e', fontSize: '0.78rem', display: 'block', lineHeight: 1.35 }}>
+                        💡 <strong>कृषि सलाह:</strong> {CG_SOIL_PROFILES[soilType].advice}
+                      </Typography>
+                    </Paper>
+                  )}
+                </Box>
+              </Collapse>
+            </Box>
+
+            {/* FERTILIZER APPLICATION TIMELINE */}
+            {activeFert && (
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e293b', mb: 1.2, fontSize: '0.85rem' }}>
+                  {isChhattisgarhi ? '⏱️ खाद कब अउ कतका डाले के हे (समय सारिणी):' : '⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):'}
                 </Typography>
 
                 <Grid container spacing={1.5}>
@@ -971,35 +1080,35 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       <Paper
                         elevation={0}
                         sx={{
-                          p: 1.3,
+                          p: 1.4,
                           width: '100%',
                           display: 'flex',
                           flexDirection: 'column',
                           justifyContent: 'space-between',
-                          bgcolor: '#fafafa',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: 2
+                          bgcolor: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '14px'
                         }}
                       >
                         <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
                             <Chip
                               label={isChhattisgarhi ? `पायरी ${idx + 1}` : `चरण ${idx + 1}`}
                               size="small"
                               sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
                             />
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.82rem' }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.84rem' }}>
                               {step.stage}
                             </Typography>
                           </Box>
-                          <Typography variant="caption" sx={{ color: '#777', display: 'block', mb: 0.5, fontSize: '0.72rem' }}>
-                            {isChhattisgarhi ? 'बेरा' : 'समय'}: {step.time}
+                          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.6, fontSize: '0.74rem' }}>
+                            {isChhattisgarhi ? 'बेरा' : 'समय'}: <strong>{step.time}</strong>
                           </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 0.5 }}>
-                            {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                            {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                            {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
-                            {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem' }} />}
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 0.6 }}>
+                            {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#a5d6a7', color: '#1b5e20', fontWeight: 700 }} />}
+                            {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#90caf9', color: '#0d47a1', fontWeight: 700 }} />}
+                            {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ffcc80', color: '#bf360c', fontWeight: 700 }} />}
+                            {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ce93d8', color: '#4a148c', fontWeight: 700 }} />}
                           </Box>
                         </Box>
                         {step.note && (
@@ -1017,14 +1126,14 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
         </Box>
       )}
 
-      {/* TAB 1: PADDY ₹3100 KHARIDI CALCULATOR (Official Procurement Receipt Slip UI) */}
+      {/* TAB 1: PADDY ₹3100 KHARIDI CALCULATOR (Unified Digital Passbook Slip UI) */}
       {subTab === 1 && (
         <Box>
           <Card
             sx={{
-              p: { xs: 1.8, sm: 2.2 },
+              p: { xs: 1.8, sm: 2.5 },
               mb: 2.5,
-              borderRadius: '18px',
+              borderRadius: '20px',
               border: '1.5px solid #a5d6a7',
               bgcolor: '#ffffff',
               boxShadow: '0 4px 16px rgba(27, 94, 32, 0.06)',
@@ -1032,27 +1141,40 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               mx: 'auto'
             }}
           >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            {/* Header */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.8, flexWrap: 'wrap', gap: 1 }}>
               <Box>
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '1.05rem', lineHeight: 1.2 }}>
                   🌾 {appConfig.stateName} {isChhattisgarhi ? 'कृषक उन्नति धान खरीदी हिसाब' : 'कृषक उन्नति धान उपार्जन कैलकुलेटर'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#556958', fontSize: '0.74rem' }}>
-                  {appConfig.paddyScheme.maxQuintalsPerAcre} {isChhattisgarhi ? `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल पक्का भाव` : `क्विंटल प्रति एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य`}
+                  {appConfig.paddyScheme.maxQuintalsPerAcre} {isChhattisgarhi ? `क्विंटल/एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल पक्का भाव` : `क्विंटल/एकड़ सीमा • ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल सुनिश्चित मूल्य`}
                 </Typography>
               </Box>
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
-                onClick={handleReadPaddyMath}
-                sx={{ fontSize: '0.72rem', py: 0.3, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
-              >
-                {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
-              </Button>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<VolumeUpIcon sx={{ fontSize: 16 }} />}
+                  onClick={handleReadPaddyMath}
+                  sx={{ fontSize: '0.72rem', py: 0.4, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
+                >
+                  {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<WhatsAppIcon sx={{ fontSize: 16, color: '#25D366' }} />}
+                  onClick={handleSharePaddy}
+                  sx={{ fontSize: '0.72rem', py: 0.4, px: 1, borderRadius: '8px', color: '#1b5e20', borderColor: '#a5d6a7' }}
+                >
+                  {isChhattisgarhi ? 'शेयर' : 'शेयर'}
+                </Button>
+              </Box>
             </Box>
 
-            <Box sx={{ mb: 2 }}>
+            {/* Input Console */}
+            <Box sx={{ p: 1.8, bgcolor: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
                 <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, fontSize: '0.74rem' }}>
                   {isChhattisgarhi
@@ -1100,7 +1222,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                 </Box>
               </Box>
 
-              {/* Input with Steppers */}
+              {/* Steppers */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Button
                   size="small"
@@ -1111,10 +1233,11 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     minWidth: 36,
                     height: 40,
                     p: 0,
-                    borderRadius: 2,
+                    borderRadius: '10px',
                     borderColor: '#cbd5e1',
                     color: '#1b5e20',
-                    fontWeight: 900
+                    fontWeight: 900,
+                    bgcolor: '#ffffff'
                   }}
                 >
                   <RemoveIcon sx={{ fontSize: 18 }} />
@@ -1127,7 +1250,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     min: paddyUnit === 'dismil' ? 10 : 0.1,
                     step: paddyUnit === 'dismil' ? 10 : 0.1,
                     inputMode: 'decimal',
-                    style: { fontSize: '1.05rem', fontWeight: 800 }
+                    style: { fontSize: '1.05rem', fontWeight: 800, textAlign: 'center' }
                   }}
                   value={paddyAcres}
                   onChange={(e) => setPaddyAcres(e.target.value)}
@@ -1136,7 +1259,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                       ? `≈ ${Math.round(parseFloat(paddyAcres || 0) * 100)} डिसमिल`
                       : `≈ ${(parseFloat(paddyAcres || 0) / 100).toFixed(2)} एकड़`
                   }
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', bgcolor: '#ffffff' }, '& .MuiFormHelperText-root': { textAlign: 'center', mt: 0.3 } }}
                 />
                 <Button
                   size="small"
@@ -1147,10 +1270,11 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                     minWidth: 36,
                     height: 40,
                     p: 0,
-                    borderRadius: 2,
+                    borderRadius: '10px',
                     borderColor: '#cbd5e1',
                     color: '#1b5e20',
-                    fontWeight: 900
+                    fontWeight: 900,
+                    bgcolor: '#ffffff'
                   }}
                 >
                   <AddIcon sx={{ fontSize: 18 }} />
@@ -1158,7 +1282,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               </Box>
 
               {/* Quick Chips */}
-              <Box sx={{ mt: 1.2 }}>
+              <Box sx={{ mt: 1.5 }}>
                 <Typography variant="caption" sx={{ color: '#475569', fontWeight: 700, mb: 0.6, display: 'block', fontSize: '0.74rem' }}>
                   {isChhattisgarhi ? `⚡ झटपट ${paddyUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनव:` : `⚡ त्वरित ${paddyUnit === 'acre' ? 'एकड़' : 'डिसमिल'} चुनें:`}
                 </Typography>
@@ -1196,23 +1320,24 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               </Box>
             </Box>
 
-            {/* Official Passbook / Procurement Receipt Card */}
+            {/* UNIFIED DIGITAL PASSBOOK RECEIPT CARD (Integrated Bardana & Reimbursement) */}
             <Paper
               elevation={0}
               sx={{
-                borderRadius: '16px',
+                borderRadius: '18px',
                 overflow: 'hidden',
-                border: '1.5px solid #c8e6c9',
+                border: '1.5px solid #a5d6a7',
                 bgcolor: '#fafdf9',
-                mb: 2
+                mb: 2.5,
+                boxShadow: '0 3px 12px rgba(27, 94, 32, 0.05)'
               }}
             >
-              {/* Receipt Header Bar */}
+              {/* Receipt Header Banner */}
               <Box
                 sx={{
                   bgcolor: '#1b5e20',
                   color: '#ffffff',
-                  p: { xs: 1.5, sm: 2 },
+                  p: { xs: 1.8, sm: 2.2 },
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -1224,61 +1349,105 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
                   <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: 0.8, fontWeight: 700 }}>
                     {isChhattisgarhi ? 'सरकारी धान खरीदी रसीद हिसाब' : 'सरकारी उपार्जन रसीद अनुमान'}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 900, color: '#ffeb3b', lineHeight: 1.1, mt: 0.2 }}>
+                  <Typography variant="h4" sx={{ fontWeight: 900, color: '#ffeb3b', lineHeight: 1.1, mt: 0.3, fontSize: { xs: '1.6rem', sm: '2rem' } }}>
                     ₹ {totalPaddyAmount.toLocaleString('en-IN')}
                   </Typography>
                 </Box>
                 <Chip
                   label={`₹${appConfig.paddyScheme.totalRate}/क्विंटल`}
-                  sx={{ bgcolor: '#ffb300', color: '#000', fontWeight: 900, fontSize: '0.78rem', height: 26, borderRadius: '8px' }}
+                  sx={{ bgcolor: '#ffb300', color: '#000', fontWeight: 900, fontSize: '0.82rem', height: 28, borderRadius: '8px' }}
                 />
               </Box>
 
-              {/* Receipt Body Table */}
-              <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+              {/* Receipt Breakdown Table */}
+              <Box sx={{ p: { xs: 1.8, sm: 2.2 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
                     {isChhattisgarhi ? 'जम्मा दर्ज रकबा:' : 'कुल दर्ज रकबा:'}
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
                     {pAcresNum} एकड़
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
                     {isChhattisgarhi ? `ज्यादा ले ज्यादा धान खरीदी (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):` : `अधिकतम खरीदी धान (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):`}
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.92rem' }}>
                     {maxQuintals} क्विंटल
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px solid #e8f5e9' }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    {isChhattisgarhi ? `1. समिति तौल भुगतान (MSP @ ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):` : `1. समिति तौल भुगतान (MSP @ ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):`}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1px solid #e8f5e9' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
+                    1. समिति तौल भुगतान (MSP @ ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')}):
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.85rem' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
                     ₹ {mspPart.toLocaleString('en-IN')}
                   </Typography>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.7, borderBottom: '1px dashed #81c784' }}>
-                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.82rem' }}>
-                    {isChhattisgarhi ? `2. अंतर राशि / बोनस DBT (@ ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):` : `2. अंतर राशि / बोनस DBT (@ ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):`}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.8, borderBottom: '1.5px dashed #81c784' }}>
+                  <Typography variant="body2" sx={{ color: '#475569', fontSize: '0.85rem' }}>
+                    2. अंतर राशि / बोनस DBT (@ ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}):
                   </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.85rem' }}>
+                  <Typography variant="body2" sx={{ fontWeight: 800, color: '#e65100', fontSize: '0.88rem' }}>
                     ₹ {bonusPart.toLocaleString('en-IN')}
                   </Typography>
                 </Box>
 
                 {/* Total Row */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 1, alignItems: 'center' }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.92rem' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, alignItems: 'center' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '0.95rem' }}>
                     {isChhattisgarhi ? 'जम्मा बैंक खाता म भुगतान:' : 'कुल बैंक खाता भुगतान:'}
                   </Typography>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.1rem' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.15rem' }}>
                     ₹ {totalPaddyAmount.toLocaleString('en-IN')}
+                  </Typography>
+                </Box>
+
+                {/* Inline Integrated Bardana & Token Strip */}
+                <Box sx={{ mt: 1.5, p: 1.4, bgcolor: '#fffbf5', borderRadius: '14px', border: '1px solid #ffe082' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 1 }}>
+                    <Inventory2Icon sx={{ color: '#e65100', fontSize: 20 }} />
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: '#bf360c', fontSize: '0.82rem' }}>
+                      {t('bardana_card_title')}
+                    </Typography>
+                  </Box>
+                  <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                      <Box sx={{ bgcolor: '#ffffff', p: 1, borderRadius: '10px', border: '1px solid #ffecb3', textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.7rem', fontWeight: 600 }}>
+                          जूट बारदाना (40kg मानक)
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#e65100', lineHeight: 1.2, my: 0.2 }}>
+                          ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरा' : 'बोरी'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#8d6e63', fontSize: '0.65rem' }}>
+                          1 क्विंटल = 2.5 बारदाना
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Box sx={{ bgcolor: '#ffffff', p: 1, borderRadius: '10px', border: '1px solid #ffecb3', textAlign: 'center' }}>
+                        <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.7rem', fontWeight: 600 }}>
+                          {t('bardana_reimbursement')}
+                        </Typography>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#2e7d32', lineHeight: 1.2, my: 0.2 }}>
+                          ₹{paddyMath.bardanaReimbursement.toLocaleString('en-IN')}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: '#388e3c', fontSize: '0.65rem' }}>
+                          ₹25/बोरा शासन वापसी
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  <Typography variant="caption" sx={{ color: '#5d4037', fontSize: '0.72rem', display: 'block', mt: 1 }}>
+                    📱 <strong>टोकन कोटा:</strong> {isChhattisgarhi
+                      ? (pAcresNum <= 10 ? 'तुंहर रकबा (≤10 एकड़) बर "टोकन तुंहर हाथ" म अधिकतम 2 टोकन कटही।' : 'तुंहर रकबा (>10 एकड़) बर "टोकन तुंहर हाथ" म अधिकतम 3 टोकन तक जारी हो सकत हे।')
+                      : (pAcresNum <= 10 ? 'आपके रकबे (≤10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 2 टोकन कटेंगे।' : 'आपके रकबे (>10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 3 टोकन तक जारी हो सकते हैं।')}
                   </Typography>
                 </Box>
               </Box>
@@ -1294,113 +1463,25 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
               </Box>
             </Paper>
 
-            {/* Bardana (Jute Gunny Bags) & Token Tuhar Haath Card */}
-            <Paper
-              elevation={0}
+            {/* Quick Action Button */}
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={() => { stopSpeech(); setOpenTokenGuide(true); }}
               sx={{
-                p: 2,
-                mb: 2,
-                borderRadius: '16px',
-                border: '1.5px solid #ffcc80',
-                bgcolor: '#fffbf5'
+                bgcolor: '#1d4ed8',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.86rem',
+                borderRadius: '14px',
+                py: 1.1,
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(29, 78, 216, 0.25)',
+                '&:hover': { bgcolor: '#1e40af' }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.2 }}>
-                <Inventory2Icon sx={{ color: '#e65100', fontSize: 22 }} />
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#bf360c', fontSize: '0.88rem' }}>
-                  {t('bardana_card_title')}
-                </Typography>
-              </Box>
-
-              <Grid container spacing={1.2} sx={{ mb: 1.5 }}>
-                <Grid item xs={6}>
-                  <Box sx={{ bgcolor: '#fff', p: 1.2, borderRadius: 2, border: '1px solid #ffe082', textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>
-                      {t('bardana_bags')} (40kg {isChhattisgarhi ? 'पैमाना' : 'मानक'})
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#e65100', fontSize: '1.25rem', lineHeight: 1.2, my: 0.3 }}>
-                      ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरा' : 'बोरी'}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#8d6e63', fontSize: '0.68rem' }}>
-                      {isChhattisgarhi ? '1 क्विंटल = 2.5 बारदाना (जूट बोरा)' : '1 क्विंटल = 2.5 जूट बोरे'}
-                    </Typography>
-                  </Box>
-                </Grid>
-                <Grid item xs={6}>
-                  <Box sx={{ bgcolor: '#fff', p: 1.2, borderRadius: 2, border: '1px solid #ffe082', textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#795548', display: 'block', fontSize: '0.72rem', fontWeight: 600 }}>
-                      {t('bardana_reimbursement')}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 900, color: '#2e7d32', fontSize: '1.25rem', lineHeight: 1.2, my: 0.3 }}>
-                      ₹{paddyMath.bardanaReimbursement.toLocaleString('en-IN')}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#388e3c', fontSize: '0.68rem' }}>
-                      {isChhattisgarhi ? '₹25 हर बोरा शासन ले वापसी' : '₹25 प्रति बोरा शासन प्रतिपूर्ति'}
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              <Box sx={{ bgcolor: '#fff3e0', p: 1, borderRadius: 1.5, border: '1px dashed #ffb74d' }}>
-                <Typography variant="caption" sx={{ color: '#e65100', fontWeight: 800, display: 'block' }}>
-                  📱 {t('token_guideline_title')}
-                </Typography>
-                <Typography variant="caption" sx={{ color: '#5d4037', fontSize: '0.72rem', display: 'block', mt: 0.2 }}>
-                  {isChhattisgarhi
-                    ? (pAcresNum <= 10
-                        ? 'तुंहर रकबा (≤10 एकड़) बर "टोकन तुंहर हाथ" म ज्यादा ले ज्यादा 2 टोकन कटही।'
-                        : 'तुंहर रकबा (>10 एकड़) बर "टोकन तुंहर हाथ" म 3 टोकन तक जारी हो सकत हे।')
-                    : (pAcresNum <= 10
-                        ? 'आपके रकबे (≤10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 2 टोकन कटेंगे।'
-                        : 'आपके रकबे (>10 एकड़) हेतु "टोकन तुंहर हाथ" में अधिकतम 3 टोकन तक जारी हो सकते हैं।')}
-                </Typography>
-              </Box>
-            </Paper>
-
-            {/* Quick Rules */}
-            <Box sx={{ p: 1.2, bgcolor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                <InfoOutlinedIcon sx={{ color: '#2e7d32', fontSize: 16 }} />
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.75rem' }}>
-                  {isChhattisgarhi ? 'धान खरीदी के जरूरी नियम:' : 'धान खरीदी आवश्यक दिशा-निर्देश:'}
-                </Typography>
-              </Box>
-              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.72rem', lineHeight: 1.4 }}>
-                {isChhattisgarhi ? (
-                  <>
-                    1. हर एकड़ ज्यादा ले ज्यादा {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान खरीदी मान्य हे।<br />
-                    2. धान म नमी 17% ले कम होना चाही (सूखा अउ साफ धान लावव)।<br />
-                    3. टोकन तुंहर हाथ मोबाइल ऐप ले घर बइठे टोकन काटना जरूरी हे।
-                  </>
-                ) : (
-                  <>
-                    1. प्रति एकड़ अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल धान उपार्जन मान्य है।<br />
-                    2. धान में नमी 17% से कम होनी चाहिए (सूखा व साफ धान लाएं)।<br />
-                    3. टोकन तुंहर हाथ मोबाइल ऐप से घर बैठे टोकन काटना अनिवार्य है।
-                  </>
-                )}
-              </Typography>
-
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={() => { stopSpeech(); setOpenTokenGuide(true); }}
-                sx={{
-                  mt: 1.5,
-                  bgcolor: '#1d4ed8',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  borderRadius: 2.5,
-                  py: 0.8,
-                  textTransform: 'none',
-                  boxShadow: '0 2px 8px rgba(29, 78, 216, 0.25)',
-                  '&:hover': { bgcolor: '#1e40af' }
-                }}
-              >
-                {isChhattisgarhi ? '🎯 टोकन तुंहर हाथ: नियम, बोरी अऊ ऑनलाइन गाइड देखव ➔' : '🎯 टोकन तुंहर हाथ: पात्रता, बोरी व ऑनलाइन टोकन गाइड देखें ➔'}
-              </Button>
-            </Box>
+              {isChhattisgarhi ? '🎯 टोकन तुंहर हाथ: नियम, बोरी अऊ ऑनलाइन गाइड देखव ➔' : '🎯 टोकन तुंहर हाथ: पात्रता, बोरी व ऑनलाइन टोकन गाइड देखें ➔'}
+            </Button>
           </Card>
         </Box>
       )}

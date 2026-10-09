@@ -97,14 +97,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.62';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.63';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🩺 फसल डॉक्टर (रोग निदान) का संपूर्ण मेकओवर: अनावश्यक कार्ड्स व 10-लेयर नेस्टिंग हटाकर स्वच्छ व सांस लेने योग्य UI, 15L स्प्रे पंप (टंकी) सटीक नाप, CIB&RC सरकारी कीटनाशी लेबल क्लेम (तुड़ाई पूर्व अंतराल - PHI) एवं वास्तविक IGKV/ICAR डेटा सिंक।',
+    releaseNotes: '🌾 खाद व धान हिसाब का संपूर्ण कायाकल्प: खाद कैलकुलेटर में अनावश्यक 8-लेयर स्क्रॉल हटाकर 4 हीरो बोरी कार्ड तुरंत ऊपर, मिट्टी/ढलान/सेंसर उन्नत ट्रे में व्यवस्थित, धान उपार्जन रसीद (₹3,100/क्विंटल) में बारदाना व ₹25 प्रतिपूर्ति एकीकृत डिजिटल पासबुक रूप में तथा 100% IGKV वैज्ञानिक डेटा कोल्ड-कैश सिंक।',
     updatedAt: new Date().toISOString()
   });
 });
