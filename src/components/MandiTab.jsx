@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Typography,
@@ -17,7 +17,8 @@ import {
   MenuItem,
   CircularProgress,
   Badge,
-  IconButton
+  IconButton,
+  Collapse
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import StorefrontIcon from '@mui/icons-material/Storefront';
@@ -34,14 +35,18 @@ import BookmarkBorderIcon from '@mui/icons-material/BookmarkBorder';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import MicIcon from '@mui/icons-material/Mic';
-import MicOffIcon from '@mui/icons-material/MicOff';
 import ClearIcon from '@mui/icons-material/Clear';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import HandshakeIcon from '@mui/icons-material/Handshake';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import Tooltip from '@mui/material/Tooltip';
 import { speakText } from '../utils/speech';
 import { appConfig } from '../config/appConfig';
 import { useLanguage } from '../utils/i18n';
 import { KakaWalkthroughButton } from './KakaWalkthroughButton';
-import { startVoiceRecognition, stopVoiceRecognition, isSpeechRecognitionSupported, normalizeSpokenQuery } from '../utils/speechRecognition';
+import { startVoiceRecognition, stopVoiceRecognition, normalizeSpokenQuery } from '../utils/speechRecognition';
+import { MANDI_RATES } from '../data/kisanData';
 import {
   getMandiRates,
   refreshLiveMandiRates,
@@ -58,21 +63,34 @@ import { validateIndianPhone } from '../services/deviceManagerService';
 import { openNativeDialer, openNativeWhatsApp } from '../utils/capacitorUtils';
 
 export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
-  const { isChhattisgarhi, t } = useLanguage();
+  const { isChhattisgarhi } = useLanguage();
+
+  // Navigation: 'rates' (मंडी भाव दरें) vs 'marketplace' (सीधा किसान बाज़ार)
+  const [activeTab, setActiveTab] = useState('rates');
+
+  // Filters & Search
   const [searchQuery, setSearchQuery] = useState('');
   const [isVoiceListening, setIsVoiceListening] = useState(false);
   const [selectedCropFilter, setSelectedCropFilter] = useState('all');
   const [districtFilterOnly, setDistrictFilterOnly] = useState(false);
+
+  // Collapsible Market Insights Accordion (Replaces the 7 vertically stacked cards)
+  const [insightsExpanded, setInsightsExpanded] = useState(false);
+
+  // Modals & MSP Spotlight
   const [openSellModal, setOpenSellModal] = useState(false);
   const [mspBenchmarksList, setMspBenchmarksList] = useState([]);
   const [highlightMspCard, setHighlightMspCard] = useState(false);
 
+  // Voice walkthrough / Kaka action listener
   useEffect(() => {
     const handleKakaAction = (e) => {
       const action = e?.detail;
       if (!action) return;
       if (action.type === 'SHOW_MANDI') {
         setSelectedCropFilter('धान');
+        setActiveTab('rates');
+        setInsightsExpanded(true);
         setHighlightMspCard(true);
         setTimeout(() => {
           const el = document.getElementById('kaka-mandi-msp-card');
@@ -85,7 +103,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     return () => window.removeEventListener('kisan_kaka_action', handleKakaAction);
   }, []);
 
-  // Initialize strictly from previously fetched cache or empty (Zero Static Fallback)
+  // Initialize from cache or verified offline baseline from kisanData (Zero Empty Screen on cold start)
   const [mandiRatesList, setMandiRatesList] = useState(() => {
     try {
       const raw = localStorage.getItem('kisan_cache_mandi_payload');
@@ -95,8 +113,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         if (rates.length > 0) return rates;
       }
     } catch (e) {}
-    return [];
+    return Array.isArray(MANDI_RATES) && MANDI_RATES.length > 0 ? MANDI_RATES : [];
   });
+
   const [isLiveSource, setIsLiveSource] = useState(false);
   const [isOfflineCached, setIsOfflineCached] = useState(() => {
     try {
@@ -107,8 +126,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         return rates.length > 0;
       }
     } catch (e) {}
-    return false;
+    return true; // Initial baseline is offline cached reference
   });
+
   const [mandiSource, setMandiSource] = useState(() => {
     try {
       const raw = localStorage.getItem('kisan_cache_mandi_payload');
@@ -117,8 +137,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         return parsed.source || 'Agmarknet (पिछली बार प्राप्त डेटा)';
       }
     } catch (e) {}
-    return 'कोई मंडी डेटा उपलब्ध नहीं';
+    return 'Agmarknet मानक संदर्भ भाव (ऑफलाइन बेसलाइन)';
   });
+
   const [lastSyncTime, setLastSyncTime] = useState(() => {
     try {
       const raw = localStorage.getItem('kisan_cache_mandi_payload');
@@ -129,6 +150,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     } catch (e) {}
     return null;
   });
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Offline Query Tracker (Zero-False-Data Policy)
@@ -145,11 +167,13 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       const res = await getMandiRates({ force, district: selectedDistrict });
       if (res) {
         const list = Array.isArray(res) ? res : (res.rates || []);
-        setMandiRatesList(list);
-        setIsLiveSource(Boolean(res.isLive));
-        setIsOfflineCached(Boolean(res.isOfflineCached));
-        if (res.source) setMandiSource(res.source);
-        if (res.lastUpdated) setLastSyncTime(res.lastUpdated);
+        if (list.length > 0) {
+          setMandiRatesList(list);
+          setIsLiveSource(Boolean(res.isLive));
+          setIsOfflineCached(Boolean(res.isOfflineCached));
+          if (res.source) setMandiSource(res.source);
+          if (res.lastUpdated) setLastSyncTime(res.lastUpdated);
+        }
       }
     } catch (err) {
       setIsLiveSource(false);
@@ -204,7 +228,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     setIsRefreshing(true);
     try {
       const res = await refreshLiveMandiRates();
-      if (res && res.rates) {
+      if (res && res.rates && res.rates.length > 0) {
         setMandiRatesList(res.rates);
         setIsLiveSource(Boolean(res.isLive));
         setIsOfflineCached(false);
@@ -216,7 +240,6 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
         notify.success('मंडी भाव नवीनतम स्थिति में रीफ्रेश हो गए!');
       }
 
-      // Sync any pending offline queries
       const syncResult = await syncOfflineMandiQueries();
       if (syncResult && syncResult.syncedCount > 0) {
         setOfflineQueries(getOfflineMandiQueries());
@@ -249,7 +272,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     notify.info('पूछताछ हटा दी गई');
   };
 
-  // New listing form state
+  // Form state for posting produce
   const [formData, setFormData] = useState({
     crop: '',
     quantity: '',
@@ -275,10 +298,8 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
       phone: phoneCheck.cleanPhone,
       date: 'आज'
     };
-    // Post to MongoDB
     await postMarketplaceListing(newEntry);
-    const updated = [newEntry, ...myListings];
-    setMyListings(updated);
+    setMyListings([newEntry, ...myListings]);
     setOpenSellModal(false);
     notify.success('आपकी फसल लिस्टिंग सफलतापूर्वक पोस्ट हो गई है! खरीदार आपसे जल्द संपर्क करेंगे।');
     setFormData({ crop: '', quantity: '', expectedPrice: '', farmerName: '', location: '', phone: '' });
@@ -304,53 +325,57 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
     }
   };
 
-  const filteredRates = (mandiRatesList || []).filter((item) => {
-    if (!item) return false;
-    const cropStr = String(item.crop || '').toLowerCase();
-    const mandiStr = String(item.mandi || '').toLowerCase();
-    const districtStr = String(item.district || '').toLowerCase();
-    const search = searchQuery.toLowerCase().trim();
-    const normalizedSearch = normalizeSpokenQuery(search);
+  // Filtered Mandi Rates
+  const filteredRates = useMemo(() => {
+    return (mandiRatesList || []).filter((item) => {
+      if (!item) return false;
+      const cropStr = String(item.crop || '').toLowerCase();
+      const mandiStr = String(item.mandi || '').toLowerCase();
+      const districtStr = String(item.district || '').toLowerCase();
+      const search = searchQuery.toLowerCase().trim();
+      const normalizedSearch = normalizeSpokenQuery(search);
 
-    // Bilingual matching for standard crops (e.g. धान matches Paddy/चांउर, चना matches Gram/बूट)
-    const filterCrop = selectedCropFilter.toLowerCase();
-    const matchesCrop =
-      selectedCropFilter === 'all' ||
-      cropStr.includes(filterCrop) ||
-      (filterCrop.includes('धान') && (cropStr.includes('dhan') || cropStr.includes('paddy') || cropStr.includes('rice') || cropStr.includes('चांउर') || cropStr.includes('चावल'))) ||
-      (filterCrop.includes('चना') && (cropStr.includes('chana') || cropStr.includes('gram') || cropStr.includes('बूट'))) ||
-      (filterCrop.includes('सोयाबीन') && (cropStr.includes('soya') || cropStr.includes('soybean'))) ||
-      (filterCrop.includes('मक्का') && (cropStr.includes('makka') || cropStr.includes('maize') || cropStr.includes('जुनहरी'))) ||
-      (filterCrop.includes('तीवड़ा') && (cropStr.includes('laakh') || cropStr.includes('लाखड़ी') || cropStr.includes('खेसरी'))) ||
-      (filterCrop.includes('गेहूं') && (cropStr.includes('wheat') || cropStr.includes('gehu')));
+      // Bilingual matching for standard crops
+      const filterCrop = selectedCropFilter.toLowerCase();
+      const matchesCrop =
+        selectedCropFilter === 'all' ||
+        cropStr.includes(filterCrop) ||
+        (filterCrop.includes('धान') && (cropStr.includes('dhan') || cropStr.includes('paddy') || cropStr.includes('rice') || cropStr.includes('चांउर') || cropStr.includes('चावल'))) ||
+        (filterCrop.includes('चना') && (cropStr.includes('chana') || cropStr.includes('gram') || cropStr.includes('बूट'))) ||
+        (filterCrop.includes('सोयाबीन') && (cropStr.includes('soya') || cropStr.includes('soybean'))) ||
+        (filterCrop.includes('मक्का') && (cropStr.includes('makka') || cropStr.includes('maize') || cropStr.includes('जुनहरी'))) ||
+        (filterCrop.includes('तीवड़ा') && (cropStr.includes('laakh') || cropStr.includes('लाखड़ी') || cropStr.includes('खेसरी'))) ||
+        (filterCrop.includes('गेहूं') && (cropStr.includes('wheat') || cropStr.includes('gehu'))) ||
+        (filterCrop.includes('सरसों') && (cropStr.includes('mustard') || cropStr.includes('rai') || cropStr.includes('राई')));
 
-    const matchesSearch =
-      !search ||
-      mandiStr.includes(search) ||
-      cropStr.includes(search) ||
-      districtStr.includes(search) ||
-      (normalizedSearch && (cropStr.includes(normalizedSearch) || mandiStr.includes(normalizedSearch) || districtStr.includes(normalizedSearch)));
+      const matchesSearch =
+        !search ||
+        mandiStr.includes(search) ||
+        cropStr.includes(search) ||
+        districtStr.includes(search) ||
+        (normalizedSearch && (cropStr.includes(normalizedSearch) || mandiStr.includes(normalizedSearch) || districtStr.includes(normalizedSearch)));
 
-    const targetDistrict = selectedDistrict.toLowerCase();
-    const matchesDistrictOnly =
-      !districtFilterOnly ||
-      districtStr.includes(targetDistrict) ||
-      mandiStr.includes(targetDistrict);
+      const targetDistrict = selectedDistrict.toLowerCase();
+      const matchesDistrictOnly =
+        !districtFilterOnly ||
+        districtStr.includes(targetDistrict) ||
+        mandiStr.includes(targetDistrict);
 
-    return matchesCrop && matchesSearch && matchesDistrictOnly;
-  }).sort((a, b) => {
-    const aDistrict = String(a?.district || '').toLowerCase();
-    const bDistrict = String(b?.district || '').toLowerCase();
-    const targetDistrict = selectedDistrict.toLowerCase();
-    const aMatch = aDistrict.includes(targetDistrict) || String(a?.mandi || '').toLowerCase().includes(targetDistrict);
-    const bMatch = bDistrict.includes(targetDistrict) || String(b?.mandi || '').toLowerCase().includes(targetDistrict);
-    if (aMatch && !bMatch) return -1;
-    if (!aMatch && bMatch) return 1;
-    return 0;
-  });
+      return matchesCrop && matchesSearch && matchesDistrictOnly;
+    }).sort((a, b) => {
+      const aDistrict = String(a?.district || '').toLowerCase();
+      const bDistrict = String(b?.district || '').toLowerCase();
+      const targetDistrict = selectedDistrict.toLowerCase();
+      const aMatch = aDistrict.includes(targetDistrict) || String(a?.mandi || '').toLowerCase().includes(targetDistrict);
+      const bMatch = bDistrict.includes(targetDistrict) || String(b?.mandi || '').toLowerCase().includes(targetDistrict);
+      if (aMatch && !bMatch) return -1;
+      if (!aMatch && bMatch) return 1;
+      return 0;
+    });
+  }, [mandiRatesList, selectedCropFilter, searchQuery, districtFilterOnly, selectedDistrict]);
 
-  // Inter-mandi comparison: Group by unique mandi for current crop, sort by modalRate desc
-  const comparisonItems = React.useMemo(() => {
+  // Inter-mandi comparison items for highest rate discovery
+  const comparisonItems = useMemo(() => {
     const map = new Map();
     (filteredRates || []).forEach((r) => {
       const rateNum = Number(r.modalRate || r.maxRate || 0);
@@ -368,1030 +393,989 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
   const handleReadMandiRates = (item) => {
     if (!item) return;
     const perKg = (Number(item.modalRate || 0) / 100).toFixed(1);
+    const perBag = Math.round(Number(item.modalRate || 0) * 0.4);
     const text = isChhattisgarhi
-      ? `${item.mandi || 'मंडी'} म ${item.crop || 'फसल'} के मुख्य भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपया किलो हे।`
-      : `${item.mandi || 'मंडी'} में ${item.crop || 'फसल'} का मुख्य मॉडल भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपये प्रति किलो है। न्यूनतम भाव ₹${item.minRate || 0} और अधिकतम भाव ₹${item.maxRate || 0} है।`;
+      ? `${item.mandi || 'मंडी'} म ${item.crop || 'फसल'} के मुख्य भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपया किलो अउ ₹${perBag} रुपया प्रति 40 किलो कट्टा हे। न्यूनतम भाव ₹${item.minRate || 0} अउ अधिकतम भाव ₹${item.maxRate || 0} हे।`
+      : `${item.mandi || 'मंडी'} में ${item.crop || 'फसल'} का मुख्य मॉडल भाव ₹${item.modalRate || 0} प्रति क्विंटल, यानी लगभग ₹${perKg} रुपये प्रति किलो और ₹${perBag} रुपये प्रति 40 किलो कट्टा है। न्यूनतम भाव ₹${item.minRate || 0} और अधिकतम भाव ₹${item.maxRate || 0} है।`;
     speakText(text);
   };
 
-  const avgModalRate = filteredRates.length > 0
-    ? Math.round(filteredRates.reduce((acc, curr) => acc + (Number(curr?.modalRate) || 0), 0) / filteredRates.length)
-    : 0;
+  // 1-Tap Crop Filter Chips
+  const cropPills = [
+    { label: isChhattisgarhi ? '🌾 सबो जिंस' : '🌾 सभी फसलें', value: 'all' },
+    { label: isChhattisgarhi ? '🌾 धान (चांउर)' : '🌾 धान (Paddy)', value: 'धान' },
+    { label: isChhattisgarhi ? '🟤 चना (बूट)' : '🟤 चना (Gram)', value: 'चना' },
+    { label: isChhattisgarhi ? '🟡 सोयाबीन' : '🟡 सोयाबीन', value: 'सोयाबीन' },
+    { label: isChhattisgarhi ? '🌽 मक्का (जुनहरी)' : '🌽 मक्का', value: 'मक्का' },
+    { label: isChhattisgarhi ? '🌾 तीवड़ा (लाखड़ी)' : '🌾 तीवड़ा', value: 'तीवड़ा' },
+    { label: isChhattisgarhi ? '🌾 गेहूं' : '🌾 गेहूं', value: 'गेहूं' },
+    { label: isChhattisgarhi ? '🌻 सरसों' : '🌻 सरसों', value: 'सरसों' }
+  ];
 
   return (
-    <Box sx={{ pb: 1, pt: 0 }} className="fade-in">
-      {/* Title & Post button */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+    <Box sx={{ pb: 2, pt: 0 }} className="fade-in">
+      {/* 1. Slim Top Bar Capsule */}
+      <Box
+        sx={{
+          mb: 1.5,
+          p: 1.2,
+          px: 1.5,
+          borderRadius: '16px',
+          bgcolor: '#ffffff',
+          boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+          border: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
           <Box
             sx={{
-              background: 'linear-gradient(135deg, #1976d2 0%, #0d47a1 100%)',
-              p: 1.2,
-              borderRadius: '14px',
+              background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
+              width: 38,
+              height: 38,
+              borderRadius: '12px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 14px rgba(21, 101, 192, 0.25)'
+              boxShadow: '0 2px 8px rgba(21, 101, 192, 0.25)',
+              color: '#ffffff'
             }}
           >
-            <StorefrontIcon sx={{ color: '#ffffff', fontSize: 26 }} />
+            <StorefrontIcon sx={{ fontSize: 22 }} />
           </Box>
           <Box>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: '1.15rem', lineHeight: 1.2 }}>
-              लाइव मंडी भाव व सीधा बाज़ार
+            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0d47a1', fontSize: '1rem', lineHeight: 1.15 }}>
+              मंडी भाव व सीधा बाज़ार
             </Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.75rem' }}>
-              ताजा मंडी दरें • भाव ट्रेंड विश्लेषण • खेत से सीधा खरीदार संपर्क
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, flexWrap: 'wrap', mt: 0.2 }}>
+              <Chip
+                label={
+                  isLiveSource
+                    ? (isChhattisgarhi ? '🟢 आज के लाइव भाव' : '🟢 Agmarknet लाइव दरें')
+                    : isOfflineCached
+                    ? (isChhattisgarhi ? '🟡 ऑफ़लाइन सहेजे भाव' : '🟡 ऑफ़लाइन सहेजा डेटा')
+                    : (isChhattisgarhi ? '📋 मानक संदर्भ भाव' : '📋 मानक संदर्भ दरें')
+                }
+                size="small"
+                sx={{
+                  bgcolor: isLiveSource ? '#ecfdf5' : '#fef9c3',
+                  color: isLiveSource ? '#065f46' : '#854d0e',
+                  fontWeight: 800,
+                  fontSize: '0.66rem',
+                  height: 20,
+                  border: isLiveSource ? '1px solid #a7f3d0' : '1px solid #fde047'
+                }}
+              />
+              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', fontWeight: 600 }}>
+                • {selectedDistrict} APMC
+              </Typography>
+            </Box>
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
           <KakaWalkthroughButton featureId="mandi" />
+
           <Button
             variant="outlined"
             size="small"
-            startIcon={isRefreshing ? <CircularProgress size={14} color="inherit" /> : <SyncIcon sx={{ fontSize: 16 }} />}
+            startIcon={isRefreshing ? <CircularProgress size={13} color="inherit" /> : <SyncIcon sx={{ fontSize: 15 }} />}
             disabled={isRefreshing}
             onClick={handleRefresh}
             sx={{
-              borderColor: '#1976d2',
-              color: '#1565c0',
-              fontSize: '0.76rem',
+              borderColor: '#86efac',
+              color: '#166534',
+              bgcolor: '#f0fdf4',
+              fontSize: '0.74rem',
               fontWeight: 800,
-              borderRadius: '12px',
-              py: 0.7,
-              px: 1.4,
-              bgcolor: '#fff',
+              borderRadius: '10px',
+              py: 0.5,
+              px: 1.2,
               textTransform: 'none',
-              boxShadow: '0 2px 8px rgba(25, 118, 210, 0.08)',
-              '&:hover': { bgcolor: '#f0f9ff', borderColor: '#0d47a1' }
+              '&:hover': { bgcolor: '#dcfce7', borderColor: '#4ade80' }
             }}
           >
-            {isRefreshing ? 'भाव जांच रहे...' : '🔄 ताजा भाव'}
+            {isRefreshing ? 'जांच रहे...' : '🔄 रीफ्रेश'}
           </Button>
 
           <Badge badgeContent={offlineQueries.filter((q) => q.status === 'pending').length} color="warning">
-            <Button
-              variant="outlined"
+            <IconButton
               size="small"
-              startIcon={<BookmarkBorderIcon sx={{ fontSize: 16 }} />}
               onClick={() => setOpenOfflineQueryModal(true)}
+              title={isChhattisgarhi ? "ऑफ़लाइन भाव पूछ-ताछ" : "ऑफ़लाइन भाव पूछताछ"}
               sx={{
-                borderColor: '#0284c7',
-                color: '#0369a1',
-                fontSize: '0.76rem',
-                fontWeight: 800,
-                borderRadius: '12px',
-                py: 0.7,
-                px: 1.4,
-                bgcolor: '#fff',
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#e0f2fe' }
+                bgcolor: '#f0f9ff',
+                color: '#0284c7',
+                border: '1px solid #bae6fd',
+                borderRadius: '10px',
+                p: 0.6
               }}
             >
-              📡 ऑफ़लाइन पूछताछ
-            </Button>
+              <BookmarkBorderIcon sx={{ fontSize: 18 }} />
+            </IconButton>
           </Badge>
-
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddCircleIcon />}
-            onClick={() => setOpenSellModal(true)}
-            sx={{
-              background: 'linear-gradient(135deg, #1565c0 0%, #0d47a1 100%)',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              borderRadius: '12px',
-              py: 0.8,
-              px: 1.8,
-              boxShadow: '0 4px 12px rgba(21, 101, 192, 0.25)',
-              whiteSpace: 'nowrap',
-              '&:hover': { background: 'linear-gradient(135deg, #0d47a1 0%, #082d62 100%)' }
-            }}
-          >
-            फसल बेचें ➔
-          </Button>
         </Box>
       </Box>
 
-      {/* Modern Live Quick Statistics Strip */}
-      <Grid container spacing={1.5} sx={{ mb: 2 }}>
-        <Grid item xs={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 1.2,
-              borderRadius: '12px',
-              bgcolor: '#f0f9ff',
-              border: '1px solid #bae6fd',
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="caption" sx={{ color: '#0369a1', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
-              सक्रिय मंडियां
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#0284c7' }}>
-              {filteredRates.length} मंडियां
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 1.2,
-              borderRadius: '12px',
-              bgcolor: '#ecfdf5',
-              border: '1px solid #a7f3d0',
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="caption" sx={{ color: '#047857', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
-              औसत मॉडल भाव
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#059669' }}>
-              {avgModalRate ? `₹${avgModalRate.toLocaleString('en-IN')}` : '₹--'}
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid item xs={4}>
-          <Paper
-            elevation={0}
-            sx={{
-              p: 1.2,
-              borderRadius: '12px',
-              bgcolor: '#fefce8',
-              border: '1px solid #fde047',
-              textAlign: 'center'
-            }}
-          >
-            <Typography variant="caption" sx={{ color: '#a16207', fontSize: '0.68rem', fontWeight: 700, display: 'block' }}>
-              सरकारी उपार्जन
-            </Typography>
-            <Typography variant="subtitle2" sx={{ fontWeight: 900, color: '#b45309' }}>
-              ₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्वि.
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-
-      {/* Government MSP Highlight Banner */}
+      {/* 2. Segmented Pill Navigation Switch */}
       <Paper
-        id="kaka-mandi-msp-card"
-        className={highlightMspCard ? 'kaka-spotlight-pulse' : ''}
         elevation={0}
         sx={{
-          p: 1.5,
-          mb: 2,
-          borderRadius: 2.5,
-          bgcolor: '#e8f5e9',
-          border: '1.2px solid #a5d6a7',
+          mb: 1.5,
+          p: 0.5,
+          borderRadius: '14px',
+          bgcolor: '#e2e8f0',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: 1,
-          transition: 'all 0.3s ease'
+          gap: 0.6
         }}
       >
-        <Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.85rem' }}>
-            {isChhattisgarhi
-              ? `🏛️ छत्तीसगढ़ सरकारी धान उपार्जन दर: धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल`
-              : `🏛️ छत्तीसगढ़ सरकारी उपार्जन दर: धान ₹${appConfig.paddyScheme.totalRate.toLocaleString('en-IN')}/क्विंटल`}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.74rem', display: 'block' }}>
-            {isChhattisgarhi
-              ? `(MSP ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • ज्यादा ले ज्यादा ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल/एकड़`
-              : `(MSP ₹${appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹${appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • अधिकतम ${appConfig.paddyScheme.maxQuintalsPerAcre} क्विंटल/एकड़`}
-          </Typography>
-        </Box>
         <Button
+          fullWidth
           size="small"
-          variant="outlined"
-          startIcon={<VolumeUpIcon sx={{ fontSize: 14 }} />}
-          onClick={() => speakText(
-            isChhattisgarhi
-              ? `छत्तीसगढ़ म धान के कुल सरकारी खरीदी भाव ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल हे। जेमा ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य अउ ₹${appConfig.paddyScheme.bonusRate} बोनस हे।`
-              : `छत्तीसगढ़ में धान की कुल सरकारी खरीदी दर ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल है। जिसमें ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य और ₹${appConfig.paddyScheme.bonusRate} बोनस है।`
-          )}
-          sx={{ fontSize: '0.7rem', py: 0.3, px: 1, color: '#1b5e20', borderColor: '#81c784', whiteSpace: 'nowrap' }}
+          onClick={() => setActiveTab('rates')}
+          sx={{
+            py: 0.8,
+            borderRadius: '10px',
+            fontWeight: 800,
+            fontSize: '0.82rem',
+            bgcolor: activeTab === 'rates' ? '#ffffff' : 'transparent',
+            color: activeTab === 'rates' ? '#0d47a1' : '#475569',
+            boxShadow: activeTab === 'rates' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            textTransform: 'none',
+            transition: 'all 0.2s ease',
+            '&:hover': { bgcolor: activeTab === 'rates' ? '#ffffff' : '#f1f5f9' }
+          }}
         >
-          {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+          🏛️ {isChhattisgarhi ? `मंडी भाव दरें (${filteredRates.length})` : `मंडी भाव दरें (${filteredRates.length})`}
+        </Button>
+
+        <Button
+          fullWidth
+          size="small"
+          onClick={() => setActiveTab('marketplace')}
+          sx={{
+            py: 0.8,
+            borderRadius: '10px',
+            fontWeight: 800,
+            fontSize: '0.82rem',
+            bgcolor: activeTab === 'marketplace' ? '#ffffff' : 'transparent',
+            color: activeTab === 'marketplace' ? '#166534' : '#475569',
+            boxShadow: activeTab === 'marketplace' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            textTransform: 'none',
+            transition: 'all 0.2s ease',
+            '&:hover': { bgcolor: activeTab === 'marketplace' ? '#ffffff' : '#f1f5f9' }
+          }}
+        >
+          🤝 {isChhattisgarhi ? `सीधा किसान बाजार (${myListings.length})` : `सीधा किसान बाज़ार (${myListings.length})`}
         </Button>
       </Paper>
 
-      {/* Zero-False-Data Policy Provenance Banner */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 1.4,
-          mb: 2,
-          borderRadius: 2.5,
-          bgcolor: isLiveSource ? '#f0fdf4' : isOfflineCached ? '#fefce8' : '#f8fafc',
-          border: isLiveSource ? '1.2px solid #86efac' : isOfflineCached ? '1.2px solid #fde047' : '1.2px solid #cbd5e1',
-          display: 'flex',
-          alignItems: 'flex-start',
-          gap: 1.2
-        }}
-      >
-        <SecurityIcon sx={{ color: isLiveSource ? '#16a34a' : isOfflineCached ? '#ca8a04' : '#1565c0', fontSize: 22, mt: 0.2 }} />
-        <Box sx={{ width: '100%' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 0.3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.84rem' }}>
-              {isChhattisgarhi ? '🛡️ शून्य गलत डेटा नीति (सत्यापित मंडी भाव)' : '🛡️ शून्य गलत डेटा नीति (Data Provenance & Transparency)'}
-            </Typography>
-            <Chip
-              label={
-                isLiveSource
-                  ? (isChhattisgarhi ? '🟢 आज के लाइव जांचे भाव' : '🟢 आज के लाइव सत्यापित भाव (Agmarknet Live)')
-                  : isOfflineCached
-                  ? (isChhattisgarhi ? '🟡 ऑफ़लाइन सहेजे भाव' : '🟡 ऑफ़लाइन सहेजा गया डेटा (Offline Cache)')
-                  : (isChhattisgarhi ? '📋 मानक संदर्भ भाव' : '📋 मानक संदर्भ भाव (Agmarknet Benchmark)')
-              }
+      {/* VIEW 1: MANDI RATES EXPLORER */}
+      {activeTab === 'rates' && (
+        <Box>
+          {/* Unified Sticky Search & 1-Tap Crop Filter Bar */}
+          <Paper
+            elevation={0}
+            sx={{
+              position: 'sticky',
+              top: { xs: 70, sm: 80 },
+              zIndex: 4,
+              p: 1.2,
+              mb: 1.5,
+              borderRadius: '16px',
+              bgcolor: 'rgba(255, 255, 255, 0.96)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid #e2e8f0',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.04)'
+            }}
+          >
+            {/* Search Input with Voice Mic & Clear button */}
+            <TextField
+              fullWidth
               size="small"
+              placeholder={isChhattisgarhi ? "फसल या मंडी खोजव या बोलव (धान, चना...)" : "फसल या मंडी खोजें या बोलें (धान, चना...)"}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: '#94a3b8', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end" sx={{ gap: 0.5 }}>
+                    {searchQuery && (
+                      <IconButton size="small" onClick={() => setSearchQuery('')} sx={{ color: '#94a3b8' }}>
+                        <ClearIcon sx={{ fontSize: 17 }} />
+                      </IconButton>
+                    )}
+                    <Tooltip title={isVoiceListening ? "सुन रहे हैं... (रोकने हेतु दबाएं)" : "बोलकर खोजें (माइक दबाएं)"}>
+                      <IconButton
+                        size="small"
+                        onClick={handleToggleVoiceSearch}
+                        sx={{
+                          color: isVoiceListening ? '#fff' : '#1976d2',
+                          bgcolor: isVoiceListening ? '#ef4444' : '#e0f2fe',
+                          transition: 'all 0.2s ease',
+                          '&:hover': { bgcolor: isVoiceListening ? '#dc2626' : '#bae6fd' }
+                        }}
+                      >
+                        <MicIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </InputAdornment>
+                )
+              }}
               sx={{
-                bgcolor: isLiveSource ? '#e8f5e9' : isOfflineCached ? '#fef9c3' : '#e0f2fe',
-                color: isLiveSource ? '#1b5e20' : isOfflineCached ? '#854d0e' : '#0369a1',
-                fontWeight: 800,
-                fontSize: '0.68rem',
-                height: 22
+                bgcolor: '#f8fafc',
+                borderRadius: '12px',
+                '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: '0.84rem' }
               }}
             />
-          </Box>
-          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', lineHeight: 1.35, display: 'block' }}>
-            {isLiveSource
-              ? (isChhattisgarhi
-                  ? `स्रोतः ${mandiSource} • आखरी अपडेट: ${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }) : 'आज'}। सबो भाव APMC मंडी ले जांचे हे।`
-                  : `स्रोतः ${mandiSource} • अंतिम अपडेट: ${lastSyncTime ? new Date(lastSyncTime).toLocaleTimeString('hi-IN', { hour: '2-digit', minute: '2-digit' }) : 'आज'}। सभी दरें APMC मंडी से सत्यापित हैं।`)
-              : isOfflineCached
-              ? (isChhattisgarhi
-                  ? `ये डेटा तुंहर फोन म पहिली ले सहेजे हे (सिंक: ${lastSyncTime ? new Date(lastSyncTime).toLocaleDateString('hi-IN') : 'पहिली सिंक'})। लाइव भाव देखे बर 'ताजा भाव' बटन दबावहू।`
-                  : `यह डेटा आपके फ़ोन में पहले से सहेजा हुआ है (सिंक: ${lastSyncTime ? new Date(lastSyncTime).toLocaleDateString('hi-IN') : 'पूर्व सिंक'})। लाइव दरें देखने हेतु 'ताजा भाव' बटन दबाएं।`)
-              : (isChhattisgarhi
-                  ? 'मंडी भाव Agmarknet अउ छत्तीसगढ़ राज्य कृषि विपणन बोर्ड के ताजा आंकड़ों पर आधारित हे। इंटरनेट चालू होय म ताजा भाव देखे बर रीफ्रेश करव।'
-                  : 'प्रदर्शित मंडी दरें Agmarknet एवं छत्तीसगढ़ राज्य कृषि विपणन बोर्ड के नवीनतम दर्ज आंकड़ों पर आधारित हैं। इंटरनेट कनेक्ट होने पर ऊपर दिए गए रीफ्रेश बटन से लाइव अपडेट प्राप्त करें।')}
-          </Typography>
-        </Box>
-      </Paper>
 
-      {/* Official CACP Government MSP Benchmarks (Zero-Fake-Data Enforced) */}
-      {mspBenchmarksList && mspBenchmarksList.length > 0 && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.5,
-            mb: 2,
-            borderRadius: 2.5,
-            bgcolor: '#f8fafc',
-            border: '1.2px solid #e2e8f0'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, flexWrap: 'wrap', gap: 0.8 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-              <Typography sx={{ fontSize: '1rem' }}>🏛️</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.84rem' }}>
-                केन्द्रीय न्यूनतम समर्थन मूल्य (CACP Official MSP 2024-25):
-              </Typography>
-            </Box>
-            <Chip
-              label="100% सत्यापित CACP डेटा"
-              size="small"
-              sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.66rem', height: 20 }}
-            />
-          </Box>
+            {/* 1-Tap Crop Pills with horizontal scroll */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 0.8,
+                overflowX: 'auto',
+                pt: 1,
+                pb: 0.2,
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' }
+              }}
+            >
+              {cropPills.map((chip) => {
+                const isSelected = selectedCropFilter === chip.value;
+                return (
+                  <Chip
+                    key={chip.value}
+                    label={chip.label}
+                    clickable
+                    size="small"
+                    onClick={() => {
+                      setSelectedCropFilter(chip.value);
+                      if (chip.value !== 'all') setSearchQuery('');
+                    }}
+                    sx={{
+                      fontWeight: isSelected ? 800 : 600,
+                      fontSize: '0.74rem',
+                      borderRadius: '14px',
+                      bgcolor: isSelected ? '#1565c0' : '#f1f5f9',
+                      color: isSelected ? '#fff' : '#334155',
+                      border: isSelected ? '1px solid #0d47a1' : '1px solid #e2e8f0',
+                      flexShrink: 0,
+                      '&:hover': { bgcolor: isSelected ? '#0d47a1' : '#e2e8f0' }
+                    }}
+                  />
+                );
+              })}
 
-          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 0.8 }}>
-            {mspBenchmarksList.map((item) => (
               <Chip
-                key={item.cropId}
-                label={`${item.cropName.split('(')[0].trim()}: ₹${item.effectiveFarmerPrice.toLocaleString('en-IN')}/क्विं.`}
+                label={districtFilterOnly ? `📍 केवल ${selectedDistrict} (सक्रिय)` : `📍 केवल ${selectedDistrict}`}
+                clickable
                 size="small"
+                variant={districtFilterOnly ? 'filled' : 'outlined'}
+                onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
                 sx={{
-                  bgcolor: item.cropId === 'paddy' ? '#ecfdf5' : '#ffffff',
-                  border: `1px solid ${item.cropId === 'paddy' ? '#6ee7b7' : '#cbd5e1'}`,
                   fontWeight: 800,
-                  fontSize: '0.7rem',
-                  color: item.cropId === 'paddy' ? '#065f46' : '#1e293b'
+                  fontSize: '0.74rem',
+                  borderRadius: '14px',
+                  bgcolor: districtFilterOnly ? '#1b5e20' : '#fff',
+                  color: districtFilterOnly ? '#fff' : '#1b5e20',
+                  borderColor: '#81c784',
+                  flexShrink: 0
                 }}
               />
-            ))}
-          </Box>
-
-          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.68rem', display: 'block' }}>
-            स्रोत: डेटा.गॉव.इन / कृषि लागत एवं मूल्य आयोग (CACP, भारत सरकार) • GODL-India अनुपालित • शून्य फर्जी डेटा गारंटी
-          </Typography>
-        </Paper>
-      )}
-
-      {/* Saved Offline Queries Strip (When farmer has offline inquiries) */}
-      {offlineQueries.length > 0 && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.5,
-            mb: 2,
-            borderRadius: 2.5,
-            bgcolor: '#f0fdf4',
-            border: '1.2px solid #86efac',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <BookmarkBorderIcon sx={{ color: '#16a34a', fontSize: 20 }} />
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.85rem' }}>
-                {isChhattisgarhi ? `📡 तुंहर सहेजे ऑफ़लाइन पूछ-ताछ (${offlineQueries.length})` : `📡 आपकी सहेजी गई ऑफ़लाइन पूछताछ (${offlineQueries.length})`}
-              </Typography>
             </Box>
-            <Button
-              size="small"
-              onClick={() => setOpenOfflineQueryModal(true)}
-              sx={{ fontSize: '0.72rem', py: 0.2, px: 1, color: '#166534', fontWeight: 700 }}
+          </Paper>
+
+          {/* Collapsible Market Insights Drawer (Consolidates 7 stacked cards into 1 clean accordion) */}
+          <Paper
+            elevation={0}
+            sx={{
+              mb: 1.5,
+              borderRadius: '14px',
+              bgcolor: '#f0fdf4',
+              border: '1.2px solid #a7f3d0',
+              overflow: 'hidden'
+            }}
+          >
+            <Box
+              onClick={() => setInsightsExpanded(!insightsExpanded)}
+              sx={{
+                p: 1.1,
+                px: 1.5,
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                cursor: 'pointer',
+                userSelect: 'none'
+              }}
             >
-              {isChhattisgarhi ? '+ नवा पूछ-ताछ' : '+ नई पूछताछ'}
-            </Button>
-          </Box>
-          <Grid container spacing={1}>
-            {offlineQueries.map((query) => (
-              <Grid item xs={12} sm={6} key={query.id}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                <Typography sx={{ fontSize: '1rem' }}>📊</Typography>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.82rem' }}>
+                  {isChhattisgarhi
+                    ? 'सरकारी नीतियां, CACP समर्थन मूल्य अउ मंडी तुलना'
+                    : 'सरकारी नीतियां, CACP समर्थन मूल्य व अंतर-मंडी तुलना'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700, fontSize: '0.7rem' }}>
+                  {insightsExpanded ? (isChhattisgarhi ? 'छिपावव' : 'छिपाएं') : (isChhattisgarhi ? 'देखव' : 'देखें')}
+                </Typography>
+                {insightsExpanded ? <ExpandLessIcon sx={{ color: '#166534', fontSize: 18 }} /> : <ExpandMoreIcon sx={{ color: '#166534', fontSize: 18 }} />}
+              </Box>
+            </Box>
+
+            <Collapse in={insightsExpanded}>
+              <Box sx={{ p: 1.5, pt: 0.5, borderTop: '1px dashed #a7f3d0', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                {/* Government MSP Highlight Banner */}
                 <Paper
+                  id="kaka-mandi-msp-card"
+                  className={highlightMspCard ? 'kaka-spotlight-pulse' : ''}
                   elevation={0}
                   sx={{
                     p: 1.2,
                     borderRadius: '10px',
                     bgcolor: '#ffffff',
-                    border: query.status === 'resolved' ? '1.5px solid #22c55e' : '1px solid #cbd5e1',
+                    border: '1.2px solid #86efac',
                     display: 'flex',
+                    alignItems: 'center',
                     justifyContent: 'space-between',
-                    alignItems: 'center'
+                    gap: 1
                   }}
                 >
                   <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.86rem' }}>
-                        {query.crop}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                        ({query.mandi})
-                      </Typography>
-                      <Chip
-                        label={query.status === 'resolved' ? (isChhattisgarhi ? 'पक्का (सत्यापित)' : 'सत्यापित') : (isChhattisgarhi ? 'सिंक बाकी' : 'लंबित सिंक')}
-                        size="small"
-                        color={query.status === 'resolved' ? 'success' : 'default'}
-                        sx={{ height: 18, fontSize: '0.62rem', fontWeight: 800 }}
-                      />
-                    </Box>
-                    {query.status === 'resolved' && query.resolvedRate ? (
-                      <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, display: 'block', mt: 0.3 }}>
-                        {isChhattisgarhi ? `ताजा भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}` : `ताजा मॉडल भाव: ₹${query.resolvedRate.modalRate}/क्विंटल • आवक: ${query.resolvedRate.arrival}`}
-                      </Typography>
-                    ) : (
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.3 }}>
-                        {isChhattisgarhi ? '⏳ इंटरनेट जुड़ते ही ताजा भाव अपने-आप अपडेट होही' : '⏳ इंटरनेट कनेक्ट होते ही ताजा भाव स्वतः अपडेट होगा'}
-                      </Typography>
-                    )}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.84rem' }}>
+                      🏛️ {appConfig.stateName} सरकारी धान खरीदी दर: <strong>₹{appConfig.paddyScheme.totalRate.toLocaleString('en-IN')} / क्विंटल</strong>
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.72rem', display: 'block' }}>
+                      (MSP ₹{appConfig.paddyScheme.mspRate.toLocaleString('en-IN')} + कृषक उन्नति बोनस ₹{appConfig.paddyScheme.bonusRate.toLocaleString('en-IN')}) • अधिकतम {appConfig.paddyScheme.maxQuintalsPerAcre} क्विं./एकड़
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    {query.status === 'resolved' && query.resolvedRate && (
-                      <IconButton
-                        size="small"
-                        onClick={() => speakText(isChhattisgarhi ? `${query.crop} के ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल हे।` : `${query.crop} का ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल है।`)}
-                        sx={{ color: '#15803d' }}
-                      >
-                        <VolumeUpIcon sx={{ fontSize: 16 }} />
-                      </IconButton>
-                    )}
-                    <IconButton size="small" onClick={() => handleRemoveOfflineQuery(query.id)} sx={{ color: '#94a3b8' }}>
-                      <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-                    </IconButton>
-                  </Box>
-                </Paper>
-              </Grid>
-            ))}
-          </Grid>
-        </Paper>
-      )}
-
-      {/* Sticky Search & Commodity Filter Sub-Header */}
-      <Box
-        sx={{
-          position: 'sticky',
-          top: { xs: 80, sm: 88 },
-          zIndex: 5,
-          bgcolor: 'rgba(255, 255, 255, 0.96)',
-          backdropFilter: 'blur(8px)',
-          pt: 1,
-          pb: 1,
-          mb: 1.5,
-          borderRadius: 2.5,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-        }}
-      >
-        {/* Zero Horizontal Scroll Commodity Dropdown & District Filter */}
-        <Grid container spacing={1.5} sx={{ mb: 1.2 }} alignItems="center">
-          <Grid item xs={12} sm={6}>
-            <TextField
-              select
-              fullWidth
-              size="small"
-              label={isChhattisgarhi ? "🌾 फसल / जिंस चुनव" : "🌾 फसल / जिंस चुनें (Commodity Filter)"}
-              value={selectedCropFilter}
-              onChange={(e) => setSelectedCropFilter(e.target.value)}
-              sx={{
-                bgcolor: '#fff',
-                borderRadius: 2,
-                '& .MuiOutlinedInput-root': { borderRadius: 2 }
-              }}
-            >
-              <MenuItem value="all">{isChhattisgarhi ? "🌾 सबो जिंस (सब)" : "🌾 सभी जिंसें (All Commodities)"}</MenuItem>
-              <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर - ₹3,100 सरकारी खरीदी)" : "🌾 धान (Paddy - ₹3,100 उपार्जन)"}</MenuItem>
-              <MenuItem value="चना">{isChhattisgarhi ? "🟤 चना (बूट)" : "🟤 चना (Gram / Chickpea)"}</MenuItem>
-              <MenuItem value="सोयाबीन">{isChhattisgarhi ? "🟡 सोयाबीन" : "🟡 सोयाबीन (Soybean)"}</MenuItem>
-              <MenuItem value="मक्का">{isChhattisgarhi ? "🌽 मक्का (जुनहरी)" : "🌽 मक्का (Maize)"}</MenuItem>
-              <MenuItem value="कोदो">{isChhattisgarhi ? "🌾 मिलेट्स / कोदो-कुटकी" : "🌾 मिलेट्स / कोदो-कुटकी"}</MenuItem>
-              <MenuItem value="गेहूं">{isChhattisgarhi ? "🌾 गेहूं (गहुं)" : "🌾 गेहूं (Wheat)"}</MenuItem>
-              <MenuItem value="सरसों">{isChhattisgarhi ? "🌻 सरसों / राई" : "🌻 सरसों / तिलहन"}</MenuItem>
-            </TextField>
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <Button
-              fullWidth
-              size="small"
-              variant={districtFilterOnly ? 'contained' : 'outlined'}
-              color={districtFilterOnly ? 'success' : 'inherit'}
-              onClick={() => setDistrictFilterOnly(!districtFilterOnly)}
-              startIcon={<LocationOnIcon sx={{ fontSize: 18 }} />}
-              sx={{
-                py: 0.9,
-                borderRadius: 2,
-                fontWeight: 800,
-                fontSize: '0.78rem',
-                borderColor: districtFilterOnly ? '#2e7d32' : '#cbd5e1',
-                bgcolor: districtFilterOnly ? '#2e7d32' : '#fff',
-                color: districtFilterOnly ? '#fff' : '#334155',
-                textTransform: 'none',
-                '&:hover': {
-                  bgcolor: districtFilterOnly ? '#1b5e20' : '#f8fafc',
-                  borderColor: '#2e7d32'
-                }
-              }}
-            >
-              {isChhattisgarhi
-                ? (districtFilterOnly ? `📍 सिर्फ ${selectedDistrict} के भाव (फिल्टर चालू)` : `📍 सिर्फ ${selectedDistrict} के भाव देखव`)
-                : (districtFilterOnly ? `📍 केवल ${selectedDistrict} की दरें (फिल्टर सक्रिय)` : `📍 केवल ${selectedDistrict} की दरें देखें`)}
-            </Button>
-          </Grid>
-        </Grid>
-
-        {/* Search Input with Voice Mic & Clear (Zero-Typing) */}
-        <TextField
-          fullWidth
-          size="small"
-          placeholder={isChhattisgarhi ? "मंडी या फसल के नाव बोलव या खोजव (जैसे: धान, रायपुर...)" : "मंडी या फसल का नाम बोलें या खोजें (जैसे: धान, रायपुर...)"}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: '#888', fontSize: 20 }} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end" sx={{ gap: 0.5 }}>
-                {searchQuery && (
-                  <IconButton
+                  <Button
                     size="small"
-                    onClick={() => setSearchQuery('')}
-                    sx={{ color: '#94a3b8' }}
+                    variant="outlined"
+                    startIcon={<VolumeUpIcon sx={{ fontSize: 13 }} />}
+                    onClick={() => speakText(`छत्तीसगढ़ में धान की कुल सरकारी खरीदी दर ₹${appConfig.paddyScheme.totalRate} प्रति क्विंटल है। जिसमें ₹${appConfig.paddyScheme.mspRate} समर्थन मूल्य और ₹${appConfig.paddyScheme.bonusRate} कृषक उन्नति बोनस है।`)}
+                    sx={{ fontSize: '0.68rem', py: 0.2, px: 0.8, color: '#1b5e20', borderColor: '#81c784', whiteSpace: 'nowrap' }}
                   >
-                    <ClearIcon sx={{ fontSize: 18 }} />
-                  </IconButton>
+                    {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                  </Button>
+                </Paper>
+
+                {/* Central CACP MSP Benchmarks Chips */}
+                {mspBenchmarksList && mspBenchmarksList.length > 0 && (
+                  <Box>
+                    <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.72rem', display: 'block', mb: 0.5 }}>
+                      केन्द्रीय न्यूनतम समर्थन मूल्य (CACP MSP 2024-25):
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
+                      {mspBenchmarksList.map((item) => (
+                        <Chip
+                          key={item.cropId}
+                          label={`${item.cropName.split('(')[0].trim()}: ₹${item.effectiveFarmerPrice.toLocaleString('en-IN')}/क्विं.`}
+                          size="small"
+                          sx={{
+                            bgcolor: item.cropId === 'paddy' ? '#ecfdf5' : '#ffffff',
+                            border: `1px solid ${item.cropId === 'paddy' ? '#6ee7b7' : '#cbd5e1'}`,
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 22,
+                            color: item.cropId === 'paddy' ? '#065f46' : '#1e293b'
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
                 )}
-                <Tooltip title={isVoiceListening ? (isChhattisgarhi ? "सुनत हन... (रोके बर दबावहू)" : "सुन रहे हैं... (रोकने हेतु दबाएं)") : (isChhattisgarhi ? "बोलके खोजव (माइक दबावहू)" : "बोलकर खोजें (माइक दबाएं)")}>
-                  <IconButton
-                    size="small"
-                    onClick={handleToggleVoiceSearch}
+
+                {/* Inter-Mandi Price Comparison Strip */}
+                {comparisonItems.length > 1 && (
+                  <Box sx={{ pt: 0.5 }}>
+                    <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.72rem', display: 'block', mb: 0.5 }}>
+                      📈 अंतर-मंडी मूल्य तुलना (कहां मिल रहा सबसे अधिक भाव):
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap' }}>
+                      {comparisonItems.map((comp, cIdx) => (
+                        <Chip
+                          key={cIdx}
+                          label={`${comp.mandi}: ₹${comp.modalRate}/क्विं. (₹${(comp.modalRate / 100).toFixed(1)}/किग्रा)`}
+                          size="small"
+                          sx={{
+                            bgcolor: cIdx === 0 ? '#dcfce7' : '#ffffff',
+                            color: cIdx === 0 ? '#15803d' : '#334155',
+                            fontWeight: 800,
+                            fontSize: '0.68rem',
+                            height: 22,
+                            border: cIdx === 0 ? '1.5px solid #22c55e' : '1px solid #cbd5e1'
+                          }}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Mandi Weekend Notice */}
+                {isWeekend && (
+                  <Paper
+                    elevation={0}
                     sx={{
-                      color: isVoiceListening ? '#fff' : '#1976d2',
-                      bgcolor: isVoiceListening ? '#d32f2f' : 'rgba(25, 118, 210, 0.08)',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        bgcolor: isVoiceListening ? '#b71c1c' : 'rgba(25, 118, 210, 0.18)'
-                      }
+                      p: 1,
+                      borderRadius: '8px',
+                      bgcolor: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.8
                     }}
                   >
-                    {isVoiceListening ? <MicIcon sx={{ fontSize: 20 }} /> : <MicIcon sx={{ fontSize: 20 }} />}
-                  </IconButton>
-                </Tooltip>
-              </InputAdornment>
-            )
-          }}
-          sx={{
-            bgcolor: '#fff',
-            '& .MuiOutlinedInput-root': { borderRadius: 2 }
-          }}
-        />
+                    <InfoOutlinedIcon sx={{ color: '#2563eb', fontSize: 18 }} />
+                    <Typography variant="caption" sx={{ color: '#1e40af', fontSize: '0.7rem' }}>
+                      सप्ताहांत/अवकाश में नीलामी बंद रहती है। स्क्रीन पर अंतिम कार्यदिवस के सत्यापित आधिकारिक भाव प्रदर्शित हैं।
+                    </Typography>
+                  </Paper>
+                )}
 
-        {/* 1-Tap Quick Crop Filter Chips (Zero-Typing Rural Farmers) */}
-        <Box sx={{ display: 'flex', gap: 0.8, overflowX: 'auto', pt: 1, pb: 0.2, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
-          {[
-            { label: isChhattisgarhi ? '🌾 सबो फसल' : '🌾 सभी फसल', value: 'all' },
-            { label: isChhattisgarhi ? '🌾 धान (चांउर)' : '🌾 धान (Paddy)', value: 'धान' },
-            { label: isChhattisgarhi ? '🟤 चना (बूट)' : '🟤 चना (Gram)', value: 'चना' },
-            { label: isChhattisgarhi ? '🟡 सोयाबीन' : '🟡 सोयाबीन', value: 'सोयाबीन' },
-            { label: isChhattisgarhi ? '🌽 मक्का (जुनहरी)' : '🌽 मक्का', value: 'मक्का' },
-            { label: isChhattisgarhi ? '🌾 तीवड़ा (लाखड़ी)' : '🌾 तीवड़ा', value: 'तीवड़ा' },
-            { label: isChhattisgarhi ? '🌾 गेहूं' : '🌾 गेहूं', value: 'गेहूं' }
-          ].map((chip) => {
-            const isSelected = selectedCropFilter === chip.value;
-            return (
-              <Chip
-                key={chip.value}
-                label={chip.label}
-                clickable
-                size="small"
-                onClick={() => {
-                  setSelectedCropFilter(chip.value);
-                  if (chip.value !== 'all') {
-                    setSearchQuery('');
-                  }
-                }}
-                sx={{
-                  fontWeight: isSelected ? 800 : 600,
-                  fontSize: '0.78rem',
-                  borderRadius: '16px',
-                  bgcolor: isSelected ? '#1976d2' : '#f1f5f9',
-                  color: isSelected ? '#fff' : '#334155',
-                  border: isSelected ? '1px solid #1565c0' : '1px solid #e2e8f0',
-                  flexShrink: 0,
-                  '&:hover': {
-                    bgcolor: isSelected ? '#1565c0' : '#e2e8f0'
-                  }
-                }}
-              />
-            );
-          })}
-        </Box>
-      </Box>
+                {/* GODL India Attribution & Provenance */}
+                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.66rem', lineHeight: 1.3, display: 'block', pt: 0.3 }}>
+                  स्रोतः data.gov.in (Agmarknet) • DMI, कृषि एवं किसान कल्याण मंत्रालय, भारत सरकार • GODL-India अनुपालित • शून्य फर्जी डेटा नीति।
+                </Typography>
+              </Box>
+            </Collapse>
+          </Paper>
 
-      {/* Mandi Weekend / Holiday Notice */}
-      {isWeekend && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.2,
-            px: 1.8,
-            mb: 2,
-            borderRadius: 2.5,
-            bgcolor: '#eff6ff',
-            border: '1.2px solid #bfdbfe',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.2
-          }}
-        >
-          <StorefrontIcon sx={{ color: '#2563eb', fontSize: 22 }} />
-          <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1d4ed8', fontSize: '0.84rem' }}>
-              {isChhattisgarhi ? '🏛️ आज सप्ताहांत / मंडी अवकाश हो सकत हे' : '🏛️ आज सप्ताहांत / मंडी अवकाश (Mandi Holiday Notice)'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#1e40af', fontSize: '0.73rem', display: 'block' }}>
-              {isChhattisgarhi
-                ? 'सप्ताहांत म मंडी म नीलामी बंद रहिथे। स्क्रीन म अंतिम कार्यदिवस के सत्यापित नीलामी भाव प्रदर्शित हे।'
-                : 'सप्ताहांत या अवकाश में APMC नीलामी स्थगित रहती है। स्क्रीन पर अंतिम कार्यदिवस के सत्यापित आधिकारिक भाव प्रदर्शित हैं।'}
-            </Typography>
-          </Box>
-        </Paper>
-      )}
+          {/* Saved Offline Queries Strip */}
+          {offlineQueries.length > 0 && (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 1.2,
+                mb: 1.5,
+                borderRadius: '12px',
+                bgcolor: '#f0fdf4',
+                border: '1.2px solid #86efac'
+              }}
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.8 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+                  <BookmarkBorderIcon sx={{ color: '#16a34a', fontSize: 18 }} />
+                  <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.8rem' }}>
+                    {isChhattisgarhi ? `सहेजे ऑफ़लाइन पूछ-ताछ (${offlineQueries.length})` : `आपकी सहेजी गई ऑफ़लाइन पूछताछ (${offlineQueries.length})`}
+                  </Typography>
+                </Box>
+                <Button
+                  size="small"
+                  onClick={() => setOpenOfflineQueryModal(true)}
+                  sx={{ fontSize: '0.7rem', py: 0.1, px: 0.8, color: '#166534', fontWeight: 700 }}
+                >
+                  + नई पूछताछ
+                </Button>
+              </Box>
 
-      {/* Inter-Mandi Price Comparison Strip (High-Profit Mandi Discovery) */}
-      {comparisonItems.length > 1 && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 1.4,
-            mb: 2,
-            borderRadius: 2.5,
-            bgcolor: '#f0fdf4',
-            border: '1.2px solid #86efac',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 1
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
-            <TrendingUpIcon sx={{ color: '#16a34a', fontSize: 20 }} />
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.84rem' }}>
-                {isChhattisgarhi ? '📊 मंडी भाव तुलना (किहां जादा भाव मिलत हे):' : '📊 अंतर-मंडी मूल्य तुलना (कहां मिल रहा सबसे अधिक भाव):'}
+              <Grid container spacing={0.8}>
+                {offlineQueries.map((query) => (
+                  <Grid item xs={12} sm={6} key={query.id}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1,
+                        borderRadius: '8px',
+                        bgcolor: '#ffffff',
+                        border: query.status === 'resolved' ? '1.5px solid #22c55e' : '1px solid #cbd5e1',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.82rem' }}>
+                            {query.crop}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem' }}>
+                            ({query.mandi})
+                          </Typography>
+                          <Chip
+                            label={query.status === 'resolved' ? 'सत्यापित' : 'लंबित सिंक'}
+                            size="small"
+                            color={query.status === 'resolved' ? 'success' : 'default'}
+                            sx={{ height: 16, fontSize: '0.6rem', fontWeight: 800 }}
+                          />
+                        </Box>
+                        {query.status === 'resolved' && query.resolvedRate ? (
+                          <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, display: 'block', mt: 0.2 }}>
+                            ताजा मॉडल भाव: ₹{query.resolvedRate.modalRate}/क्विंटल
+                          </Typography>
+                        ) : (
+                          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.2, fontSize: '0.68rem' }}>
+                            इंटरनेट जुड़ते ही ताजा भाव स्वतः अपडेट होगा
+                          </Typography>
+                        )}
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                        {query.status === 'resolved' && query.resolvedRate && (
+                          <IconButton
+                            size="small"
+                            onClick={() => speakText(`${query.crop} का ताजा भाव ₹${query.resolvedRate.modalRate} प्रति क्विंटल है।`)}
+                            sx={{ color: '#15803d', p: 0.4 }}
+                          >
+                            <VolumeUpIcon sx={{ fontSize: 15 }} />
+                          </IconButton>
+                        )}
+                        <IconButton size="small" onClick={() => handleRemoveOfflineQuery(query.id)} sx={{ color: '#94a3b8', p: 0.4 }}>
+                          <DeleteOutlineIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </Box>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+          )}
+
+          {/* Mandi Rate Cards Grid */}
+          {filteredRates.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 3,
+                textAlign: 'center',
+                borderRadius: '16px',
+                bgcolor: '#f8fafc',
+                border: '1.5px dashed #cbd5e1'
+              }}
+            >
+              <StorefrontIcon sx={{ fontSize: 40, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                {isChhattisgarhi ? 'चुने गे फिल्टर बर कोनो मंडी नइ मिलिस' : 'चयनित फ़िल्टर के अनुसार कोई मंडी नहीं मिली'}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.7rem' }}>
-                {isChhattisgarhi ? 'नजदीक के मंडी मन म आज के मुख्य भाव' : 'आसपास की मंडियों में आज के मुख्य मॉडल भाव'}
-              </Typography>
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
-            {comparisonItems.map((comp, cIdx) => (
-              <Chip
-                key={cIdx}
-                label={`${comp.mandi}: ₹${comp.modalRate}/क्विं. (₹${(comp.modalRate / 100).toFixed(1)}/किग्रा)`}
-                size="small"
-                sx={{
-                  bgcolor: cIdx === 0 ? '#dcfce7' : '#ffffff',
-                  color: cIdx === 0 ? '#15803d' : '#334155',
-                  fontWeight: 800,
-                  fontSize: '0.72rem',
-                  border: cIdx === 0 ? '1.5px solid #22c55e' : '1px solid #cbd5e1'
-                }}
-              />
-            ))}
-          </Box>
-        </Paper>
-      )}
-
-      {/* Mandi Rate Cards */}
-      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#333', mb: 1.5, fontSize: '0.9rem' }}>
-        {isChhattisgarhi ? `ताजा मंडी भाव (${filteredRates.length}):` : `ताजा मंडी भाव दरें (${filteredRates.length}):`}
-      </Typography>
-
-      {filteredRates.length === 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3.5,
-            mb: 4,
-            textAlign: 'center',
-            borderRadius: '16px',
-            bgcolor: '#f8fafc',
-            border: '1.5px dashed #cbd5e1'
-          }}
-        >
-          <StorefrontIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-            {mandiRatesList.length === 0
-              ? (isChhattisgarhi ? 'कोनो मंडी भाव डेटा नइये' : 'कोई मंडी भाव डेटा उपलब्ध नहीं है')
-              : (isChhattisgarhi ? 'चुने गे फिल्टर बर कोनो मंडी नइ मिलिस' : 'चयनित फिल्टर के अनुसार कोई मंडी नहीं मिली')}
-          </Typography>
-          <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.8rem', maxWidth: 440, mx: 'auto', mb: 2 }}>
-            {mandiRatesList.length === 0
-              ? (isChhattisgarhi
-                  ? 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोनो मनगढ़ंत भाव नइ दिखाय जाय। आज के लाइव भाव लोड करे बर इंटरनेट कनेक्ट कर फेर लोड करव।'
-                  : 'शून्य गलत डेटा नीति (Zero-False-Data Policy) के तहत कोई भी मनगढ़ंत या कल्पित डेटा नहीं दिखाया जाता है। आज के लाइव भाव लोड करने हेतु इंटरनेट कनेक्ट करके रीफ्रेश करें।')
-              : (isChhattisgarhi
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.78rem', maxWidth: 420, mx: 'auto', mb: 2 }}>
+                {isChhattisgarhi
                   ? 'कृपा करके जिंस या मंडी के नाव बदल के फेर खोजव या फिल्टर हटावव।'
-                  : 'कृपया जिंस या मंडी का नाम बदलकर पुनः खोजें या फ़िल्टर साफ़ करें।')}
-          </Typography>
-          {mandiRatesList.length === 0 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={isRefreshing ? <CircularProgress size={14} color="inherit" /> : <SyncIcon sx={{ fontSize: 16 }} />}
-                disabled={isRefreshing}
-                onClick={handleRefresh}
-                sx={{ bgcolor: '#1565c0', fontWeight: 800, borderRadius: 2 }}
-              >
-                {isChhattisgarhi ? 'ताजा भाव लोड करव' : 'ताजा भाव लोड करें'}
-              </Button>
+                  : 'कृपया जिंस या मंडी का नाम बदलकर पुनः खोजें या फ़िल्टर साफ़ करें।'}
+              </Typography>
               <Button
                 variant="outlined"
                 size="small"
-                startIcon={<BookmarkBorderIcon sx={{ fontSize: 16 }} />}
-                onClick={() => setOpenOfflineQueryModal(true)}
-                sx={{ borderColor: '#0284c7', color: '#0284c7', fontWeight: 800, borderRadius: 2 }}
+                onClick={() => { setSelectedCropFilter('all'); setSearchQuery(''); setDistrictFilterOnly(false); }}
+                sx={{ borderRadius: '10px', fontWeight: 800, textTransform: 'none' }}
               >
-                {isChhattisgarhi ? 'ऑफ़लाइन पूछ-ताछ सहेजव' : 'ऑफ़लाइन पूछताछ सहेजें'}
+                सभी फ़िल्टर हटाएं
               </Button>
-            </Box>
-          )}
-        </Paper>
-      ) : (
-        <Grid container spacing={2} sx={{ mb: 4 }}>
-          {filteredRates.map((rate, idx) => {
-            const isPositive = rate.trend?.startsWith('+');
-            const isNegative = rate.trend?.startsWith('-');
-            return (
-              <Grid item xs={12} sm={6} md={4} key={idx} sx={{ display: 'flex' }}>
-                <Card
-                  className="touch-card"
-                  sx={{
-                    width: '100%',
-                    borderRadius: '16px',
-                    border: '1px solid #bbdefb',
-                    bgcolor: '#ffffff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxShadow: '0 2px 10px rgba(25, 118, 210, 0.05)',
-                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                    '&:hover': {
-                      boxShadow: '0 8px 20px rgba(25, 118, 210, 0.12)',
-                      borderColor: '#64b5f6'
-                    }
-                  }}
-                >
-                  <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+            </Paper>
+          ) : (
+            <Grid container spacing={1.5} sx={{ mb: 2 }}>
+              {filteredRates.map((rate, idx) => {
+                const isPositive = rate.trend?.startsWith('+');
+                const isNegative = rate.trend?.startsWith('-');
+                const modalNum = Number(rate.modalRate || 0);
+                const perKg = (modalNum / 100).toFixed(1);
+                const perBag = Math.round(modalNum * 0.4);
+
+                return (
+                  <Grid item xs={12} sm={6} md={4} key={idx} sx={{ display: 'flex' }}>
+                    <Card
+                      className="touch-card"
+                      sx={{
+                        width: '100%',
+                        borderRadius: '16px',
+                        border: '1px solid #bae6fd',
+                        bgcolor: '#ffffff',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                        transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                        '&:hover': {
+                          boxShadow: '0 6px 18px rgba(25, 118, 210, 0.1)',
+                          borderColor: '#60a5fa'
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ p: 1.8, display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
                         <Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.3 }}>
-                            <LocationOnIcon sx={{ color: '#1565c0', fontSize: 16 }} />
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1565c0', fontSize: '0.9rem' }}>
-                              {rate.mandi}
-                            </Typography>
-                            <Chip
-                              label={rate.date || (isLiveSource ? (isChhattisgarhi ? '🟢 आज के भाव' : '🟢 आज के भाव') : (isChhattisgarhi ? '📋 संदर्भ भाव' : '📋 संदर्भ भाव'))}
+                          {/* Card Header */}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                            <Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mb: 0.3 }}>
+                                <Chip
+                                  icon={<LocationOnIcon sx={{ fontSize: '13px !important', color: '#0369a1' }} />}
+                                  label={rate.mandi}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: '#e0f2fe',
+                                    color: '#0369a1',
+                                    fontWeight: 800,
+                                    fontSize: '0.68rem',
+                                    height: 22,
+                                    borderRadius: '6px'
+                                  }}
+                                />
+                                <Chip
+                                  label={rate.date || (isLiveSource ? '🟢 आज' : '📋 संदर्भ दर')}
+                                  size="small"
+                                  sx={{
+                                    bgcolor: rate.date?.includes('आज') || isLiveSource ? '#ecfdf5' : '#f1f5f9',
+                                    color: rate.date?.includes('आज') || isLiveSource ? '#065f46' : '#475569',
+                                    height: 20,
+                                    fontSize: '0.64rem',
+                                    fontWeight: 700,
+                                    borderRadius: '6px'
+                                  }}
+                                />
+                              </Box>
+                              <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.2 }}>
+                                {rate.crop}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+                                किस्म: {rate.variety || 'सामान्य'}
+                              </Typography>
+                            </Box>
+
+                            <IconButton
                               size="small"
+                              onClick={() => handleReadMandiRates(rate)}
+                              title={isChhattisgarhi ? "भाव सुनव" : "भाव सुनें"}
                               sx={{
-                                bgcolor: rate.date?.includes('आज') || isLiveSource ? '#e8f5e9' : '#f1f5f9',
-                                color: rate.date?.includes('आज') || isLiveSource ? '#1b5e20' : '#475569',
-                                height: 20,
-                                fontSize: '0.68rem',
-                                fontWeight: 700,
-                                borderRadius: '6px'
+                                color: '#166534',
+                                bgcolor: '#f0fdf4',
+                                border: '1px solid #bbf7d0',
+                                borderRadius: '8px',
+                                p: 0.6
                               }}
-                            />
+                            >
+                              <VolumeUpIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
                           </Box>
-                          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.2 }}>
-                            {rate.crop} <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>({rate.variety})</span>
+
+                          {/* Hero Modal Rate Box with Per-Kg and 40kg Bag Breakdowns */}
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 1.2,
+                              mb: 1.2,
+                              borderRadius: '12px',
+                              background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                              border: '1.5px solid #86efac',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="caption" sx={{ color: '#166534', fontWeight: 900, display: 'block', fontSize: '0.68rem', letterSpacing: 0.3 }}>
+                                ⭐ मुख्य मॉडल भाव
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                                <Typography variant="h5" sx={{ fontWeight: 900, color: '#14532d', fontSize: '1.35rem', lineHeight: 1 }}>
+                                  ₹{rate.modalRate}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, fontSize: '0.72rem' }}>
+                                  /क्विंटल
+                                </Typography>
+                              </Box>
+                            </Box>
+
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.3 }}>
+                              <Chip
+                                label={`₹${perKg} / किलो`}
+                                size="small"
+                                sx={{
+                                  bgcolor: '#ffffff',
+                                  color: '#166534',
+                                  fontWeight: 900,
+                                  fontSize: '0.72rem',
+                                  height: 22,
+                                  border: '1px solid #86efac'
+                                }}
+                              />
+                              <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 800, fontSize: '0.68rem' }}>
+                                ₹{perBag.toLocaleString('en-IN')} / 40kg कट्टा
+                              </Typography>
+                            </Box>
+                          </Paper>
+
+                          {/* Min - Max Spread Track Strip */}
+                          <Paper
+                            elevation={0}
+                            sx={{
+                              p: 0.8,
+                              px: 1.2,
+                              mb: 1,
+                              borderRadius: '10px',
+                              bgcolor: '#f8fafc',
+                              border: '1px solid #e2e8f0',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <Box>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.64rem', display: 'block' }}>
+                                कमती (न्यूनतम)
+                              </Typography>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.84rem' }}>
+                                ₹{rate.minRate}
+                              </Typography>
+                            </Box>
+
+                            <Box sx={{ textAlign: 'center' }}>
+                              {isPositive ? (
+                                <Chip
+                                  icon={<TrendingUpIcon sx={{ fontSize: '12px !important', color: '#1b5e20' }} />}
+                                  label={`${rate.trend} तेजी`}
+                                  size="small"
+                                  sx={{ bgcolor: '#ecfdf5', color: '#065f46', fontWeight: 800, fontSize: '0.66rem', height: 20, border: '1px solid #a7f3d0' }}
+                                />
+                              ) : isNegative ? (
+                                <Chip
+                                  icon={<TrendingDownIcon sx={{ fontSize: '12px !important', color: '#c62828' }} />}
+                                  label={`${rate.trend} मंदी`}
+                                  size="small"
+                                  sx={{ bgcolor: '#ffebee', color: '#c62828', fontWeight: 800, fontSize: '0.66rem', height: 20, border: '1px solid #fca5a5' }}
+                                />
+                              ) : (
+                                <Chip
+                                  label="समान (स्थिर)"
+                                  size="small"
+                                  sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: '0.66rem', height: 20 }}
+                                />
+                              )}
+                            </Box>
+
+                            <Box sx={{ textAlign: 'right' }}>
+                              <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.64rem', display: 'block' }}>
+                                ज्यादा (अधिकतम)
+                              </Typography>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', fontSize: '0.84rem' }}>
+                                ₹{rate.maxRate}
+                              </Typography>
+                            </Box>
+                          </Paper>
+                        </Box>
+
+                        {/* Card Footer: Arrival and Govt comparison note */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5, borderTop: '1px solid #f1f5f9' }}>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', fontWeight: 600 }}>
+                            📦 आवक: <strong>{rate.arrival || 'उपलब्ध'}</strong>
+                          </Typography>
+                          {rate.crop?.includes('धान') && (
+                            <Typography variant="caption" sx={{ color: '#15803d', fontSize: '0.68rem', fontWeight: 800 }}>
+                              🏛️ सरकारी खरीदी: ₹{appConfig.paddyScheme.totalRate}
+                            </Typography>
+                          )}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          )}
+        </Box>
+      )}
+
+      {/* VIEW 2: DIRECT FARMER MARKETPLACE */}
+      {activeTab === 'marketplace' && (
+        <Box>
+          {/* Marketplace Hero CTA */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 2,
+              borderRadius: '16px',
+              background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: 1.5,
+              boxShadow: '0 4px 14px rgba(27, 94, 32, 0.2)'
+            }}
+          >
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, fontSize: '1.05rem', lineHeight: 1.2 }}>
+                🤝 {isChhattisgarhi ? 'खेत ले सीधा फसल बिक्री (किसान बाज़ार)' : 'खेत से सीधी फसल बिक्री (Direct Marketplace)'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.74rem', display: 'block', mt: 0.2 }}>
+                बिचौलिया-मुक्त बिक्री • खरीदार सीधे किसान से फोन या व्हाट्सएप पर संपर्क करेंगे
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddCircleIcon />}
+              onClick={() => setOpenSellModal(true)}
+              sx={{
+                bgcolor: '#ffffff',
+                color: '#1b5e20',
+                fontWeight: 900,
+                fontSize: '0.78rem',
+                borderRadius: '10px',
+                py: 0.8,
+                px: 1.6,
+                textTransform: 'none',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)',
+                '&:hover': { bgcolor: '#f0fdf4' }
+              }}
+            >
+              + फसल बिक्री जोड़ें
+            </Button>
+          </Paper>
+
+          {/* Listings Grid */}
+          {myListings.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3.5,
+                textAlign: 'center',
+                bgcolor: '#f8fafc',
+                borderRadius: '16px',
+                border: '1.5px dashed #cbd5e1'
+              }}
+            >
+              <HandshakeIcon sx={{ fontSize: 44, color: '#94a3b8', mb: 1 }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#334155', mb: 0.5 }}>
+                {isChhattisgarhi ? 'अभी कोनो फसल बिक्री लिस्टिंग नइये' : 'वर्तमान में कोई फसल बिक्री लिस्टिंग दर्ज नहीं है'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 2, maxWidth: 400, mx: 'auto' }}>
+                {isChhattisgarhi
+                  ? 'अपन उपज सीधा व्यापारी अउ खरीदार मन ल बेचे बर अपन फसल जोड़व।'
+                  : 'अपनी उपज सीधे व्यापारियों और खरीदारों को बेचने के लिए अपनी फसल जोड़ें।'}
+              </Typography>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<AddCircleIcon />}
+                onClick={() => setOpenSellModal(true)}
+                sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: '10px', textTransform: 'none' }}
+              >
+                अपनी फसल जोड़ें
+              </Button>
+            </Paper>
+          ) : (
+            <Grid container spacing={1.5} sx={{ mb: 2 }}>
+              {myListings.map((listing) => (
+                <Grid item xs={12} sm={6} md={4} key={listing.id} sx={{ display: 'flex' }}>
+                  <Paper
+                    elevation={0}
+                    className="touch-card"
+                    sx={{
+                      p: 1.8,
+                      borderRadius: '16px',
+                      border: '1.5px solid #c8e6c9',
+                      bgcolor: '#ffffff',
+                      width: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: '0 2px 8px rgba(46, 125, 50, 0.05)',
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      '&:hover': {
+                        boxShadow: '0 6px 18px rgba(46, 125, 50, 0.1)',
+                        borderColor: '#81c784'
+                      }
+                    }}
+                  >
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
+                        <Box>
+                          <Chip
+                            label="🌾 विक्रेता (किसान)"
+                            size="small"
+                            sx={{ bgcolor: '#ecfdf5', color: '#065f46', fontWeight: 800, fontSize: '0.66rem', mb: 0.5, borderRadius: '6px' }}
+                          />
+                          <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '0.98rem', lineHeight: 1.25 }}>
+                            {listing.crop} — {listing.quantity}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
+                            किसान: <strong>{listing.farmerName}</strong> • {listing.location}
                           </Typography>
                         </Box>
 
+                        <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.08rem' }}>
+                          {listing.expectedPrice}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ pt: 1.2, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                      <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
+                        {listing.date}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.8 }}>
                         <Button
+                          variant="outlined"
                           size="small"
-                          startIcon={<VolumeUpIcon sx={{ fontSize: 15 }} />}
-                          onClick={() => handleReadMandiRates(rate)}
-                          sx={{ color: '#1565c0', fontSize: '0.72rem', p: 0.5, borderRadius: '8px' }}
+                          startIcon={<WhatsAppIcon sx={{ color: '#25D366', fontSize: 16 }} />}
+                          onClick={() => {
+                            const msg = `नमस्ते ${listing.farmerName} भाई, मैंने किसान साथी ऐप पर आपकी फसल (${listing.crop} - ${listing.quantity}) का विज्ञापन देखा। क्या यह उपलब्ध है?`;
+                            openNativeWhatsApp(listing.phone, msg);
+                          }}
+                          sx={{
+                            borderColor: '#25D366',
+                            color: '#128C7E',
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            borderRadius: '8px',
+                            py: 0.4,
+                            px: 1,
+                            textTransform: 'none',
+                            '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
+                          }}
                         >
-                          {isChhattisgarhi ? 'गोठ सुनव' : 'सुनें'}
+                          व्हाट्सएप
+                        </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<CallIcon sx={{ fontSize: 15 }} />}
+                          onClick={() => { openNativeDialer(listing.phone); }}
+                          sx={{
+                            bgcolor: '#1b5e20',
+                            color: '#ffffff',
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            borderRadius: '8px',
+                            py: 0.4,
+                            px: 1.2,
+                            textTransform: 'none',
+                            '&:hover': { bgcolor: '#125420' }
+                          }}
+                        >
+                          कॉल
                         </Button>
                       </Box>
-
-                      <Grid container spacing={1} sx={{ mt: 0.5, mb: 1.5 }}>
-                        <Grid item xs={3.5}>
-                          <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
-                              {isChhattisgarhi ? 'कमती' : 'न्यूनतम'}
-                            </Typography>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
-                              ₹{rate.minRate}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#0284c7', fontSize: '0.64rem', fontWeight: 700, display: 'block' }}>
-                              ₹{(Number(rate.minRate || 0) / 100).toFixed(1)}/किग्रा
-                            </Typography>
-                          </Paper>
-                        </Grid>
-
-                        <Grid item xs={5}>
-                          <Paper elevation={0} sx={{ p: 1, bgcolor: '#e8f5e9', border: '2px solid #66bb6a', borderRadius: '12px', textAlign: 'center', boxShadow: '0 2px 6px rgba(46,125,50,0.12)' }}>
-                            <Typography variant="caption" sx={{ color: '#1b5e20', fontWeight: 900, display: 'block', fontSize: '0.7rem', letterSpacing: 0.3 }}>
-                              ⭐ {isChhattisgarhi ? 'मुख्य भाव' : 'मुख्य मॉडल भाव'}
-                            </Typography>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: { xs: '1.15rem', sm: '1.25rem' }, lineHeight: 1.1, my: 0.2 }}>
-                              ₹{rate.modalRate}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#2e7d32', fontSize: '0.65rem', fontWeight: 700 }}>
-                              /क्विंटल
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#166534', fontSize: '0.72rem', fontWeight: 900, display: 'block', bgcolor: '#dcfce7', borderRadius: '4px', px: 0.5, py: 0.1, mt: 0.3 }}>
-                              ₹{(Number(rate.modalRate || 0) / 100).toFixed(1)} / किलो
-                            </Typography>
-                          </Paper>
-                        </Grid>
-
-                        <Grid item xs={3.5}>
-                          <Paper elevation={0} sx={{ p: 0.8, bgcolor: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', fontSize: '0.66rem' }}>
-                              {isChhattisgarhi ? 'ज्यादा' : 'अधिकतम'}
-                            </Typography>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#475569', fontSize: { xs: '0.82rem', sm: '0.88rem' } }}>
-                              ₹{rate.maxRate}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#0284c7', fontSize: '0.64rem', fontWeight: 700, display: 'block' }}>
-                              ₹{(Number(rate.maxRate || 0) / 100).toFixed(1)}/किग्रा
-                            </Typography>
-                          </Paper>
-                        </Grid>
-                      </Grid>
                     </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        {isPositive ? (
-                          <Chip
-                            icon={<TrendingUpIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
-                            label={`${isChhattisgarhi ? 'चढ़ती (तेजी)' : 'तेजी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
-                            size="small"
-                            sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
-                          />
-                        ) : isNegative ? (
-                          <Chip
-                            icon={<TrendingDownIcon sx={{ fontSize: '13px !important', color: '#c62828' }} />}
-                            label={`${isChhattisgarhi ? 'मंदी (उतरती)' : 'मंदी'} ${rate.trend} ${rate.unit || '₹ / क्विंटल'}`}
-                            size="small"
-                            sx={{ bgcolor: '#ffebee', color: '#c62828', fontWeight: 800, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
-                          />
-                        ) : (
-                          <Chip
-                            label={`${isChhattisgarhi ? 'समान (स्थिर)' : 'स्थिर'} ${rate.trend || '0'}`}
-                            size="small"
-                            sx={{ bgcolor: '#f1f5f9', color: '#475569', fontWeight: 700, fontSize: '0.68rem', height: 22, borderRadius: '6px' }}
-                          />
-                        )}
-                      </Box>
-
-                      <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem', fontWeight: 600 }}>
-                        {isChhattisgarhi ? 'आवक:' : 'आवक:'} {rate.arrival || (isChhattisgarhi ? 'उपलब्ध' : 'उपलब्ध')}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            );
-          })}
-        </Grid>
+                  </Paper>
+                </Grid>
+              ))}
+            </Grid>
+          )}
+        </Box>
       )}
 
-      {/* Direct Buyer & Farmer Marketplace */}
-      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6" sx={{ fontSize: '1.05rem', fontWeight: 800, color: '#1b5e20' }}>
-          {isChhattisgarhi ? '🤝 सीधा खेत ले फसल बिक्री (किसान बाजार)' : '🤝 सीधे खेत से फसल बिक्री (Direct Marketplace)'}
-        </Typography>
-      </Box>
-
-      {myListings.length === 0 ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            textAlign: 'center',
-            bgcolor: '#f8fafc',
-            borderRadius: '16px',
-            border: '1.5px dashed #cbd5e1'
-          }}
-        >
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#334155', mb: 0.5 }}>
-            {isChhattisgarhi ? 'अभी कोनो फसल बिक्री लिस्टिंग नइये' : 'वर्तमान में कोई फसल बिक्री लिस्टिंग दर्ज नहीं है'}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 1.5 }}>
-            {isChhattisgarhi
-              ? 'अपन उपज सीधा व्यापारी अउ खरीदार मन ल बेचे बर अपन फसल जोड़व।'
-              : 'अपनी उपज सीधे व्यापारियों और खरीदारों को बेचने के लिए अपनी फसल जोड़ें।'}
-          </Typography>
-          <Button
-            size="small"
-            variant="contained"
-            startIcon={<AddCircleIcon />}
-            onClick={() => setOpenSellModal(true)}
-            sx={{ bgcolor: '#1b5e20', fontWeight: 800, borderRadius: 2 }}
-          >
-            {isChhattisgarhi ? 'अपन फसल जोड़व' : 'अपनी फसल जोड़ें'}
-          </Button>
-        </Paper>
-      ) : (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          {myListings.map((listing) => (
-          <Grid item xs={12} sm={6} md={4} key={listing.id} sx={{ display: 'flex' }}>
-            <Paper
-              elevation={0}
-              className="touch-card"
-              sx={{
-                p: 2,
-                borderRadius: '16px',
-                border: '1.5px solid #c8e6c9',
-                bgcolor: '#ffffff',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 2px 8px rgba(46, 125, 50, 0.05)',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                '&:hover': {
-                  boxShadow: '0 6px 18px rgba(46, 125, 50, 0.1)',
-                  borderColor: '#81c784'
-                }
-              }}
-            >
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 0.8 }}>
-                  <Box>
-                    <Chip
-                      label={isChhattisgarhi ? "बेचइया (किसान)" : "विक्रेता (किसान)"}
-                      size="small"
-                      sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 800, fontSize: '0.68rem', mb: 0.5, borderRadius: '6px' }}
-                    />
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.98rem', lineHeight: 1.25 }}>
-                      {listing.crop} - {listing.quantity}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem' }}>
-                      {isChhattisgarhi ? 'किसान:' : 'किसान:'} <strong>{listing.farmerName}</strong> • {isChhattisgarhi ? 'जगह:' : 'स्थान:'} {listing.location}
-                    </Typography>
-                  </Box>
-
-                  <Typography variant="subtitle1" sx={{ fontWeight: 900, color: '#1b5e20', fontSize: '1.08rem' }}>
-                    {listing.expectedPrice}
-                  </Typography>
-                </Box>
-              </Box>
-
-              <Box sx={{ pt: 1.5, borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                  {listing.date}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />}
-                    onClick={() => {
-                      const msg = `नमस्ते ${listing.farmerName} भाई, मैंने किसान साथी ऐप पर आपकी फसल (${listing.crop} - ${listing.quantity}) का विज्ञापन देखा। क्या यह उपलब्ध है?`;
-                      openNativeWhatsApp(listing.phone, msg);
-                    }}
-                    sx={{
-                      borderColor: '#25D366',
-                      color: '#128C7E',
-                      fontWeight: 800,
-                      fontSize: '0.73rem',
-                      borderRadius: '8px',
-                      py: 0.5,
-                      px: 1.1,
-                      '&:hover': { bgcolor: '#e8f5e9', borderColor: '#128C7E' }
-                    }}
-                  >
-                    व्हाट्सएप
-                  </Button>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    startIcon={<CallIcon />}
-                    onClick={() => { openNativeDialer(listing.phone); }}
-                    sx={{
-                      bgcolor: '#1b5e20',
-                      color: '#ffffff',
-                      fontWeight: 800,
-                      fontSize: '0.73rem',
-                      borderRadius: '8px',
-                      py: 0.5,
-                      px: 1.3,
-                      '&:hover': { bgcolor: '#125420' }
-                    }}
-                  >
-                    कॉल
-                  </Button>
-                </Box>
-              </Box>
-            </Paper>
-          </Grid>
-        ))}
-      </Grid>
-    )}
-
-      {/* Official Government Open Data License (GODL-India) Legal Attribution & Disclaimer */}
-      <Box
-        sx={{
-          mt: 3,
-          mb: 2,
-          p: 2,
-          borderRadius: 2.5,
-          bgcolor: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 0.6,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#334155', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            🏛️ वैधानिक अनुपालन व डेटा श्रेय (GODL - India):
-          </Typography>
-          <Chip
-            label="Government Open Data License - India"
-            size="small"
-            variant="outlined"
-            sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, color: '#0369a1', borderColor: '#bae6fd' }}
-          />
-        </Box>
-        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.73rem', lineHeight: 1.5 }}>
-          मंडी आवक एवं दैनिक दरें <strong>data.gov.in</strong> (ओपन गवर्नमेंट डेटा प्लेटफॉर्म इंडिया) तथा विपणन एवं निरीक्षण निदेशालय (DMI / Agmarknet), कृषि एवं किसान कल्याण मंत्रालय, भारत सरकार के अधिकृत डेटासेट से ली गई हैं।
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.68rem', lineHeight: 1.4 }}>
-          अस्वीकरण (Non-Endorsement Disclaimer): भारत सरकार या डेटा प्रदाता विभाग इस स्वतंत्र किसान-कल्याण ऐप का प्रत्यक्ष प्रायोजन, समर्थन या वारंटी नहीं करता है। सभी आंकड़े किसानों की निष्पक्ष जानकारी हेतु प्रदर्शित हैं।
-        </Typography>
-      </Box>
-
-      {/* Sell Produce Modal Dialog */}
+      {/* Modal 1: Post Produce Listing */}
       <Dialog open={openSellModal} onClose={() => setOpenSellModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, color: '#1565c0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#1565c0', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span>🌾 {isChhattisgarhi ? 'अपन फसल बेचे बर जोड़व' : 'अपनी फसल बिक्री हेतु जोड़ें'}</span>
           <IconButton size="small" onClick={() => setOpenSellModal(false)} aria-label="close">
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.4, pt: 1 }}>
           <TextField
             fullWidth
             size="small"
@@ -1437,23 +1421,23 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           />
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenSellModal(false)} sx={{ color: '#666' }}>
+          <Button onClick={() => setOpenSellModal(false)} sx={{ color: '#666', textTransform: 'none' }}>
             {isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}
           </Button>
           <Button
             variant="contained"
             onClick={handleSaveListing}
-            sx={{ bgcolor: '#1565c0', fontWeight: 700, borderRadius: 2 }}
+            sx={{ bgcolor: '#1565c0', fontWeight: 800, borderRadius: '8px', textTransform: 'none' }}
           >
             {isChhattisgarhi ? 'लिस्टिंग जोड़व' : 'लिस्टिंग पोस्ट करें'}
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Offline Mandi Query Modal Dialog (Zero-False-Data Policy) */}
+      {/* Modal 2: Offline Mandi Inquiry */}
       <Dialog open={openOfflineQueryModal} onClose={() => setOpenOfflineQueryModal(false)} fullWidth maxWidth="xs">
-        <DialogTitle sx={{ fontWeight: 800, color: '#0369a1', fontSize: '1.05rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <DialogTitle sx={{ fontWeight: 800, color: '#0369a1', fontSize: '1.02rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
             <BookmarkBorderIcon sx={{ color: '#0284c7' }} />
             <span>📡 {isChhattisgarhi ? 'ऑफ़लाइन भाव पूछ-ताछ सहेजव' : 'ऑफ़लाइन भाव पूछताछ सहेजें'}</span>
           </Box>
@@ -1461,11 +1445,11 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.4, pt: 1 }}>
           <Typography variant="caption" sx={{ color: '#64748b', lineHeight: 1.4 }}>
             {isChhattisgarhi
-              ? 'इंटरनेट नइ रहे म भी जउन फसल अउ मंडी के भाव जानना चाहत हव, वोला इहां सहेजव। जइसे ही फोन इंटरनेट ले जुड़ही, लाइव भाव अपने-आप मिल जाही।'
-              : 'इंटरनेट न होने पर भी आप जिस फसल व मंडी का ताजा भाव जानना चाहते हैं, उसे यहाँ सहेजें। जैसे ही आपका फ़ोन इंटरनेट से जुड़ेगा, सत्यापित लाइव भाव स्वतः प्राप्त हो जाएगा।'}
+              ? 'इंटरनेट नइ रहे म भी जउन फसल अउ मंडी के भाव जानना चाहत हव, वोला इहां सहेजव। फोन इंटरनेट ले जुड़ते ही लाइव भाव स्वतः मिल जाही।'
+              : 'इंटरनेट न होने पर भी आप जिस फसल व मंडी का ताजा भाव जानना चाहते हैं, उसे यहाँ सहेजें। फ़ोन इंटरनेट से जुड़ते ही सत्यापित लाइव भाव स्वतः प्राप्त होगा।'}
           </Typography>
 
           <TextField
@@ -1476,12 +1460,12 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             value={offlineCrop}
             onChange={(e) => setOfflineCrop(e.target.value)}
           >
-            <MenuItem value="धान">{isChhattisgarhi ? "🌾 धान (चांउर)" : "🌾 धान (सरना / मोटा / सुगंधित)"}</MenuItem>
-            <MenuItem value="चना">{isChhattisgarhi ? "🟤 चना (बूट)" : "🟤 चना (देसी चना)"}</MenuItem>
+            <MenuItem value="धान">🌾 धान (सरना / मोटा / सुगंधित)</MenuItem>
+            <MenuItem value="चना">🟤 चना (देसी चना)</MenuItem>
             <MenuItem value="सोयाबीन">🟡 सोयाबीन (पीला)</MenuItem>
-            <MenuItem value="मक्का">{isChhattisgarhi ? "🌽 मक्का (जुनहरी)" : "🌽 मक्का (हाइब्रिड)"}</MenuItem>
+            <MenuItem value="मक्का">🌽 मक्का (हाइब्रिड)</MenuItem>
             <MenuItem value="कोदो - कुटकी">🌾 कोदो - कुटकी (मिलेट्स)</MenuItem>
-            <MenuItem value="गेहूं">{isChhattisgarhi ? "🌾 गेहूं (गहुं)" : "🌾 गेहूं (शरबती / लोकवान)"}</MenuItem>
+            <MenuItem value="गेहूं">🌾 गेहूं (शरबती / लोकवान)</MenuItem>
             <MenuItem value="सरसों">🌻 सरसों / राई</MenuItem>
             <MenuItem value="टमाटर">🍅 टमाटर</MenuItem>
             <MenuItem value="प्याज">🧅 प्याज</MenuItem>
@@ -1509,7 +1493,7 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
           </TextField>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={() => setOpenOfflineQueryModal(false)} sx={{ color: '#666' }}>
+          <Button onClick={() => setOpenOfflineQueryModal(false)} sx={{ color: '#666', textTransform: 'none' }}>
             {isChhattisgarhi ? 'रद्द करव' : 'रद्द करें'}
           </Button>
           <Button
@@ -1517,8 +1501,9 @@ export const MandiTab = ({ selectedDistrict = 'रायपुर' }) => {
             onClick={handleSaveOfflineQuery}
             sx={{
               background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-              fontWeight: 700,
-              borderRadius: 2
+              fontWeight: 800,
+              borderRadius: '8px',
+              textTransform: 'none'
             }}
           >
             {isChhattisgarhi ? 'पूछ-ताछ सहेजव' : 'पूछताछ सहेजें'}
