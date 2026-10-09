@@ -117,7 +117,9 @@ export const DraggableVoiceButton = ({
     const dx = touch.clientX - startPosRef.current.x;
     const dy = touch.clientY - startPosRef.current.y;
 
-    if (Math.hypot(dx, dy) > 8) {
+    // Farmers with calloused hands or micro-tremors require a higher threshold (16px)
+    // so a normal tap is never misidentified as a drag gesture
+    if (Math.hypot(dx, dy) > 16) {
       hasMovedRef.current = true;
     }
 
@@ -157,7 +159,7 @@ export const DraggableVoiceButton = ({
       if (!isDraggingRef.current) return;
       const dx = moveEvent.clientX - startPosRef.current.x;
       const dy = moveEvent.clientY - startPosRef.current.y;
-      if (Math.hypot(dx, dy) > 6) {
+      if (Math.hypot(dx, dy) > 14) {
         hasMovedRef.current = true;
       }
       const btnWidth = isModalOpen ? 52 : 185;

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.54",
+  "version": "1.0.55",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.54",
-  "releaseNotes": "🌾 अक्सर पूछे जाने वाले सवाल (FAQs), पंजीयन कार्ड, 8-टूल लॉन्चर एवं शब्दकोश में संपूर्ण छत्तीसगढ़ी बोली परिष्कार।",
+  "releaseName": "किसान साथी v1.0.55",
+  "releaseNotes": "👴🏻 बहिरा काका वॉयस वर्कफ़्लो सुदृढ़ीकरण: मल्टी-टर्न सत्र याददाश्त (हाँ/हव पुष्टि), सटीक रकबा इनपुट सुरक्षा, 16px कंपन सहिष्णुता, 260ms ऑडियो बफ़र एवं रिट्राई कार्ड स्पॉटलाइट।",
   "updatedAt": "2026-10-09"
 }

@@ -218,10 +218,20 @@ export const HomeTab = ({
       if (!action) return;
       if (action.type === 'SHOW_WEATHER') {
         setHighlightWeatherCard(true);
-        setTimeout(() => {
-          const el = document.getElementById('kaka-weather-card');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+        const scrollCardWithRetry = (elementId, retries = 5, delay = 100) => {
+          let attempt = 0;
+          const tryScroll = () => {
+            const el = document.getElementById(elementId);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (attempt < retries) {
+              attempt++;
+              setTimeout(tryScroll, delay);
+            }
+          };
+          tryScroll();
+        };
+        scrollCardWithRetry('kaka-weather-card');
         setTimeout(() => setHighlightWeatherCard(false), 3500);
       }
     };

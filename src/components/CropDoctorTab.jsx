@@ -140,10 +140,20 @@ export const CropDoctorTab = ({ selectedDistrict = 'रायपुर' }) => {
         }
       }
       setHighlightDoctorCard(true);
-      setTimeout(() => {
-        const el = document.getElementById('kaka-doctor-card');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 150);
+      const scrollCardWithRetry = (elementId, retries = 5, delay = 100) => {
+        let attempt = 0;
+        const tryScroll = () => {
+          const el = document.getElementById(elementId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else if (attempt < retries) {
+            attempt++;
+            setTimeout(tryScroll, delay);
+          }
+        };
+        tryScroll();
+      };
+      scrollCardWithRetry('kaka-doctor-card');
       setTimeout(() => setHighlightDoctorCard(false), 3500);
     };
 

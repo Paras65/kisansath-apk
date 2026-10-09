@@ -84,18 +84,38 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
           setFertCrop(action.crop);
         }
         setHighlightCard('fert-result');
-        setTimeout(() => {
-          const el = document.getElementById('kaka-fert-result-card');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+        const scrollCardWithRetry = (elementId, retries = 5, delay = 100) => {
+          let attempt = 0;
+          const tryScroll = () => {
+            const el = document.getElementById(elementId);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (attempt < retries) {
+              attempt++;
+              setTimeout(tryScroll, delay);
+            }
+          };
+          tryScroll();
+        };
+        scrollCardWithRetry('kaka-fert-result-card');
         setTimeout(() => setHighlightCard(null), 3500);
       } else if (action.type === 'ASK_ACRES') {
         setSubTab(0);
         setHighlightCard('fert-input');
-        setTimeout(() => {
-          const el = document.getElementById('kaka-fert-input-card');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 150);
+        const scrollCardWithRetry = (elementId, retries = 5, delay = 100) => {
+          let attempt = 0;
+          const tryScroll = () => {
+            const el = document.getElementById(elementId);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else if (attempt < retries) {
+              attempt++;
+              setTimeout(tryScroll, delay);
+            }
+          };
+          tryScroll();
+        };
+        scrollCardWithRetry('kaka-fert-input-card');
         setTimeout(() => setHighlightCard(null), 3500);
       }
     };

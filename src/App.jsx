@@ -320,7 +320,13 @@ function App() {
         const acreVal = brain.extractedAcre || extractAcreage(transcript);
         const openDialog = document.querySelector('.MuiDialog-root');
         if (acreVal && openDialog) {
-          const acreInput = openDialog.querySelector('input[type="number"], input[name*="acre"], input[id*="acre"]');
+          const acreInput =
+            openDialog.querySelector('input[name*="acre" i]') ||
+            openDialog.querySelector('input[id*="acre" i]') ||
+            openDialog.querySelector('input[placeholder*="एकड़" i]') ||
+            openDialog.querySelector('input[placeholder*="रकबा" i]') ||
+            openDialog.querySelector('input[aria-label*="एकड़" i]') ||
+            openDialog.querySelector('input[data-field="acre"]');
           if (acreInput) {
             const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
             if (nativeSetter) {

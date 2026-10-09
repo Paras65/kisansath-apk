@@ -8,11 +8,14 @@ let shakeCount = 0;
 let lastShakeResetTimer = null;
 let activeCallback = null;
 
-const SHAKE_THRESHOLD = 18.5; // m/s^2 calibrated for deliberate double shake
+const SHAKE_THRESHOLD = 21.0; // m/s^2 calibrated for deliberate double shake (filters tractor / rough walking)
 const SHAKE_WINDOW_MS = 1400; // Must do 2 shakes within 1.4 seconds
 const COOLDOWN_MS = 2500; // 2.5s cooldown after triggering
 
 const handleMotion = (event) => {
+  // CRITICAL FIELD GUARD: Never trigger if screen is locked or app is hidden in pocket
+  if (typeof document !== 'undefined' && document.hidden) return;
+
   const current = event.accelerationIncludingGravity || event.acceleration;
   if (!current) return;
 

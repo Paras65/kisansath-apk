@@ -353,7 +353,7 @@ export const startVoiceRecognition = (onResult, onError) => {
       // Sequence buffer to let audio hardware switch from mic to speaker cleanly
       setTimeout(() => {
         if (onResult) onResult(best, matched);
-      }, 150);
+      }, 260);
     };
 
     window._kisanOnNativeSpeechError = (code) => {
@@ -463,7 +463,7 @@ export const startVoiceRecognition = (onResult, onError) => {
       // Small sequence buffer to let OS release microphone before any TTS response
       setTimeout(() => {
         if (onResult) onResult(best, matched);
-      }, 150);
+      }, 260);
     };
 
     recognition.onerror = (event) => {

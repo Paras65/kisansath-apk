@@ -149,6 +149,32 @@ const KAKA_KNOWLEDGE_BASE = [
   },
 ];
 
+// Multi-Turn Conversational Session Context (45s TTL)
+let kakaSession = {
+  pendingIntent: null, // 'ASK_MOTOR' | 'ASK_ACRES'
+  pendingCrop: 'paddy',
+  timestamp: 0,
+};
+
+export const resetKakaSession = () => {
+  kakaSession = { pendingIntent: null, pendingCrop: 'paddy', timestamp: 0 };
+};
+
+export const setKakaSession = (intent, crop = 'paddy') => {
+  kakaSession = {
+    pendingIntent: intent,
+    pendingCrop: crop,
+    timestamp: Date.now(),
+  };
+};
+
+export const getKakaSession = () => {
+  if (Date.now() - (kakaSession.timestamp || 0) > 45000) {
+    kakaSession = { pendingIntent: null, pendingCrop: 'paddy', timestamp: 0 };
+  }
+  return kakaSession;
+};
+
 /**
  * Process any spoken query through Bhaira Kaka's AI Brain
  * Returns structured response with spoken audio strings, matching routes, and structured actions
@@ -168,13 +194,77 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 
   const clean = transcript.toLowerCase().trim();
   const extractedAcre = extractAcreage(clean);
+  const session = getKakaSession();
+
+  // ── 0. Multi-Turn Conversational Context Resolver ──
+  if (session.pendingIntent === 'ASK_MOTOR') {
+    const affirmativeWords = ['हव', 'हाँ', 'हां', 'करव', 'कर दो', 'भेजव', 'भेज दो', 'चालू करव', 'चालू', 'yes', 'ok', 'चलाओ', 'हओ', 'हऊ', 'भेज'];
+    const negativeWords = ['नहीं', 'झन', 'मत', 'रद्द', 'ना', 'no', 'cancel', 'रहने दो', 'झन भेजव', 'झन करव', 'मत करो'];
+
+    if (affirmativeWords.some((w) => clean.includes(w))) {
+      resetKakaSession();
+      return {
+        textHi: 'जी भैया, बोरवेल मोटर चालू करने का SMS आदेश भेजा जा रहा है। मोटर कंट्रोलर खोल रहे हैं।',
+        textCg: 'हव संगी! बोरवेल मोटर चालू करे के SMS आदेश भेजत हंव। मोटर कंट्रोलर खोलत हंव!',
+        route: { target: 'motor', type: 'modal', label: 'मोटर कंट्रोलर' },
+        action: { type: 'EXECUTE_MOTOR', command: 'START' },
+        needsClarification: false,
+        extractedAcre: null,
+        confidence: 0.99,
+      };
+    }
+
+    if (negativeWords.some((w) => clean.includes(w))) {
+      resetKakaSession();
+      return {
+        textHi: 'ठीक है भैया, मोटर चालू करने का आदेश रद्द कर दिया गया है।',
+        textCg: 'ठीक हे संगी, मोटर चालू नइ करेन। कोनो चिंता झन करव!',
+        route: null,
+        action: { type: 'CANCEL_MOTOR' },
+        needsClarification: false,
+        extractedAcre: null,
+        confidence: 0.99,
+      };
+    }
+  }
+
+  if (session.pendingIntent === 'ASK_ACRES' && extractedAcre) {
+    const crop = session.pendingCrop || 'paddy';
+    resetKakaSession();
+    if (crop === 'chana') {
+      const dapBags = Math.max(1, Math.round(extractedAcre * 0.6));
+      return {
+        textHi: `${extractedAcre} एकड़ रबी चना के लिए ${dapBags} बोरी DAP लगेगी भैया! खाद कैलकुलेटर में हिसाब सेट कर दिया है।`,
+        textCg: `${extractedAcre} एकड़ रबी चना बर ${dapBags} बोरी DAP लगही संगी! चल कैलकुलेटर म पूरा हिसाब सेट कर दे हंव!`,
+        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'chana' },
+        needsClarification: false,
+        extractedAcre,
+        confidence: 0.98,
+      };
+    } else {
+      const dapBags = Math.max(1, Math.round(extractedAcre * 1.0));
+      const ureaBags = Math.max(1, Math.round((extractedAcre * 100) / 45));
+      const mopBags = Math.max(1, Math.round(extractedAcre * 0.6));
+      return {
+        textHi: `${extractedAcre} एकड़ धान के लिए ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया और ${mopBags} बोरी पोटाश लगेगी भैया!`,
+        textCg: `${extractedAcre} एकड़ धान बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया अउ ${mopBags} बोरी पोटाश लगही संगी!`,
+        route: { target: 'calculator', type: 'tab', label: 'खाद कैलकुलेटर' },
+        action: { type: 'AUTO_CALC_FERTILIZER', acre: extractedAcre, crop: 'paddy' },
+        needsClarification: false,
+        extractedAcre,
+        confidence: 0.98,
+      };
+    }
+  }
 
   // 1. Fertilizer & Nutrient Intent (Dosage calculation + Ask-Before)
-  const fertTriggers = ['खाद', 'यूरिया', 'dap', 'पोटाश', 'कितना खाद', 'खाद कैलकुलेटर', 'खाद कते डारना', 'khad', 'khaad', 'urea', 'yuriya', 'potash'];
+  const fertTriggers = ['खाद', 'यूरिया', 'dap', 'पोटाश', 'कितना खाद', 'खाद कैलकुलेटर', 'खाद कते डारना', 'डारव', 'डारना', 'khad', 'khaad', 'urea', 'yuriya', 'potash'];
   const hasFert = fertTriggers.some((t) => clean.includes(t));
 
   if (hasFert) {
     if (extractedAcre) {
+      resetKakaSession();
       const dapBags = Math.max(1, Math.round(extractedAcre * 1.0));
       const ureaBags = Math.max(1, Math.round((extractedAcre * 100) / 45));
       const mopBags = Math.max(1, Math.round(extractedAcre * 0.6));
@@ -188,6 +278,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
         confidence: 0.98,
       };
     } else {
+      setKakaSession('ASK_ACRES', 'paddy');
       return {
         textHi: 'धान में खाद के लिए आपका खेत कितने एकड़ है भैया? अपना रकबा बताएं — 1 एकड़, 2 एकड़ या ढाई एकड़?',
         textCg: 'धान म खाद बर कतका एकड़ खेत हे संगी? अपन रकबा बताव — 1 एकड़, 2 एकड़ या ढाई एकड़?',
@@ -201,8 +292,9 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   }
 
   // 2. Pest & Disease Intents (Mahu, Blast/Yellowing, Stem Borer)
-  const mahuTriggers = ['माहू', 'माहुर', 'bph', 'चेपा', 'भूरा माहू', 'हरा माहू', 'रस चूसक', 'mahu', 'mahur', 'chepa'];
+  const mahuTriggers = ['माहू', 'माहुर', 'माहूर', 'bph', 'चेपा', 'भूरा माहू', 'हरा माहू', 'रस चूसक', 'mahu', 'mahur', 'chepa'];
   if (mahuTriggers.some((t) => clean.includes(t))) {
+    resetKakaSession();
     return {
       textHi: 'सावधान किसान भाई! धान में माहू का प्रकोप है तो खेत का पानी तुरंत निकालें। तने के पास 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड का छिड़काव करें।',
       textCg: 'अरे भइया! धान म माहू लग गे हे त खेत के पानी ला तुरते निकालव! 120 ग्राम पाइमेट्रोजिन या इमिडाक्लोप्रिड के स्प्रे सीधे तना तीर करव। चल दवाई देखाथंव!',
@@ -273,6 +365,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   // 5. Motor / Pump Intent (Ask-Before confirmation)
   const motorTriggers = ['मोटर', 'बोरवेल', 'पंप', 'ट्यूबवेल', 'पानी चलाना', 'starter', 'motor', 'motar', 'pump', 'borwell', 'borewell'];
   if (motorTriggers.some((t) => clean.includes(t))) {
+    setKakaSession('ASK_MOTOR');
     return {
       textHi: 'क्या बोरवेल मोटर चालू करने का संदेश भेजें भैया? खेत का स्टार्टर नियंत्रित करने हेतु मोटर कंट्रोलर खोल रहे हैं।',
       textCg: 'का बोरवेल मोटर चालू करे के SMS आदेश भेजंव संगी? घर बैठे ट्यूबवेल चलाए बर मोटर कंट्रोलर खोलत हंव!',
@@ -299,8 +392,9 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   }
 
   // 7. Rabi Crops Intent
-  const rabiTriggers = ['चना', 'गेहूं', 'सरसों', 'रबी', 'उतेरा', 'पैरा', 'पराली', 'chana', 'gehu', 'sarson', 'rabi'];
+  const rabiTriggers = ['चना', 'गेहूं', 'सरसों', 'रबी', 'उतेरा', 'पैरा', 'पराली', 'पैर', 'पेरा', 'chana', 'gehu', 'sarson', 'rabi'];
   if (rabiTriggers.some((t) => clean.includes(t))) {
+    resetKakaSession();
     return {
       textHi: 'धान कटाई के बाद पराली खेत में न जलाएं। रबी दलहन चना JG-11 व सरसों की बुआई पूर्व ट्राइकोडर्मा व राइजोबियम से बीजोपचार अवश्य करें।',
       textCg: 'धान कटाई बाद पैरा झन जलाव—रोटावेटर ले माटी म मिलाव! रबी चना JG-11 या राधे लगावत हव त ट्राइकोडर्मा ले बीजोपचार जरूर करव।',
@@ -315,6 +409,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   // 8. Mera Khet / Diary Intent
   const khetTriggers = ['मेरा खेत', 'अपन खेत', 'डायरी', 'खर्चा', 'हिसाब', 'आमदनी', 'plot', 'khet', 'diary'];
   if (khetTriggers.some((t) => clean.includes(t))) {
+    resetKakaSession();
     return {
       textHi: 'फसल की बुआई तारीख, खाद का खर्च और लाभ-हानि का हिसाब रखने हेतु मेरा खेत डायरी खोल रहे हैं।',
       textCg: 'अपन खेत के बुआई तारीख, खाद के खर्च अउ आमदनी के हिसाब रखना हे? चल मेरा खेत डायरी खोलथंव!',
