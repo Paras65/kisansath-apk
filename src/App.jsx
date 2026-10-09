@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import {
   ThemeProvider,
   Box,
@@ -7,6 +7,7 @@ import {
   Paper,
   Typography,
   Button,
+  CircularProgress,
   CssBaseline
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
@@ -19,11 +20,6 @@ import { theme } from './theme';
 import { Header } from './components/Header';
 import { InstallPrompt } from './components/InstallPrompt';
 import { HomeTab } from './components/HomeTab';
-import { CropDoctorTab } from './components/CropDoctorTab';
-import { CalculatorSchemesTab } from './components/CalculatorSchemesTab';
-import { MandiTab } from './components/MandiTab';
-import { ChaupalTab } from './components/ChaupalTab';
-import { SettingsTab } from './components/SettingsTab';
 import { GlobalNotification } from './components/GlobalNotification';
 import { notify } from './services/notificationService';
 import {
@@ -56,12 +52,30 @@ import {
   fetchLiveWeather,
 } from './services/weatherService';
 import { getActiveFarmer } from './services/farmerService';
-import { DeviceHubModal } from './components/DeviceHubModal';
-import { SuperAdminModal } from './components/SuperAdminModal';
-import { FaqModal } from './components/FaqModal';
-import { TokenGuideModal } from './components/TokenGuideModal';
 import { KakaDirectAnswerSheet } from './components/KakaDirectAnswerSheet';
-import { AdminPortal } from './components/AdminPortal';
+
+// On-Demand Code Splitting (Drastically reduces initial JS download on 2G/3G mobile networks)
+const CropDoctorTab = lazy(() => import('./components/CropDoctorTab').then((m) => ({ default: m.CropDoctorTab })));
+const CalculatorSchemesTab = lazy(() => import('./components/CalculatorSchemesTab').then((m) => ({ default: m.CalculatorSchemesTab })));
+const MandiTab = lazy(() => import('./components/MandiTab').then((m) => ({ default: m.MandiTab })));
+const ChaupalTab = lazy(() => import('./components/ChaupalTab').then((m) => ({ default: m.ChaupalTab })));
+const SettingsTab = lazy(() => import('./components/SettingsTab').then((m) => ({ default: m.SettingsTab })));
+const AdminPortal = lazy(() => import('./components/AdminPortal').then((m) => ({ default: m.AdminPortal })));
+
+const DeviceHubModal = lazy(() => import('./components/DeviceHubModal').then((m) => ({ default: m.DeviceHubModal })));
+const SuperAdminModal = lazy(() => import('./components/SuperAdminModal').then((m) => ({ default: m.SuperAdminModal })));
+const FaqModal = lazy(() => import('./components/FaqModal').then((m) => ({ default: m.FaqModal })));
+const TokenGuideModal = lazy(() => import('./components/TokenGuideModal').then((m) => ({ default: m.TokenGuideModal })));
+
+// Lightweight Tab Loading Spinner for smooth transitions
+const TabLoadingFallback = () => (
+  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 8, gap: 1.5 }}>
+    <CircularProgress size={36} sx={{ color: '#16a34a' }} />
+    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+      लोड हो रहा है...
+    </Typography>
+  </Box>
+);
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import EmailIcon from '@mui/icons-material/Email';
@@ -885,7 +899,9 @@ function App() {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <AdminPortal onExit={handleExitAdminPortal} />
+        <Suspense fallback={<TabLoadingFallback />}>
+          <AdminPortal onExit={handleExitAdminPortal} />
+        </Suspense>
         <GlobalNotification />
       </ThemeProvider>
     );
@@ -940,20 +956,22 @@ function App() {
                 onDistrictChange={handleDistrictChange}
               />
             )}
-            {currentTab === 'doctor' && <CropDoctorTab selectedDistrict={selectedDistrict} />}
-            {currentTab === 'schemes' && <CalculatorSchemesTab selectedDistrict={selectedDistrict} />}
-            {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
-            {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}
-            {currentTab === 'settings' && (
-              <SettingsTab
-                selectedDistrict={selectedDistrict}
-                exactLocation={exactLocation}
-                onDistrictChange={handleDistrictChange}
-                isGpsLocation={isGpsLocation}
-                onOpenAdmin={handleOpenAdminPortal}
-                onNavigate={handleTabChange}
-              />
-            )}
+            <Suspense fallback={<TabLoadingFallback />}>
+              {currentTab === 'doctor' && <CropDoctorTab selectedDistrict={selectedDistrict} />}
+              {currentTab === 'schemes' && <CalculatorSchemesTab selectedDistrict={selectedDistrict} />}
+              {currentTab === 'mandi' && <MandiTab selectedDistrict={selectedDistrict} />}
+              {currentTab === 'chaupal' && <ChaupalTab selectedDistrict={selectedDistrict} />}
+              {currentTab === 'settings' && (
+                <SettingsTab
+                  selectedDistrict={selectedDistrict}
+                  exactLocation={exactLocation}
+                  onDistrictChange={handleDistrictChange}
+                  isGpsLocation={isGpsLocation}
+                  onOpenAdmin={handleOpenAdminPortal}
+                  onNavigate={handleTabChange}
+                />
+              )}
+            </Suspense>
           </ErrorBoundary>
 
           {/* Mobile Farmer Informational Footer Card (Visible only on xs and sm) */}
@@ -1430,25 +1448,35 @@ function App() {
           isChhattisgarhi={isChhattisgarhi}
         />
         {/* Centralized Smart Device & Hardware Hub */}
-        <DeviceHubModal
-          open={openDeviceHub}
-          onClose={() => setOpenDeviceHub(false)}
-        />
-        {/* Super Admin & Extension Worker Command Center */}
-        <SuperAdminModal
-          open={openAdminModal}
-          onClose={() => setOpenAdminModal(false)}
-        />
-        {/* Frequently Asked Questions (FAQs) Modal with Voice Readout */}
-        <FaqModal
-          open={openFaqModal}
-          onClose={() => setOpenFaqModal(false)}
-        />
-        {/* CG Paddy Token Tuhar Hath & Bardana Guide Modal */}
-        <TokenGuideModal
-          open={openTokenModal}
-          onClose={() => setOpenTokenModal(false)}
-        />
+        <Suspense fallback={null}>
+          {openDeviceHub && (
+            <DeviceHubModal
+              open={openDeviceHub}
+              onClose={() => setOpenDeviceHub(false)}
+            />
+          )}
+          {/* Super Admin & Extension Worker Command Center */}
+          {openAdminModal && (
+            <SuperAdminModal
+              open={openAdminModal}
+              onClose={() => setOpenAdminModal(false)}
+            />
+          )}
+          {/* Frequently Asked Questions (FAQs) Modal with Voice Readout */}
+          {openFaqModal && (
+            <FaqModal
+              open={openFaqModal}
+              onClose={() => setOpenFaqModal(false)}
+            />
+          )}
+          {/* CG Paddy Token Tuhar Hath & Bardana Guide Modal */}
+          {openTokenModal && (
+            <TokenGuideModal
+              open={openTokenModal}
+              onClose={() => setOpenTokenModal(false)}
+            />
+          )}
+        </Suspense>
         {/* 👴🏻 Bhaira Kaka Direct Answer BottomSheet (Zero UI Chhakar / Conversational Slot-Filling) */}
         <KakaDirectAnswerSheet
           open={Boolean(directAnswerData)}

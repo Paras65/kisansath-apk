@@ -298,7 +298,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 🟣 *जिंक सल्फेट (21% Zn):* ${totalZincKg} kg
 ━━━━━━━━━━━━━━━━━━
 📍 IGKV रायपुर कृषि वैज्ञानिक अनुशंसा आधारित
-📲 किसान साथी ऐप: https://kisan.init65.co.in/`;
+📲 किसान साथी ऐप: ${appConfig.webPortalUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 
@@ -327,7 +327,7 @@ export const CalculatorSchemesTab = ({ selectedDistrict = 'रायपुर' }
 • शासन प्रतिपूर्ति: ₹${paddyMath.bardanaReimbursement.toLocaleString('en-IN')} (₹25/बोरा वापसी)
 • टोकन तुंहर हाथ कोटा: अधिकतम ${paddyMath.tokenLimit} टोकन
 ━━━━━━━━━━━━━━━━━━
-📲 किसान साथी ऐप: https://kisan.init65.co.in/`;
+📲 किसान साथी ऐप: ${appConfig.webPortalUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
 

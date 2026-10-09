@@ -18,11 +18,19 @@ export const getAuthHeaders = () => {
   }
 };
 
-// 1. Get current logged-in farmer session
+// 1. Get current logged-in farmer session (Zero-PII sanitized)
 export const getActiveFarmer = () => {
   try {
     const data = localStorage.getItem(ACTIVE_FARMER_KEY);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    const parsed = JSON.parse(data);
+    if (parsed && parsed.pin) {
+      delete parsed.pin;
+      try {
+        localStorage.setItem(ACTIVE_FARMER_KEY, JSON.stringify(parsed));
+      } catch {}
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -50,6 +58,9 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
     if (res.ok) {
       const data = await res.json();
       const farmer = data.farmer || data;
+      if (farmer && farmer.pin) {
+        delete farmer.pin;
+      }
       if (data.token) {
         localStorage.setItem(JWT_TOKEN_KEY, data.token);
       }
@@ -68,12 +79,11 @@ export const loginFarmer = async ({ phone, name, pin, village, district, totalLa
     logClientNetworkError('/farmer/auth', err, { method: 'POST' });
   }
 
-  // Offline Fallback for Farmers in Field
+  // Offline Fallback for Farmers in Field (Zero-PII: PIN is never saved in client storage)
   const cachedPlots = localStorage.getItem(`kisan_farmer_plots_${cleanPhone}`);
   const fallbackFarmer = {
     phone: cleanPhone,
     name: name || 'किसान साथी (ऑफ़लाइन)',
-    pin: pin || '1234',
     village: village || '',
     district: district || 'रायपुर',
     totalLandAcres: parseFloat(totalLandAcres) || 0,
