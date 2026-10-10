@@ -1,8 +1,8 @@
 {
   "packageId": "in.co.init65.kisan",
   "host": "kisan.init65.co.in",
-  "name": "किसान साथी छत्तीसगढ़ - फसल से बिक्री तक",
-  "launcherName": "किसान साथी CG",
+  "name": "किसान मितान छत्तीसगढ़ - फसल से बिक्री तक",
+  "launcherName": "किसान मितान",
   "display": "standalone",
   "themeColor": "#2E7D32",
   "themeColorDark": "#1B5E20",
@@ -20,8 +20,8 @@
     "path": "./kisan-release-key.keystore",
     "alias": "kisan-alias"
   },
-  "appVersionName": "1.0.86",
-  "appVersionCode": 87,
+  "appVersionName": "1.0.87",
+  "appVersionCode": 88,
   "shortcuts": [
     {
       "name": "फसल डॉक्टर",

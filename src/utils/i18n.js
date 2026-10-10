@@ -18,10 +18,10 @@ import { useState, useEffect } from 'react';
 export const DICTIONARY = {
   cg: {
     // Branding & App Identity
-    app_name: 'किसान साथी',
-    app_tagline: 'फसल ले लेके बिक्री तक संगवारी',
+    app_name: 'किसान मितान',
+    app_tagline: 'फसल ले लेके बिक्री तक अपन मितान',
     greeting: 'जय जोहार किसान भाई!',
-    welcome_sub: 'छत्तीसगढ़ के किसान मन के अपन डिजिटल साथी',
+    welcome_sub: 'छत्तीसगढ़ के किसान मन के अपन डिजिटल मितान',
 
     // Language Toggle Labels
     lang_cg: 'छत्ती.',
@@ -117,10 +117,10 @@ export const DICTIONARY = {
   },
   hi: {
     // Branding & App Identity
-    app_name: 'किसान साथी',
-    app_tagline: 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
+    app_name: 'किसान मितान',
+    app_tagline: 'छत्तीसगढ़ • फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
     greeting: 'नमस्कार किसान भाई!',
-    welcome_sub: 'किसानों का सम्पूर्ण डिजिटल कृषि साथी',
+    welcome_sub: 'छत्तीसगढ़ किसानों का सम्पूर्ण डिजिटल कृषि मितान व साथी',
 
     // Language Toggle Labels
     lang_cg: 'छत्ती.',

@@ -1,4 +1,4 @@
-# Kisan Saathi (किसान साथी) Robots Configuration
+# Kisan Mitan (किसान मितान) Robots Configuration
 User-agent: *
 Allow: /
 Allow: /llms.txt

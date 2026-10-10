@@ -6,9 +6,9 @@ const env = import.meta.env || {};
 
 export const appConfig = {
   // 1. Branding & Geography
-  appName: env.VITE_APP_NAME || 'किसान साथी',
+  appName: env.VITE_APP_NAME || 'किसान मितान',
   appTagline: env.VITE_APP_TAGLINE || 'छत्तीसगढ़ • फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.86',
+  appVersion: env.VITE_APP_VERSION || '1.0.87',
   supportEmail: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
@@ -38,7 +38,7 @@ export const appConfig = {
     label: env.VITE_HELPLINE_LABEL || '1800-180-1551',
     kisanCallCenterDept: 'कृषि विभाग किसान कॉल सेंटर (खेती-किसानी परामर्श)',
     email: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
-    appSupportLabel: 'किसान साथी ऐप तकनीकी सहायता व सुझाव (Init65)',
+    appSupportLabel: 'किसान मितान ऐप तकनीकी सहायता व सुझाव (Init65)',
     kisanCallCenter: env.VITE_KISAN_CALL_CENTER || '1800-180-1551',
     foodDeptHelpline: env.VITE_FOOD_DEPT_HELPLINE || '1800-233-3663',
   },

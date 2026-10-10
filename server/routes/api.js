@@ -125,8 +125,8 @@ const safeTechnicalError = (err) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.86';
-  const appName = process.env.VITE_APP_NAME || 'किसान साथी';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.87';
+  const appName = process.env.VITE_APP_NAME || 'किसान मितान';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
