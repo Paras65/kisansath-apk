@@ -42,7 +42,7 @@ export const generateFertilizerDirectAnswer = (crop = 'paddy', acreVal = 1.0, we
         cards,
         advisoryText: 'गन्ना भारी खुराक वाली फसल है। बुआई के समय DAP व पोटाश दें। यूरिया को 45, 90 और 120 दिन पर मिट्टी चढ़ाते समय 3 किस्तों में दें।',
         advisoryTextCg: 'गन्ना म बुआई बेरा DAP अउ पोटाश डालव, अउ यूरिया ला माटी चढ़ावत बेरा 3 बार म डारव संगी!',
-        whatsappShareText: `🎋 किसान साथी - गन्ना खाद हिसाब:\n• रकबा: ${acreVal} एकड़\n• DAP: ${dapBags} बोरी\n• यूरिया: ${ureaBags} बोरी\n• पोटाश: ${mopBags} बोरी\n• जिंक: ${zincKg} kg\n💡 IGKV रायपुर कृषि वैज्ञानिक अनुशंसा`,
+        whatsappShareText: `🎋 किसान साथी - गन्ना खाद हिसाब:\n• रकबा: ${acreVal} एकड़\n• DAP: ${dapBags} बोरी\n• यूरिया: ${ureaBags} बोरी\n• पोटाश: ${mopBags} बोरी\n• जिंक: ${zincKg} kg\n💡 प्रमाणित कृषि मानक अनुशंसा`,
         needsClarification: false,
         missingSlot: null,
         slotSuggestions: [],
@@ -262,7 +262,7 @@ export const generateFertilizerDirectAnswer = (crop = 'paddy', acreVal = 1.0, we
         advisoryTextCg: hasRainAlert
           ? 'चेत रखव: पानी या तेज हवा के संका हे, त यूरिया छिड़काव रोक देवव ताकि दवाई बोहा झन जाय!'
           : 'DAP अउ पोटाश ला बुआई बेरा डालव, अउ यूरिया ला 2 बार म छिड़कव संगी!',
-        whatsappShareText: `🌾 किसान साथी - धान खाद हिसाब:\n• रकबा: ${acreVal} एकड़\n• DAP: ${dapBags} बोरी\n• यूरिया: ${ureaBags} बोरी (2 किस्तों में)\n• पोटाश: ${mopBags} बोरी\n• जिंक: ${zincKg} kg\n💡 IGKV रायपुर कृषि वैज्ञानिक अनुशंसा`,
+        whatsappShareText: `🌾 किसान साथी - धान खाद हिसाब:\n• रकबा: ${acreVal} एकड़\n• DAP: ${dapBags} बोरी\n• यूरिया: ${ureaBags} बोरी (2 किस्तों में)\n• पोटाश: ${mopBags} बोरी\n• जिंक: ${zincKg} kg\n💡 प्रमाणित कृषि मानक अनुशंसा`,
         needsClarification: false,
         missingSlot: null,
         slotSuggestions: [],

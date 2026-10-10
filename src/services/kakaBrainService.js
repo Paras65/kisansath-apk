@@ -209,13 +209,20 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 };
 
 /**
- * Asynchronously query Google Gemini AI Agricultural Expert (IGKV/ICAR Role)
- * Used as an intelligent fallback when query is not matched by local offline rules.
- * Strictly filters out non-agricultural topics and provides certified agricultural diagnoses.
+ * Asynchronously query Google Gemini AI Agricultural Specialist Engine
+ * Passes Live Environmental Context (Weather, Plot, Statutory Benchmarks)
+ * Ultra-fast sub-2s responses with thinkingBudget: 0.
  */
 export const queryKakaAiExpert = async (query, isChhattisgarhi = false, context = {}) => {
   if (!query || typeof query !== 'string' || query.trim().length < 2) return null;
   const district = context?.district || context?.selectedDistrict || 'रायपुर';
+  const weather = context?.weather || null;
+  const farmerPlot = context?.farmerPlot || null;
+  const statutory = context?.statutory || {
+    mspRate: 3100,
+    quotaPerAcre: 21,
+    bardanaTare: '580g',
+  };
 
   try {
     const apiBase = appConfig?.apiBaseUrl || (typeof window !== 'undefined' ? `${window.location.origin}/api` : '/api');
@@ -231,6 +238,9 @@ export const queryKakaAiExpert = async (query, isChhattisgarhi = false, context 
         query: query.trim(),
         district,
         isChhattisgarhi: Boolean(isChhattisgarhi),
+        weather,
+        farmerPlot,
+        statutory,
       }),
       signal: controller.signal,
     });

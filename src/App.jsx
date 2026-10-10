@@ -355,6 +355,48 @@ function App() {
     }
   };
 
+  // Assemble rich live environmental context for Bhaira Kaka AI (Weather, Plot, Statutory)
+  const getLiveKakaContext = (districtName) => {
+    const dist = districtName || selectedDistrict || 'रायपुर';
+    const cachedWeather = getCachedWeather(dist);
+
+    let farmerPlot = null;
+    const activeFarmer = getActiveFarmer();
+    if (activeFarmer && activeFarmer.phone) {
+      try {
+        const raw = localStorage.getItem(`kisan_farmer_plots_${activeFarmer.phone}`);
+        if (raw) {
+          const plots = JSON.parse(raw);
+          if (Array.isArray(plots) && plots.length > 0) {
+            farmerPlot = plots[0];
+          }
+        }
+      } catch {}
+    }
+    if (!farmerPlot) {
+      try {
+        const guestRaw = localStorage.getItem('kisan_guest_crop_plot');
+        if (guestRaw) {
+          farmerPlot = JSON.parse(guestRaw);
+        }
+      } catch {}
+    }
+
+    const statutory = {
+      mspRate: 3100,
+      quotaPerAcre: 21,
+      bardanaTare: '580g',
+    };
+
+    return {
+      district: dist,
+      selectedDistrict: dist,
+      weather: cachedWeather || null,
+      farmerPlot,
+      statutory,
+    };
+  };
+
   // Green pill FAB handler:
   // • If TTS is speaking → stop it
   // • If voice is listening → stop it
@@ -415,12 +457,8 @@ function App() {
         if (spokenDist && spokenDist !== selectedDistrict) {
           fetchLiveWeather(spokenDist).catch(() => {});
         }
-        const cachedWeather = getCachedWeather(effectiveDist);
-        const brain = queryKakaBrain(transcript, isChhattisgarhi, {
-          weather: cachedWeather,
-          district: effectiveDist,
-          selectedDistrict: effectiveDist,
-        });
+        const liveContext = getLiveKakaContext(effectiveDist);
+        const brain = queryKakaBrain(transcript, isChhattisgarhi, liveContext);
 
         // In-Modal Action 3: Acreage fill inside active modal if open AND query is purely specifying acreage
         const isPureAcreageSpoken = /^(?:मेरा\s*)?(?:खेत\s*)?(?:\d+(?:\.\d+)?|एक|दो|तीन|चार|पांच|छह|सात|आठ|नौ|दस|डेढ़|ढाई|सवा दो|पौने दो|साढ़े तीन|साढ़े चार|आधा)\s*(?:एकड़|एकड|acre|एकर)(?:\s*(?:है|हे|का|के|रकबा|खेत|डालो|सेट|करो))?$/i.test((transcript || '').trim());
@@ -459,7 +497,9 @@ function App() {
             brain.directAnswer.needsAiExpert ||
             brain.directAnswer.intent === 'AI_EXPERT_QUERY' ||
             brain.directAnswer.intent === 'UNKNOWN_TOPIC' ||
-            brain.directAnswer.intent === 'NOT_UNDERSTOOD';
+            brain.directAnswer.intent === 'NOT_UNDERSTOOD' ||
+            brain.directAnswer.intent === 'DOCTOR' ||
+            brain.directAnswer.intent === 'CULTIVATION';
 
           if (needsAiConsultation) {
             setDirectAnswerData({
@@ -477,7 +517,7 @@ function App() {
               : (brain.directAnswer.spokenHi || brain.textHi || 'काका सलाह निकाल रहे हैं भैया, बस दो सेकंड रुकिए...');
             if (waitSpoken) speakText(waitSpoken);
 
-            queryKakaAiExpert(transcript, isChhattisgarhi, { district: effectiveDist })
+            queryKakaAiExpert(transcript, isChhattisgarhi, liveContext)
               .then((aiResult) => {
                 if (aiResult) {
                   const resolvedAnswer = {
@@ -647,25 +687,36 @@ function App() {
     if (spokenDist && spokenDist !== selectedDistrict) {
       fetchLiveWeather(spokenDist).catch(() => {});
     }
-    const cachedWeather = getCachedWeather(effectiveDist);
-    const brain = queryKakaBrain(suggestionText, isChhattisgarhi, {
-      weather: cachedWeather,
-      district: effectiveDist,
-      selectedDistrict: effectiveDist,
-    });
+    const liveContext = getLiveKakaContext(effectiveDist);
+    const brain = queryKakaBrain(suggestionText, isChhattisgarhi, liveContext);
 
     if (brain.directAnswer) {
-      if (brain.directAnswer.intent === 'UNKNOWN_TOPIC' || brain.directAnswer.intent === 'NOT_UNDERSTOOD') {
+      const needsAiConsultation =
+        brain.needsAiExpert ||
+        brain.directAnswer.needsAiExpert ||
+        brain.directAnswer.intent === 'AI_EXPERT_QUERY' ||
+        brain.directAnswer.intent === 'UNKNOWN_TOPIC' ||
+        brain.directAnswer.intent === 'NOT_UNDERSTOOD' ||
+        brain.directAnswer.intent === 'DOCTOR' ||
+        brain.directAnswer.intent === 'CULTIVATION';
+
+      if (needsAiConsultation) {
         setDirectAnswerData({
           ...brain.directAnswer,
           isLoadingAiExpert: true,
-          headline: isChhattisgarhi ? '👴🏻 काका सोचत हे... कृषि वैज्ञानिक सलाह' : '👴🏻 काका सोच रहे हैं... कृषि वैज्ञानिक सलाह',
-          headlineCg: '👴🏻 काका सोचत हे... कृषि वैज्ञानिक सलाह',
-          advisoryText: 'IGKV रायपुर व ICAR अनुसंधान से आपके सवाल का प्रमाणिक उत्तर खोजा जा रहा है...',
-          advisoryTextCg: 'IGKV रायपुर व ICAR अनुसंधान ले तोर सवाल के वैज्ञानिक उत्तर खोजे जावत हे...',
+          headline: isChhattisgarhi ? '👴🏻 काका सोचत हे... कृषि सलाह' : '👴🏻 काका सोच रहे हैं... कृषि सलाह',
+          headlineCg: '👴🏻 काका सोचत हे... कृषि सलाह',
+          advisoryText: 'आपके सवाल का सटीक उत्तर तैयार किया जा रहा है...',
+          advisoryTextCg: 'तोर सवाल के समाधान खोजे जावत हे, बस दू सेकंड धीरज धरव...',
         });
 
-        queryKakaAiExpert(suggestionText, isChhattisgarhi, { district: effectiveDist })
+        // Speak reassuring interim wait phrase immediately
+        const waitSpoken = isChhattisgarhi
+          ? (brain.directAnswer.spokenCg || brain.textCg || 'काका सलाह खोजत हे संगी, बस दू सेकंड धीरज धरव...')
+          : (brain.directAnswer.spokenHi || brain.textHi || 'काका सलाह निकाल रहे हैं भैया, बस दो सेकंड रुकिए...');
+        if (waitSpoken) speakText(waitSpoken);
+
+        queryKakaAiExpert(suggestionText, isChhattisgarhi, liveContext)
           .then((aiResult) => {
             if (aiResult) {
               const resolvedAnswer = {

@@ -236,7 +236,7 @@ export const chatWithGeminiCropDoctor = async ({
     };
   }
 
-  const systemInstruction = `You are a Senior Indian Agricultural Scientist and Plant Pathologist (वरिष्ठ पादप रोग विशेषज्ञ) at Indira Gandhi Krishi Vishwavidyalaya (IGKV) Raipur and ICAR.
+  const systemInstruction = `You are an AI Crop Doctor and Senior Plant Pathologist (आधुनिक AI फसल रोग विशेषज्ञ व पादप सलाहकार).
 You are advising an Indian farmer from Chhattisgarh (district: ${district}) who is asking follow-up questions about their crop diagnosis.
 
 CURRENT DIAGNOSIS CONTEXT:
@@ -248,7 +248,7 @@ CURRENT DIAGNOSIS CONTEXT:
 STRICT RULES:
 1. Answer strictly in clear, practical, caring Hindi (Devanagari script) with farmer-friendly language.
 2. Be concise and actionable (2 to 4 sentences or short bullet points).
-3. If asking for alternative or cheaper medicine, provide exact CIBRC/IGKV approved chemicals and 15-Litre spray tank doses (e.g. ग्राम या मिली प्रति 15 लीटर पंप टंकी).
+3. If asking for alternative or cheaper medicine, provide standard CIBRC-approved chemicals and 15-Litre spray tank doses (e.g. ग्राम या मिली प्रति 15 लीटर पंप टंकी).
 4. If asking about weather, rain-fastness, or mixing with fertilizers, state clear do's and don'ts.
 5. Return ONLY a valid JSON object with NO extra text or markdown code fences:
 {
@@ -357,15 +357,19 @@ STRICT RULES:
 };
 
 /**
- * Senior Agricultural Scientist / IGKV / ICAR AI Expert Engine for Bhaira Kaka
+ * Advanced Dynamic AI Agricultural Specialist Engine for Bhaira Kaka
+ * Injects Live Environmental Context (Weather, Plot, Statutory Benchmarks)
  * Strict Domain Filtering:
  * - If query is NOT agricultural (cricket, bollywood, politics, songs, etc.), strictly sets isAgricultural: false and returns respectful domain refusal.
- * - If query IS agricultural, provides certified IGKV/ICAR advice, dosages per 15L pump, practical cards, and follow-up chips.
+ * - If query IS agricultural, generates rich contextual diagnosis, exact dosages per 15L pump or per acre, practical cards, weather interlock warnings, and follow-up chips.
  */
 export const queryGeminiAgriculturalExpert = async ({
   query,
   district = 'रायपुर',
   isChhattisgarhi = false,
+  weather = null,
+  farmerPlot = null,
+  statutory = null,
 }) => {
   const { apiKey, baseUrl, models, timeoutMs } = externalApisConfig.gemini;
 
@@ -378,14 +382,51 @@ export const queryGeminiAgriculturalExpert = async ({
     };
   }
 
-  const prompt = `You are a Senior Indian Agricultural Scientist and Agronomist (वरिष्ठ कृषि वैज्ञानिक व पादप विशेषज्ञ) at Indira Gandhi Krishi Vishwavidyalaya (IGKV) Raipur and ICAR, advising a farmer in Chhattisgarh (District: ${district}).
+  let contextSnippet = `DISTRICT: ${district}\nSTATE: Chhattisgarh`;
+
+  if (weather && typeof weather === 'object') {
+    const temp = weather.temp ?? weather.temperature ?? '';
+    const cond = weather.condition || weather.description || '';
+    const rainChance = weather.rainChance ?? weather.pop ?? 0;
+    const windSpeed = weather.windSpeed ?? 0;
+    contextSnippet += `\nLIVE WEATHER FORECAST IN ${district.toUpperCase()}:
+- Current Temperature: ${temp}°C
+- Weather Condition: ${cond}
+- Rain Probability: ${rainChance}%
+- Wind Speed: ${windSpeed} km/h`;
+  }
+
+  if (farmerPlot && typeof farmerPlot === 'object') {
+    const crop = farmerPlot.crop || farmerPlot.cropName || '';
+    const acres = farmerPlot.acres || farmerPlot.areaAcres || '';
+    const variety = farmerPlot.variety || '';
+    const stage = farmerPlot.stage || '';
+    const daysElapsed = farmerPlot.daysElapsed ?? '';
+    contextSnippet += `\nFARMER'S REGISTERED PLOT CONTEXT:
+- Active Crop: ${crop}
+- Acreage: ${acres ? acres + ' एकड़' : 'अनिर्दिष्ट'}
+- Variety: ${variety || 'सामान्य'}
+- Crop Stage: ${stage || 'अनिर्दिष्ट'}
+- Days Elapsed: ${daysElapsed !== '' ? daysElapsed + ' दिन' : 'अनिर्दिष्ट'}`;
+  }
+
+  if (statutory && typeof statutory === 'object') {
+    contextSnippet += `\nOFFICIAL STATUTORY POLICY BENCHMARKS (CHHATTISGARH):
+- Paddy MSP Rate: ₹${statutory.mspRate || 3100}/क्विंटल
+- Purchase Quota: ${statutory.quotaPerAcre || 21} क्विंटल प्रति एकड़
+- Bardana Jute Bag Tare Weight: ${statutory.bardanaTare || '580g'}`;
+  }
+
+  const prompt = `You are an advanced AI Agricultural Specialist and Agronomist (आधुनिक AI कृषि विशेषज्ञ व पादप सलाहकार) serving farmers in Chhattisgarh.
 You deliver your advice through the beloved, warm, respectful rural village elder persona of "बहिरा काका" (Bhaira Kaka).
+
+${contextSnippet}
 
 FARMER'S QUESTION: "${query}"
 
 CRITICAL RULES:
 1. STRICT DOMAIN FILTER:
-   Determine if the query is genuinely related to AGRICULTURE, CROPS, FARMING, HORTICULTURE, VEGETABLES, FRUITS, SOIL, IRRIGATION, FERTILIZERS, WEEDS, PESTS & DISEASES, LIVESTOCK / DAIRY / ANIMAL HUSBANDRY (cows, buffaloes, goats, poultry, fisheries), WEATHER / AGRO-CLIMATOLOGY, AGRICULTURAL MACHINERY, or GOVERNMENT FARMER SCHEMES.
+   Determine if the question is genuinely related to AGRICULTURE, CROPS, FARMING, HORTICULTURE, VEGETABLES, FRUITS, SOIL, IRRIGATION, FERTILIZERS, WEEDS, PESTS & DISEASES, LIVESTOCK / DAIRY / ANIMAL HUSBANDRY (cows, buffaloes, goats, poultry, fisheries), WEATHER / AGRO-CLIMATOLOGY, AGRICULTURAL MACHINERY, or GOVERNMENT FARMER SCHEMES.
 
    IF THE QUESTION IS NOT ABOUT AGRICULTURE (e.g., cricket, Bollywood, movies, songs, actors, politics, elections, general chit-chat, gossip, astrology, non-agri topics):
    You MUST return:
@@ -414,17 +455,26 @@ CRITICAL RULES:
    - "isAgricultural": true
    - "intent": "AI_EXPERT_ADVISORY"
    - "icon": An appropriate agricultural emoji (e.g. 🌿, 💊, 🌾, 🐮, 💧, 🌽, 🐛, 🍎)
-   - "headline": Crisp, bold title in Hindi (e.g. "पपीता में पत्ती मुड़ना (लीफ कर्ल): पक्का इलाज")
+   - "headline": Crisp, bold title in Hindi (e.g. "टमाटर में फल छेदक: पक्का इलाज व डोज")
    - "headlineCg": In Chhattisgarhi
-   - "textHi": 2-3 warm, grandfatherly sentences spoken by Bhaira Kaka explaining the diagnosis or solution in clear Hindi with exact dosages (e.g. 10-15 ग्राम प्रति 15 लीटर टंकी).
+   - "textHi": 2-3 warm, grandfatherly sentences spoken by Bhaira Kaka explaining the diagnosis or practical solution in clear Hindi with exact dosages (e.g. प्रति 15 लीटर पंप टंकी या प्रति एकड़).
    - "textCg": Same in warm Chhattisgarhi dialect.
    - "cards": 3 or 4 visual cards with icon, label, value, sub, bg, border, color.
      Examples:
-     { "icon": "💊", "label": "अनुशंसित दवा", "value": "इमिडाक्लोप्रिड 17.8% SL", "sub": "CIBRC प्रमाणित", "bg": "#f0fdf4", "border": "#86efac", "color": "#166534" }
-     { "icon": "⚖️", "label": "15L पंप नाप", "value": "6 से 8 ml प्रति टंकी", "sub": "स्प्रे घोल", "bg": "#fefce8", "border": "#fef08a", "color": "#854d0e" }
-     { "icon": "🌿", "label": "जैविक विकल्प", "value": "नीम तेल 5 ml/L", "sub": "देसी सुरक्षा", "bg": "#eff6ff", "border": "#bfdbfe", "color": "#1d4ed8" }
+     { "icon": "💊", "label": "अनुशंसित दवा", "value": "इमामेक्टिन बेंजोएट 5% SG", "sub": "CIBRC मानक", "bg": "#f0fdf4", "border": "#86efac", "color": "#166534" }
+     { "icon": "⚖️", "label": "15L पंप नाप", "value": "8 से 10 ग्राम प्रति टंकी", "sub": "स्प्रे घोल", "bg": "#fefce8", "border": "#fef08a", "color": "#854d0e" }
+     { "icon": "🌿", "label": "जैविक विकल्प", "value": "नीम तेल 1500 PPM", "sub": "देसी सुरक्षा", "bg": "#eff6ff", "border": "#bfdbfe", "color": "#1d4ed8" }
      { "icon": "⏰", "label": "छिड़काव समय", "value": "शाम को धूप ढलने पर", "sub": "सावधानी", "bg": "#f8fafc", "border": "#cbd5e1", "color": "#1e293b" }
-   - "advisoryText": Practical guidance (2-3 sentences) on application method, irrigation timing, or prevention in Hindi.
+
+   - WEATHER INTERLOCK RULE: If the live rain probability > 40% or current weather indicates rain, or wind speed > 15 km/h, YOU MUST include a weather alert card:
+     { "icon": "⚠️", "label": "मौसम चेतावनी", "value": "छिड़काव रोकें", "sub": "बारिश/हवा में स्प्रे या यूरिया टालें", "bg": "#fef2f2", "border": "#fecaca", "color": "#991b1b" }
+     and explicitly caution the farmer in textHi/textCg.
+
+   - PLOT AWARENESS: If the farmer's plot context is present above, dynamically calibrate advice to their crop, stage, or acreage.
+
+   - HONEST BRANDING: Sub-text and card labels must NEVER falsely claim official "IGKV / ICAR" endorsement. Use transparent, objective labels like "AI कृषि सहायक", "CIBRC मानक", "सत्यापित मात्रा", "देसी जैविक उपाय", "अनुशंसित खुराक".
+
+   - "advisoryText": Practical guidance (2-3 sentences) on application method, water volume (150-200 L/acre), irrigation timing, or prevention in Hindi.
    - "advisoryTextCg": In Chhattisgarhi.
    - "slotSuggestions": 3 to 4 related follow-up question chips the farmer can tap next.
    - "whatsappShareText": A clean text bulletin ready for WhatsApp sharing.

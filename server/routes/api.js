@@ -125,7 +125,7 @@ const safeTechnicalError = (err) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.90';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.91';
   const appName = process.env.VITE_APP_NAME || 'किसान मितान';
   res.json({
     version,
@@ -291,7 +291,7 @@ router.post('/crop-doctor/chat', validateBody('CropDoctorChatRequest', Schemas.C
   }
 });
 
-// 3b. Bhaira Kaka AI Agricultural Expert Engine (Powered by Google Gemini IGKV/ICAR Role)
+// 3b. Bhaira Kaka AI Agricultural Expert Engine (Dynamic Multi-Context AI Agronomist)
 router.post('/kaka-brain/expert', async (req, res) => {
   try {
     const clientIp = req.ip || req.headers['x-forwarded-for'] || 'unknown';
@@ -303,7 +303,14 @@ router.post('/kaka-brain/expert', async (req, res) => {
       });
     }
 
-    const { query = '', district = 'रायपुर', isChhattisgarhi = false } = req.body || {};
+    const {
+      query = '',
+      district = 'रायपुर',
+      isChhattisgarhi = false,
+      weather = null,
+      farmerPlot = null,
+      statutory = null
+    } = req.body || {};
     const cleanQuery = sanitize(query, 300);
     const cleanDistrict = sanitize(district, 50);
 
@@ -318,6 +325,9 @@ router.post('/kaka-brain/expert', async (req, res) => {
       query: cleanQuery,
       district: cleanDistrict,
       isChhattisgarhi: Boolean(isChhattisgarhi),
+      weather: weather && typeof weather === 'object' ? weather : null,
+      farmerPlot: farmerPlot && typeof farmerPlot === 'object' ? farmerPlot : null,
+      statutory: statutory && typeof statutory === 'object' ? statutory : null,
     });
 
     if (!expertResponse.success) {
