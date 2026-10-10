@@ -117,14 +117,14 @@ const isValidIndianPhone = (phone) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.78';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.79';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🎨 उच्च-गुणवत्ता WebP इमेज फॉर्मेट रूपांतरण (-93.8% आइकॉन साइज़ बचत, 991 KB से घटकर 61.6 KB), 🧹 अप्रयुक्त इम्पोर्ट्स व कोड क्लीनअप, एवं समग्र ऐप बंडल साइज़ में 1 MB की तीव्र कटौती।',
+    releaseNotes: '🏛️ कृषि प्रशासन व सुपर एडमिन पोर्टल (AdminPortal) का व्यापक मॉड्यूलर रिफैक्टरिंग (8 समर्पित सब-मॉड्यूल्स में विभाजन), मुख्य फाइल में 2,400+ लाइनों की कटौती (-85.2%) एवं प्रदर्शन अनुकूलन।',
     updatedAt: new Date().toISOString()
   });
 });

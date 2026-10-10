@@ -1,8 +1,8 @@
 {
-  "version": "1.0.78",
+  "version": "1.0.79",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.78",
-  "releaseNotes": "🎨 उच्च-गुणवत्ता WebP इमेज फॉर्मेट रूपांतरण (-93.8% आइकॉन साइज़ बचत, 991 KB से घटकर 61.6 KB), 🧹 अप्रयुक्त इम्पोर्ट्स व कोड क्लीनअप, एवं समग्र ऐप बंडल साइज़ में 1 MB की तीव्र कटौती।",
-  "updatedAt": "2026-10-09"
+  "releaseName": "किसान साथी v1.0.79",
+  "releaseNotes": "🏛️ कृषि प्रशासन व सुपर एडमिन पोर्टल (AdminPortal) का व्यापक मॉड्यूलर रिफैक्टरिंग (8 समर्पित सब-मॉड्यूल्स में विभाजन), मुख्य फाइल में 2,400+ लाइनों की कटौती (-85.2%) एवं प्रदर्शन अनुकूलन।",
+  "updatedAt": "2026-10-10"
 }
