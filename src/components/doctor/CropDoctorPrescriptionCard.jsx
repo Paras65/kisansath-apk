@@ -32,6 +32,8 @@ export const CropDoctorPrescriptionCard = ({
   const [prescriptionTab, setPrescriptionTab] = useState('chemical'); // 'chemical' | 'organic'
   const [showDetailedInfo, setShowDetailedInfo] = useState(false);
   const [isVoicePlaying, setIsVoicePlaying] = useState(false);
+  const [sprayAcre, setSprayAcre] = useState(1);
+  const [showPumpCalc, setShowPumpCalc] = useState(false);
 
   useEffect(() => {
     const unsubscribe = subscribeSpeechState((speaking) => {
@@ -209,7 +211,7 @@ ${matched ? `⏳ *सुरक्षित तुड़ाई अंतराल
       </Box>
 
       <CardContent sx={{ p: 2 }}>
-        {/* HERO METRIC: 15L Knapsack Spray Pump Dosage Banner */}
+        {/* HERO METRIC: 15L Knapsack Spray Pump Dosage Banner & Field Tank Calculator */}
         <Box
           sx={{
             mb: 2,
@@ -220,15 +222,110 @@ ${matched ? `⏳ *सुरक्षित तुड़ाई अंतराल
             textAlign: 'left'
           }}
         >
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#b45309', display: 'block', fontSize: '0.72rem', mb: 0.2 }}>
-            🎒 15 लीटर स्प्रे पंप (टंकी) पक्का नाप (Knapsack Pump Dose):
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4, flexWrap: 'wrap', gap: 0.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: '#b45309', fontSize: '0.74rem' }}>
+              🎒 15 लीटर स्प्रे पंप (टंकी) पक्का नाप (Knapsack Pump Dose):
+            </Typography>
+            <Button
+              size="small"
+              onClick={() => setShowPumpCalc((prev) => !prev)}
+              sx={{
+                py: 0.2,
+                px: 0.8,
+                fontSize: '0.68rem',
+                fontWeight: 800,
+                color: '#b45309',
+                border: '1px solid #fcd34d',
+                borderRadius: '8px',
+                bgcolor: '#ffffff',
+                textTransform: 'none'
+              }}
+            >
+              {showPumpCalc ? 'कैलकुलेटर छुपाएं ▲' : '🧮 कुल टंकी व दवा नापें ▼'}
+            </Button>
+          </Box>
           <Typography variant="body1" sx={{ fontWeight: 900, color: '#9a3412', fontSize: '1rem', mb: 0.3 }}>
             👉 {activeDisease.pumpDose || (isChhattisgarhi ? '15-20 ग्राम प्रति 15 लीटर टंकी' : '15-20 ग्राम प्रति 15 लीटर पंप')}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#78350f', fontSize: '0.72rem', display: 'block' }}>
-            💧 <strong>एकड़ नाप:</strong> 1 एकड़ में 150-200 लीटर पानी (लगभग 10-12 टंकी) • सुबह 8-11 या शाम 4-6 बजे शांत मौसम में छिड़काव करें।
+          <Typography variant="caption" sx={{ color: '#78350f', fontSize: '0.72rem', display: 'block', mb: 0.5 }}>
+            💧 <strong>एकड़ मानक:</strong> 1 एकड़ में 150-200 लीटर पानी (लगभग 10-12 टंकी) • सुबह 8-11 या शाम 4-6 बजे शांत मौसम में छिड़काव करें।
           </Typography>
+
+          {/* Collapsible Plot-Level Spray Calculation */}
+          <Collapse in={showPumpCalc}>
+            <Box sx={{ mt: 1.2, pt: 1.2, borderTop: '1px dashed #fcd34d' }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#92400e', display: 'block', mb: 0.6, fontSize: '0.72rem' }}>
+                📐 {isChhattisgarhi ? 'अपन खेत के रकबा चुनव (एकड़ म):' : 'अपने खेत का रकबा चुनें (एकड़ में):'}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 0.6, flexWrap: 'wrap', mb: 1 }}>
+                {[0.5, 1, 2, 3, 5].map((val) => {
+                  const isSelected = sprayAcre === val;
+                  return (
+                    <Button
+                      key={val}
+                      size="small"
+                      variant={isSelected ? 'contained' : 'outlined'}
+                      onClick={() => setSprayAcre(val)}
+                      sx={{
+                        py: 0.2,
+                        px: 0.8,
+                        minWidth: 0,
+                        fontSize: '0.7rem',
+                        fontWeight: isSelected ? 800 : 600,
+                        bgcolor: isSelected ? '#b45309' : '#fff',
+                        color: isSelected ? '#fff' : '#92400e',
+                        borderColor: '#fcd34d',
+                        borderRadius: '8px',
+                        textTransform: 'none',
+                        '&:hover': { bgcolor: isSelected ? '#92400e' : '#fef3c7' }
+                      }}
+                    >
+                      {val} एकड़
+                    </Button>
+                  );
+                })}
+              </Box>
+
+              {/* Exact Plot Calculations */}
+              {(() => {
+                const tanksCount = Math.max(1, Math.round(sprayAcre * 10));
+                const waterLiters = tanksCount * 15;
+                const match = (activeDisease.pumpDose || '').match(/(\d+(?:\.\d+)?)\s*(?:-|से)?\s*(\d+(?:\.\d+)?)?\s*(मिली|ग्राम|मि\.ली|ग्रा|ml|g)/i);
+                let totalMedStr = '';
+                if (match) {
+                  const low = parseFloat(match[1]);
+                  const high = match[2] ? parseFloat(match[2]) : low;
+                  const unit = match[3];
+                  const totalLow = Math.round(low * tanksCount);
+                  const totalHigh = Math.round(high * tanksCount);
+                  totalMedStr = totalLow === totalHigh ? `${totalLow} ${unit}` : `${totalLow} - ${totalHigh} ${unit}`;
+                }
+
+                return (
+                  <Box sx={{ p: 1, bgcolor: '#ffffff', borderRadius: '10px', border: '1px solid #fde68a' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.4 }}>
+                      <Typography variant="caption" sx={{ color: '#78350f', fontSize: '0.74rem' }}>
+                        🎒 कुल 15L स्प्रे टंकी:
+                      </Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 800, color: '#9a3412', fontSize: '0.82rem' }}>
+                        ~{tanksCount} टंकी ({waterLiters} लीटर पानी)
+                      </Typography>
+                    </Box>
+                    {totalMedStr && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.4, borderTop: '1px dashed #fef3c7' }}>
+                        <Typography variant="caption" sx={{ color: '#78350f', fontSize: '0.74rem' }}>
+                          🛒 कुल दवा खरीद अनुमान:
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 900, color: '#166534', fontSize: '0.84rem' }}>
+                          👉 {totalMedStr}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                );
+              })()}
+            </Box>
+          </Collapse>
         </Box>
 
         {/* Segmented Control Pill Switch: Chemical vs Organic */}

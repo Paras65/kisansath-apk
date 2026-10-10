@@ -33,7 +33,7 @@ export const DhanMspCalculatorSubTab = () => {
   // Paddy Kharidi Math - Fully Environment Driven & Bardana Engine
   const pAcresNum = paddyUnit === 'dismil' ? dismilToAcre(paddyAcres) : (parseFloat(paddyAcres) || 0);
   const paddyMath = calculatePaddyProcurement(pAcresNum, appConfig.paddyScheme.maxQuintalsPerAcre);
-  const maxQuintals = paddyMath.maxQuintals.toFixed(1);
+  const maxQuintals = paddyMath.maxQuintals % 1 === 0 ? paddyMath.maxQuintals.toString() : paddyMath.maxQuintals.toFixed(2);
   const totalPaddyAmount = paddyMath.totalPayout;
   const mspPart = paddyMath.mspCommon;
   const bonusPart = paddyMath.bonusCommon;
@@ -333,7 +333,7 @@ export const DhanMspCalculatorSubTab = () => {
                 {isChhattisgarhi ? `ज्यादा ले ज्यादा धान खरीदी (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):` : `अधिकतम खरीदी धान (${appConfig.paddyScheme.maxQuintalsPerAcre} क्विं/एकड़):`}
               </Typography>
               <Typography variant="body2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.92rem' }}>
-                {maxQuintals} क्विंटल
+                {maxQuintals} क्विंटल {paddyMath.netPaddyWeightKg ? `(${paddyMath.netPaddyWeightKg.toLocaleString('en-IN')} kg)` : ''}
               </Typography>
             </Box>
 
@@ -383,7 +383,7 @@ export const DhanMspCalculatorSubTab = () => {
                       ~{paddyMath.bardanaBags} {isChhattisgarhi ? 'बोरा' : 'बोरी'}
                     </Typography>
                     <Typography variant="caption" sx={{ color: '#8d6e63', fontSize: '0.65rem' }}>
-                      1 क्विंटल = 2.5 बारदाना
+                      40kg शुद्ध धान + 580g बोरा = 40.58kg तौल
                     </Typography>
                   </Box>
                 </Grid>

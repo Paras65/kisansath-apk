@@ -92,24 +92,32 @@ export const CROPS = [
 export const FERTILIZER_DOSES = {
   paddy: {
     name: 'धान (Paddy)',
-    ureaTotal: 100, // kg/acre
-    dapTotal: 50,   // kg/acre
-    mopTotal: 30,   // kg/acre
+    ureaTotal: 100, // kg/acre (IGKV Raipur Standard: 25kg Basal + 45kg Tillering + 30kg PI)
+    dapTotal: 50,   // kg/acre (1 बोरी DAP = 9 kg N + 23 kg P2O5)
+    mopTotal: 30,   // kg/acre (20kg Basal + 10kg PI)
     zincSulfate: 10, // kg/acre
     schedule: [
       {
         stage: 'बुआई / रोपाई के समय (Basal Dose)',
         time: 'खेत की अंतिम जुताई या रोपाई के तुरंत बाद',
+        dapKg: 50,
+        mopKg: 20,
+        ureaKg: 25,
+        zincKg: 10,
         dap: '50 कि.ग्रा. (1 बोरी DAP)',
         mop: '20 कि.ग्रा. पोटाश (MOP)',
         urea: '25 कि.ग्रा. यूरिया',
         zinc: '10 कि.ग्रा. जिंक सल्फेट 21%',
-        note: 'जिंक और डीएपी को कभी मिलाकर न डालें, अलग-अलग छिड़कें।'
+        note: 'जिंक और डीएपी को कभी मिलाकर न डालें, अलग-अलग छिड़कें। DAP से 9 kg नाइट्रोजन भी मिलता है।'
       },
       {
         stage: 'कल्ले फूटते समय (Tillering Stage)',
         time: 'रोपाई के 20-25 दिन बाद (प्रथम टॉप ड्रेसिंग)',
-        urea: '45 कि.ग्रा. यूरिया',
+        ureaKg: 45,
+        dapKg: 0,
+        mopKg: 0,
+        zincKg: 0,
+        urea: '45 कि.ग्रा. यूरिया (1 बोरी)',
         dap: '0 कि.ग्रा.',
         mop: '0 कि.ग्रा.',
         zinc: '0 कि.ग्रा.',
@@ -118,6 +126,10 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'गाभा / बालियां बनते समय (Panicle Initiation)',
         time: 'रोपाई के 45-50 दिन बाद (द्वितीय टॉप ड्रेसिंग)',
+        ureaKg: 30,
+        mopKg: 10,
+        dapKg: 0,
+        zincKg: 0,
         urea: '30 कि.ग्रा. यूरिया',
         mop: '10 कि.ग्रा. पोटाश (दाने चमकदार और वजनदार बनने हेतु)',
         dap: '0 कि.ग्रा.',
@@ -136,6 +148,10 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'बुआई के समय (Basal Dose)',
         time: 'बीज बोते समय कतारों में (Seed-cum-fertilizer drill)',
+        dapKg: 55,
+        mopKg: 25,
+        ureaKg: 25,
+        zincKg: 8,
         dap: '55 कि.ग्रा. (1 बोरी से थोड़ा अधिक DAP)',
         mop: '25 कि.ग्रा. पोटाश',
         urea: '25 कि.ग्रा. यूरिया',
@@ -145,12 +161,20 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'पहली सिंचाई के बाद (CRI Stage - 21 दिन)',
         time: 'सीआरआई अवस्था (क्राउन रूट इनिशिएशन)',
+        ureaKg: 35,
+        dapKg: 0,
+        mopKg: 0,
+        zincKg: 0,
         urea: '35 कि.ग्रा. यूरिया',
         note: 'सिंचाई के 2-3 दिन बाद जब पैर जमने लगे तब यूरिया का भुरकाव करें।'
       },
       {
         stage: 'दूसरी सिंचाई (गांठ बनने पर - 45 दिन)',
         time: 'बुआई के 40-45 दिन बाद',
+        ureaKg: 30,
+        dapKg: 0,
+        mopKg: 0,
+        zincKg: 0,
         urea: '30 कि.ग्रा. यूरिया',
         note: 'अंतिम यूरिया खुराक।'
       }
@@ -166,6 +190,10 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'बुआई के समय (एकमुश्त खुराक)',
         time: 'बुआई के पूर्व खेत तैयारी में',
+        dapKg: 40,
+        mopKg: 20,
+        ureaKg: 15,
+        zincKg: 5,
         dap: '40 कि.ग्रा. DAP',
         mop: '20 कि.ग्रा. MOP',
         urea: '15 कि.ग्रा. (स्टार्टर खुराक)',
@@ -184,6 +212,10 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'बुआई के समय (Basal)',
         time: 'खेत की अंतिम जुताई पर',
+        dapKg: 60,
+        mopKg: 20,
+        ureaKg: 30,
+        zincKg: 10,
         dap: '60 कि.ग्रा. DAP',
         mop: '20 कि.ग्रा. MOP',
         urea: '30 कि.ग्रा. यूरिया',
@@ -193,12 +225,20 @@ export const FERTILIZER_DOSES = {
       {
         stage: 'घुटने की ऊंचाई पर (Knee-high - 30 दिन)',
         time: 'बुआई के 25-30 दिन बाद',
+        ureaKg: 45,
+        dapKg: 0,
+        mopKg: 0,
+        zincKg: 0,
         urea: '45 कि.ग्रा. यूरिया',
         note: 'निराई-गुड़ाई के बाद मिट्टी चढ़ाते समय डालें।'
       },
       {
         stage: 'नर मंजरी (Tasseling - 50 दिन)',
         time: 'बुआई के 45-50 दिन बाद',
+        ureaKg: 35,
+        mopKg: 10,
+        dapKg: 0,
+        zincKg: 0,
         urea: '35 कि.ग्रा. यूरिया',
         mop: '10 कि.ग्रा. पोटाश',
         note: 'भुट्टे में दानों के भराव हेतु आवश्यक।'

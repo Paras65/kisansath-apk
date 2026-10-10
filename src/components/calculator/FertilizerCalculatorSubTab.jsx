@@ -827,55 +827,114 @@ export const FertilizerCalculatorSubTab = ({
         {/* FERTILIZER APPLICATION TIMELINE */}
         {activeFert && (
           <Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e293b', mb: 1.2, fontSize: '0.85rem' }}>
-              {isChhattisgarhi ? '⏱️ खाद कब अउ कतका डाले के हे (समय सारिणी):' : '⏱️ खाद कब और कितनी मात्रा में डालें (समय सारिणी):'}
-            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.2, flexWrap: 'wrap', gap: 0.8 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e293b', fontSize: '0.85rem' }}>
+                {isChhattisgarhi ? `⏱️ खाद कब अउ कतका डाले के हे (${acresNum} एकड़ बर समय सारिणी):` : `⏱️ खाद कब और कितनी मात्रा में डालें (${acresNum} एकड़ हेतु समय सारिणी):`}
+              </Typography>
+              {acresNum !== 1 && (
+                <Chip
+                  label={isChhattisgarhi ? `${acresNum} एकड़ बर गणना लागू` : `${acresNum} एकड़ अनुसार सटीक पैमाना`}
+                  size="small"
+                  sx={{ bgcolor: '#e8f5e9', color: '#1b5e20', fontWeight: 700, fontSize: '0.68rem', height: 20 }}
+                />
+              )}
+            </Box>
+
+            {/* Scientific N-P-K & DAP Credit Guidance Note */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 1.2,
+                mb: 1.5,
+                borderRadius: '12px',
+                bgcolor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 1
+              }}
+            >
+              <ScienceIcon sx={{ fontSize: 18, color: '#1d4ed8', mt: 0.2 }} />
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: '#1e40af', display: 'block', fontSize: '0.74rem' }}>
+                  {isChhattisgarhi ? '🔬 वैज्ञानिक N-P-K संतुलन (IGKV रायपुर मानक):' : '🔬 वैज्ञानिक N-P-K संतुलन (IGKV रायपुर मानक):'}
+                </Typography>
+                <Typography variant="caption" sx={{ color: '#1e3a8a', fontSize: '0.71rem', display: 'block', lineHeight: 1.35 }}>
+                  {isChhattisgarhi
+                    ? '1 बोरी (50 kg) DAP म 9 किलो नाइट्रोजन अऊ 23 किलो फास्फोरस होथे। एखरे बर बुआई म स्टार्टर यूरिया कम रखे जाथे ताकि अधिक यूरिया ले धान गिरे झन।'
+                    : '1 बोरी (50 kg) DAP से 9 kg नाइट्रोजन व 23 kg फास्फोरस मिलता है। इसलिए बुआई में स्टार्टर यूरिया सीमित रखा जाता है ताकि नाइट्रोजन अधिकता से फसल न गिरे।'}
+                </Typography>
+              </Box>
+            </Paper>
 
             <Grid container spacing={1.5}>
-              {activeFert.schedule && activeFert.schedule.map((step, idx) => (
-                <Grid item xs={12} md={6} key={idx} sx={{ display: 'flex' }}>
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      p: 1.4,
-                      width: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      bgcolor: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '14px'
-                    }}
-                  >
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
-                        <Chip
-                          label={isChhattisgarhi ? `पायरी ${idx + 1}` : `चरण ${idx + 1}`}
-                          size="small"
-                          sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
-                        />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.84rem' }}>
-                          {step.stage}
+              {activeFert.schedule && activeFert.schedule.map((step, idx) => {
+                const stepUreaKg = step.ureaKg !== undefined ? Math.round(step.ureaKg * acresNum * nMult) : null;
+                const stepDapKg = step.dapKg !== undefined ? Math.round(step.dapKg * acresNum * pMult) : null;
+                const stepMopKg = step.mopKg !== undefined ? Math.round(step.mopKg * acresNum * kMult) : null;
+                const stepZincKg = step.zincKg !== undefined ? Math.round((step.zincKg || 0) * acresNum) : null;
+
+                const ureaLabel = stepUreaKg !== null
+                  ? (stepUreaKg > 0 ? `यूरिया: ${stepUreaKg} kg (${(stepUreaKg / 45).toFixed(1)} बोरी)` : null)
+                  : (step.urea && !step.urea.includes('0 कि') ? `यूरिया: ${step.urea}` : null);
+
+                const dapLabel = stepDapKg !== null
+                  ? (stepDapKg > 0 ? `DAP: ${stepDapKg} kg (${(stepDapKg / 50).toFixed(1)} बोरी)` : null)
+                  : (step.dap && !step.dap.includes('0 कि') ? `DAP: ${step.dap}` : null);
+
+                const mopLabel = stepMopKg !== null
+                  ? (stepMopKg > 0 ? `पोटाश: ${stepMopKg} kg (${(stepMopKg / 50).toFixed(1)} बोरी)` : null)
+                  : (step.mop && !step.mop.includes('0 कि') ? `पोटाश: ${step.mop}` : null);
+
+                const zincLabel = stepZincKg !== null
+                  ? (stepZincKg > 0 ? `जिंक: ${stepZincKg} kg` : null)
+                  : (step.zinc && !step.zinc.includes('0 कि') ? `जिंक: ${step.zinc}` : null);
+
+                return (
+                  <Grid item xs={12} md={6} key={idx} sx={{ display: 'flex' }}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 1.4,
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        bgcolor: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '14px'
+                      }}
+                    >
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.6 }}>
+                          <Chip
+                            label={isChhattisgarhi ? `पायरी ${idx + 1}` : `चरण ${idx + 1}`}
+                            size="small"
+                            sx={{ bgcolor: '#2e7d32', color: '#fff', height: 20, fontSize: '0.68rem', fontWeight: 700 }}
+                          />
+                          <Typography variant="subtitle2" sx={{ fontWeight: 800, fontSize: '0.84rem' }}>
+                            {step.stage}
+                          </Typography>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.6, fontSize: '0.74rem' }}>
+                          {isChhattisgarhi ? 'बेरा' : 'समय'}: <strong>{step.time}</strong>
                         </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 0.6 }}>
+                          {ureaLabel && <Chip label={ureaLabel} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#a5d6a7', color: '#1b5e20', fontWeight: 700, bgcolor: '#ffffff' }} />}
+                          {dapLabel && <Chip label={dapLabel} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#90caf9', color: '#0d47a1', fontWeight: 700, bgcolor: '#ffffff' }} />}
+                          {mopLabel && <Chip label={mopLabel} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ffcc80', color: '#bf360c', fontWeight: 700, bgcolor: '#ffffff' }} />}
+                          {zincLabel && <Chip label={zincLabel} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ce93d8', color: '#4a148c', fontWeight: 700, bgcolor: '#ffffff' }} />}
+                        </Box>
                       </Box>
-                      <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mb: 0.6, fontSize: '0.74rem' }}>
-                        {isChhattisgarhi ? 'बेरा' : 'समय'}: <strong>{step.time}</strong>
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.8, mb: 0.6 }}>
-                        {step.urea && <Chip label={`यूरिया: ${step.urea}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#a5d6a7', color: '#1b5e20', fontWeight: 700 }} />}
-                        {step.dap && <Chip label={`DAP: ${step.dap}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#90caf9', color: '#0d47a1', fontWeight: 700 }} />}
-                        {step.mop && <Chip label={`पोटाश: ${step.mop}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ffcc80', color: '#bf360c', fontWeight: 700 }} />}
-                        {step.zinc && <Chip label={`जिंक: ${step.zinc}`} size="small" variant="outlined" sx={{ fontSize: '0.72rem', borderColor: '#ce93d8', color: '#4a148c', fontWeight: 700 }} />}
-                      </Box>
-                    </Box>
-                    {step.note && (
-                      <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
-                        {isChhattisgarhi ? '⚠️ सुरता राखव: ' : '⚠️ सावधानी: '}{step.note}
-                      </Typography>
-                    )}
-                  </Paper>
-                </Grid>
-              ))}
+                      {step.note && (
+                        <Typography variant="caption" sx={{ color: '#d84315', display: 'block', fontSize: '0.72rem', fontWeight: 600, mt: 0.5 }}>
+                          {isChhattisgarhi ? '⚠️ सुरता राखव: ' : '⚠️ सावधानी: '}{step.note}
+                        </Typography>
+                      )}
+                    </Paper>
+                  </Grid>
+                );
+              })}
             </Grid>
           </Box>
         )}

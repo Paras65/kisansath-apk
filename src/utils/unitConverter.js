@@ -72,11 +72,13 @@ export const calculatePaddyProcurement = (acres, maxQuintalPerAcre = 21) => {
     };
   }
 
-  // 1. कुल धान उपार्जन क्षमता (21 क्विंटल प्रति एकड़)
-  const maxQuintals = parseFloat((numAcres * maxQuintalPerAcre).toFixed(1));
+  // 1. कुल धान उपार्जन क्षमता (21 क्विंटल प्रति एकड़ - 2 दशमलव स्थान = 1 किलोग्राम तक शुद्ध परिशुद्धता)
+  // उदा. 75 डिसमिल (0.75 एकड़) = 15.75 क्विंटल (15 क्विंटल 75 किलो)
+  const maxQuintals = parseFloat((numAcres * maxQuintalPerAcre).toFixed(2));
 
-  // 2. बारदाना गणना (1 क्विंटल = 2.5 जूट बोरी, 1 बोरी = 40 kg मानक)
+  // 2. बारदाना गणना (1 क्विंटल = 2.5 जूट बोरी, 1 बोरी = 40 kg शुद्ध धान मानक)
   // समिति में आधा बोरा नहीं चलता, इसलिए हमेशा Math.ceil()
+  // समिति तौल कांटा मानक: 40 kg शुद्ध धान + 580 ग्राम जूट बारदाना वजन (Tare Weight) = 40.58 kg कुल तौल
   const bardanaBags = Math.ceil(maxQuintals * 2.5);
 
   // 3. किसान के स्वयं के बारदाने की प्रतिपूर्ति राशि (₹25 प्रति बोरा शासन मानक)
@@ -101,8 +103,12 @@ export const calculatePaddyProcurement = (acres, maxQuintalPerAcre = 21) => {
     acres: numAcres,
     dismil: acreToDismil(numAcres),
     maxQuintals,
+    quintalsFormatted: maxQuintals.toFixed(2),
     bardanaBags,
     bardanaReimbursement,
+    netPaddyWeightKg: Math.round(maxQuintals * 100),
+    tareWeightPerBagKg: 0.58,
+    grossWeightPerBagKg: 40.58,
     mspCommon,
     bonusCommon,
     mspGradeA,

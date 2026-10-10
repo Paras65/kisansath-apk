@@ -60,7 +60,7 @@ export const calculatePolygonArea = (points) => {
     sqMeters: Math.round(sqMeters * 10) / 10,
     acres: Number(acres.toFixed(3)),
     hectares: Number(hectares.toFixed(3)),
-    dismil: Number(dismil.toFixed(1)),
+    dismil: Number(dismil.toFixed(2)),
     bigha: Number(bigha.toFixed(2))
   };
 };
