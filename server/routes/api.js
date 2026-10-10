@@ -40,7 +40,7 @@ const getJwtSecret = () => {
   const secret = process.env.JWT_SECRET;
   if (!secret) {
     console.error('[CRITICAL SECURITY ERROR] JWT_SECRET is not configured in .env! Using safe runtime fallback.');
-    return process.env.VITE_JWT_SECRET || 'kisan_saathi_enterprise_hmac_256_secure_key_2026';
+    return 'kisan_saathi_enterprise_hmac_256_secure_key_2026';
   }
   return secret;
 };
@@ -1179,7 +1179,7 @@ router.get('/admin/stats', requireAdminAuth, async (req, res) => {
       systemHealth: {
         uptimeSeconds: Math.round(process.uptime()),
         memoryRssMb: Math.round(memUsage.rss / 1024 / 1024),
-        nodeVersion: process.version,
+        nodeVersion: 'Node.js LTS (सुरक्षित रनटाइम)',
         environment: process.env.NODE_ENV || 'production',
         timestamp: new Date().toISOString(),
       },
@@ -1218,7 +1218,7 @@ router.get('/admin/farmers', requireAdminAuth, async (req, res) => {
 
     const result = farmers.map((f) => ({
       phoneMasked: f.phone ? `${f.phone.slice(0, 2)}••••••${f.phone.slice(-2)}` : '••••••••••',
-      phone: f.phone,
+      phone: f.phone ? `${f.phone.slice(0, 2)}••••••${f.phone.slice(-2)}` : '••••••••••',
       name: f.name,
       district: f.district,
       village: f.village || '—',
@@ -1343,7 +1343,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
             id: 'mongodb',
             name: 'MongoDB Atlas क्लस्टर',
             category: 'कोर डेटाबेस (Core Database)',
-            target: mongoose.connection.host || 'Atlas Cloud Cluster',
+            target: 'Atlas Cloud Cluster (सुरक्षित)',
             status: state === 2 ? 'degraded' : 'offline',
             statusLabel: state === 2 ? 'कनेक्ट हो रहा है' : 'डिस्कनेक्टेड',
             latencyMs: Date.now() - t0,
@@ -1356,11 +1356,11 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
           id: 'mongodb',
           name: 'MongoDB Atlas क्लस्टर',
           category: 'कोर डेटाबेस (Core Database)',
-          target: mongoose.connection.host || 'Atlas Cloud Cluster',
+          target: 'Atlas Cloud Cluster (सुरक्षित)',
           status: 'connected',
           statusLabel: 'सक्रिय (Connected)',
           latencyMs: Date.now() - t0,
-          message: `डेटाबेस: ${mongoose.connection.name || 'kisan_saathi'} (सक्रिय)`,
+          message: 'डेटाबेस कनेक्शन पूर्णतः सुरक्षित व सक्रिय है',
           lastChecked: new Date().toISOString(),
         };
       } catch (err) {
@@ -1695,8 +1695,7 @@ router.get('/admin/external-config', requireAdminAuth, async (req, res) => {
   try {
     const maskKey = (key) => {
       if (!key) return 'अनुपलब्ध (Not Configured)';
-      if (key.length <= 8) return '****';
-      return `${key.slice(0, 4)}...${key.slice(-4)}`;
+      return '●●●●●●●● (सक्रिय व सुरक्षित)';
     };
 
     res.json({
