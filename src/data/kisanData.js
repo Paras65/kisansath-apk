@@ -86,6 +86,20 @@ export const CROPS = [
     harvestMonth: 'रोपाई के 60 दिन बाद से',
     waterRequirement: 'नियमित टपक सिंचाई (Drip)',
     varieties: ['अभिनव (सिंजेंटा)', 'साहो (3251)', 'हिमसोना', 'पूसा रूबी', 'अर्का रक्षक']
+  },
+  {
+    id: 'sugarcane',
+    name: 'गन्ना (Sugarcane)',
+    scientificName: 'Saccharum officinarum',
+    season: 'वार्षिक / रबी-वसंत (Annual)',
+    durationDays: '300-360 दिन',
+    msp: '₹340 / क्विंटल (FRP / राज्य शक्कर कारखाना दर)',
+    targetYield: '350-450 क्विंटल / एकड़',
+    idealPh: '6.5 - 7.5 (दोमट व भारी मटासी)',
+    sowingMonth: 'अक्टूबर-नवंबर (शरदकालीन) / फरवरी-मार्च (वसंतकालीन)',
+    harvestMonth: 'नवंबर से मार्च (10-12 माह बाद)',
+    waterRequirement: 'उच्च (1500-2000 मिमी, 8-10 सिंचाई)',
+    varieties: ['Co 86032 (नयना)', 'Co 0238 (करण-4)', 'CoC 671', 'CoLK 94184', 'Co 8014']
   }
 ];
 
@@ -242,6 +256,54 @@ export const FERTILIZER_DOSES = {
         urea: '35 कि.ग्रा. यूरिया',
         mop: '10 कि.ग्रा. पोटाश',
         note: 'भुट्टे में दानों के भराव हेतु आवश्यक।'
+      }
+    ]
+  },
+  sugarcane: {
+    name: 'गन्ना (Sugarcane)',
+    ureaTotal: 200, // kg/acre (~4.5 बोरी)
+    dapTotal: 100,  // kg/acre (2 बोरी DAP)
+    mopTotal: 80,   // kg/acre (~1.5 बोरी)
+    zincSulfate: 10,
+    schedule: [
+      {
+        stage: 'बुआई / रोपाई के समय (Basal Dose)',
+        time: 'नाली (Trench) में टुकड़े बिछाने के समय',
+        dapKg: 100,
+        mopKg: 40,
+        ureaKg: 45,
+        zincKg: 10,
+        dap: '100 कि.ग्रा. (2 बोरी DAP)',
+        mop: '40 कि.ग्रा. पोटाश (MOP)',
+        urea: '45 कि.ग्रा. यूरिया (1 बोरी)',
+        zinc: '10 कि.ग्रा. जिंक सल्फेट',
+        note: 'DAP व पोटाश को नाली में टुकड़ों के नीचे डालें। कवर्धा व बालोद शक्कर कारखाना मानक।'
+      },
+      {
+        stage: 'कल्ले फूटते समय (Tillering Stage)',
+        time: 'बुआई के 45-60 दिन बाद (प्रथम मिट्टी चढ़ाना)',
+        ureaKg: 75,
+        dapKg: 0,
+        mopKg: 0,
+        zincKg: 0,
+        urea: '75 कि.ग्रा. यूरिया',
+        dap: 'शून्य',
+        mop: 'शून्य',
+        zinc: 'शून्य',
+        note: 'पहली गुड़ाई व हल्की मिट्टी चढ़ाते समय नमी में डालें।'
+      },
+      {
+        stage: 'तीव्र बढ़वार व अंतिम मिट्टी चढ़ाना (Grand Growth)',
+        time: 'बुआई के 90-120 दिन बाद (वर्षा पूर्व)',
+        ureaKg: 80,
+        dapKg: 0,
+        mopKg: 40,
+        zincKg: 0,
+        urea: '80 कि.ग्रा. यूरिया',
+        mop: '40 कि.ग्रा. पोटाश',
+        dap: 'शून्य',
+        zinc: 'शून्य',
+        note: 'अंतिम मिट्टी चढ़ाते समय दें ताकि तेज हवा में गन्ना गिरे नहीं।'
       }
     ]
   }

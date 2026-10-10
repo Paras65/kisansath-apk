@@ -7,6 +7,10 @@ const scheduleItemSchema = new mongoose.Schema({
   mop: { type: String },
   urea: { type: String },
   zinc: { type: String },
+  dapKg: { type: Number, default: 0 },
+  mopKg: { type: Number, default: 0 },
+  ureaKg: { type: Number, default: 0 },
+  zincKg: { type: Number, default: 0 },
   note: { type: String },
 });
 

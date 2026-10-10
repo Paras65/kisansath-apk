@@ -12,7 +12,49 @@ export const generateFertilizerDirectAnswer = (crop = 'paddy', acreVal = 1.0, we
   const rainNoteHi = hasRainAlert ? ' आज बारिश/तेज हवा की संभावना है, अतः यूरिया का छिड़काव अभी टालें!' : '';
   const rainNoteCg = hasRainAlert ? ' आज पानी गिरे के संका हे, त यूरिया छिड़काव रोक देवव ताकि दवाई बोहा झन जाय!' : '';
 
-  if (crop === 'chana') {
+  if (crop === 'sugarcane') {
+    const dapBags = Math.max(1, Math.round(acreVal * 2.0));
+    const ureaBags = Math.max(1, Math.round(acreVal * 4.5));
+    const mopBags = Math.max(1, Math.round(acreVal * 1.5));
+    const zincKg = Math.max(1, Math.round(acreVal * 10));
+    const textHi = `${acreVal} एकड़ गन्ना के लिए ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया, ${mopBags} बोरी पोटाश और ${zincKg} kg जिंक लगेगी भैया!${rainNoteHi}`;
+    const textCg = `${acreVal} एकड़ गन्ना (ईख) बर ${dapBags} बोरी DAP, ${ureaBags} बोरी यूरिया, ${mopBags} बोरी पोटाश अउ ${zincKg} kg जिंक लगही संगी!${rainNoteCg}`;
+
+    const cards = [
+      { icon: '🌿', label: 'DAP (बेसल)', value: `${dapBags} बोरी`, sub: 'बुआई/रोपाई के समय', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+      { icon: '⚪', label: 'यूरिया (3 किस्त)', value: `${ureaBags} बोरी`, sub: 'कल्ले फूटने व बढ़वार बेरा', bg: '#f8fafc', border: '#cbd5e1', color: '#1e293b' },
+      { icon: '🔴', label: 'पोटाश (MOP)', value: `${mopBags} बोरी`, sub: 'गन्ना मोटाई व शर्करा वृद्धि', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' },
+      { icon: '🌱', label: 'जिंक सल्फेट', value: `${zincKg} kg`, sub: 'सफेद धारी रोग से बचाव', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
+    ];
+    if (hasRainAlert) {
+      cards.push({ icon: '⚠️', label: 'मौसम चेतावनी', value: 'छिड़काव रोकें', sub: 'बारिश/हवा में खाद न डालें', bg: '#fef2f2', border: '#fecaca', color: '#991b1b' });
+    }
+
+    return {
+      textHi,
+      textCg,
+      directAnswer: {
+        intent: 'FERTILIZER',
+        icon: '🎋',
+        headline: `${acreVal} एकड़ गन्ना खाद हिसाब`,
+        headlineCg: `${acreVal} एकड़ गन्ना बर खाद के हिसाब`,
+        queryEcho: queryEcho || `${acreVal} एकड़ गन्ना`,
+        cards,
+        advisoryText: 'गन्ना भारी खुराक वाली फसल है। बुआई के समय DAP व पोटाश दें। यूरिया को 45, 90 और 120 दिन पर मिट्टी चढ़ाते समय 3 किस्तों में दें।',
+        advisoryTextCg: 'गन्ना म बुआई बेरा DAP अउ पोटाश डालव, अउ यूरिया ला माटी चढ़ावत बेरा 3 बार म डारव संगी!',
+        whatsappShareText: `🎋 किसान साथी - गन्ना खाद हिसाब:\n• रकबा: ${acreVal} एकड़\n• DAP: ${dapBags} बोरी\n• यूरिया: ${ureaBags} बोरी\n• पोटाश: ${mopBags} बोरी\n• जिंक: ${zincKg} kg\n💡 IGKV रायपुर कृषि वैज्ञानिक अनुशंसा`,
+        needsClarification: false,
+        missingSlot: null,
+        slotSuggestions: [],
+        deepLink: { tab: 'schemes', subTab: 0, label: 'पूरा खाद कैलकुलेटर खोलें' },
+      },
+      route: { target: 'schemes', type: 'tab', label: 'खाद कैलकुलेटर' },
+      action: { type: 'AUTO_CALC_FERTILIZER', acre: acreVal, crop: 'sugarcane' },
+      needsClarification: false,
+      extractedAcre: acreVal,
+      confidence: 0.98,
+    };
+  } else if (crop === 'chana') {
     const dapBags = Math.max(1, Math.round(acreVal * 0.6));
     const mopBags = Math.max(1, Math.round(acreVal * 0.4));
     const textHi = `${acreVal} एकड़ रबी चना के लिए ${dapBags} बोरी DAP और ${mopBags} बोरी पोटाश लगेगी भैया! दलहन में यूरिया न डालें।${rainNoteHi}`;

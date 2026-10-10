@@ -422,10 +422,11 @@ function App() {
           selectedDistrict: effectiveDist,
         });
 
-        // In-Modal Action 3: Acreage fill inside active modal if open
+        // In-Modal Action 3: Acreage fill inside active modal if open AND query is purely specifying acreage
+        const isPureAcreageSpoken = /^(?:मेरा\s*)?(?:खेत\s*)?(?:\d+(?:\.\d+)?|एक|दो|तीन|चार|पांच|छह|सात|आठ|नौ|दस|डेढ़|ढाई|सवा दो|पौने दो|साढ़े तीन|साढ़े चार|आधा)\s*(?:एकड़|एकड|acre|एकर)(?:\s*(?:है|हे|का|के|रकबा|खेत|डालो|सेट|करो))?$/i.test((transcript || '').trim());
         const acreVal = brain.extractedAcre || extractAcreage(transcript);
         const openDialog = document.querySelector('.MuiDialog-root');
-        if (acreVal && openDialog) {
+        if (acreVal && openDialog && isPureAcreageSpoken && brain.directAnswer?.intent !== 'CROP_CULTIVATION' && brain.directAnswer?.intent !== 'FERTILIZER') {
           const acreInput =
             openDialog.querySelector('input[name*="acre" i]') ||
             openDialog.querySelector('input[id*="acre" i]') ||

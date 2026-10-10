@@ -35,6 +35,7 @@ import {
   handlePaddySaleFollowup,
   handleDirectAcreage,
 } from './kaka/kakaPaddyHandler.js';
+import { handleCropCultivationIntent } from './kaka/kakaCultivationHandler.js';
 import { handleWeatherIntent } from './kaka/kakaWeatherHandler.js';
 import {
   getNoSpeechResponse,
@@ -173,8 +174,19 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   const greetingRes = handleGreetingIntent(clean, transcript, selectedDistrict);
   if (greetingRes) return greetingRes;
 
-  // ── 12. Direct Acreage Input without prior intent (e.g. farmer says "2.5 एकड़") ──
-  if (extractedAcre) {
+  // ── 12. फसल बुआई, रोपाई व उन्नत खेती Intent (Crop Sowing & Cultivation) ──
+  const cultRes = handleCropCultivationIntent(clean, transcript, extractedAcre, selectedDistrict);
+  if (cultRes) {
+    if (cultRes.needsAiExpert) {
+      return handleUnknownTopicFallback(clean, transcript, selectedDistrict);
+    }
+    return cultRes;
+  }
+
+  // ── 13. Direct Acreage Input ONLY when query is purely an acreage statement (e.g. farmer says "2.5 एकड़") ──
+  // Prevents queries with other crops or actions from being hijacked as Paddy MSP calculations!
+  const isPureAcreageQuery = /^(?:मेरा\s*)?(?:खेत\s*)?(?:\d+(?:\.\d+)?|एक|दो|तीन|चार|पांच|छह|सात|आठ|नौ|दस|डेढ़|ढाई|सवा दो|पौने दो|साढ़े तीन|साढ़े चार|आधा)\s*(?:एकड़|एकड|acre|एकर)(?:\s*(?:है|हे|का|के|रकबा|खेत))?$/i.test(clean);
+  if (extractedAcre && isPureAcreageQuery) {
     return handleDirectAcreage(extractedAcre);
   }
 

@@ -1,8 +1,8 @@
 {
-  "version": "1.0.88",
+  "version": "1.0.89",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान मितान छत्तीसगढ़ v1.0.88",
-  "releaseNotes": "🎯 100% सटीक कृषि गणना इंजन: खाद समय सारिणी रकबा स्केलिंग, धान ₹3,100 उपार्जन किलोग्राम परिशुद्धता, जीपीएस मेड़ नापी जिटर व 12m गेट फ़िल्टर, तथा 15L पंप व कुल दवा खरीद कैलकुलेटर।",
+  "releaseName": "किसान मितान छत्तीसगढ़ v1.0.89",
+  "releaseNotes": "🎙️ बहिरा काका वॉयस लिसनिंग सुदृढ़ीकरण: सतत लिसनिंग (Continuous Listening) व 1.8s साइलेंस डिबाउंस से बिना कटे पूरा वाक्य सुनना, 🎋 गन्ना (Sugarcane) एवं बहु-फसली बुआई व उन्नत खेती मार्गदर्शन, तथा सख्त एकड़ निष्कर्षण सुरक्षा।",
   "updatedAt": "2026-10-10"
 }

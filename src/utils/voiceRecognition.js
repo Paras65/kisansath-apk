@@ -394,65 +394,35 @@ export const startVoiceRecognition = (onResult, onError) => {
     const recognition = new SR();
 
     recognition.lang = 'hi-IN';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 3;
 
-    recognition.onstart = () => {
-      isStarting = false;
-      isListening = true;
-      triggerHaptic([45]);
+    let accumulatedFinal = '';
+    let latestInterim = '';
+    let silenceDebounceTimer = null;
+    let isFinishing = false;
 
-      // E08: 8-second safety watchdog against tractor / wind ambient noise
+    const clearTimers = () => {
       clearWatchdog();
-      watchdogTimer = setTimeout(() => {
-        if (isListening) {
-          stopVoiceRecognition();
-          if (onError) onError('समय समाप्त हुआ। शांत जगह पर फिर से बोलें।', 'timeout');
-        }
-      }, 8500);
-
-      window._kisanStopVoiceRecognition = stopVoiceRecognition;
-      notifyListeners({ listening: true, transcript: '', error: null });
+      if (silenceDebounceTimer) {
+        clearTimeout(silenceDebounceTimer);
+        silenceDebounceTimer = null;
+      }
     };
 
-    recognition.onresult = (event) => {
-      clearWatchdog();
-      triggerHaptic([30, 40, 30]);
+    const finishWebRecognition = (textToDeliver) => {
+      if (isFinishing) return;
+      isFinishing = true;
+      clearTimers();
 
-      let primary = '';
-      let matchedRoute = null;
-      let matchedText = '';
-
-      if (event.results && event.results[0]) {
-        primary = (event.results[0][0]?.transcript || '').trim();
-
-        // 1. Check if the primary high-confidence hypothesis matches any route
-        matchedRoute = matchVoiceRoute(primary);
-        if (matchedRoute) {
-          matchedText = primary;
-        } else {
-          // 2. If primary didn't match, check if any alternative matches an agricultural route
-          for (let i = 1; i < event.results[0].length; i++) {
-            const alt = (event.results[0][i]?.transcript || '').trim();
-            const altMatch = matchVoiceRoute(alt);
-            if (altMatch) {
-              matchedRoute = altMatch;
-              matchedText = alt;
-              break;
-            }
-          }
-        }
-      }
-
-      const best = matchedText || primary;
-      const matched = matchedRoute || matchVoiceRoute(best);
-      notifyListeners({ listening: false, transcript: best, error: null });
+      const bestText = (textToDeliver || '').trim();
+      const matched = matchVoiceRoute(bestText);
 
       isListening = false;
       isStarting = false;
+      notifyListeners({ listening: false, transcript: bestText, error: null });
 
-      // Release microphone hardware immediately before any TTS speaker output
       if (recognitionInstance) {
         try {
           recognitionInstance.abort();
@@ -460,14 +430,80 @@ export const startVoiceRecognition = (onResult, onError) => {
         recognitionInstance = null;
       }
 
-      // Small sequence buffer to let OS release microphone before any TTS response
       setTimeout(() => {
-        if (onResult) onResult(best, matched);
-      }, 260);
+        if (onResult && bestText.length > 0) {
+          onResult(bestText, matched);
+        }
+      }, 220);
+    };
+
+    recognition.onstart = () => {
+      isStarting = false;
+      isListening = true;
+      isFinishing = false;
+      accumulatedFinal = '';
+      latestInterim = '';
+      triggerHaptic([45]);
+
+      // Safety watchdog against ambient engine or wind noise in fields
+      clearWatchdog();
+      watchdogTimer = setTimeout(() => {
+        if (isListening && !isFinishing) {
+          const currentSpoken = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+          if (currentSpoken.length >= 2) {
+            finishWebRecognition(currentSpoken);
+          } else {
+            stopVoiceRecognition();
+            if (onError) onError('समय समाप्त हुआ। शांत जगह पर फिर से बोलें।', 'timeout');
+          }
+        }
+      }, 12000);
+
+      window._kisanStopVoiceRecognition = stopVoiceRecognition;
+      notifyListeners({ listening: true, transcript: '', error: null });
+    };
+
+    recognition.onresult = (event) => {
+      if (isFinishing) return;
+
+      let freshFinal = '';
+      let freshInterim = '';
+
+      for (let i = 0; i < event.results.length; i++) {
+        const item = event.results[i];
+        const piece = (item[0]?.transcript || '').trim();
+        if (item.isFinal) {
+          freshFinal += (freshFinal ? ' ' : '') + piece;
+        } else {
+          freshInterim += (freshInterim ? ' ' : '') + piece;
+        }
+      }
+
+      accumulatedFinal = freshFinal;
+      latestInterim = freshInterim;
+
+      const currentSpoken = (freshFinal + (freshInterim ? ' ' + freshInterim : '')).trim();
+
+      if (currentSpoken) {
+        // Stream live transcript to UI so farmer sees words appearing as they speak
+        notifyListeners({ listening: true, transcript: currentSpoken, error: null });
+
+        // Reset silence debounce timer: Wait 1800ms of quiet after speaking before completing
+        if (silenceDebounceTimer) {
+          clearTimeout(silenceDebounceTimer);
+        }
+        silenceDebounceTimer = setTimeout(() => {
+          if (isListening && !isFinishing) {
+            triggerHaptic([30, 40, 30]);
+            finishWebRecognition(currentSpoken);
+          }
+        }, 1800);
+      }
     };
 
     recognition.onerror = (event) => {
-      clearWatchdog();
+      if (isFinishing) return;
+      clearTimers();
       isListening = false;
       isStarting = false;
       notifyListeners({ listening: false, transcript: '', error: event.error });
@@ -485,11 +521,16 @@ export const startVoiceRecognition = (onResult, onError) => {
     };
 
     recognition.onend = () => {
-      clearWatchdog();
+      clearTimers();
       isStarting = false;
-      if (isListening) {
-        isListening = false;
-        notifyListeners({ listening: false, transcript: '', error: null });
+      if (isListening && !isFinishing) {
+        const currentSpoken = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+        if (currentSpoken.length >= 2) {
+          finishWebRecognition(currentSpoken);
+        } else {
+          isListening = false;
+          notifyListeners({ listening: false, transcript: '', error: null });
+        }
       }
     };
 

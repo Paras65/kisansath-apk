@@ -43,20 +43,23 @@ export const extractAcreage = (text) => {
     if (!isNaN(val) && val > 0) return Number((val / 100).toFixed(2));
   }
 
-  // 3. Fractional vernacular colloquial terms
-  if (clean.includes('ढाई') || clean.includes('dhai')) return 2.5;
-  if (clean.includes('डेढ़') || clean.includes('dedh')) return 1.5;
-  if (clean.includes('सवा दो')) return 2.25;
-  if (clean.includes('पौने दो')) return 1.75;
-  if (clean.includes('पौने तीन')) return 2.75;
-  if (clean.includes('सवा तीन')) return 3.25;
-  if (clean.includes('साढ़े तीन')) return 3.5;
-  if (clean.includes('साढ़े चार')) return 4.5;
-  if (clean.includes('साढ़े पांच')) return 5.5;
-  if (clean.includes('आधा') || clean.includes('aadha')) return 0.5;
-  if (clean.includes('एक चौथाई') || clean.includes('पाव')) return 0.25;
+  // 3. Fractional vernacular colloquial terms WITH land units or context
+  const hasLandContext = /(?:एकड़|एकड|acre|एकर|रकबा|खेत|जमीन|भूमि)/.test(clean);
+  if (hasLandContext) {
+    if (clean.includes('ढाई') || clean.includes('dhai')) return 2.5;
+    if (clean.includes('डेढ़') || clean.includes('dedh')) return 1.5;
+    if (clean.includes('सवा दो')) return 2.25;
+    if (clean.includes('पौने दो')) return 1.75;
+    if (clean.includes('पौने तीन')) return 2.75;
+    if (clean.includes('सवा तीन')) return 3.25;
+    if (clean.includes('साढ़े तीन')) return 3.5;
+    if (clean.includes('साढ़े चार')) return 4.5;
+    if (clean.includes('साढ़े पांच')) return 5.5;
+    if (clean.includes('आधा') || clean.includes('aadha')) return 0.5;
+    if (clean.includes('एक चौथाई') || clean.includes('पाव')) return 0.25;
+  }
 
-  // 4. Spoken Devanagari numbers
+  // 4. Spoken Devanagari numbers WITH explicit acre/land unit
   const wordNumbers = {
     'एक': 1, 'दो': 2, 'तीन': 3, 'चार': 4, 'पांच': 5,
     'छह': 6, 'सात': 7, 'आठ': 8, 'नौ': 9, 'दस': 10,
@@ -65,12 +68,13 @@ export const extractAcreage = (text) => {
   };
 
   for (const [word, num] of Object.entries(wordNumbers)) {
-    const pattern = new RegExp(`(?:^|\\s)${word}(?:\\s*(?:एकड़|एकड|acre|एकड़ा))?(?:\\s|$)`);
+    // Explicit acre unit is strictly REQUIRED so "एक बात" or "दो दिन" doesn't become acreage!
+    const pattern = new RegExp(`(?:^|\\s)${word}\\s*(?:एकड़|एकड|acre|एकर|एकड़ा)(?:\\s|$)`);
     if (pattern.test(clean)) return num;
   }
 
-  // 5. Standard numerical digits
-  const digitMatch = clean.match(/(\d+(?:\.\d+)?)\s*(?:एकड़|एकड|acre|एकर)?/);
+  // 5. Standard numerical digits WITH explicit acre/land unit
+  const digitMatch = clean.match(/(\d+(?:\.\d+)?)\s*(?:एकड़|एकड|acre|एकर|एकड़ा)/);
   if (digitMatch) {
     const val = parseFloat(digitMatch[1]);
     if (!isNaN(val) && val > 0) return val;
@@ -80,15 +84,35 @@ export const extractAcreage = (text) => {
 };
 
 export const detectCropFromText = (text) => {
-  if (!text) return 'paddy';
+  if (!text) return null;
   const c = text.toLowerCase();
-  if (c.includes('चना') || c.includes('chana') || c.includes('chane')) return 'chana';
+  // 1. Sugarcane / गन्ना (प्रमुख वाणिज्यिक फसल - कवर्धा, बालोद, बेमेतरा)
+  if (c.includes('गन्ना') || c.includes('ganna') || c.includes('ईख') || c.includes('ऊख') || c.includes('sugarcane')) return 'sugarcane';
+  // 2. दलहन एवं तिलहन (Pulses & Oilseeds)
+  if (c.includes('चना') || c.includes('chana') || c.includes('chane') || c.includes('बूट')) return 'chana';
   if (c.includes('गेहूं') || c.includes('गेंहू') || c.includes('gehu') || c.includes('wheat')) return 'wheat';
-  if (c.includes('टमाटर') || c.includes('tamatar') || c.includes('tomato')) return 'tomato';
-  if (c.includes('सरसों') || c.includes('sarson') || c.includes('mustard') || c.includes('राई')) return 'sarson';
+  if (c.includes('सरसों') || c.includes('sarson') || c.includes('mustard') || c.includes('राई') || c.includes('तोरिया')) return 'sarson';
   if (c.includes('सोयाबीन') || c.includes('soyabean')) return 'soyabean';
-  if (c.includes('मक्का') || c.includes('जौनरा') || c.includes('maize') || c.includes('makka') || c.includes('भुट्टा')) return 'maize';
-  return 'paddy';
+  if (c.includes('मक्का') || c.includes('जौनरा') || c.includes('जुनहरी') || c.includes('maize') || c.includes('makka') || c.includes('भुट्टा')) return 'maize';
+  if (c.includes('धान') || c.includes('चावल') || c.includes('चांउर') || c.includes('चांवर') || c.includes('dhan') || c.includes('paddy') || c.includes('rice')) return 'paddy';
+  if (c.includes('अरहर') || c.includes('tur') || c.includes('arhar') || c.includes('तुअर') || c.includes('रहर')) return 'arhar';
+  if (c.includes('उड़द') || c.includes('urad') || c.includes('उरद')) return 'urad';
+  if (c.includes('मूंग') || c.includes('moong')) return 'moong';
+  if (c.includes('तीवड़ा') || c.includes('lakhadi') || c.includes('लाखड़ी') || c.includes('खेसरी')) return 'tivda';
+  // 3. सब्जियां एवं फल (Horticulture & Vegetables)
+  if (c.includes('टमाटर') || c.includes('tamatar') || c.includes('tomato') || c.includes('पताल') || c.includes('पाताल')) return 'tomato';
+  if (c.includes('आलू') || c.includes('aalu') || c.includes('potato') || c.includes('कंदा')) return 'potato';
+  if (c.includes('प्याज') || c.includes('pyaj') || c.includes('onion') || c.includes('गोंदली') || c.includes('गोंदलि')) return 'onion';
+  if (c.includes('मिर्च') || c.includes('mirch') || c.includes('chilli') || c.includes('मिरचा')) return 'chilli';
+  if (c.includes('बैंगन') || c.includes('baingan') || c.includes('bhata') || c.includes('भांटा') || c.includes('भाटा')) return 'brinjal';
+  if (c.includes('लहसुन') || c.includes('lahsun') || c.includes('garlic')) return 'garlic';
+  if (c.includes('अदरक') || c.includes('adrak') || c.includes('ginger')) return 'ginger';
+  if (c.includes('हल्दी') || c.includes('haldi') || c.includes('turmeric')) return 'turmeric';
+  if (c.includes('केला') || c.includes('kela') || c.includes('banana')) return 'banana';
+  if (c.includes('पपीता') || c.includes('papita') || c.includes('papaya')) return 'papaya';
+  // 4. मिलेट्स (Millets / श्री अन्न)
+  if (c.includes('कोदो') || c.includes('कुटकी') || c.includes('रागी') || c.includes('मड़िया')) return 'millets';
+  return null;
 };
 
 export const detectCommodityFromText = (text) => {
