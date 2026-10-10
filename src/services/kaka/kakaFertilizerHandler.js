@@ -219,6 +219,14 @@ export const generateFertilizerDirectAnswer = (crop = 'paddy', acreVal = 1.0, we
       extractedAcre: acreVal,
       confidence: 0.98,
     };
+  } else if (crop && !['paddy', 'dhan'].includes(crop)) {
+    // Non-static crop fertilizer query (e.g. tomato, soybean, potato, chilli, banana, papaya, etc.)
+    // Route to Google Gemini AI Agricultural Expert for certified scientific dosage
+    return {
+      needsAiExpert: true,
+      detectedCrop: crop,
+      acreVal,
+    };
   } else {
     // Default: Paddy (धान)
     const dapBags = Math.max(1, Math.round(acreVal * 1.0));
@@ -315,6 +323,14 @@ export const handleFertilizerIntent = (clean, transcript, extractedAcre, context
   const fertTriggers = ['खाद', 'यूरिया', 'dap', 'पोटाश', 'जिंक', 'सल्फर', 'कितना खाद', 'खाद कैलकुलेटर', 'खाद कते डारना', 'डारव', 'डारना', 'khad', 'khaad', 'urea', 'yuriya', 'potash'];
   if (fertTriggers.some((t) => clean.includes(t))) {
     const crop = detectCropFromText(clean);
+    if (crop && !['paddy', 'dhan', 'chana', 'wheat', 'maize', 'sarson', 'sugarcane'].includes(crop)) {
+      resetKakaSession();
+      return {
+        needsAiExpert: true,
+        detectedCrop: crop,
+        acreVal: extractedAcre || 1.0,
+      };
+    }
     if (extractedAcre) {
       resetKakaSession();
       return generateFertilizerDirectAnswer(crop, extractedAcre, context?.weather || {}, transcript);

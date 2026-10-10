@@ -47,6 +47,7 @@ import {
   handleSolarIntent,
   handleKccIntent,
   handleGreetingIntent,
+  getAiExpertPendingResponse,
   handleUnknownTopicFallback,
   handleNotUnderstoodFallback,
 } from './kaka/kakaStaticIntents.js';
@@ -135,7 +136,12 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 
   // ── 2. खाद एवं उर्वरक Intent (Fertilizer Dosage & Nano Fertilizers) ──
   const fertRes = handleFertilizerIntent(clean, transcript, extractedAcre, context);
-  if (fertRes) return fertRes;
+  if (fertRes) {
+    if (fertRes.needsAiExpert) {
+      return getAiExpertPendingResponse(transcript, `खाद हिसाब: ${fertRes.detectedCrop || ''}`);
+    }
+    return fertRes;
+  }
 
   // ── 3. लाइव मंडी भाव Intent (Mandi Rates) ──
   const isDisease = isDiseasePestQuery(clean);
@@ -148,7 +154,12 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
 
   // ── 5. फसल डॉक्टर व रोग-कीट Intent (Crop Doctor) ──
   const doctorRes = handleDoctorIntent(clean, transcript, extractedAcre);
-  if (doctorRes) return doctorRes;
+  if (doctorRes) {
+    if (doctorRes.needsAiExpert) {
+      return getAiExpertPendingResponse(transcript, `फसल रोग: ${doctorRes.detectedCrop || ''}`);
+    }
+    return doctorRes;
+  }
 
   // ── 6. मोटर कंट्रोलर Intent (Motor & Borewell) ──
   const motorRes = handleMotorIntent(clean, transcript, extractedAcre);
@@ -178,7 +189,7 @@ export const queryKakaBrain = (transcript, isChhattisgarhi = false, context = {}
   const cultRes = handleCropCultivationIntent(clean, transcript, extractedAcre, selectedDistrict);
   if (cultRes) {
     if (cultRes.needsAiExpert) {
-      return handleUnknownTopicFallback(clean, transcript, selectedDistrict);
+      return getAiExpertPendingResponse(transcript, `फसल बुआई: ${cultRes.detectedCrop || ''}`);
     }
     return cultRes;
   }

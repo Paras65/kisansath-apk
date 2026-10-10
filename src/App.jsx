@@ -451,16 +451,31 @@ function App() {
         // When Bhaira Kaka generates a Direct Answer, present it immediately in the BottomSheet
         // without navigating away from the farmer's active screen!
         if (brain.directAnswer) {
-          // If the query hit unknown topic or unclear speech, consult Google Gemini AI Agricultural Expert!
-          if (brain.directAnswer.intent === 'UNKNOWN_TOPIC' || brain.directAnswer.intent === 'NOT_UNDERSTOOD') {
+          // 🌾 OMNI-ACTIVE GEMINI AI AGRICULTURAL EXPERT INTEGRATION:
+          // Whenever a query asks about non-static crops, unknown diseases, animal husbandry, horticulture,
+          // or needs scientific expert consultation, proactively consult Google Gemini AI Agricultural Expert!
+          const needsAiConsultation =
+            brain.needsAiExpert ||
+            brain.directAnswer.needsAiExpert ||
+            brain.directAnswer.intent === 'AI_EXPERT_QUERY' ||
+            brain.directAnswer.intent === 'UNKNOWN_TOPIC' ||
+            brain.directAnswer.intent === 'NOT_UNDERSTOOD';
+
+          if (needsAiConsultation) {
             setDirectAnswerData({
               ...brain.directAnswer,
               isLoadingAiExpert: true,
-              headline: isChhattisgarhi ? '👴🏻 काका सोचत हे... कृषि वैज्ञानिक सलाह' : '👴🏻 काका सोच रहे हैं... कृषि वैज्ञानिक सलाह',
-              headlineCg: '👴🏻 काका सोचत हे... कृषि वैज्ञानिक सलाह',
-              advisoryText: 'IGKV रायपुर व ICAR अनुसंधान से आपके सवाल का प्रमाणिक उत्तर खोजा जा रहा है...',
-              advisoryTextCg: 'IGKV रायपुर व ICAR अनुसंधान ले तोर सवाल के वैज्ञानिक उत्तर खोजे जावत हे...',
+              headline: isChhattisgarhi ? '👴🏻 काका सोचत हे... कृषि सलाह' : '👴🏻 काका सोच रहे हैं... कृषि सलाह',
+              headlineCg: '👴🏻 काका सोचत हे... कृषि सलाह',
+              advisoryText: 'आपके सवाल का सटीक उत्तर तैयार किया जा रहा है...',
+              advisoryTextCg: 'तोर सवाल के समाधान खोजे जावत हे, बस दू सेकंड धीरज धरव...',
             });
+
+            // Speak reassuring interim wait phrase immediately so farmer knows Kaka is consulting research!
+            const waitSpoken = isChhattisgarhi
+              ? (brain.directAnswer.spokenCg || brain.textCg || 'काका सलाह खोजत हे संगी, बस दू सेकंड धीरज धरव...')
+              : (brain.directAnswer.spokenHi || brain.textHi || 'काका सलाह निकाल रहे हैं भैया, बस दो सेकंड रुकिए...');
+            if (waitSpoken) speakText(waitSpoken);
 
             queryKakaAiExpert(transcript, isChhattisgarhi, { district: effectiveDist })
               .then((aiResult) => {

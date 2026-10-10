@@ -2,6 +2,7 @@
 // IGKV Raipur Certified Recommendations & CIBRC Approved Chemical / Bio-Control Dosages
 
 import { resetKakaSession, setKakaSession } from './kakaSessionManager.js';
+import { detectCropFromText } from './kakaEntityExtractors.js';
 
 export const isDiseasePestQuery = (clean) => [
   'दवा', 'दवाई', 'दवाएं', 'कीड़ा', 'कीरा', 'कीट', 'रोग', 'बीमारी', 'स्प्रे', 'छिड़काव',
@@ -732,6 +733,20 @@ export const handleDoctorIntent = (clean, transcript, extractedAcre) => {
     if (clean.includes('सोयाबीन') || clean.includes('soyabean')) {
       resetKakaSession();
       return generateCropDoctorDirectAnswer('soyabean', transcript);
+    }
+
+    // If a specific crop or specific pest/symptom is mentioned outside the static set, consult Gemini AI directly!
+    const detectedCrop = detectCropFromText(clean);
+    const hasSpecificCropOrPest =
+      detectedCrop ||
+      /(?:मिर्च|मिर्चा|आलू|प्याज|लहसुन|बैंगन|भिंडी|गोभी|पत्तागोभी|फूलगोभी|केला|पपीता|अमरूद|आम|नींबू|अनार|तरबूज|खरबूज|धनिया|अदरक|हल्दी|कपास|मूंगफली|अरहर|उड़द|मूंग|कुटकी|कोदो|गन्ना|थ्रिप्स|माइट्स|जूं|सूंड़ी|फंगस|सड़न|उकठा|मरोड़|मरोड़िया|कुंचन|लीफ कर्ल|गांठ|नेमाटोड|डाईबैक|छाछिया|मिल्ड्यू|झुलसा|रतुआ|टिक्का|थनैला|खुरपका|मुंहपका)/i.test(clean);
+
+    if (hasSpecificCropOrPest) {
+      resetKakaSession();
+      return {
+        needsAiExpert: true,
+        detectedCrop,
+      };
     }
 
     setKakaSession('DOCTOR');

@@ -536,6 +536,42 @@ export const handleGreetingIntent = (clean, transcript, selectedDistrict) => {
   return null;
 };
 
+export const getAiExpertPendingResponse = (transcript, topic = 'कृषि AI सलाह') => {
+  const textHi = 'काका सलाह निकाल रहे हैं भैया, बस दो सेकंड रुकिए...';
+  const textCg = 'काका सलाह खोजत हे संगी, बस दू सेकंड धीरज धरव...';
+
+  return {
+    textHi,
+    textCg,
+    directAnswer: {
+      intent: 'AI_EXPERT_QUERY',
+      icon: '👴🏻',
+      headline: 'काका सोच रहे हैं... कृषि सलाह',
+      headlineCg: 'काका सोचत हे... कृषि सलाह',
+      queryEcho: transcript,
+      cards: [
+        { icon: '🤖', label: 'सलाह माध्यम', value: 'AI कृषि सहायक', sub: 'आधुनिक कृषि तकनीक', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
+        { icon: '⏳', label: 'स्थिति', value: 'विश्लेषण जारी...', sub: 'बस 2 सेकंड रुकें', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
+      ],
+      advisoryText: 'आपके सवाल का सटीक उत्तर तैयार किया जा रहा है...',
+      advisoryTextCg: 'तोर सवाल के उत्तर खोजे जावत हे, बस दू सेकंड धीरज धरव...',
+      spokenHi: textHi,
+      spokenCg: textCg,
+      whatsappShareText: '',
+      needsClarification: false,
+      missingSlot: null,
+      slotSuggestions: [],
+      deepLink: null,
+      needsAiExpert: true,
+      isLoadingAiExpert: true,
+    },
+    route: null,
+    action: null,
+    needsAiExpert: true,
+    confidence: 0.95,
+  };
+};
+
 export const handleUnknownTopicFallback = (clean, transcript, selectedDistrict) => {
   const words = clean.split(/\s+/).filter(Boolean);
   const isQuestionOrTopic =
@@ -543,38 +579,8 @@ export const handleUnknownTopicFallback = (clean, transcript, selectedDistrict) 
     /(?:क्या|कहाँ|कहा|कब|कौन|कइसे|काहे|कैसे|कितना|बताओ|बताव|बोल|सुना|गाना|क्रिकेट|मैच|फिल्म|सिनेमा|न्यूज|समाचार|राजनीति|गाड़ी|दुकान|स्कूल|अस्पताल|दवाखाना|रेलवे|ट्रेन|बस|टिकट|लॉटरी|मोदी|राहुल|मुख्यमंत्री|सरकार)/.test(clean);
 
   if (isQuestionOrTopic) {
-    const textHi = 'माफ़ कीजिए, इसकी जानकारी मुझे नहीं है भैया। मैं सिर्फ खेती-किसानी — धान का भाव (₹3,100), खाद गणना, मंडी भाव, मौसम व फसल रोग में सहायता कर सकता हूँ।';
-    const textCg = 'माफ करव, एकर जानकारी मोला नइ हे संगी। मैं सिरिफ किसानी — धान खरीदी (₹3,100), खाद के हिसाब, मंडी भाव, मौसम अउ फसल बीमारी के बात बता सकथंव।';
-
-    return {
-      textHi,
-      textCg,
-      directAnswer: {
-        intent: 'UNKNOWN_TOPIC',
-        icon: '❓',
-        headline: 'इसकी जानकारी उपलब्ध नहीं है',
-        headlineCg: 'एकर जानकारी नइ हे',
-        queryEcho: transcript,
-        cards: [
-          { icon: '🌾', label: 'धान खरीदी', value: '₹3,100 / क्विंटल', sub: '21 क्विंटल प्रति एकड़ कोटा', bg: '#f0fdf4', border: '#86efac', color: '#166534' },
-          { icon: '🧮', label: 'खाद हिसाब', value: 'DAP + यूरिया', sub: 'एकड़ अनुसार गणना', bg: '#fefce8', border: '#fef08a', color: '#854d0e' },
-          { icon: '🏪', label: 'मंडी भाव', value: `${selectedDistrict} मंडी`, sub: 'टमाटर, चना, सोयाबीन', bg: '#eff6ff', border: '#bfdbfe', color: '#1d4ed8' },
-          { icon: '🌤️', label: 'मौसम सलाह', value: 'आज का पूर्वानुमान', sub: 'छिड़काव व बारिश अलर्ट', bg: '#f8fafc', border: '#cbd5e1', color: '#1e293b' },
-        ],
-        advisoryText: 'मैं केवल खेती-किसानी से जुड़े सवालों का उत्तर दे सकता हूँ। कृपया नीचे दिए गए कृषि विकल्पों में से चुनें:',
-        advisoryTextCg: 'मैं सिरिफ किसानी से जुड़े सवाल के जवाब दे सकथंव। नीचे कोनो भी किसानी विकल्प ला चुनव:',
-        whatsappShareText: '',
-        needsClarification: true,
-        missingSlot: 'topic',
-        slotSuggestions: ['धान ₹3,100 भाव', 'खाद हिसाब', 'टमाटर मंडी भाव', 'आज का मौसम', 'माहू की दवा'],
-        deepLink: null,
-      },
-      route: null,
-      action: null,
-      needsClarification: false,
-      extractedAcre: null,
-      confidence: 0.2,
-    };
+    // If it looks like a genuine question or agricultural topic, consult Gemini AI directly!
+    return getAiExpertPendingResponse(transcript);
   }
   return null;
 };
