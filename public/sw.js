@@ -1,6 +1,6 @@
 // किसान साथी (Kisan Saathi) Service Worker
-// Version: v1.0.82 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
-const CACHE_NAME = 'kisan-saathi-v1.0.82';
+// Version: v1.0.83 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
+const CACHE_NAME = 'kisan-saathi-v1.0.83';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

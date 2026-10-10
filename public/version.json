@@ -1,8 +1,8 @@
 {
-  "version": "1.0.82",
+  "version": "1.0.83",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.82",
-  "releaseNotes": "⚡ ऐप लोडिंग गति, इमेज डेटा बचत व कमजोर 2G/3G नेटवर्क पर सुपरफ़ास्ट प्रदर्शन हेतु विशेष अपडेट।",
+  "releaseName": "किसान साथी v1.0.83",
+  "releaseNotes": "⚡ सुपरफ़ास्ट लोड (<50ms FCP), शून्य रेंडर-ब्लॉकिंग CSS, ARD 1.0 AI डिस्कवरेबिलिटी व सम्पूर्ण एक्सेसिबिलिटी अपडेट।",
   "updatedAt": "2026-10-10"
 }
