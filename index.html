@@ -122,8 +122,12 @@
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
             .then(function(reg) {
-              console.log('[PWA] Service Worker registered:', reg.scope);
-              reg.update();
+              if (reg && typeof reg.update === 'function') {
+                reg.update().catch(function(e) {
+                  // Non-fatal background check error (e.g. offline or Cloudflare challenge)
+                  console.debug('[PWA] SW update check deferred:', e);
+                });
+              }
 
               reg.addEventListener('updatefound', function() {
                 var installingWorker = reg.installing;

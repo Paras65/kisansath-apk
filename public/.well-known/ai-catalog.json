@@ -1,0 +1,65 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ards-project/ard-spec/main/spec/schemas/ai-catalog.schema.json",
+  "specVersion": "1.0",
+  "host": {
+    "displayName": "किसान साथी (Kisan Saathi)",
+    "identifier": "did:web:kisan.init65.co.in"
+  },
+  "entries": [
+    {
+      "identifier": "urn:air:kisan.init65.co.in:app:kisan-saathi",
+      "displayName": "Kisan Saathi Agricultural Portal",
+      "type": "text/html",
+      "url": "https://kisan.init65.co.in/",
+      "description": "Comprehensive agricultural advisory, crop lifecycle tracking, and procurement portal for Indian farmers.",
+      "representativeQueries": [
+        "छत्तीसगढ़ धान खरीदी दर ₹3,100",
+        "dhan kharidi rate chhattisgarh",
+        "धान फसल में खैरा रोग का इलाज",
+        "NPK खाद कैलकुलेटर",
+        "chhattisgarh mandi bhav today",
+        "krishak unnati yojana token tuhar hath"
+      ]
+    },
+    {
+      "identifier": "urn:air:kisan.init65.co.in:tool:crop-doctor",
+      "displayName": "AI Crop Doctor & Plant Pathology",
+      "type": "text/html",
+      "url": "https://kisan.init65.co.in/?tab=doctor",
+      "description": "AI-powered multimodal plant disease diagnosis with statutory CIB&RC approved chemical remedies and organic solutions.",
+      "representativeQueries": [
+        "धान के पत्ते पीले हो रहे हैं",
+        "चना में उकठा रोग",
+        "गेंहू में रतुआ रोग",
+        "crop disease diagnosis online",
+        "plant pathology AI assistant"
+      ]
+    },
+    {
+      "identifier": "urn:air:kisan.init65.co.in:tool:fertilizer-schemes-calculator",
+      "displayName": "Fertilizer Dosage & Dhan MSP Calculator",
+      "type": "text/html",
+      "url": "https://kisan.init65.co.in/?tab=schemes",
+      "description": "Scientific NPK fertilizer dosage calculation per soil type and statutory Chhattisgarh Krishak Unnati Yojana paddy sales estimator.",
+      "representativeQueries": [
+        "एक एकड़ धान में यूरिया कितना डालें",
+        "DAP Potash dosage per acre",
+        "21 quintal per acre dhan hisab",
+        "bardana gunny bag calculator"
+      ]
+    },
+    {
+      "identifier": "urn:air:kisan.init65.co.in:tool:mandi-rates",
+      "displayName": "Live APMC Mandi Rates",
+      "type": "text/html",
+      "url": "https://kisan.init65.co.in/?tab=mandi",
+      "description": "Real-time modal mandi commodity rates across all 33 districts of Chhattisgarh from Agmarknet / OGD India.",
+      "representativeQueries": [
+        "रायपुर मंडी धान का भाव",
+        "chhattisgarh mandi rates live",
+        "APMC market price today",
+        "मक्का चना सोयाबीन मंडी भाव"
+      ]
+    }
+  ]
+}

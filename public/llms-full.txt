@@ -32,10 +32,10 @@
 - **Audio & Accessibility:** Voice Assistant and Web Speech with Chhattisgarhi folk persona "बहिरा काका" (Bhaira Kaka) and high-contrast accessibility.
 - **Weather & Spray Advisory:** Automatic spray suppression advisory when wind speed exceeds 15 km/h or rain probability is high.
 
-## 3. Web Navigation
+## 3. Web Navigation & Key Resources
 
-- Portal Home: https://kisan.init65.co.in/
-- Mandi Live Rates: https://kisan.init65.co.in/?tab=mandi
-- AI Crop Doctor: https://kisan.init65.co.in/?tab=doctor
-- Fertilizer & Dhan Calculator: https://kisan.init65.co.in/?tab=schemes
-- Chaupal & Community: https://kisan.init65.co.in/?tab=chaupal
+- [किसान साथी वेब पोर्टल (Kisan Saathi Portal)](https://kisan.init65.co.in/): All-in-one farmer dashboard
+- [लाइव मंडी भाव (Live Mandi Rates)](https://kisan.init65.co.in/?tab=mandi): Real-time APMC Mandi rates across 33 districts
+- [एआई फसल डॉक्टर (AI Crop Doctor)](https://kisan.init65.co.in/?tab=doctor): Plant disease diagnosis and organic/chemical remedies
+- [खाद व उपार्जन कैलकुलेटर (Fertilizer & Procurement)](https://kisan.init65.co.in/?tab=schemes): NPK dosage and Krishak Unnati Yojana calculator
+- [किसान चौपाल (Kisan Chaupal Community)](https://kisan.init65.co.in/?tab=chaupal): Agricultural community and equipment rental

@@ -2,25 +2,17 @@
 
 > Kisan Saathi (किसान साथी) is a comprehensive Agritech Progressive Web App (PWA) and Android application designed for farmers in India, with specialized baseline intelligence for Chhattisgarh (IGKV Raipur, DAC&FW, Agmarknet).
 
-## Core Farmer Features & Services
+## Core Farmer Resources & Modules
 
-- **🌾 एआई फसल डॉक्टर (AI Crop Doctor):** Real-time plant pathology diagnosis using multi-modal AI. Identifies diseases in Paddy, Wheat, Chickpea, Maize, Vegetable crops with statutory CIB&RC approved chemical remedies and organic solutions. Dosage normalized per 15L Knapsack spray pump.
-- **🧮 खाद नाप-जोख कैलकुलेटर (Fertilizer Dosage Calculator):** Exact NPK calculation (Urea 46% N, DAP 18:46:0, MOP 60% K, Zinc 21% Zn) calibrated per acre and dismil according to IGKV Raipur agro-climatic standards and soil type (Matasi, Dorsa, Kanhar, Bhatha).
-- **💰 धान उपार्जन ₹3,100 कैलकुलेटर (Paddy MSP Procurement):** Statutory calculator for Chhattisgarh Krishak Unnati Yojana (21 quintals/acre cap, ₹3,100/qtl total rate, ₹2,369/qtl MSP + ₹731/qtl DBT bonus), Jute Bardana sack estimator (2.5 bags/qtl), ₹25 reimbursement, and Token Tuhar Hath guidelines.
-- **🏪 लाइव मंडी भाव (Live Mandi APMC Rates):** Real-time modal APMC market prices across all 33 districts of Chhattisgarh sourced directly from Agmarknet / OGD India.
-- **⛅ कृषि मौसम व छिड़काव परामर्श (Agricultural Weather Advisory):** Micro-climatic weather alerts, rain probability, and wind speed interlocks (>15 km/h suppresses chemical spraying).
-- **🗣️ बहिरा काका वॉयस असिस्टेंट (Bhaira Kaka Voice Assistant):** Natural voice interaction in Chhattisgarhi and Hindi with zero-typing touch interfaces.
+- [किसान साथी वेब पोर्टल (Kisan Saathi Web App)](https://kisan.init65.co.in/): All-in-one agricultural platform covering crop cycle, agro-climatic advisories, and procurement support.
+- [एआई फसल डॉक्टर (AI Crop Doctor)](https://kisan.init65.co.in/?tab=doctor): Real-time multi-modal plant pathology diagnosis with statutory CIB&RC approved chemical remedies and organic solutions.
+- [खाद व धान उपार्जन ₹3,100 कैलकुलेटर (Fertilizer & MSP Calculator)](https://kisan.init65.co.in/?tab=schemes): Exact NPK fertilizer dosage calculation and statutory Chhattisgarh Krishak Unnati Yojana paddy procurement and gunny bag estimator.
+- [लाइव मंडी भाव (Live Mandi Rates)](https://kisan.init65.co.in/?tab=mandi): Real-time modal APMC market prices across all 33 districts of Chhattisgarh sourced from Agmarknet / OGD India.
+- [किसान चौपाल (Kisan Chaupal)](https://kisan.init65.co.in/?tab=chaupal): Peer-to-peer farmer community, expert agricultural questions and answers, and custom hiring center equipment sharing.
 
-## Canonical Web URLs & Navigation
+## Documentation & Governance
 
-- Web App: https://kisan.init65.co.in/
-- Crop Doctor: https://kisan.init65.co.in/?tab=doctor
-- Fertilizer & Dhan Calculator: https://kisan.init65.co.in/?tab=schemes
-- Live Mandi Rates: https://kisan.init65.co.in/?tab=mandi
-- Kisan Chaupal: https://kisan.init65.co.in/?tab=chaupal
-
-## Contact & Governance
-
-- Package ID: in.co.init65.kisan
-- Helpline: 1800-180-1551 (Kisan Call Center)
-- Technical Support: support@init65.co.in
+- [किसान मार्गदर्शिका (User Manual)](https://kisan.init65.co.in/docs/USER_MANUAL.md): Comprehensive Hindi and Chhattisgarhi operational documentation for farmers and extension officers.
+- [वर्शन व रिलीज़ जानकारी (Release Version)](https://kisan.init65.co.in/version.json): Official application release metadata and compatibility specifications.
+- [एंड्रॉइड एपीके डाउनलोड (Android APK)](https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk): Official standalone APK package for offline installation.
+- [हेल्पलाइन व संपर्क (Kisan Helpline)](tel:18001801551): 1800-180-1551 (टोल-फ्री किसान कॉल सेंटर).
