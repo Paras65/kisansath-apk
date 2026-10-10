@@ -1,0 +1,28 @@
+# Kisan Saathi (किसान साथी) Robots Configuration
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# AI & LLM Crawlers
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://kisan.init65.co.in/sitemap.xml

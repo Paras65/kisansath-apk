@@ -1,0 +1,41 @@
+# किसान साथी (Kisan Saathi) — Full Context for AI Agents & Search Crawlers
+
+> Comprehensive agricultural domain model, statutory state agricultural rules, and farmer guidance for Kisan Saathi (PWA & Android `in.co.init65.kisan`).
+
+## 1. Statutory Agricultural Parameters (Chhattisgarh Context)
+
+### धान उपार्जन (Paddy Procurement)
+- **योजना:** कृषक उन्नति योजना (छत्तीसगढ़ शासन)
+- **सुनिश्चित कुल भाव:** ₹3,100 प्रति क्विंटल
+- **समिति MSP (साधारण धान):** ₹2,369 प्रति क्विंटल (भारत सरकार न्यूनतम समर्थन मूल्य)
+- **अंतर राशि (बोनस DBT):** ₹731 प्रति क्विंटल
+- **उपार्जन सीमा:** 21 क्विंटल प्रति एकड़ (100 डिसमिल = 1 एकड़)
+- **बारदाना नियम:** 1 क्विंटल धान = 2.5 मानक जूट बोरी (40 kg प्रति बोरी)
+- **बारदाना प्रतिपूर्ति:** ₹25 प्रति बोरा शासन द्वारा कृषक को बैंक खाते में वापसी
+- **टोकन तुंहर हाथ कोटा:** ≤10 एकड़ रकबे पर अधिकतम 2 टोकन, >10 एकड़ रकबे पर अधिकतम 3 टोकन
+
+### खाद अनुशंसा (IGKV Raipur Scientific Recommendations)
+- **यूरिया (Urea, 46% N):** मानक 45 kg बोरी
+- **डीएपी (DAP, 18:46:0):** मानक 50 kg बोरी
+- **पोटाश (MOP, 60% K):** मानक 50 kg बोरी
+- **जिंक सल्फेट (Zinc Sulfate, 21% Zn):** 10 kg प्रति एकड़ (खैरा रोग रोकथाम)
+- **मिट्टी वर्गीकरण:**
+  - भाठा (लाल कंकरीली, pH 5.5-6.5, निम्न जलधारण)
+  - मटासी (पीली दोमट, pH 6.0-7.0, मध्यम जलधारण)
+  - डोर्सा (मध्यम भारी, pH 6.5-7.5, उच्च जलधारण)
+  - कन्हार (काली चिकनी, pH 7.0-8.2, अति उच्च जलधारण)
+
+## 2. Core Operational Capabilities & Farmer Safeguards
+
+- **Zero-False-Data Policy:** If network fails, strict offline baseline is served from local statutory cache with verified badges; no unverified prices or dosages are ever presented.
+- **Fear-Free, Zero-Paperwork UX:** No land survey or intimidating terms; simple crop calendar tracking with 100% privacy and zero paperwork.
+- **Audio & Accessibility:** Voice Assistant and Web Speech with Chhattisgarhi folk persona "बहिरा काका" (Bhaira Kaka) and high-contrast accessibility.
+- **Weather & Spray Advisory:** Automatic spray suppression advisory when wind speed exceeds 15 km/h or rain probability is high.
+
+## 3. Web Navigation
+
+- Portal Home: https://kisan.init65.co.in/
+- Mandi Live Rates: https://kisan.init65.co.in/?tab=mandi
+- AI Crop Doctor: https://kisan.init65.co.in/?tab=doctor
+- Fertilizer & Dhan Calculator: https://kisan.init65.co.in/?tab=schemes
+- Chaupal & Community: https://kisan.init65.co.in/?tab=chaupal

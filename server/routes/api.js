@@ -113,18 +113,26 @@ const isValidIndianPhone = (phone) => {
   return /^[6-9]\d{9}$/.test(cleanPhone);
 };
 
+// Enterprise Security Helper: Sanitize & Mask technical errors in HTTP responses to prevent OWASP CWE-209 leaks
+const safeTechnicalError = (err) => {
+  if (process.env.NODE_ENV === 'production') {
+    return 'तकनीकी विवरण सुरक्षित सर्वर लॉग में दर्ज है।';
+  }
+  return sanitizeLogMessage(err?.message || String(err), 500);
+};
+
 // Centralized error handling & logging imported from ../middleware/errorHandler.js
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.81';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.82';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
     minSupportedVersion: '1.0.0',
     apkDownloadUrl: process.env.VITE_APK_DOWNLOAD_URL || process.env.APK_DOWNLOAD_URL || '',
     releaseName: `${appName} v${version}`,
-    releaseNotes: '🏛️ कृषि प्रशासन व सुपर एडमिन पोर्टल (AdminPortal) का व्यापक मॉड्यूलर रिफैक्टरिंग (8 समर्पित सब-मॉड्यूल्स में विभाजन), मुख्य फाइल में 2,400+ लाइनों की कटौती (-85.2%) एवं प्रदर्शन अनुकूलन।',
+    releaseNotes: '⚡ ऐप लोडिंग गति, इमेज डेटा बचत व कमजोर 2G/3G नेटवर्क पर सुपरफ़ास्ट प्रदर्शन हेतु विशेष अपडेट।',
     updatedAt: new Date().toISOString()
   });
 });
@@ -136,7 +144,7 @@ router.get('/crops', async (req, res) => {
     res.json(crops);
   } catch (err) {
     logApiError('GET /crops', req, err);
-    res.status(500).json({ error: 'Failed to fetch crops data', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch crops data', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -151,7 +159,7 @@ router.get('/fertilizers', async (req, res) => {
     res.json(map);
   } catch (err) {
     logApiError('GET /fertilizers', req, err);
-    res.status(500).json({ error: 'Failed to fetch fertilizer dosage data', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch fertilizer dosage data', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -164,7 +172,7 @@ router.get('/diseases', async (req, res) => {
     res.json(diseases);
   } catch (err) {
     logApiError('GET /diseases', req, err);
-    res.status(500).json({ error: 'Failed to fetch diseases data', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch diseases data', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -215,7 +223,7 @@ router.post('/crop-doctor/diagnose', validateBody('CropDoctorDiagnoseRequest', S
     res.status(500).json({
       success: false,
       error: 'एआई जांच में समस्या आई। कृपया पुनः प्रयास करें।',
-      technicalError: err.message
+      technicalError: safeTechnicalError(err)
     });
   }
 });
@@ -278,7 +286,7 @@ router.post('/crop-doctor/chat', validateBody('CropDoctorChatRequest', Schemas.C
     res.status(500).json({
       success: false,
       error: 'सलाह प्राप्त करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
-      technicalError: err.message
+      technicalError: safeTechnicalError(err)
     });
   }
 });
@@ -325,7 +333,7 @@ router.post('/kaka-brain/expert', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'सलाह प्राप्त करने में त्रुटि हुई। कृपया पुनः प्रयास करें।',
-      technicalError: err.message
+      technicalError: safeTechnicalError(err)
     });
   }
 });
@@ -344,7 +352,7 @@ router.get('/mandi-rates', async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('GET /mandi-rates', req, err);
-    res.status(500).json({ success: false, error: 'मंडी भाव लोड करने में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'मंडी भाव लोड करने में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -364,7 +372,7 @@ router.post('/mandi-rates/refresh', async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('POST /mandi-rates/refresh', req, err);
-    res.status(500).json({ success: false, error: 'लाइव मंडी भाव रीफ्रेश करने में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'लाइव मंडी भाव रीफ्रेश करने में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -399,7 +407,7 @@ router.post('/mandi-rates/offline-query', validateBody('OfflineMandiQueryRequest
     });
   } catch (err) {
     logApiError('POST /mandi-rates/offline-query', req, err);
-    res.status(500).json({ success: false, error: 'ऑफ़लाइन पूछताछ सिंक करने में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'ऑफ़लाइन पूछताछ सिंक करने में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -414,7 +422,7 @@ router.get('/cibrc-pesticides', async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('GET /cibrc-pesticides', req, err);
-    res.status(500).json({ success: false, error: 'CIB&RC डेटा लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'CIB&RC डेटा लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -426,7 +434,7 @@ router.get('/soil-health/:district', async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('GET /soil-health/:district', req, err);
-    res.status(500).json({ success: false, error: 'मृदा स्वास्थ्य डेटा लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'मृदा स्वास्थ्य डेटा लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -437,7 +445,7 @@ router.get('/msp-benchmarks', async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('GET /msp-benchmarks', req, err);
-    res.status(500).json({ success: false, error: 'MSP मानक डेटा लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ success: false, error: 'MSP मानक डेटा लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -448,7 +456,7 @@ router.get('/schemes', async (req, res) => {
     res.json(schemes);
   } catch (err) {
     logApiError('GET /schemes', req, err);
-    res.status(500).json({ error: 'Failed to fetch schemes data', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch schemes data', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -459,7 +467,7 @@ router.get('/machinery', async (req, res) => {
     res.json(machinery);
   } catch (err) {
     logApiError('GET /machinery', req, err);
-    res.status(500).json({ error: 'Failed to fetch machinery listings', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch machinery listings', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -509,7 +517,7 @@ router.post('/machinery', validateBody('CreateMachineryRentalRequest', Schemas.C
     res.status(201).json(saved);
   } catch (err) {
     logApiError('POST /machinery', req, err);
-    res.status(500).json({ error: 'मशीनरी लिस्टिंग सहेजने में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ error: 'मशीनरी लिस्टिंग सहेजने में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -520,7 +528,7 @@ router.get('/community-qa', async (req, res) => {
     res.json(questions);
   } catch (err) {
     logApiError('GET /community-qa', req, err);
-    res.status(500).json({ error: 'Failed to fetch community discussions', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch community discussions', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -559,7 +567,7 @@ router.post('/community-qa', validateBody('CreateCommunityQARequest', Schemas.Cr
     res.status(201).json(saved);
   } catch (err) {
     logApiError('POST /community-qa', req, err);
-    res.status(500).json({ error: 'Failed to save question', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to save question', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -613,7 +621,7 @@ router.post('/community-qa/:id/reply', validateBody('CreateCommunityReplyRequest
     res.json(qa);
   } catch (err) {
     logApiError('POST /community-qa/:id/reply', req, err);
-    res.status(500).json({ error: 'उत्तर सहेजने में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ error: 'उत्तर सहेजने में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -624,7 +632,7 @@ router.get('/marketplace', async (req, res) => {
     res.json(listings);
   } catch (err) {
     logApiError('GET /marketplace', req, err);
-    res.status(500).json({ error: 'Failed to fetch marketplace listings', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to fetch marketplace listings', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -686,7 +694,7 @@ router.post('/marketplace', validateBody('CreateMarketListingRequest', Schemas.C
     res.status(201).json(saved);
   } catch (err) {
     logApiError('POST /marketplace', req, err);
-    res.status(500).json({ error: 'Failed to save market listing', technicalError: err.message });
+    res.status(500).json({ error: 'Failed to save market listing', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -760,7 +768,7 @@ router.post('/farmer/auth', validateBody('FarmerAuthRequest', Schemas.FarmerAuth
     res.status(201).json({ token, farmer: farmerSafe });
   } catch (err) {
     logApiError('POST /farmer/auth', req, err);
-    res.status(500).json({ error: 'किसान लॉगिन विफल रहा।', technicalError: err.message });
+    res.status(500).json({ error: 'किसान लॉगिन विफल रहा।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -775,7 +783,7 @@ router.get('/farmer/profile/:phone', requireFarmerAuth, async (req, res) => {
     res.json(farmer);
   } catch (err) {
     logApiError('GET /farmer/profile/:phone', req, err);
-    res.status(500).json({ error: 'डेटा लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'डेटा लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -829,7 +837,7 @@ router.post('/farmer/plots/:phone', requireFarmerAuth, validateBody('SavePlotReq
     res.json(farmer.plots);
   } catch (err) {
     logApiError('POST /farmer/plots/:phone', req, err);
-    res.status(500).json({ error: 'प्लॉट सहेजने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'प्लॉट सहेजने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -851,7 +859,7 @@ router.delete('/farmer/plots/:phone/:plotId', requireFarmerAuth, async (req, res
     res.json(farmer.plots);
   } catch (err) {
     logApiError('DELETE /farmer/plots/:phone/:plotId', req, err);
-    res.status(500).json({ error: 'प्लॉट हटाने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'प्लॉट हटाने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -899,7 +907,7 @@ router.post('/farmer/tasks/:phone', requireFarmerAuth, validateBody('ToggleTaskR
     res.json({ plotId: targetPlot.plotId, completedTasks: targetPlot.completedTasks });
   } catch (err) {
     logApiError('POST /farmer/tasks/:phone', req, err);
-    res.status(500).json({ error: 'कार्य स्थिति अपडेट करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'कार्य स्थिति अपडेट करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -914,7 +922,7 @@ router.get('/farmer/diary/:phone', requireFarmerAuth, async (req, res) => {
     res.json(farmer.farmDiary || []);
   } catch (err) {
     logApiError('GET /farmer/diary/:phone', req, err);
-    res.status(500).json({ error: 'डायरी डेटा लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'डायरी डेटा लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -982,7 +990,7 @@ router.post('/farmer/diary/:phone', requireFarmerAuth, validateBody('CreateFarmD
     res.status(201).json(farmer.farmDiary);
   } catch (err) {
     logApiError('POST /farmer/diary/:phone', req, err);
-    res.status(500).json({ error: 'फसल डायरी प्रविष्टि सहेजने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'फसल डायरी प्रविष्टि सहेजने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1003,7 +1011,7 @@ router.delete('/farmer/diary/:phone/:entryId', requireFarmerAuth, async (req, re
     res.json(farmer.farmDiary);
   } catch (err) {
     logApiError('DELETE /farmer/diary/:phone/:entryId', req, err);
-    res.status(500).json({ error: 'डायरी प्रविष्टि हटाने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'डायरी प्रविष्टि हटाने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1035,7 +1043,7 @@ router.get('/broadcasts', async (req, res) => {
     res.json(broadcasts);
   } catch (err) {
     logApiError('GET /broadcasts', req, err);
-    res.status(500).json({ error: ' Failed to fetch broadcasts', technicalError: err.message });
+    res.status(500).json({ error: ' Failed to fetch broadcasts', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1113,7 +1121,7 @@ router.post('/admin/login', validateBody('AdminLoginRequest', Schemas.AdminLogin
     });
   } catch (err) {
     logApiError('POST /admin/login', req, err);
-    res.status(500).json({ error: 'प्रशासक लॉगिन में समस्या आई।', technicalError: err.message });
+    res.status(500).json({ error: 'प्रशासक लॉगिन में समस्या आई।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1178,7 +1186,7 @@ router.get('/admin/stats', requireAdminAuth, async (req, res) => {
     });
   } catch (err) {
     logApiError('GET /admin/stats', req, err);
-    res.status(500).json({ error: 'प्लेटफॉर्म सांख्यिकी लोड करने में असमर्थ।', technicalError: err.message });
+    res.status(500).json({ error: 'प्लेटफॉर्म सांख्यिकी लोड करने में असमर्थ।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1222,7 +1230,7 @@ router.get('/admin/farmers', requireAdminAuth, async (req, res) => {
     res.json(result);
   } catch (err) {
     logApiError('GET /admin/farmers', req, err);
-    res.status(500).json({ error: 'किसान रजिस्ट्री लोड करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'किसान रजिस्ट्री लोड करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1233,7 +1241,7 @@ router.get('/admin/broadcasts', requireAdminAuth, async (req, res) => {
     res.json(list);
   } catch (err) {
     logApiError('GET /admin/broadcasts', req, err);
-    res.status(500).json({ error: 'प्रसारण लोड करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'प्रसारण लोड करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1263,7 +1271,7 @@ router.post('/admin/broadcasts', requireAdminAuth, validateBody('CreateBroadcast
     res.status(201).json(saved);
   } catch (err) {
     logApiError('POST /admin/broadcasts', req, err);
-    res.status(500).json({ error: 'प्रसारण सहेजने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'प्रसारण सहेजने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1280,7 +1288,7 @@ router.delete('/admin/broadcasts/:id', requireAdminAuth, async (req, res) => {
     res.json({ success: true, message: 'प्रसारण सफलतापूर्वक हटा दिया गया।' });
   } catch (err) {
     logApiError('DELETE /admin/broadcasts/:id', req, err);
-    res.status(500).json({ error: 'प्रसारण हटाने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'प्रसारण हटाने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1298,7 +1306,7 @@ router.delete('/admin/listings/:id', requireAdminAuth, async (req, res) => {
     res.json({ success: true, message: 'उपज लिस्टिंग हटा दी गई।' });
   } catch (err) {
     logApiError('DELETE /admin/listings/:id', req, err);
-    res.status(500).json({ error: 'लिस्टिंग हटाने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'लिस्टिंग हटाने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1316,7 +1324,7 @@ router.delete('/admin/qa/:id', requireAdminAuth, async (req, res) => {
     res.json({ success: true, message: 'चौपाल चर्चा हटा दी गई।' });
   } catch (err) {
     logApiError('DELETE /admin/qa/:id', req, err);
-    res.status(500).json({ error: 'चर्चा हटाने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'चर्चा हटाने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1678,7 +1686,7 @@ router.get('/admin/api-health', requireAdminAuth, async (req, res) => {
     });
   } catch (err) {
     logApiError('GET /admin/api-health', req, err);
-    res.status(500).json({ error: 'एपीआई स्वास्थ्य जांच निष्पादित करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'एपीआई स्वास्थ्य जांच निष्पादित करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1807,7 +1815,7 @@ router.get('/admin/external-config', requireAdminAuth, async (req, res) => {
     });
   } catch (err) {
     logApiError('GET /admin/external-config', req, err);
-    res.status(500).json({ error: 'बाह्य एपीआई कॉन्फ़िगरेशन प्राप्त करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'बाह्य एपीआई कॉन्फ़िगरेशन प्राप्त करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1832,7 +1840,7 @@ router.get('/admin/audit-logs', requireAdminAuth, (req, res) => {
     });
   } catch (err) {
     logApiError('GET /admin/audit-logs', req, err);
-    res.status(500).json({ error: 'सुरक्षा ऑडिट लॉग्स प्राप्त करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'सुरक्षा ऑडिट लॉग्स प्राप्त करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 
@@ -1846,7 +1854,7 @@ router.delete('/admin/audit-logs', requireAdminAuth, (req, res) => {
     });
   } catch (err) {
     logApiError('DELETE /admin/audit-logs', req, err);
-    res.status(500).json({ error: 'ऑडिट लॉग्स साफ़ करने में विफल।', technicalError: err.message });
+    res.status(500).json({ error: 'ऑडिट लॉग्स साफ़ करने में विफल।', technicalError: safeTechnicalError(err) });
   }
 });
 

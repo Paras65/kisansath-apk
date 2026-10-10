@@ -50,9 +50,11 @@ export const InstallPrompt = ({ onInstall, onDismiss }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0, flex: 1 }}>
           <Box
             component="img"
-            src="/icons/kisan-icon-512.png"
+            src="/icons/kisan-icon-512.webp"
             onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
-            alt="Icon"
+            alt={appConfig.appName}
+            width="34"
+            height="34"
             sx={{ width: 34, height: 34, borderRadius: 1.8, flexShrink: 0 }}
           />
           <Box sx={{ minWidth: 0, overflow: 'hidden' }}>

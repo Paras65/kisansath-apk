@@ -285,7 +285,11 @@ export const handleApiError = (
 
   const status = err?.statusCode || statusCode;
   const userMsg = err?.userMessage || (typeof err === 'string' ? err : null) || fallbackUserMessage;
-  const techMsg = err?.technicalError || err?.message || String(err);
+  const isProd = process.env.NODE_ENV === 'production';
+  const rawTech = err?.technicalError || err?.message || String(err);
+  const techMsg = isProd
+    ? 'तकनीकी विवरण सुरक्षित सर्वर लॉग में दर्ज है।'
+    : sanitizeLogMessage(rawTech, 500);
 
   return res.status(status).json({
     success: false,
@@ -308,10 +312,16 @@ export const centralizedErrorHandler = (err, req, res, next) => {
   const statusCode = err?.statusCode || (res.statusCode >= 400 ? res.statusCode : 500);
   logApiError(req?.originalUrl || req?.url, req, err);
 
+  const isProd = process.env.NODE_ENV === 'production';
+  const rawTech = err?.technicalError || err?.message || 'Unknown Server Error';
+  const techMsg = isProd
+    ? 'तकनीकी विवरण सुरक्षित सर्वर लॉग में दर्ज है।'
+    : sanitizeLogMessage(rawTech, 500);
+
   res.status(statusCode).json({
     success: false,
     error: err?.userMessage || (statusCode === 500 ? 'सर्वर में तकनीकी समस्या आई (Internal Server Error)।' : err?.message),
-    technicalError: err?.technicalError || err?.message || 'Unknown Server Error',
+    technicalError: techMsg,
     path: req?.originalUrl,
     timestamp: new Date().toISOString(),
   });

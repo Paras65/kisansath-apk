@@ -252,9 +252,11 @@ export const Header = ({
           >
             <Box
               component="img"
-              src="/icons/kisan-icon-512.png"
+              src="/icons/kisan-icon-512.webp"
               onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
               alt={appConfig.appName}
+              width="42"
+              height="42"
               sx={{
                 width: { xs: 38, sm: 42 },
                 height: { xs: 38, sm: 42 },
@@ -263,7 +265,7 @@ export const Header = ({
               }}
             />
             <Box>
-              <Typography variant="h6" sx={{ fontSize: { xs: '1.15rem', sm: '1.25rem', lg: '1.32rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
+              <Typography variant="h6" component="h1" sx={{ fontSize: { xs: '1.15rem', sm: '1.25rem', lg: '1.32rem' }, fontWeight: 800, lineHeight: 1.1, color: '#ffffff' }}>
                 {appConfig.appName}
               </Typography>
               <Typography variant="caption" sx={{ color: '#c8e6c9', fontSize: '0.7rem', letterSpacing: 0.3, display: { xs: 'none', sm: 'block' } }}>

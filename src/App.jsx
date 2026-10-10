@@ -992,9 +992,11 @@ function App() {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 0.8 }}>
               <Box
                 component="img"
-                src="/icons/kisan-icon-512.png"
+                src="/icons/kisan-icon-512.webp"
                 onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
                 alt={appConfig.appName}
+                width="28"
+                height="28"
                 sx={{ width: 28, height: 28, borderRadius: 1.5 }}
               />
               <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1b5e20', fontSize: '0.88rem' }}>
@@ -1124,9 +1126,11 @@ function App() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
                   <Box
                     component="img"
-                    src="/icons/kisan-icon-512.png"
+                    src="/icons/kisan-icon-512.webp"
                     onError={(e) => { e.currentTarget.src = '/icons/kisan-icon.svg'; }}
                     alt={appConfig.appName}
+                    width="44"
+                    height="44"
                     sx={{ width: 44, height: 44, borderRadius: 2.5, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
                   />
                   <Box>

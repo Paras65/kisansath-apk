@@ -20,7 +20,13 @@ export const DraggableVoiceButton = ({
   isChhattisgarhi = false,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [position, setPosition] = useState(null); // { x, y } in px
+  const [position, setPosition] = useState(() => {
+    if (typeof window === 'undefined') return { x: 16, y: 500 };
+    return {
+      x: Math.max(16, window.innerWidth - 205),
+      y: Math.max(76, window.innerHeight - 130)
+    };
+  }); // { x, y } in px
   const [liveTranscript, setLiveTranscript] = useState('');
   const isDraggingRef = useRef(false);
   const startPosRef = useRef({ x: 0, y: 0, initialElemX: 0, initialElemY: 0 });
@@ -70,22 +76,20 @@ export const DraggableVoiceButton = ({
     return () => observer.disconnect();
   }, []);
 
-  // Compute default bottom-right position
+  // Window resize handler (debounced position clamping)
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const defaultX = Math.max(16, window.innerWidth - (isModalOpen ? 64 : 205));
-    const defaultY = Math.max(76, window.innerHeight - 130);
-
-    // If user hasn't dragged, set default
-    if (!position) {
-      setPosition({ x: defaultX, y: defaultY });
-    }
 
     const handleResize = () => {
       setPosition((prev) => {
-        if (!prev) return { x: defaultX, y: defaultY };
         const maxX = window.innerWidth - (isModalOpen ? 56 : 195);
         const maxY = window.innerHeight - 80;
+        if (!prev) {
+          return {
+            x: Math.max(16, maxX),
+            y: Math.max(76, maxY - 50),
+          };
+        }
         return {
           x: Math.min(Math.max(10, prev.x), maxX),
           y: Math.min(Math.max(10, prev.y), maxY),

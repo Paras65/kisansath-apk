@@ -1,22 +1,20 @@
 // किसान साथी (Kisan Saathi) Service Worker
-// Version: v1.0.81 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
-const CACHE_NAME = 'kisan-saathi-v1.0.81';
+// Version: v1.0.82 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
+const CACHE_NAME = 'kisan-saathi-v1.0.82';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json',
   '/version.json',
-  '/icons/kisan-icon-512.png',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/llms.txt',
   '/icons/kisan-icon-512.webp',
-  '/icons/kisan-icon.png',
   '/icons/kisan-icon.webp',
   '/icons/kisan-icon.svg',
   '/icons/kaka-idle.webp',
   '/icons/kaka-listening.webp',
   '/icons/kaka-speaking.webp',
-  '/icons/kaka-idle.png',
-  '/icons/kaka-listening.png',
-  '/icons/kaka-speaking.png',
   '/favicon.svg'
 ];
 
@@ -24,7 +22,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.72');
+      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.82');
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
         console.warn('[Kisan Saathi SW] Non-fatal caching warning:', err);
       });
