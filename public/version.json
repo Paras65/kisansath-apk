@@ -1,8 +1,8 @@
 {
-  "version": "1.0.80",
+  "version": "1.0.81",
   "minSupportedVersion": "1.0.0",
   "apkDownloadUrl": "https://github.com/Paras65/kisansath-apk/releases/latest/download/kisan-saathi.apk",
-  "releaseName": "किसान साथी v1.0.80",
-  "releaseNotes": "🌾 खाद, धान व योजना कैलकुलेटर (CalculatorSchemesTab) का स्वच्छ मॉड्यूलर रिफैक्टरिंग, मुख्य फाइल में 85.8% कोड संकुचन एवं 3 समर्पित सब-मॉड्यूल्स में विभाजन।",
+  "releaseName": "किसान साथी v1.0.81",
+  "releaseNotes": "🌿 एआई फसल डॉक्टर (CropDoctorTab) का स्वच्छ मॉड्यूलर रिफैक्टरिंग, मुख्य फाइल में 80.6% कोड संकुचन एवं 5 समर्पित सब-मॉड्यूल्स में विभाजन।",
   "updatedAt": "2026-10-10"
 }
