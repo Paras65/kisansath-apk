@@ -7,8 +7,8 @@ const env = import.meta.env || {};
 export const appConfig = {
   // 1. Branding & Geography
   appName: env.VITE_APP_NAME || 'किसान साथी',
-  appTagline: env.VITE_APP_TAGLINE || 'फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
-  appVersion: env.VITE_APP_VERSION || '1.0.85',
+  appTagline: env.VITE_APP_TAGLINE || 'छत्तीसगढ़ • फसल से लेकर बिक्री तक सम्पूर्ण समाधान',
+  appVersion: env.VITE_APP_VERSION || '1.0.86',
   supportEmail: env.VITE_SUPPORT_EMAIL || 'support@init65.co.in',
   defaultLang: env.VITE_DEFAULT_LANG || 'cg',
   stateName: env.VITE_STATE_NAME || 'छत्तीसगढ़',
