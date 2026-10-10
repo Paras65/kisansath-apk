@@ -59,17 +59,17 @@
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;500;600;700;800&family=Roboto:wght@300;400;500;700&display=swap">
     </noscript>
 
-    <!-- PWA Self-Healing: Instant Stale Cache & Chunk Load Error Recovery -->
+    <!-- PWA Self-Healing: Stale Chunk & MIME Error Recovery (Targeted only, no false reloads) -->
     <script>
       window.addEventListener('error', function(event) {
         var msg = (event && event.message) || '';
-        var isScriptError = (event && event.target && event.target.tagName === 'SCRIPT');
         var isMimeOrChunk = msg.indexOf('MIME type') !== -1 ||
                             msg.indexOf('Failed to load module script') !== -1 ||
-                            msg.indexOf('Loading chunk') !== -1;
-        if (isMimeOrChunk || isScriptError) {
-          console.warn('[PWA Self-Healing] Stale script or MIME error detected:', msg);
-          var healKey = 'kisan_sw_healed_' + Math.floor(Date.now() / 30000);
+                            msg.indexOf('Loading chunk') !== -1 ||
+                            msg.indexOf('dynamically imported module') !== -1;
+        if (isMimeOrChunk) {
+          console.warn('[PWA Self-Healing] Stale chunk load error detected:', msg);
+          var healKey = 'kisan_sw_healed_' + Math.floor(Date.now() / 60000);
           if (!sessionStorage.getItem(healKey)) {
             sessionStorage.setItem(healKey, '1');
             if ('caches' in window) {
@@ -90,45 +90,51 @@
             }
           }
         }
-      }, true);
+      });
     </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
-    <!-- Service Worker Registration with Instant Cache Eviction & Auto-Update -->
+    <!-- Service Worker Registration with First-Load Preservation & Smooth Update -->
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
+        // Track whether an existing controller was already running on initial page load
+        var hadControllerOnLoad = Boolean(navigator.serviceWorker.controller);
+
+        window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' })
-            .then((reg) => {
-              console.log('[PWA] Service Worker active:', reg.scope);
-              // Proactively check for newer SW release on every visit
+            .then(function(reg) {
+              console.log('[PWA] Service Worker registered:', reg.scope);
               reg.update();
 
-              // When a new SW is found & installed, prepare reload
-              reg.addEventListener('updatefound', () => {
-                const installingWorker = reg.installing;
+              reg.addEventListener('updatefound', function() {
+                var installingWorker = reg.installing;
                 if (installingWorker) {
-                  installingWorker.addEventListener('statechange', () => {
+                  installingWorker.addEventListener('statechange', function() {
                     if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      console.log('[PWA] New version ready. Applying update...');
+                      console.log('[PWA] New version ready.');
                     }
                   });
                 }
               });
             })
-            .catch((err) => {
+            .catch(function(err) {
               console.warn('[PWA] Service Worker registration failed:', err);
             });
 
-          // Smoothly reload once the new Service Worker activates and claims clients
-          let isRefreshing = false;
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
+          // Reload ONLY when an existing active SW was replaced by an update.
+          // NEVER reload on the first visit, preventing FCP cancellations in Lighthouse.
+          var isRefreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!hadControllerOnLoad) {
+              // First visit installation: do NOT reload
+              return;
+            }
             if (!isRefreshing) {
               isRefreshing = true;
-              console.log('[PWA] Controller changed, reloading to display latest version.');
+              console.log('[PWA] Controller updated, reloading for latest assets.');
               window.location.reload();
             }
           });
