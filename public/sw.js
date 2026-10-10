@@ -1,6 +1,6 @@
 // किसान साथी (Kisan Saathi) Service Worker
-// Version: v1.0.83 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
-const CACHE_NAME = 'kisan-saathi-v1.0.83';
+// Version: v1.0.84 (Network-First Navigation + Stale-While-Revalidate Assets + Zero-Poisoning)
+const CACHE_NAME = 'kisan-saathi-v1.0.84';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -12,6 +12,10 @@ const ASSETS_TO_CACHE = [
   '/ai-catalog.json',
   '/.well-known/ai-catalog.json',
   '/.well-known/ard.json',
+  '/favicon.ico',
+  '/favicon.png',
+  '/icons/kisan-icon.png',
+  '/icons/kisan-icon-512.png',
   '/icons/kisan-icon-512.webp',
   '/icons/kisan-icon.webp',
   '/icons/kisan-icon.svg',
@@ -25,7 +29,7 @@ const ASSETS_TO_CACHE = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.82');
+      console.log('[Kisan Saathi SW] Pre-caching App Shell v1.0.84');
       return cache.addAll(ASSETS_TO_CACHE).catch((err) => {
         console.warn('[Kisan Saathi SW] Non-fatal caching warning:', err);
       });

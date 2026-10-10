@@ -125,7 +125,7 @@ const safeTechnicalError = (err) => {
 
 // 0. App Version Check (Rate-limit free In-App Update Engine)
 router.get('/version', (req, res) => {
-  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.83';
+  const version = process.env.VITE_APP_VERSION || process.env.APP_VERSION || '1.0.84';
   const appName = process.env.VITE_APP_NAME || 'किसान साथी';
   res.json({
     version,
