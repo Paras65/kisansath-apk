@@ -280,6 +280,48 @@ if (typeof document !== 'undefined') {
 }
 
 /**
+ * Deduplicate repeated words or multi-word phrases emitted by speech recognition.
+ * Fixes Chromium Android bug #659223 and stuttering/hesitation repetitions.
+ * Uses Unicode-safe word tokenization without ASCII \b restrictions.
+ * Examples:
+ *   "धान का भाव धान का भाव" -> "धान का भाव"
+ *   "धान धान का भाव" -> "धान का भाव"
+ *   "दवाई दवाई" -> "दवाई"
+ */
+export const deduplicateSpeechTranscript = (text) => {
+  if (!text || typeof text !== 'string') return '';
+  const clean = text.trim().replace(/\s+/g, ' ');
+  if (!clean) return '';
+
+  const words = clean.split(' ');
+  if (words.length === 0) return '';
+
+  // 1. Remove consecutive identical words: ["धान", "धान", "का", "भाव"] -> ["धान", "का", "भाव"]
+  const dedupedWords = [];
+  for (let i = 0; i < words.length; i++) {
+    if (i === 0 || words[i].toLowerCase() !== words[i - 1].toLowerCase()) {
+      dedupedWords.push(words[i]);
+    }
+  }
+
+  // 2. Remove multi-word repeated phrases: e.g. ["धान", "का", "भाव", "धान", "का", "भाव"] -> ["धान", "का", "भाव"]
+  if (dedupedWords.length >= 4) {
+    for (let len = Math.floor(dedupedWords.length / 2); len >= 2; len--) {
+      for (let i = 0; i <= dedupedWords.length - 2 * len; i++) {
+        const chunk1 = dedupedWords.slice(i, i + len).join(' ').toLowerCase();
+        const chunk2 = dedupedWords.slice(i + len, i + 2 * len).join(' ').toLowerCase();
+        if (chunk1 === chunk2) {
+          dedupedWords.splice(i + len, len);
+          return deduplicateSpeechTranscript(dedupedWords.join(' '));
+        }
+      }
+    }
+  }
+
+  return dedupedWords.join(' ');
+};
+
+/**
  * Start voice recognition with comprehensive edge case protections:
  * - Cancels active TTS beforehand to prevent echo feedback loop (E01)
  * - Rapid tap debouncing (E02)
@@ -293,17 +335,24 @@ export const startVoiceRecognition = (onResult, onError) => {
     return;
   }
 
-  // E02: Prevent duplicate calls if already starting
-  if (isStarting) return;
-  isStarting = true;
-
   // E01: Stop all active TTS immediately so mic doesn't hear the speaker!
   if (isSpeaking()) {
     stopSpeech();
   }
 
-  // Stop any lingering session
+  // Stop any lingering recognition session cleanly
   stopVoiceRecognition();
+
+  // E02: Prevent duplicate calls if already starting
+  if (isStarting) return;
+  isStarting = true;
+
+  // Auto-clear starting lock after 3 seconds in case of unhandled browser hang
+  setTimeout(() => {
+    if (isStarting && !isListening) {
+      isStarting = false;
+    }
+  }, 3000);
 
   const clearWatchdog = () => {
     if (watchdogTimer) {
@@ -338,13 +387,14 @@ export const startVoiceRecognition = (onResult, onError) => {
     };
 
     window._kisanOnNativeSpeechPartial = (partial) => {
-      notifyListeners({ listening: true, transcript: partial, error: null });
+      const clean = deduplicateSpeechTranscript(partial || '');
+      notifyListeners({ listening: true, transcript: clean, error: null });
     };
 
     window._kisanOnNativeSpeechResult = (text) => {
       clearWatchdog();
       triggerHaptic([30, 40, 30]);
-      const best = (text || '').trim();
+      const best = deduplicateSpeechTranscript((text || '').trim());
       const matched = matchVoiceRoute(best);
       notifyListeners({ listening: false, transcript: best, error: null });
       isListening = false;
@@ -353,7 +403,7 @@ export const startVoiceRecognition = (onResult, onError) => {
       // Sequence buffer to let audio hardware switch from mic to speaker cleanly
       setTimeout(() => {
         if (onResult) onResult(best, matched);
-      }, 260);
+      }, 150);
     };
 
     window._kisanOnNativeSpeechError = (code) => {
@@ -394,9 +444,9 @@ export const startVoiceRecognition = (onResult, onError) => {
     const recognition = new SR();
 
     recognition.lang = 'hi-IN';
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 3;
+    recognition.continuous = false; // Single-shot utterance — terminates cleanly upon natural pause without looping or duplicate buffers
+    recognition.interimResults = true; // Provides live instant visual feedback as farmer speaks
+    recognition.maxAlternatives = 1; // Snappy, low network latency
 
     let accumulatedFinal = '';
     let latestInterim = '';
@@ -416,7 +466,7 @@ export const startVoiceRecognition = (onResult, onError) => {
       isFinishing = true;
       clearTimers();
 
-      const bestText = (textToDeliver || '').trim();
+      const bestText = deduplicateSpeechTranscript((textToDeliver || '').trim());
       const matched = matchVoiceRoute(bestText);
 
       isListening = false;
@@ -434,7 +484,7 @@ export const startVoiceRecognition = (onResult, onError) => {
         if (onResult && bestText.length > 0) {
           onResult(bestText, matched);
         }
-      }, 220);
+      }, 150);
     };
 
     recognition.onstart = () => {
@@ -445,11 +495,12 @@ export const startVoiceRecognition = (onResult, onError) => {
       latestInterim = '';
       triggerHaptic([45]);
 
-      // Safety watchdog against ambient engine or wind noise in fields
+      // Safety watchdog against ambient engine or wind noise in fields (8s)
       clearWatchdog();
       watchdogTimer = setTimeout(() => {
         if (isListening && !isFinishing) {
-          const currentSpoken = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+          const raw = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+          const currentSpoken = deduplicateSpeechTranscript(raw);
           if (currentSpoken.length >= 2) {
             finishWebRecognition(currentSpoken);
           } else {
@@ -457,7 +508,7 @@ export const startVoiceRecognition = (onResult, onError) => {
             if (onError) onError('समय समाप्त हुआ। शांत जगह पर फिर से बोलें।', 'timeout');
           }
         }
-      }, 12000);
+      }, 8000);
 
       window._kisanStopVoiceRecognition = stopVoiceRecognition;
       notifyListeners({ listening: true, transcript: '', error: null });
@@ -479,16 +530,36 @@ export const startVoiceRecognition = (onResult, onError) => {
         }
       }
 
+      freshFinal = deduplicateSpeechTranscript(freshFinal);
+      freshInterim = deduplicateSpeechTranscript(freshInterim);
+
       accumulatedFinal = freshFinal;
       latestInterim = freshInterim;
 
-      const currentSpoken = (freshFinal + (freshInterim ? ' ' + freshInterim : '')).trim();
+      let currentSpoken = '';
+      if (freshFinal && freshInterim) {
+        if (freshFinal.toLowerCase().includes(freshInterim.toLowerCase())) {
+          currentSpoken = freshFinal;
+        } else if (freshInterim.toLowerCase().includes(freshFinal.toLowerCase())) {
+          currentSpoken = freshInterim;
+        } else {
+          currentSpoken = deduplicateSpeechTranscript(freshFinal + ' ' + freshInterim);
+        }
+      } else {
+        currentSpoken = freshFinal || freshInterim;
+      }
+
+      currentSpoken = deduplicateSpeechTranscript(currentSpoken);
 
       if (currentSpoken) {
         // Stream live transcript to UI so farmer sees words appearing as they speak
         notifyListeners({ listening: true, transcript: currentSpoken, error: null });
 
-        // Reset silence debounce timer: Wait 1800ms of quiet after speaking before completing
+        // If the speech engine has delivered a final result, debounce shortly (350ms)
+        // Otherwise wait 1200ms of quiet before completing
+        const hasFinal = Boolean(freshFinal);
+        const debounceMs = hasFinal ? 350 : 1200;
+
         if (silenceDebounceTimer) {
           clearTimeout(silenceDebounceTimer);
         }
@@ -497,7 +568,7 @@ export const startVoiceRecognition = (onResult, onError) => {
             triggerHaptic([30, 40, 30]);
             finishWebRecognition(currentSpoken);
           }
-        }, 1800);
+        }, debounceMs);
       }
     };
 
@@ -524,7 +595,8 @@ export const startVoiceRecognition = (onResult, onError) => {
       clearTimers();
       isStarting = false;
       if (isListening && !isFinishing) {
-        const currentSpoken = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+        const raw = (accumulatedFinal + (latestInterim ? ' ' + latestInterim : '')).trim();
+        const currentSpoken = deduplicateSpeechTranscript(raw);
         if (currentSpoken.length >= 2) {
           finishWebRecognition(currentSpoken);
         } else {

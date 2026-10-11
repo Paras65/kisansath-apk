@@ -10,6 +10,7 @@
 
 import { notify } from '../services/notificationService';
 import { stopSpeech } from './speech';
+import { deduplicateSpeechTranscript } from './voiceRecognition';
 
 // स्थानीय छत्तीसगढ़ी उपनाम मैपिंग (Comprehensive CG Dialect & Produce Synonym Mapping)
 export const CROP_SYNONYMS = {
@@ -118,7 +119,7 @@ export const startVoiceRecognition = ({
   onResult,
   onListeningChange,
   onError,
-  silenceTimeoutMs = 4500
+  silenceTimeoutMs = 1500
 }) => {
   if (!isSpeechRecognitionSupported()) {
     const msg = 'आपके ब्राउज़र में माइक वॉइस पहचान समर्थित नहीं है। कृपया नीचे दिए गए 1-टैप बटन छुएं।';
@@ -170,16 +171,33 @@ export const startVoiceRecognition = ({
     let interimTranscript = '';
     let finalTranscript = '';
 
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      const trans = event.results[i][0].transcript;
+    for (let i = 0; i < event.results.length; ++i) {
+      const trans = (event.results[i][0]?.transcript || '').trim();
       if (event.results[i].isFinal) {
-        finalTranscript += trans;
+        finalTranscript += (finalTranscript ? ' ' : '') + trans;
       } else {
-        interimTranscript += trans;
+        interimTranscript += (interimTranscript ? ' ' : '') + trans;
       }
     }
 
-    const transcript = finalTranscript || interimTranscript;
+    finalTranscript = deduplicateSpeechTranscript(finalTranscript);
+    interimTranscript = deduplicateSpeechTranscript(interimTranscript);
+
+    let transcript = '';
+    if (finalTranscript && interimTranscript) {
+      if (finalTranscript.toLowerCase().includes(interimTranscript.toLowerCase())) {
+        transcript = finalTranscript;
+      } else if (interimTranscript.toLowerCase().includes(finalTranscript.toLowerCase())) {
+        transcript = interimTranscript;
+      } else {
+        transcript = deduplicateSpeechTranscript(finalTranscript + ' ' + interimTranscript);
+      }
+    } else {
+      transcript = finalTranscript || interimTranscript;
+    }
+
+    transcript = deduplicateSpeechTranscript(transcript);
+
     if (transcript) {
       const normalized = normalizeSpokenQuery(transcript);
       if (onResult) onResult(normalized, transcript);

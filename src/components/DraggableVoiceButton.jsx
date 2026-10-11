@@ -37,7 +37,7 @@ export const DraggableVoiceButton = ({
   // Monitor voice transcript state
   useEffect(() => {
     const unsub = subscribeVoiceState(({ listening, transcript }) => {
-      setLiveTranscript(transcript || '');
+      setLiveTranscript(listening ? (transcript || '') : '');
     });
     return () => unsub();
   }, []);
@@ -298,7 +298,7 @@ export const DraggableVoiceButton = ({
         }}
       >
         {/* Floating Live Speech Transcript Bubble */}
-        {(isVoiceListening || (isSpeakingActive && liveTranscript)) && (
+        {isVoiceListening && (
           <Box
             sx={{
               position: 'absolute',
@@ -306,7 +306,7 @@ export const DraggableVoiceButton = ({
               right: isModalOpen ? 0 : 'auto',
               left: isModalOpen ? 'auto' : '50%',
               transform: isModalOpen ? 'none' : 'translateX(-50%)',
-              bgcolor: isSpeakingActive ? 'rgba(183, 28, 28, 0.95)' : 'rgba(21, 101, 192, 0.95)',
+              bgcolor: 'rgba(21, 101, 192, 0.95)',
               color: '#ffffff',
               px: 1.5,
               py: 0.6,
@@ -331,7 +331,7 @@ export const DraggableVoiceButton = ({
                 transform: isModalOpen ? 'none' : 'translateX(-50%)',
                 borderWidth: '5px',
                 borderStyle: 'solid',
-                borderColor: `${isSpeakingActive ? 'rgba(183, 28, 28, 0.95)' : 'rgba(21, 101, 192, 0.95)'} transparent transparent transparent`,
+                borderColor: 'rgba(21, 101, 192, 0.95) transparent transparent transparent',
               },
             }}
           >
