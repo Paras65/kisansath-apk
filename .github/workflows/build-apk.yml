@@ -63,6 +63,7 @@ jobs:
         with:
           name: kisan-saathi-native-apk
           path: output-apk/*.apk
+          retention-days: 1
 
       - name: 🚀 Publish GitHub Release
         uses: softprops/action-gh-release@v2
