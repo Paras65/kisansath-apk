@@ -1,4 +1,4 @@
-name: 📱 Build Kisan Saathi Native Android APK
+name: 📱 Build & Release Native Android APK
 
 on:
   push:
@@ -8,35 +8,51 @@ on:
 
 permissions:
   contents: write
+  actions: write
+
+env:
+  NODE_VERSION: '20'
+  JAVA_VERSION: '21'
+  APK_FILENAME: ${{ vars.APK_FILENAME || 'kisan-saathi.apk' }}
+  VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL || 'https://kisan-saathi-api-4sdo.onrender.com/api' }}
+  VITE_APP_HOST: ${{ vars.VITE_APP_HOST || 'https://kisan.init65.co.in' }}
 
 jobs:
   build-apk:
-    name: 🏗️ Compile Native Android APK (Capacitor)
+    name: 🏗️ Compile & Release Android APK
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
 
-      - name: ☕ Setup Java JDK 21
+      - name: 🔍 Extract App Metadata Dynamically
+        id: meta
+        run: |
+          APP_NAME=$(node -e "const fs=require('fs'); const cap=fs.existsSync('capacitor.config.json')?JSON.parse(fs.readFileSync('capacitor.config.json','utf8')):{}; const pkg=fs.existsSync('package.json')?JSON.parse(fs.readFileSync('package.json','utf8')):{}; console.log(cap.appName || pkg.name || 'Native App');")
+          APP_ID=$(node -e "const fs=require('fs'); const cap=fs.existsSync('capacitor.config.json')?JSON.parse(fs.readFileSync('capacitor.config.json','utf8')):{}; console.log(cap.appId || 'com.app.native');")
+          APP_VER=$(node -e "const fs=require('fs'); const pkg=fs.existsSync('package.json')?JSON.parse(fs.readFileSync('package.json','utf8')):{}; console.log(pkg.version || '1.0.0');")
+          echo "app_name=$APP_NAME" >> "$GITHUB_OUTPUT"
+          echo "app_id=$APP_ID" >> "$GITHUB_OUTPUT"
+          echo "app_ver=$APP_VER" >> "$GITHUB_OUTPUT"
+
+      - name: ☕ Setup Java JDK ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
 
-      - name: 🟢 Setup Node.js
+      - name: 🟢 Setup Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: 📦 Install Dependencies
         run: npm install
 
       - name: 🔨 Build Web Application
-        env:
-          VITE_API_BASE_URL: https://kisan-saathi-api-4sdo.onrender.com/api
-          VITE_APP_HOST: https://kisan.init65.co.in
         run: npm run build
 
       - name: 📱 Add & Sync Capacitor Android
@@ -44,47 +60,48 @@ jobs:
           npx cap add android || true
           npx cap sync android
 
-      - name: 🛠️ Configure Android 3D Icons & Module Permissions
-        run: node scripts/configure-android.js
+      - name: 🛠️ Run Custom Android Configuration (If Present)
+        run: |
+          if [ -f "scripts/configure-android.js" ]; then
+            node scripts/configure-android.js
+          fi
 
       - name: 🔑 Build Native Android APK via Gradle
         working-directory: android
         run: |
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
-          # Prepare output folder
           mkdir -p ../output-apk
-          cp app/build/outputs/apk/debug/app-debug.apk ../output-apk/kisan-saathi.apk
-          cp app/build/outputs/apk/debug/app-debug.apk ../output-apk/kisan-saathi-native.apk
+          cp app/build/outputs/apk/debug/app-debug.apk "../output-apk/${APK_FILENAME}"
 
-      - name: 📤 Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: kisan-saathi-native-apk
-          path: output-apk/*.apk
-          retention-days: 1
+      - name: 🧹 Purge Old Actions Artifacts (Free Storage Quota to 0 MB)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/actions/artifacts --paginate -q '.artifacts[].id' | while read -r id; do
+            if [ -n "$id" ]; then
+              echo "Deleting old artifact ID: $id"
+              gh api -X DELETE "repos/${{ github.repository }}/actions/artifacts/$id" || true
+            fi
+          done
 
-      - name: 🚀 Publish GitHub Release
+      - name: 🚀 Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'v1.0.0-latest' }}
-          name: ${{ startsWith(github.ref, 'refs/tags/v') && format('Release {0} - किसान साथी Native Android APK', github.ref_name) || '📱 किसान साथी Native Android APK (100% Real App)' }}
-          files: output-apk/*.apk
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('v{0}-latest', steps.meta.outputs.app_ver) }}
+          name: ${{ format('📱 {0} v{1} — Native Android APK', steps.meta.outputs.app_name, steps.meta.outputs.app_ver) }}
+          files: output-apk/${{ env.APK_FILENAME }}
           draft: false
           prerelease: false
           make_latest: true
           generate_release_notes: true
           body: |
-            ## 🌾 किसान साथी Native Android App (100% Real Android APK)
+            ## 📱 ${{ steps.meta.outputs.app_name }} (v${{ steps.meta.outputs.app_ver }}) — Native Android APK
             
-            - **इंजन:** `@capacitor/android` Native Bridge
-            - **पैकेज आईडी:** `in.co.init65.kisan`
-            - **फीचर्स:**
-              - 🚫 **कोई ब्राउज़र URL बार नहीं:** शुद्ध फुल-स्क्रीन असली ऐप अनुभव
-              - 🚀 **100% नेटिव फील:** हार्डवेयर बैक बटन, स्टेटस बार थीम (`#1b5e20`)
-              - 🎨 **प्रीमियम 3D आइकॉन:** सोने की बाली व एमराल्ड पत्ती
-              - ⚡ **ऑफलाइन सक्षम:** बिना इंटरनेट के भी सुपरफ़ास्ट
+            - **Package ID:** `${{ steps.meta.outputs.app_id }}`
+            - **Version:** `v${{ steps.meta.outputs.app_ver }}`
+            - **Engine:** `@capacitor/android` Native Bridge
             
-            ### 📥 डाउनलोड लिंक:
-            - नीचे दी गई `kisan-saathi.apk` सीधे अपने Android फोन में इंस्टॉल करें।
+            ### 📥 Direct APK Download:
+            - Download **`${{ env.APK_FILENAME }}`** from the Assets section below and install directly on your Android device.
