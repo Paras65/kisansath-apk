@@ -33,14 +33,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Technical API Request & Error Debugger Logger
+// Optimized Request Logger: Zero log spam on Render Free Tier
 app.use((req, res, next) => {
+  // Completely suppress health check log pollution (UptimeRobot / Cron pings)
+  if (req.path === '/health' || req.path === '/api/health') {
+    return next();
+  }
+
   const start = Date.now();
   res.on('finish', () => {
     const duration = Date.now() - start;
     if (res.statusCode >= 400) {
-      console.error(`🚨 [TECHNICAL API ERROR ${res.statusCode}] ${req.method} ${req.originalUrl} (${duration}ms)`);
-    } else {
+      console.error(`🚨 [API ${res.statusCode}] ${req.method} ${req.originalUrl} (${duration}ms)`);
+    } else if (process.env.NODE_ENV !== 'production' || req.method !== 'GET' || duration > 1000) {
+      // In production, only log mutations (POST/PUT/DELETE) or unusually slow requests (>1s)
       console.log(`📡 [API ${res.statusCode}] ${req.method} ${req.originalUrl} (${duration}ms)`);
     }
   });

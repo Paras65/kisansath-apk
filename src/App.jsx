@@ -227,6 +227,15 @@ function App() {
     };
   }, []);
 
+  // Pre-warm Render Free Tier Backend API in background on app mount (eliminates cold start lag)
+  useEffect(() => {
+    try {
+      const apiUrl = appConfig.apiBaseUrl || 'https://kisan-saathi-api-4sdo.onrender.com/api';
+      const rootUrl = apiUrl.replace(/\/api\/?$/, '');
+      fetch(`${rootUrl}/health`, { mode: 'no-cors' }).catch(() => {});
+    } catch (e) {}
+  }, []);
+
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [isSpeakingActive, setIsSpeakingActive] = useState(false);
