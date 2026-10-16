@@ -127,9 +127,7 @@ app.get('/', (req, res) => {
   res.json({
     service: 'Kisan Saathi Agricultural Backend API',
     status: 'online',
-    health: '/health',
-    endpoints: '/api',
-    openapi: '/api/openapi.yaml',
+    
   });
 });
 

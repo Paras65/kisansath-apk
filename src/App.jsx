@@ -133,7 +133,20 @@ class ErrorBoundary extends React.Component {
 
 function App() {
   const { isChhattisgarhi, t } = useLanguage();
-  const [currentTab, setCurrentTab] = useState('home');
+  const [currentTab, setCurrentTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        let tabParam = params.get('tab');
+        if (tabParam === 'calculator' || tabParam === 'fertilizer') tabParam = 'schemes';
+        if (tabParam === 'market') tabParam = 'mandi';
+        if (tabParam && ['home', 'doctor', 'schemes', 'mandi', 'chaupal'].includes(tabParam)) {
+          return tabParam;
+        }
+      } catch (e) {}
+    }
+    return 'home';
+  });
   const [selectedDistrict, setSelectedDistrict] = useState(() => {
     try {
       const saved = localStorage.getItem('kisan_selected_district');
@@ -937,14 +950,26 @@ function App() {
         return;
       }
 
-      // 2) Return smoothly to home tab if on another tab
+      // 2) Return smoothly to home or target tab based on state / URL
       if (e.state && e.state.tab) {
         let destTab = e.state.tab;
         if (destTab === 'calculator' || destTab === 'fertilizer') destTab = 'schemes';
         if (destTab === 'market') destTab = 'mandi';
         setCurrentTab(destTab);
-      } else if (currentTab !== 'home') {
-        setCurrentTab('home');
+      } else {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          let tabParam = params.get('tab');
+          if (tabParam === 'calculator' || tabParam === 'fertilizer') tabParam = 'schemes';
+          if (tabParam === 'market') tabParam = 'mandi';
+          if (tabParam && ['home', 'doctor', 'schemes', 'mandi', 'chaupal'].includes(tabParam)) {
+            setCurrentTab(tabParam);
+          } else if (currentTab !== 'home') {
+            setCurrentTab('home');
+          }
+        } catch {
+          if (currentTab !== 'home') setCurrentTab('home');
+        }
       }
     };
     window.addEventListener('popstate', handlePopState);

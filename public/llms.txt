@@ -1,10 +1,10 @@
-# किसान साथी (Kisan Saathi) — फसल से लेकर बिक्री तक
+# किसान मितान / किसान साथी (Kisan Mitan / Kisan Saathi) — फसल से लेकर बिक्री तक
 
-> Kisan Saathi (किसान साथी) is a comprehensive Agritech Progressive Web App (PWA) and Android application designed for farmers in India, with specialized baseline intelligence for Chhattisgarh (IGKV Raipur, DAC&FW, Agmarknet).
+> Kisan Mitan (किसान मितान छत्तीसगढ़ / Kisan Saathi) is a comprehensive Agritech Progressive Web App (PWA) and Android application designed for farmers in India, with specialized baseline intelligence for Chhattisgarh (IGKV Raipur, DAC&FW, Agmarknet).
 
 ## Core Farmer Resources & Modules
 
-- [किसान साथी वेब पोर्टल (Kisan Saathi Web App)](https://kisan.init65.co.in/): All-in-one agricultural platform covering crop cycle, agro-climatic advisories, and procurement support.
+- [किसान मितान वेब पोर्टल (Kisan Mitan Web App)](https://kisan.init65.co.in/): All-in-one agricultural platform covering crop cycle, agro-climatic advisories, and procurement support.
 - [एआई फसल डॉक्टर (AI Crop Doctor)](https://kisan.init65.co.in/?tab=doctor): Real-time multi-modal plant pathology diagnosis with statutory CIB&RC approved chemical remedies and organic solutions.
 - [खाद व धान उपार्जन ₹3,100 कैलकुलेटर (Fertilizer & MSP Calculator)](https://kisan.init65.co.in/?tab=schemes): Exact NPK fertilizer dosage calculation and statutory Chhattisgarh Krishak Unnati Yojana paddy procurement and gunny bag estimator.
 - [लाइव मंडी भाव (Live Mandi Rates)](https://kisan.init65.co.in/?tab=mandi): Real-time modal APMC market prices across all 33 districts of Chhattisgarh sourced from Agmarknet / OGD India.

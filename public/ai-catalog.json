@@ -2,17 +2,20 @@
   "$schema": "https://raw.githubusercontent.com/ards-project/ard-spec/main/spec/schemas/ai-catalog.schema.json",
   "specVersion": "1.0",
   "host": {
-    "displayName": "किसान साथी (Kisan Saathi)",
+    "displayName": "किसान मितान (Kisan Mitan / Kisan Saathi)",
     "identifier": "did:web:kisan.init65.co.in"
   },
   "entries": [
     {
-      "identifier": "urn:air:kisan.init65.co.in:app:kisan-saathi",
-      "displayName": "Kisan Saathi Agricultural Portal",
+      "identifier": "urn:air:kisan.init65.co.in:app:kisan-mitan",
+      "displayName": "Kisan Mitan (किसान मितान) Agricultural Portal",
       "type": "text/html",
       "url": "https://kisan.init65.co.in/",
-      "description": "Comprehensive agricultural advisory, crop lifecycle tracking, and procurement portal for Indian farmers.",
+      "description": "Comprehensive agricultural advisory, crop lifecycle tracking, and procurement portal for Chhattisgarh & Indian farmers.",
       "representativeQueries": [
+        "kisan mitan",
+        "kisan mitan cg",
+        "किसान मितान छत्तीसगढ़",
         "छत्तीसगढ़ धान खरीदी दर ₹3,100",
         "dhan kharidi rate chhattisgarh",
         "धान फसल में खैरा रोग का इलाज",
