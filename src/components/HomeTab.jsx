@@ -576,7 +576,7 @@ export const HomeTab = ({
         )}
       </Suspense>
 
-      {/* Quick Farmer Login & Registration Modal (Zero Friction, Public First) */}
+      {/* Quick Farmer Login & Registration Modal (Zero Friction, Ultra-Premium Flagship Dialog) */}
       <Dialog
         open={openQuickLogin}
         onClose={() => { if (!loginLoading) setOpenQuickLogin(false); }}
@@ -584,44 +584,49 @@ export const HomeTab = ({
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 4,
+            borderRadius: { xs: 4, sm: 4.5 },
             overflow: 'hidden',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.22)'
+            boxShadow: '0 28px 64px -12px rgba(6, 78, 59, 0.35), 0 12px 32px rgba(0, 0, 0, 0.18)',
+            border: '1.5px solid rgba(16, 185, 129, 0.2)',
+            bgcolor: '#ffffff'
           }
         }}
       >
         <Box
           sx={{
-            background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+            background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
             color: '#fff',
-            p: 2,
+            p: { xs: 2, sm: 2.4 },
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            borderBottom: '2.5px solid #f59e0b',
+            position: 'relative'
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.4 }}>
             <Box
               sx={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                bgcolor: 'rgba(255,255,255,0.18)',
+                width: 44,
+                height: 44,
+                borderRadius: 3,
+                background: 'linear-gradient(135deg, rgba(254, 240, 138, 0.28) 0%, rgba(245, 158, 11, 0.18) 100%)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1.5px solid rgba(255,255,255,0.3)',
+                border: '1.5px solid rgba(251, 191, 36, 0.65)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
                 flexShrink: 0
               }}
             >
-              <LockOpenIcon sx={{ color: '#ffeb3b', fontSize: 22 }} />
+              <LockOpenIcon sx={{ color: '#fbbf24', fontSize: 24 }} />
             </Box>
             <Box>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff', fontSize: '1rem' }}>
-                {isChhattisgarhi ? '🌾 किसान साथी प्रवेश' : '🌾 किसान साथी प्रवेश'}
+              <Typography variant="subtitle1" sx={{ fontWeight: 900, lineHeight: 1.2, color: '#ffffff', fontSize: '1.02rem', letterSpacing: '0.2px' }}>
+                {isChhattisgarhi ? '🌾 किसान साथी सुरक्षित प्रवेश' : '🌾 किसान साथी सुरक्षित प्रवेश'}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#dcfce7', fontSize: '0.72rem', fontWeight: 600 }}>
-                {isChhattisgarhi ? '🔒 100% सुरक्छित • कोनो कागजात नई चाही' : '🔒 100% सुरक्षित • शून्य कागज़ात'}
+              <Typography variant="caption" sx={{ color: '#a7f3d0', fontSize: '0.74rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.2 }}>
+                <span>🔒</span> {isChhattisgarhi ? '100% सुरक्छित • कोनो कागजात नइ चाही' : '100% सुरक्षित • शून्य कागज़ात'}
               </Typography>
             </Box>
           </Box>
@@ -630,15 +635,18 @@ export const HomeTab = ({
             onClick={() => setOpenQuickLogin(false)}
             disabled={loginLoading}
             sx={{
-              color: '#fff',
+              color: '#ffffff',
               bgcolor: 'rgba(255,255,255,0.15)',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }
+              border: '1px solid rgba(255,255,255,0.25)',
+              backdropFilter: 'blur(6px)',
+              transition: 'all 0.2s ease',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.28)', transform: 'rotate(90deg)' }
             }}
           >
             <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
-        <DialogContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+        <DialogContent sx={{ p: { xs: 2, sm: 2.8 }, bgcolor: '#fafdfa' }}>
           {renderSmartAuthCard(true)}
         </DialogContent>
       </Dialog>
