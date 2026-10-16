@@ -301,7 +301,7 @@ export const GuestDashboard = ({
             <Typography
               variant="caption"
               sx={{
-                color: (weather?.rainProbability || 0) > 40 ? '#dc2626' : (weather?.windSpeed || 0) > 15 ? '#d97706' : '#0284c7',
+                color: weather?.sprayAdvisory ? (weather.sprayAdvisory.canSpray ? '#166534' : '#dc2626') : '#0284c7',
                 fontWeight: 700,
                 fontSize: '0.68rem',
                 mt: 0.4,
@@ -310,11 +310,8 @@ export const GuestDashboard = ({
                 gap: 0.4
               }}
             >
-              {(weather?.rainProbability || 0) > 40
-                ? (isChhattisgarhi ? '⚠️ पानी के संका • स्प्रे रोकव' : '⚠️ वर्षा संभावना • स्प्रे रोकें')
-                : (weather?.windSpeed || 0) > 15
-                ? (isChhattisgarhi ? '💨 तेज हवा • स्प्रे नइ करव' : '💨 तेज हवा • स्प्रे न करें')
-                : (isChhattisgarhi ? '🌿 मौसम बने हे • काम जारी' : '🌿 मौसम अनुकूल • कार्य जारी')}
+              {(isChhattisgarhi ? (weather?.sprayAdvisory?.badgeCg || weather?.sprayAdvisory?.badge) : weather?.sprayAdvisory?.badge) ||
+                (isChhattisgarhi ? '🌿 मौसम बने हे • काम जारी' : '🌿 मौसम अनुकूल • कार्य जारी')}
             </Typography>
           </Box>
         </Paper>

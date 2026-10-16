@@ -24,6 +24,7 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AirIcon from '@mui/icons-material/Air';
 import { appConfig } from '../../config/appConfig';
+import { calculatePaddyProcurement } from '../../utils/unitConverter';
 import { analyzePlotLifecycle } from '../../utils/cropLifecycleEngine';
 import { notify } from '../../services/notificationService';
 import { stopSpeech } from '../../utils/speech';
@@ -65,8 +66,9 @@ export const LoggedInNativeDashboard = ({
     sowDate: '15 जुलाई'
   };
   const activePlotAnalysis = analyzePlotLifecycle(activePlot, weather || {});
-  const totalPaddyQtl = (farmerAcres * 21).toFixed(1);
-  const totalMspPayout = Math.round(farmerAcres * 21 * (appConfig.paddyScheme?.totalRate || 3100));
+  const paddyProcurement = calculatePaddyProcurement(farmerAcres, appConfig.paddyScheme?.maxQuintalsPerAcre || 21);
+  const totalPaddyQtl = paddyProcurement.maxQuintals;
+  const totalMspPayout = paddyProcurement.totalPayout;
 
   return (
     <Box sx={{ width: '100%' }}>

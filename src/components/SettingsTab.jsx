@@ -678,7 +678,7 @@ export const SettingsTab = ({
               textTransform: 'none'
             }}
           >
-            कॉल सेंटर: {appConfig.helpline?.phone || '1800-180-1551'}
+            कॉल सेंटर: {appConfig.helpline?.label || '1800-180-1551'}
           </Button>
 
           {/* FAQs */}
