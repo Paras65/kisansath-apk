@@ -229,7 +229,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
 
     setPlots(updated || []);
     setOpenAddPlotDialog(false);
-    notify.success(isChhattisgarhi ? 'नवा खेत अउ फसल सफलतापूर्वक जुड़ गे!' : 'नया खेत व फसल सफलतापूर्वक जुड़ गई!');
+    notify.success(isChhattisgarhi ? 'नई फसल सफलतापूर्वक जुड़ गे!' : 'नई फसल सफलतापूर्वक जुड़ गई!');
     setNewPlot({
       plotName: '',
       cropId: 'paddy',
@@ -242,11 +242,11 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
   };
 
   const handleDeletePlot = async (plotId) => {
-    if (window.confirm(isChhattisgarhi ? 'का आप सचमुच ए खेत ल हटाना चाहत हौ?' : 'क्या आप वाकई इस खेत/प्लॉट को हटाना चाहते हैं?')) {
+    if (window.confirm(isChhattisgarhi ? 'का आप सचमुच ए फसल ल हटाना चाहत हौ?' : 'क्या आप वाकई इस फसल को हटाना चाहते हैं?')) {
       const updated = await deleteFarmerPlot(farmer.phone, plotId);
       setPlots(updated || []);
       setActivePlotIndex(0);
-      notify.info(isChhattisgarhi ? 'खेत सफलतापूर्वक हटा दिए गे।' : 'खेत सफलतापूर्वक हटाया गया।');
+      notify.info(isChhattisgarhi ? 'फसल सफलतापूर्वक हटा दिए गे।' : 'फसल सफलतापूर्वक हटाई गई।');
     }
   };
 
@@ -628,7 +628,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                     </TextField>
                   ) : (
                     <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
-                      {isChhattisgarhi ? 'अभी कोनो खेत दर्ज नइये। नीचे ले पहिला खेत जोड़व।' : 'अभी कोई खेत दर्ज नहीं है। नीचे से पहला खेत जोड़ें।'}
+                      {isChhattisgarhi ? 'अभी कोनो फसल दर्ज नइये। नीचे ले पहिली फसल जोड़व।' : 'अभी कोई फसल दर्ज नहीं है। नीचे से पहली फसल जोड़ें।'}
                     </Typography>
                   )}
                 </Grid>
@@ -653,7 +653,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
                       '&:hover': { bgcolor: '#1b5e20' },
                     }}
                   >
-                    {isChhattisgarhi ? '📅 नवा फसल तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
+                    {isChhattisgarhi ? '📅 नई फसल जोड़व' : '📅 नई फसल जोड़ें'}
                   </Button>
                 </Grid>
               </Grid>
@@ -1059,7 +1059,7 @@ export const MeraKhetModal = ({ open, onClose, selectedDistrict = 'रायप�
       >
         <DialogTitle sx={{ bgcolor: '#1b5e20', color: '#fff', py: 1.5, px: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#fff', fontSize: '0.98rem' }}>
-            {isChhattisgarhi ? '📅 नवा फसल अऊ बोवाई तारीख जोड़व' : '📅 फसल व बुआई तारीख जोड़ें'}
+            {isChhattisgarhi ? '📅 नई फसल जोड़व' : '📅 नई फसल जोड़ें'}
           </Typography>
           <IconButton size="small" onClick={() => setOpenAddPlotDialog(false)} sx={{ color: '#fff' }} aria-label="close">
             <CloseIcon />

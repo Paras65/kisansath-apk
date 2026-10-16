@@ -64,7 +64,7 @@ export const ActivePlotsAndDailyTasksCard = ({
             onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
             sx={{ bgcolor: '#2e7d32', color: '#fff', fontWeight: 800, fontSize: '0.72rem', borderRadius: 2, px: 1.4, py: 0.3 }}
           >
-            {isChhattisgarhi ? '📅 नवा फसल तारीख जोड़व' : '📅 फसल बुआई तारीख जोड़ें'}
+            {isChhattisgarhi ? '📅 नई फसल जोड़व' : '📅 नई फसल जोड़ें'}
           </Button>
         </Box>
       </Box>

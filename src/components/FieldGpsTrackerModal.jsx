@@ -622,7 +622,7 @@ export const FieldGpsTrackerModal = ({ open, onClose, onSaveArea, plotName = '�
                 onClick={resetTracking}
                 sx={{ py: 0.8, borderRadius: 2.5 }}
               >
-                {isChhattisgarhi ? 'नवा खेत फेर नापव' : 'नया खेत दोबारा नापें'}
+                {isChhattisgarhi ? 'नवा रकबा फेर नापव' : 'नई फसल रकबा दोबारा नापें'}
               </Button>
             </Box>
           )}

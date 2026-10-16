@@ -156,17 +156,17 @@ export const GuestDashboard = ({
               <AgricultureIcon sx={{ fontSize: 22 }} />
             </Box>
             <Chip
-              label={isChhattisgarhi ? 'अतिथि खेत' : 'अतिथि खेत'}
+              label={isChhattisgarhi ? 'अतिथि फसल' : 'अतिथि फसल'}
               size="small"
               sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
             />
           </Box>
           <Box>
             <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700, fontSize: '0.72rem', display: 'block' }}>
-              {isChhattisgarhi ? 'सक्रिय खेत अऊ रकबा' : 'सक्रिय खेत व कुल रकबा'}
+              {isChhattisgarhi ? 'सक्रिय फसल अऊ रकबा' : 'सक्रिय फसल व कुल रकबा'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
-              1 खेत (कैलेंडर मोड)
+              1 फसल (कैलेंडर मोड)
             </Typography>
             <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
               📅 {isChhattisgarhi ? 'बुआई ले कटाई कैलेंडर →' : 'बुआई से कटाई कैलेंडर →'}

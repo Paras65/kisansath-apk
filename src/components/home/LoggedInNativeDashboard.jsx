@@ -184,7 +184,7 @@ export const LoggedInNativeDashboard = ({
                 </Typography>
                 <span>•</span>
                 <Typography variant="caption" sx={{ color: '#fef08a', fontWeight: 800 }}>
-                  🌾 {safePlots.length || 1} खेत सक्रिय
+                  🌾 {safePlots.length || 1} फसल सक्रिय
                 </Typography>
               </Box>
             </Box>
@@ -210,7 +210,7 @@ export const LoggedInNativeDashboard = ({
                 '&:hover': { bgcolor: '#ffffff' }
               }}
             >
-              {isChhattisgarhi ? '🌾 मोर खेत अऊ पासबुक' : '🌾 मेरा खेत व पासबुक'}
+              {isChhattisgarhi ? '🌾 मोर फसल अऊ पासबुक' : '🌾 मेरी फसल व पासबुक'}
             </Button>
             <Button
               size="medium"
@@ -307,7 +307,7 @@ export const LoggedInNativeDashboard = ({
               <AgricultureIcon sx={{ fontSize: 22 }} />
             </Box>
             <Chip
-              label={`${safePlots.length || 1} ${isChhattisgarhi ? 'खेत चालू' : 'खेत सक्रिय'}`}
+              label={`${safePlots.length || 1} ${isChhattisgarhi ? 'फसल चालू' : 'फसल सक्रिय'}`}
               size="small"
               sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
             />
@@ -317,7 +317,7 @@ export const LoggedInNativeDashboard = ({
               {isChhattisgarhi ? 'सक्रिय फसलें अऊ रकबा' : 'सक्रिय फसलें व कुल रकबा'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
-              {farmerAcres} एकड़ ({safePlots.length || 1} खेत)
+              {farmerAcres} एकड़ ({safePlots.length || 1} फसल)
             </Typography>
             <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
               🌾 {activePlot?.crop || 'धान'} ({activePlot?.sowDate ? 'सक्रिय' : 'कैलेंडर'}) →
@@ -548,7 +548,7 @@ export const LoggedInNativeDashboard = ({
                   py: 0.3
                 }}
               >
-                + {isChhattisgarhi ? 'नवा फसल/कैलेंडर जोड़व' : 'नई फसल/कैलेंडर जोड़ें'}
+                + {isChhattisgarhi ? 'नई फसल जोड़व' : 'नई फसल जोड़ें'}
               </Button>
             </Box>
 

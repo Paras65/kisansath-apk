@@ -399,7 +399,7 @@ return crypto.timingSafeEqual(hashA, hashB);
 * **विधि:** `GET /api/farmer/profile/:phone`
 * **हेडर:** `Authorization: Bearer <token>`
 
-### 7.2 खेत जोड़ना या अपडेट करना (Add / Update Plot)
+### 7.2 नई फसल जोड़ना या अपडेट करना (Add / Update Crop Plot)
 * **विधि:** `POST /api/farmer/plots/:phone`
 * **हेडर:** `Authorization: Bearer <token>`
 * **अनुरोध बॉडी:**

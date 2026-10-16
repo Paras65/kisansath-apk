@@ -890,7 +890,7 @@ router.post('/farmer/tasks/:phone', requireFarmerAuth, validateBody('ToggleTaskR
     }
 
     if (!Array.isArray(farmer.plots) || farmer.plots.length === 0) {
-      return res.status(404).json({ error: 'कोई खेत (Plot) नहीं मिला। कृपया पहले एक खेत जोड़ें।' });
+      return res.status(404).json({ error: 'कोई फसल (Crop Plot) नहीं मिली। कृपया पहले एक नई फसल जोड़ें।' });
     }
 
     let targetPlot = farmer.plots.find((p) => p.plotId === plotId || (p._id && p._id.toString() === plotId));
