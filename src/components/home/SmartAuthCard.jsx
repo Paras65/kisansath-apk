@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -6,11 +6,14 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
-  MenuItem
+  MenuItem,
+  IconButton
 } from '@mui/material';
 import PinDropIcon from '@mui/icons-material/PinDrop';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 
 export const SmartAuthCard = ({
   authMode = 'register',
@@ -28,6 +31,8 @@ export const SmartAuthCard = ({
   isChhattisgarhi = false,
   inModal = false
 }) => {
+  const [showPin, setShowPin] = useState(false);
+
   return (
     <Box sx={{ width: '100%' }}>
       {/* Top Segmented Tabs */}
@@ -35,10 +40,11 @@ export const SmartAuthCard = ({
         sx={{
           display: 'flex',
           bgcolor: inModal ? '#f1f5f9' : '#f0fdf4',
-          p: 0.5,
-          borderRadius: 3,
-          mb: 2,
-          border: '1px solid #dcfce7'
+          p: 0.6,
+          borderRadius: 3.5,
+          mb: 2.2,
+          border: '1.5px solid',
+          borderColor: inModal ? '#e2e8f0' : '#dcfce7'
         }}
       >
         <Button
@@ -46,14 +52,14 @@ export const SmartAuthCard = ({
           size="small"
           onClick={() => setAuthMode('register')}
           sx={{
-            borderRadius: 2.5,
+            borderRadius: 2.8,
             fontWeight: 800,
-            fontSize: { xs: '0.78rem', sm: '0.84rem' },
-            py: 0.9,
+            fontSize: { xs: '0.8rem', sm: '0.86rem' },
+            py: 1,
             bgcolor: authMode === 'register' ? '#1b5e20' : 'transparent',
-            color: authMode === 'register' ? '#ffffff' : '#334155',
-            boxShadow: authMode === 'register' ? '0 3px 10px rgba(27,94,32,0.25)' : 'none',
-            transition: 'all 0.2s ease',
+            color: authMode === 'register' ? '#ffffff' : '#475569',
+            boxShadow: authMode === 'register' ? '0 4px 12px rgba(27,94,32,0.28)' : 'none',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               bgcolor: authMode === 'register' ? '#125420' : '#e2e8f0'
             }
@@ -66,14 +72,14 @@ export const SmartAuthCard = ({
           size="small"
           onClick={() => setAuthMode('login')}
           sx={{
-            borderRadius: 2.5,
+            borderRadius: 2.8,
             fontWeight: 800,
-            fontSize: { xs: '0.78rem', sm: '0.84rem' },
-            py: 0.9,
+            fontSize: { xs: '0.8rem', sm: '0.86rem' },
+            py: 1,
             bgcolor: authMode === 'login' ? '#1b5e20' : 'transparent',
-            color: authMode === 'login' ? '#ffffff' : '#334155',
-            boxShadow: authMode === 'login' ? '0 3px 10px rgba(27,94,32,0.25)' : 'none',
-            transition: 'all 0.2s ease',
+            color: authMode === 'login' ? '#ffffff' : '#475569',
+            boxShadow: authMode === 'login' ? '0 4px 12px rgba(27,94,32,0.28)' : 'none',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
             '&:hover': {
               bgcolor: authMode === 'login' ? '#125420' : '#e2e8f0'
             }
@@ -109,7 +115,7 @@ export const SmartAuthCard = ({
             placeholder="98765 43210"
             fullWidth
             size="small"
-            value={loginForm.phone}
+            value={loginForm.phone || ''}
             onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
             inputProps={{ inputMode: 'numeric', maxLength: 10 }}
             InputProps={{
@@ -132,7 +138,7 @@ export const SmartAuthCard = ({
                 </InputAdornment>
               )
             }}
-            helperText={loginForm.phone.length === 10 ? (isChhattisgarhi ? '✓ सुरक्छित किसान पहचान' : '✓ सुरक्षित किसान पहचान') : (isChhattisgarhi ? '10 अंक के फोन नंबर लिखव' : '10 अंकों का फोन नंबर दर्ज करें')}
+            helperText={(loginForm.phone || '').length === 10 ? (isChhattisgarhi ? '✓ सुरक्छित किसान पहचान' : '✓ सुरक्षित किसान पहचान') : (isChhattisgarhi ? '10 अंक के फोन नंबर लिखव' : '10 अंकों का फोन नंबर दर्ज करें')}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
 
@@ -142,7 +148,7 @@ export const SmartAuthCard = ({
             placeholder={isChhattisgarhi ? 'उदा. रामेश्वर साहू' : 'उदा. रामेश्वर साहू'}
             fullWidth
             size="small"
-            value={loginForm.name}
+            value={loginForm.name || ''}
             onChange={(e) => setLoginForm({ ...loginForm, name: e.target.value })}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
@@ -153,7 +159,7 @@ export const SmartAuthCard = ({
             placeholder="उदा. 493441 या 492001"
             fullWidth
             size="small"
-            value={loginForm.pincode}
+            value={loginForm.pincode || ''}
             onChange={(e) => handlePincodeChange(e.target.value)}
             inputProps={{ inputMode: 'numeric', maxLength: 6 }}
             InputProps={{
@@ -174,7 +180,7 @@ export const SmartAuthCard = ({
                 isChhattisgarhi ? '🔍 डाक विभाग ले गांव खोजत हन...' : '🔍 डाक विभाग से गांव खोज रहे हैं...'
               ) : pincodeInfo ? (
                 <Box component="span" sx={{ color: '#166534', fontWeight: 700 }}>
-                  ✓ {pincodeInfo.block ? pincodeInfo.block + ', ' : ''}{pincodeInfo.district || ''} ({pincodeVillages.length} {isChhattisgarhi ? 'गांव मिलिस' : 'गांव उपलब्ध'})
+                  ✓ {typeof pincodeInfo === 'object' ? `${pincodeInfo.block ? pincodeInfo.block + ', ' : ''}${pincodeInfo.district || ''}` : pincodeInfo} ({(pincodeVillages || []).length} {isChhattisgarhi ? 'गांव मिलिस' : 'गांव उपलब्ध'})
                 </Box>
               ) : (
                 isChhattisgarhi ? 'पिन कोड डारतेच गांव के सूची अपने-आप खुल जाही' : 'पिन कोड डालते ही गांव सूची स्वतः खुलेगी'
@@ -189,7 +195,7 @@ export const SmartAuthCard = ({
           />
 
           {/* 4. Village Selection */}
-          {pincodeVillages.length > 0 && !customVillageMode ? (
+          {(pincodeVillages && pincodeVillages.length > 0) && !customVillageMode ? (
             <TextField
               select
               label={isChhattisgarhi ? 'अपन गांव चुनव *' : 'अपना गांव चुनें *'}
@@ -208,7 +214,7 @@ export const SmartAuthCard = ({
               helperText={
                 <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.2 }}>
                   <Typography component="span" variant="caption" sx={{ color: '#166534', fontWeight: 600 }}>
-                    📍 {isChhattisgarhi ? 'पिन कोड ले खोजे गे' : 'पिन कोड द्वारा खोजे गए'} {pincodeVillages.length} {isChhattisgarhi ? 'गांव' : 'गांव'}
+                    📍 {isChhattisgarhi ? 'पिन कोड ले खोजे गे' : 'पिन कोड द्वारा खोजे गए'} {(pincodeVillages || []).length} {isChhattisgarhi ? 'गांव' : 'गांव'}
                   </Typography>
                   <Button
                     size="small"
@@ -223,7 +229,7 @@ export const SmartAuthCard = ({
                 </Box>
               }
             >
-              {pincodeVillages.map((v) => (
+              {(pincodeVillages || []).map((v) => (
                 <MenuItem key={v} value={v} sx={{ fontSize: '0.85rem' }}>
                   🏡 {v}
                 </MenuItem>
@@ -238,11 +244,11 @@ export const SmartAuthCard = ({
               placeholder="उदा. आरंग"
               fullWidth
               size="small"
-              value={loginForm.village}
+              value={loginForm.village || ''}
               onChange={(e) => setLoginForm({ ...loginForm, village: e.target.value })}
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
               helperText={
-                pincodeVillages.length > 0 ? (
+                (pincodeVillages && pincodeVillages.length > 0) ? (
                   <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.2 }}>
                     <Typography component="span" variant="caption" sx={{ color: '#64748b' }}>
                       {isChhattisgarhi ? 'हाथ ले नाम लिखव' : 'हाथ से नाम दर्ज करें'}
@@ -264,64 +270,167 @@ export const SmartAuthCard = ({
           <TextField
             label={isChhattisgarhi ? 'सुरक्छा पिन (4 अंक) *' : 'सुरक्षा पिन (4 अंक) *'}
             placeholder="1234"
-            type="password"
+            type={showPin ? 'text' : 'password'}
             fullWidth
             size="small"
-            value={loginForm.pin}
+            value={loginForm.pin || ''}
             onChange={(e) => setLoginForm({ ...loginForm, pin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
             inputProps={{ inputMode: 'numeric', maxLength: 4 }}
-            helperText={isChhattisgarhi ? 'डिफ़ॉल्ट 1234 • साझा फोन म तुंहर डेटा सुरक्छित रहिही' : 'डिफ़ॉल्ट 1234 • साझा फोन पर आपका डेटा सुरक्षित रहेगा'}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowPin((prev) => !prev)}
+                    edge="end"
+                    tabIndex={-1}
+                    sx={{ color: '#64748b' }}
+                  >
+                    {showPin ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            helperText={
+              <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.3 }}>
+                <Typography component="span" variant="caption" sx={{ color: '#64748b' }}>
+                  {isChhattisgarhi ? 'डिफ़ॉल्ट 1234 • साझा फोन म डेटा सुरक्छित रहिही' : 'डिफ़ॉल्ट 1234 • साझा फोन पर डेटा सुरक्षित रहेगा'}
+                </Typography>
+                {(loginForm.pin || '') !== '1234' && (
+                  <Button
+                    size="small"
+                    onClick={() => setLoginForm({ ...loginForm, pin: '1234' })}
+                    sx={{
+                      p: 0,
+                      minWidth: 'auto',
+                      fontSize: '0.72rem',
+                      textTransform: 'none',
+                      color: '#16a34a',
+                      fontWeight: 800
+                    }}
+                  >
+                    ⚡ {isChhattisgarhi ? '1234 भरव' : '1234 भरें'}
+                  </Button>
+                )}
+              </Box>
+            }
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2.5,
+                bgcolor: '#fff',
+                '&:hover fieldset': { borderColor: '#16a34a' },
+                '&.Mui-focused fieldset': { borderColor: '#1b5e20', borderWidth: 2 }
+              }
+            }}
           />
 
           {/* Action Button */}
           <Button
             variant="contained"
             fullWidth
-            disabled={loginLoading || loginForm.phone.length < 10}
+            disabled={loginLoading || (loginForm.phone || '').length < 10}
             onClick={handleQuickLoginSubmit}
             sx={{
-              mt: 0.5,
+              mt: 0.8,
               background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
               color: '#fff',
               fontWeight: 800,
-              fontSize: '0.92rem',
-              py: 1.1,
-              borderRadius: 2.5,
-              boxShadow: '0 4px 14px rgba(27,94,32,0.3)',
-              '&:hover': { background: 'linear-gradient(135deg, #125420 0%, #1b5e20 100%)' }
+              fontSize: '0.95rem',
+              py: 1.25,
+              borderRadius: 2.8,
+              boxShadow: '0 4px 16px rgba(27,94,32,0.3)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #125420 0%, #1b5e20 100%)',
+                boxShadow: '0 6px 20px rgba(27,94,32,0.4)',
+                transform: 'translateY(-1px)'
+              }
             }}
           >
-            {loginLoading ? <CircularProgress size={20} color="inherit" /> : (isChhattisgarhi ? '🚀 किसान खाता बनाव अऊ शुरू करव' : '🚀 किसान खाता बनाएं और शुरू करें')}
+            {loginLoading ? <CircularProgress size={22} color="inherit" /> : (isChhattisgarhi ? '🚀 किसान खाता बनाव अऊ शुरू करव' : '🚀 किसान खाता बनाएं और शुरू करें')}
           </Button>
+
+          {/* Switch to Login link */}
+          <Box
+            sx={{
+              textAlign: 'center',
+              p: 1.2,
+              bgcolor: '#f8fafc',
+              borderRadius: 2.5,
+              border: '1px solid #e2e8f0',
+              mt: 0.5
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block', mb: 0.3 }}>
+              {isChhattisgarhi ? 'पहिलहीं ले खाता हे?' : 'पहले से खाता बना है?'}
+            </Typography>
+            <Button
+              size="small"
+              onClick={() => setAuthMode('login')}
+              sx={{
+                color: '#1b5e20',
+                fontWeight: 800,
+                fontSize: '0.8rem',
+                textTransform: 'none',
+                p: 0,
+                minWidth: 'auto',
+                '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+              }}
+            >
+              🔑 {isChhattisgarhi ? 'सीधा लॉगिन करव' : 'सीधे मोबाइल व पिन से लॉगिन करें'} ➔
+            </Button>
+          </Box>
         </Box>
       ) : (
         /* LOGIN MODE */
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.8 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Friendly Farmer Reassurance Banner */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 1,
-              p: 1,
-              bgcolor: '#eff6ff',
-              borderRadius: 2,
-              border: '1px solid #bfdbfe'
+              gap: 1.5,
+              p: 1.5,
+              background: 'linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%)',
+              borderRadius: 3,
+              border: '1.5px solid #bbf7d0',
+              boxShadow: '0 2px 8px rgba(34, 197, 94, 0.08)'
             }}
           >
-            <LockOpenIcon sx={{ color: '#1d4ed8', fontSize: 20, flexShrink: 0 }} />
-            <Typography variant="caption" sx={{ color: '#1e40af', fontWeight: 700, fontSize: '0.75rem', lineHeight: 1.3 }}>
-              🔑 <strong>{isChhattisgarhi ? 'तुरंत लॉगिन:' : 'त्वरित लॉगिन:'}</strong> {isChhattisgarhi ? 'पहिलहीं ले पंजीकृत किसान सीधा मोबाइल अऊ 4-अंक पिन डारके तुरंत प्रवेश करव।' : 'पहले से पंजीकृत किसान सीधे मोबाइल व 4-अंक पिन डालकर तुरंत प्रवेश करें।'}
-            </Typography>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                bgcolor: '#dcfce7',
+                color: '#166534',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                border: '1px solid #86efac'
+              }}
+            >
+              <LockOpenIcon sx={{ fontSize: 22 }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.85rem', lineHeight: 1.25 }}>
+                {isChhattisgarhi ? '🌾 जोहार किसान साथी! सीधा लॉगिन' : '🌾 जोहार किसान साथी! त्वरित लॉगिन'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#475569', fontWeight: 600, fontSize: '0.72rem', display: 'block', mt: 0.2 }}>
+                {isChhattisgarhi ? 'अपन मोबाइल अऊ 4-अंक पिन डारके तुरंत प्रवेश करव।' : 'अपना पंजीकृत मोबाइल व 4-अंक पिन डालकर तुरंत प्रवेश करें।'}
+              </Typography>
+            </Box>
           </Box>
 
+          {/* 1. Mobile Number */}
           <TextField
             label={isChhattisgarhi ? 'पंजीकृत मोबाइल नंबर (10 अंक) *' : 'पंजीकृत मोबाइल नंबर (10 अंक) *'}
             placeholder="98765 43210"
             fullWidth
             size="small"
             autoFocus
-            value={loginForm.phone}
+            value={loginForm.phone || ''}
             onChange={(e) => setLoginForm({ ...loginForm, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })}
             inputProps={{ inputMode: 'numeric', maxLength: 10 }}
             InputProps={{
@@ -330,73 +439,191 @@ export const SmartAuthCard = ({
                   <Box
                     sx={{
                       bgcolor: '#f1f5f9',
-                      px: 0.8,
-                      py: 0.2,
-                      borderRadius: 1,
+                      px: 0.9,
+                      py: 0.3,
+                      borderRadius: 1.5,
                       fontWeight: 800,
                       fontSize: '0.78rem',
-                      color: '#334155',
+                      color: '#1e293b',
                       border: '1px solid #cbd5e1'
                     }}
                   >
                     🇮🇳 +91
                   </Box>
                 </InputAdornment>
-              )
+              ),
+              endAdornment: (loginForm.phone || '').length === 10 ? (
+                <InputAdornment position="end">
+                  <CheckCircleIcon sx={{ color: '#16a34a', fontSize: 20 }} />
+                </InputAdornment>
+              ) : null
             }}
-            helperText={isChhattisgarhi ? 'जे नंबर ले पहिले पंजीयन करे रहेव' : 'जिस नंबर से पहले पंजीयन किया था'}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            helperText={
+              (loginForm.phone || '').length === 10 ? (
+                <Box component="span" sx={{ color: '#166534', fontWeight: 700 }}>
+                  ✓ {isChhattisgarhi ? '10 अंक मोबाइल नंबर सही हे' : '10 अंकों का मोबाइल नंबर मान्य'}
+                </Box>
+              ) : (
+                isChhattisgarhi ? 'जे नंबर ले पहिले पंजीयन करे रहेव' : 'जिस नंबर से पहले पंजीयन किया था'
+              )
+            }
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2.5,
+                bgcolor: '#fff',
+                '&:hover fieldset': { borderColor: '#16a34a' },
+                '&.Mui-focused fieldset': { borderColor: '#1b5e20', borderWidth: 2 }
+              }
+            }}
           />
 
+          {/* 2. Security PIN */}
           <TextField
             label={isChhattisgarhi ? 'सुरक्छा पिन (4 अंक) *' : 'सुरक्षा पिन (4 अंक) *'}
             placeholder="1234"
-            type="password"
+            type={showPin ? 'text' : 'password'}
             fullWidth
             size="small"
-            value={loginForm.pin}
+            value={loginForm.pin || ''}
             onChange={(e) => setLoginForm({ ...loginForm, pin: e.target.value.replace(/\D/g, '').slice(0, 4) })}
             inputProps={{ inputMode: 'numeric', maxLength: 4 }}
-            helperText={isChhattisgarhi ? 'डिफ़ॉल्ट पिन 1234 (यदि नइ बदले रहेव)' : 'डिफ़ॉल्ट पिन 1234 (यदि नहीं बदला था)'}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    onClick={() => setShowPin((prev) => !prev)}
+                    edge="end"
+                    tabIndex={-1}
+                    sx={{ color: '#64748b' }}
+                  >
+                    {showPin ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
+                  </IconButton>
+                </InputAdornment>
+              )
+            }}
+            helperText={
+              <Box component="span" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.3 }}>
+                <Typography component="span" variant="caption" sx={{ color: '#64748b' }}>
+                  {isChhattisgarhi ? 'डिफ़ॉल्ट पिन: 1234' : 'डिफ़ॉल्ट पिन: 1234'}
+                </Typography>
+                {(loginForm.pin || '') !== '1234' && (
+                  <Button
+                    size="small"
+                    onClick={() => setLoginForm({ ...loginForm, pin: '1234' })}
+                    sx={{
+                      p: 0,
+                      minWidth: 'auto',
+                      fontSize: '0.72rem',
+                      textTransform: 'none',
+                      color: '#16a34a',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.3
+                    }}
+                  >
+                    ⚡ {isChhattisgarhi ? '1234 भरव' : '1234 भरें'}
+                  </Button>
+                )}
+              </Box>
+            }
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2.5,
+                bgcolor: '#fff',
+                '&:hover fieldset': { borderColor: '#16a34a' },
+                '&.Mui-focused fieldset': { borderColor: '#1b5e20', borderWidth: 2 }
+              }
+            }}
           />
 
+          {/* Action Button */}
           <Button
             variant="contained"
             fullWidth
-            disabled={loginLoading || loginForm.phone.length < 10 || loginForm.pin.length < 4}
+            disabled={loginLoading || (loginForm.phone || '').length < 10 || (loginForm.pin || '').length < 4}
             onClick={handleQuickLoginSubmit}
             sx={{
               mt: 0.5,
               background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
               color: '#fff',
               fontWeight: 800,
-              fontSize: '0.92rem',
-              py: 1.1,
-              borderRadius: 2.5,
-              boxShadow: '0 4px 14px rgba(27,94,32,0.3)',
-              '&:hover': { background: 'linear-gradient(135deg, #125420 0%, #1b5e20 100%)' }
+              fontSize: '0.95rem',
+              py: 1.25,
+              borderRadius: 2.8,
+              boxShadow: '0 4px 16px rgba(27,94,32,0.32)',
+              letterSpacing: '0.2px',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #125420 0%, #1b5e20 100%)',
+                boxShadow: '0 6px 20px rgba(27,94,32,0.4)',
+                transform: 'translateY(-1px)'
+              },
+              '&:disabled': {
+                bgcolor: '#e2e8f0',
+                color: '#94a3b8'
+              }
             }}
           >
-            {loginLoading ? <CircularProgress size={20} color="inherit" /> : (isChhattisgarhi ? '🔑 किसान खाता म प्रवेश करव' : '🔑 किसान खाते में प्रवेश करें')}
+            {loginLoading ? (
+              <CircularProgress size={22} color="inherit" />
+            ) : (
+              isChhattisgarhi ? '🔑 किसान खाता म प्रवेश करव' : '🔑 किसान खाते में प्रवेश करें'
+            )}
           </Button>
 
-          <Box sx={{ textAlign: 'center', mt: 0.5 }}>
+          {/* Switch to Register */}
+          <Box
+            sx={{
+              textAlign: 'center',
+              p: 1.2,
+              bgcolor: '#f8fafc',
+              borderRadius: 2.5,
+              border: '1px solid #e2e8f0'
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.74rem', display: 'block', mb: 0.3 }}>
+              {isChhattisgarhi ? 'पहिली बार आय हव?' : 'पहली बार आए हैं?'}
+            </Typography>
             <Button
               size="small"
               onClick={() => setAuthMode('register')}
-              sx={{ color: '#166534', fontWeight: 700, fontSize: '0.75rem', textTransform: 'none' }}
+              sx={{
+                color: '#1b5e20',
+                fontWeight: 800,
+                fontSize: '0.8rem',
+                textTransform: 'none',
+                p: 0,
+                minWidth: 'auto',
+                '&:hover': { textDecoration: 'underline', bgcolor: 'transparent' }
+              }}
             >
-              {isChhattisgarhi ? '🌾 नवां किसान खाता खोलना चाहत हव? इहां पंजीयन करव' : '🌾 नया किसान खाता खोलना चाहते हैं? यहां पंजीयन करें'}
+              🌾 {isChhattisgarhi ? 'नवा किसान खाता बनाव (1 मिनट)' : 'नया किसान खाता बनाएं (केवल 1 मिनट)'} ➔
             </Button>
           </Box>
         </Box>
       )}
 
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1.5, pt: 1, borderTop: '1px dashed #e2e8f0' }}>
-        <CheckCircleIcon sx={{ fontSize: 14, color: '#16a34a' }} />
-        <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.72rem' }}>
-          {isChhattisgarhi ? 'कोनो कागजात नई चाही • 100% सुरक्छित डेटा • किसान कॉल सेंटर: 1800-180-1551' : 'शून्य-कागजात • 100% सुरक्षित डेटा • टोल-फ्री: 1800-180-1551'}
+      {/* Trust & Safety Footer */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+          mt: 2,
+          p: 1,
+          bgcolor: '#f8fafc',
+          borderRadius: 2.5,
+          border: '1px dashed #cbd5e1'
+        }}
+      >
+        <CheckCircleIcon sx={{ fontSize: 16, color: '#16a34a' }} />
+        <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', fontWeight: 600 }}>
+          {isChhattisgarhi
+            ? '🔒 कोनो कागजात नई चाही • 100% सुरक्छित • किसान कॉल सेंटर: 1800-180-1551'
+            : '🔒 शून्य-कागजात • 100% सुरक्षित डेटा • किसान टोल-फ्री: 1800-180-1551'}
         </Typography>
       </Box>
     </Box>

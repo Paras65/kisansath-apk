@@ -202,6 +202,7 @@ export const CROP_LIFECYCLE_RULES = {
 export const calculateDaysElapsed = (sowDateStr) => {
   if (!sowDateStr) return 0;
   const sowDate = new Date(sowDateStr);
+  if (isNaN(sowDate.getTime())) return 0;
   const today = new Date();
   sowDate.setHours(0, 0, 0, 0);
   today.setHours(0, 0, 0, 0);
@@ -212,11 +213,12 @@ export const calculateDaysElapsed = (sowDateStr) => {
 /**
  * Analyzes a specific plot and generates complete stage tracking & weather override.
  */
-export const analyzePlotLifecycle = (plot, weatherContext = {}) => {
-  const cropRule = CROP_LIFECYCLE_RULES[plot.cropId] || CROP_LIFECYCLE_RULES.paddy;
-  const daysElapsed = calculateDaysElapsed(plot.sowDate);
+export const analyzePlotLifecycle = (plot = {}, weatherContext = {}) => {
+  const safePlot = plot || {};
+  const cropRule = CROP_LIFECYCLE_RULES[safePlot.cropId] || CROP_LIFECYCLE_RULES.paddy;
+  const daysElapsed = calculateDaysElapsed(safePlot.sowDate);
   const isPlanned = daysElapsed < 0;
-  const isHarvested = plot.status === 'harvested' || daysElapsed > cropRule.totalDays + 15;
+  const isHarvested = safePlot.status === 'harvested' || daysElapsed > cropRule.totalDays + 15;
 
   let currentStage = cropRule.stages[0];
   if (isHarvested) {

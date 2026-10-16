@@ -57,15 +57,16 @@ export const LoggedInNativeDashboard = ({
   setOpenDistrictPicker = () => {},
   setOpenTokenGuide = () => {}
 }) => {
-  const farmerAcres = Number(activeFarmer?.totalAcres || activeFarmer?.totalLandAcres || activeFarmer?.acres) || (farmerPlots.reduce((sum, p) => sum + (Number(p.areaAcres) || 0), 0)) || 1.0;
-  const activePlot = (farmerPlots && farmerPlots.length > 0) ? (farmerPlots[selectedPlotIndex] || farmerPlots[0]) : {
+  const safePlots = Array.isArray(farmerPlots) ? farmerPlots : [];
+  const farmerAcres = Number(activeFarmer?.totalAcres || activeFarmer?.totalLandAcres || activeFarmer?.acres) || (safePlots.reduce((sum, p) => sum + (Number(p?.areaAcres) || 0), 0)) || 1.0;
+  const activePlot = (safePlots && safePlots.length > 0) ? (safePlots[selectedPlotIndex] || safePlots[0]) : {
     name: isChhattisgarhi ? 'खेत 1' : 'खेत 1',
     crop: 'धान',
     variety: 'महामाया',
     areaAcres: farmerAcres,
-    sowDate: '15 जुलाई'
+    sowDate: '2026-07-15'
   };
-  const activePlotAnalysis = analyzePlotLifecycle(activePlot, weather || {});
+  const activePlotAnalysis = analyzePlotLifecycle(activePlot || {}, weather || {});
   const paddyProcurement = calculatePaddyProcurement(farmerAcres, appConfig.paddyScheme?.maxQuintalsPerAcre || 21);
   const totalPaddyQtl = paddyProcurement.maxQuintals;
   const totalMspPayout = paddyProcurement.totalPayout;
@@ -246,7 +247,7 @@ export const LoggedInNativeDashboard = ({
               <AgricultureIcon sx={{ fontSize: 22 }} />
             </Box>
             <Chip
-              label={`${farmerPlots.length || 1} ${isChhattisgarhi ? 'खेत चालू' : 'खेत सक्रिय'}`}
+              label={`${safePlots.length || 1} ${isChhattisgarhi ? 'खेत चालू' : 'खेत सक्रिय'}`}
               size="small"
               sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
             />
@@ -256,7 +257,7 @@ export const LoggedInNativeDashboard = ({
               {isChhattisgarhi ? 'सक्रिय फसलें अऊ रकबा' : 'सक्रिय फसलें व कुल रकबा'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
-              {farmerAcres} एकड़ ({farmerPlots.length || 1} प्लॉट)
+              {farmerAcres} एकड़ ({safePlots.length || 1} प्लॉट)
             </Typography>
             <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
               🌾 {activePlot?.crop || 'धान'} ({activePlot?.sowDate ? 'सक्रिय' : 'कैलेंडर'}) →
@@ -687,14 +688,14 @@ export const LoggedInNativeDashboard = ({
                   py: 0.3
                 }}
               >
-                + {isChhattisgarhi ? 'नवा खेत जोड़व' : 'नया खेत जोड़ें'}
+                + {isChhattisgarhi ? 'नवा फसल/कैलेंडर जोड़व' : 'नई फसल/कैलेंडर जोड़ें'}
               </Button>
             </Box>
 
             {/* Multi-Plot Switcher Tabs (if more than 1 plot) */}
-            {farmerPlots.length > 1 && (
+            {safePlots.length > 1 && (
               <Box sx={{ display: 'flex', gap: 1, bgcolor: '#f1f5f9', p: 0.5, borderRadius: 3, mb: 1.8, border: '1px solid #e2e8f0', overflowX: 'auto' }}>
-                {farmerPlots.map((p, idx) => (
+                {safePlots.map((p, idx) => (
                   <Button
                     key={p.id || idx}
                     size="small"

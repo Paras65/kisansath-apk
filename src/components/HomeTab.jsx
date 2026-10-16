@@ -207,6 +207,7 @@ export const HomeTab = ({
   const [loginForm, setLoginForm] = useState({
     name: '',
     phone: '',
+    pin: '1234',
     district: selectedDistrict || 'रायपुर',
     village: '',
     pincode: '',
@@ -290,18 +291,23 @@ export const HomeTab = ({
       const res = await loginFarmer({
         name: authMode === 'register' ? (loginForm.name || '').trim() : '',
         phone: cleanPhone,
+        pin: (loginForm.pin || '1234').trim(),
         district: loginForm.district || selectedDistrict || 'रायपुर',
         village: loginForm.village || '',
         pincode: loginForm.pincode || '',
-        acres: loginForm.acres || '1.0'
+        totalLandAcres: loginForm.acres || '1.0'
       });
 
       if (res && res.success) {
         setActiveFarmer(res.farmer);
+        if (Array.isArray(res.farmer?.plots)) {
+          setFarmerPlots(res.farmer.plots);
+        }
         setOpenQuickLogin(false);
+        const farmerName = res.farmer?.name || (isChhattisgarhi ? 'किसान संगवारी' : 'किसान साथी');
         notify.success(authMode === 'register'
-          ? tCg(`सफलतापूर्वक पंजीकरण होगे! जोहार ${res.farmer.name} जी`, `सफलतापूर्वक पंजीकरण पूर्ण! स्वागत है ${res.farmer.name} जी`)
-          : tCg(`सफलतापूर्वक प्रवेश! जोहार ${res.farmer.name} जी`, `सफलतापूर्वक लॉगिन पूर्ण! स्वागत है ${res.farmer.name} जी`));
+          ? tCg(`सफलतापूर्वक पंजीकरण होगे! जोहार ${farmerName} जी`, `सफलतापूर्वक पंजीकरण पूर्ण! स्वागत है ${farmerName} जी`)
+          : tCg(`सफलतापूर्वक प्रवेश! जोहार ${farmerName} जी`, `सफलतापूर्वक लॉगिन पूर्ण! स्वागत है ${farmerName} जी`));
 
         if (pendingToolAction === 'motor') setOpenMotorModal(true);
         else if (pendingToolAction === 'soil') setOpenSoilIot(true);
@@ -309,7 +315,7 @@ export const HomeTab = ({
         else if (pendingToolAction === 'hub') setOpenDeviceHub(true);
         setPendingToolAction(null);
       } else {
-        notify.error(res?.message || tCg('प्रवेश म समस्या आईस, फिर प्रयास करव', 'प्रवेश में समस्या आई, पुनः प्रयास करें'));
+        notify.error(res?.error || res?.message || tCg('प्रवेश म समस्या आईस, फिर प्रयास करव', 'प्रवेश में समस्या आई, पुनः प्रयास करें'));
       }
     } catch {
       notify.error(tCg('नेटवर्क समस्या, कृपया दोबारा प्रयास करव', 'नेटवर्क समस्या, कृपया पुनः प्रयास करें'));
@@ -447,7 +453,7 @@ export const HomeTab = ({
     activeFarmer ? (
       <LoggedInNativeDashboard
         activeFarmer={activeFarmer}
-        farmerPlots={farmerPlots}
+        farmerPlots={farmerPlots || []}
         selectedPlotIndex={selectedPlotIndex}
         setSelectedPlotIndex={setSelectedPlotIndex}
         weather={weather}
@@ -573,18 +579,63 @@ export const HomeTab = ({
         onClose={() => { if (!loginLoading) setOpenQuickLogin(false); }}
         maxWidth="xs"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3.5, p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: 4,
+            overflow: 'hidden',
+            boxShadow: '0 24px 48px rgba(0,0,0,0.22)'
+          }
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 800, color: '#1b5e20', display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LockOpenIcon sx={{ color: '#2e7d32' }} />
-            <span>{isChhattisgarhi ? 'किसान साथी प्रवेश' : 'किसान साथी प्रवेश'}</span>
+        <Box
+          sx={{
+            background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+            color: '#fff',
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: '50%',
+                bgcolor: 'rgba(255,255,255,0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                flexShrink: 0
+              }}
+            >
+              <LockOpenIcon sx={{ color: '#ffeb3b', fontSize: 22 }} />
+            </Box>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, lineHeight: 1.2, color: '#fff', fontSize: '1rem' }}>
+                {isChhattisgarhi ? '🌾 किसान साथी प्रवेश' : '🌾 किसान साथी प्रवेश'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: '#dcfce7', fontSize: '0.72rem', fontWeight: 600 }}>
+                {isChhattisgarhi ? '🔒 100% सुरक्छित • कोनो कागजात नई चाही' : '🔒 100% सुरक्षित • शून्य कागज़ात'}
+              </Typography>
+            </Box>
           </Box>
-          <IconButton size="small" onClick={() => setOpenQuickLogin(false)} disabled={loginLoading}>
+          <IconButton
+            size="small"
+            onClick={() => setOpenQuickLogin(false)}
+            disabled={loginLoading}
+            sx={{
+              color: '#fff',
+              bgcolor: 'rgba(255,255,255,0.15)',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' }
+            }}
+          >
             <CloseIcon fontSize="small" />
           </IconButton>
-        </DialogTitle>
-        <DialogContent dividers sx={{ py: 2 }}>
+        </Box>
+        <DialogContent sx={{ p: { xs: 2, sm: 2.5 } }}>
           {renderSmartAuthCard(true)}
         </DialogContent>
       </Dialog>
