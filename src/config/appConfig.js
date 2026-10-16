@@ -80,10 +80,24 @@ export const appConfig = {
 
     // If no URL is provided, or a relative URL (/api) is used inside native Android APK:
     if (!rawUrl || (rawUrl.startsWith('/') && isCapacitorOrLocal) || rawUrl === '/api') {
-      return 'https://kisan-saathi-api-4sdo.onrender.com/api';
+      return 'https://kisanapi.init65.co.in/api';
     }
 
+    // Strip trailing slashes
     let url = rawUrl.replace(/\/+$/, '');
+
+    // If a domain without protocol was provided (e.g. "kisanapi.init65.co.in" or "api.example.com"),
+    // prepend https:// so the browser treats it as an absolute URL and NEVER resolves it as a relative path!
+    if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('/')) {
+      url = `https://${url}`;
+    }
+
+    // If frontend is running over HTTPS, ensure API is also HTTPS to prevent browser Mixed Content blocking
+    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && url.startsWith('http://')) {
+      url = url.replace(/^http:\/\//, 'https://');
+    }
+
+    // Ensure /api suffix
     if (!url.endsWith('/api') && !url.includes('/api/')) {
       url = `${url}/api`;
     }
