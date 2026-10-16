@@ -6,8 +6,7 @@ import {
   Button,
   Chip,
   Paper,
-  IconButton,
-  LinearProgress
+  IconButton
 } from '@mui/material';
 import AgricultureIcon from '@mui/icons-material/Agriculture';
 import VerifiedIcon from '@mui/icons-material/Verified';
@@ -20,17 +19,15 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ScienceIcon from '@mui/icons-material/Science';
 import SyncIcon from '@mui/icons-material/Sync';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import WaterDropIcon from '@mui/icons-material/WaterDrop';
-import AirIcon from '@mui/icons-material/Air';
 import { appConfig } from '../../config/appConfig';
 import { calculatePaddyProcurement } from '../../utils/unitConverter';
 import { analyzePlotLifecycle } from '../../utils/cropLifecycleEngine';
 import { notify } from '../../services/notificationService';
 import { stopSpeech } from '../../utils/speech';
-import { KakaWalkthroughButton } from '../KakaWalkthroughButton';
-import { MandiPulseCard } from './MandiPulseCard';
+import { HomeWeatherCard } from './HomeWeatherCard';
 import { QuickLauncherGrid } from './QuickLauncherGrid';
+import { MandiPulseCard } from './MandiPulseCard';
+import { CgAssistanceHubCard } from './CgAssistanceHubCard';
 
 export const LoggedInNativeDashboard = ({
   activeFarmer,
@@ -41,10 +38,13 @@ export const LoggedInNativeDashboard = ({
   weatherLoading = false,
   selectedDistrict = 'रायपुर',
   exactLocation = '',
+  isGpsLocation = false,
   isChhattisgarhi = false,
   highlightWeatherCard = false,
+  detectingGps = false,
   deviceRegistry = {},
   liveMandiRates = [],
+  handleDetectLiveGps = () => {},
   handleDirectMotorToggle = () => {},
   handleReadAdvisory = () => {},
   handleFarmerLogout = () => {},
@@ -73,20 +73,21 @@ export const LoggedInNativeDashboard = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      {/* ── 1. Modern Native Executive Farmer Identity Passbook Card ── */}
+      {/* ── 1. Modern Certified Farmer Identity Passbook Banner (Crystal Clear Logged-In State) ── */}
       <Card
         sx={{
           mb: 2.5,
-          p: { xs: 1.8, sm: 2.2 },
+          p: { xs: 2, sm: 2.5 },
           borderRadius: 4,
-          bgcolor: '#ffffff',
-          border: '1.5px solid #a7f3d0',
-          boxShadow: '0 4px 20px rgba(22, 101, 52, 0.06)',
+          background: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%)',
+          color: '#ffffff',
+          boxShadow: '0 8px 24px rgba(6, 78, 59, 0.2)',
           position: 'relative',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          border: '1.5px solid rgba(167, 243, 208, 0.3)'
         }}
       >
-        {/* Top Gradient Decorative Edge */}
+        {/* Top Gold & Emerald Accent Strip */}
         <Box
           sx={{
             position: 'absolute',
@@ -94,26 +95,27 @@ export const LoggedInNativeDashboard = ({
             left: 0,
             right: 0,
             height: 4,
-            background: 'linear-gradient(90deg, #1b5e20, #10b981, #f59e0b)'
+            background: 'linear-gradient(90deg, #10b981, #f59e0b, #fbbf24)'
           }}
         />
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5, pt: 0.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.8, pt: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.6 }}>
+            {/* Farmer Avatar Box with Golden Badge */}
             <Box
               sx={{
                 width: 52,
                 height: 52,
                 borderRadius: 3,
-                background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '1.4rem',
+                fontSize: '1.5rem',
                 fontWeight: 900,
-                boxShadow: '0 4px 14px rgba(27,94,32,0.25)',
-                border: '2px solid #bbf7d0',
+                boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                border: '2px solid #fde68a',
                 flexShrink: 0
               }}
             >
@@ -121,101 +123,159 @@ export const LoggedInNativeDashboard = ({
             </Box>
 
             <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: { xs: '1.15rem', sm: '1.25rem' }, lineHeight: 1.2 }}>
-                  {activeFarmer?.name || (isChhattisgarhi ? 'किसान साथी' : 'किसान साथी')}
-                </Typography>
+              {/* Unambiguous Logged-In Mode Status Badge */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap', mb: 0.6 }}>
                 <Chip
-                  icon={<VerifiedIcon sx={{ fontSize: '14px !important', color: '#065f46 !important' }} />}
-                  label={isChhattisgarhi ? 'प्रमाणित किसान पासबुक' : 'प्रमाणित किसान पासबुक'}
+                  icon={<VerifiedIcon sx={{ fontSize: '15px !important', color: '#065f46 !important' }} />}
+                  label={isChhattisgarhi ? '🌾 प्रमाणित किसान पासबुक • 🟢 खाता सक्रिय' : '🌾 प्रमाणित किसान पासबुक • 🟢 खाता सक्रिय (Logged In)'}
                   size="small"
                   sx={{
                     bgcolor: '#ecfdf5',
                     color: '#065f46',
-                    border: '1px solid #6ee7b7',
+                    border: '1.5px solid #6ee7b7',
+                    fontWeight: 900,
+                    fontSize: '0.72rem',
+                    height: 24,
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.12)'
+                  }}
+                />
+                <Chip
+                  label={`${farmerAcres} एकड़ पंजीकृत`}
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(255,255,255,0.2)',
+                    color: '#fef08a',
                     fontWeight: 800,
-                    fontSize: '0.68rem',
+                    fontSize: '0.66rem',
                     height: 22
                   }}
                 />
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1.5 }, mt: 0.4, flexWrap: 'wrap', fontSize: '0.8rem', color: '#475569' }}>
+              <Typography variant="h6" sx={{ fontWeight: 900, fontSize: { xs: '1.18rem', sm: '1.38rem' }, lineHeight: 1.25, color: '#ffffff' }}>
+                {isChhattisgarhi ? `जय जोहार, ${activeFarmer?.name || 'किसान साथी'} जी!` : `नमस्ते, ${activeFarmer?.name || 'किसान साथी'} जी!`}
+              </Typography>
+
+              {/* Farmer Profile Metadata Strip */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.8, sm: 1.2 }, mt: 0.4, flexWrap: 'wrap', fontSize: '0.8rem', color: '#d1fae5' }}>
                 <Typography
                   variant="caption"
                   onClick={() => setOpenDistrictPicker(true)}
                   sx={{
                     fontWeight: 800,
-                    color: '#1b5e20',
+                    color: '#ffffff',
                     cursor: 'pointer',
-                    bgcolor: '#f0fdf4',
-                    px: 0.8,
-                    py: 0.2,
+                    bgcolor: 'rgba(255,255,255,0.15)',
+                    px: 0.9,
+                    py: 0.25,
                     borderRadius: 1.5,
-                    border: '1px solid #bbf7d0',
+                    border: '1px solid rgba(255,255,255,0.25)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 0.4,
-                    '&:hover': { bgcolor: '#dcfce7' }
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
                   }}
                 >
                   📍 {activeFarmer?.village ? `${activeFarmer.village}, ${activeFarmer.district || selectedDistrict}` : selectedDistrict} ▾
                 </Typography>
                 <span>•</span>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155' }}>
-                  🌾 <strong>{farmerAcres} एकड़</strong> {isChhattisgarhi ? 'पंजीकृत रकबा' : 'पंजीकृत रकबा'}
+                <Typography variant="caption" sx={{ color: '#d1fae5' }}>
+                  📱 +91 {activeFarmer?.phone}
                 </Typography>
                 <span>•</span>
-                <Typography variant="caption" sx={{ color: '#64748b' }}>
-                  📱 +91 {activeFarmer?.phone}
+                <Typography variant="caption" sx={{ color: '#fef08a', fontWeight: 800 }}>
+                  🌾 {safePlots.length || 1} खेत सक्रिय
                 </Typography>
               </Box>
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Action Buttons: My Plots & Logout */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}>
             <Button
               variant="contained"
-              size="small"
-              startIcon={<AgricultureIcon sx={{ fontSize: 16 }} />}
+              size="medium"
+              startIcon={<AgricultureIcon sx={{ fontSize: 18 }} />}
               onClick={() => { stopSpeech(); setOpenMeraKhet(true); }}
               sx={{
-                bgcolor: '#1b5e20',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: '0.78rem',
-                borderRadius: 2.5,
-                px: 1.8,
-                py: 0.7,
-                boxShadow: '0 3px 10px rgba(27,94,32,0.25)',
-                '&:hover': { bgcolor: '#14532d' }
+                bgcolor: '#ffeb3b',
+                color: '#1b5e20',
+                fontWeight: 900,
+                fontSize: '0.82rem',
+                borderRadius: 2.8,
+                px: 2,
+                py: 0.8,
+                boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+                textTransform: 'none',
+                '&:hover': { bgcolor: '#ffffff' }
               }}
             >
               {isChhattisgarhi ? '🌾 मोर खेत अऊ पासबुक' : '🌾 मेरा खेत व पासबुक'}
             </Button>
             <Button
-              size="small"
+              size="medium"
               onClick={handleFarmerLogout}
-              startIcon={<LogoutIcon sx={{ fontSize: 14 }} />}
+              startIcon={<LogoutIcon sx={{ fontSize: 16 }} />}
               sx={{
-                bgcolor: '#fef2f2',
-                color: '#b91c1c',
-                border: '1px solid #fecaca',
+                bgcolor: 'rgba(255,255,255,0.15)',
+                color: '#fee2e2',
+                border: '1px solid rgba(254, 202, 202, 0.4)',
                 fontWeight: 800,
-                fontSize: '0.74rem',
-                borderRadius: 2.5,
-                px: 1.4,
-                py: 0.6,
-                '&:hover': { bgcolor: '#fee2e2' }
+                fontSize: '0.78rem',
+                borderRadius: 2.8,
+                px: 1.6,
+                py: 0.8,
+                textTransform: 'none',
+                '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.25)', borderColor: '#fca5a5' }
               }}
             >
               {isChhattisgarhi ? 'लॉगआउट' : 'लॉगआउट'}
             </Button>
           </Box>
         </Box>
+
+        {/* Certified Account Sync Notice at Bottom */}
+        <Box
+          sx={{
+            mt: 2,
+            pt: 1.2,
+            borderTop: '1px solid rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: '0.76rem',
+            color: '#ecfdf5',
+            flexWrap: 'wrap',
+            gap: 1
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <span>🔒</span>
+            <span>
+              <strong>{isChhattisgarhi ? 'सुरक्षित किसान डेटा:' : 'सुरक्षित किसान डेटा:'}</strong>{' '}
+              {isChhattisgarhi
+                ? 'तुंहर फसल, उपकरण अऊ हिसाब क्लाउड म सुरक्षित हे'
+                : 'आपकी फसल, उपकरण व हिसाब सुरक्षित रूप से सिंक हैं'}
+            </span>
+          </Box>
+          <Chip
+            label={isChhattisgarhi ? 'टोकन कोटा देखव →' : 'टोकन कोटा देखें →'}
+            size="small"
+            onClick={() => setOpenTokenGuide(true)}
+            sx={{
+              bgcolor: 'rgba(255,255,255,0.25)',
+              color: '#fff',
+              fontWeight: 800,
+              height: 22,
+              fontSize: '0.68rem',
+              cursor: 'pointer',
+              '&:hover': { bgcolor: 'rgba(255,255,255,0.35)' }
+            }}
+          />
+        </Box>
       </Card>
 
-      {/* ── 2. Four Telemetry KPI Tiles (Personalized Data) ── */}
+      {/* ── 2. Four Telemetry KPI Tiles (Harmonized 1:1 with Guest Grid) ── */}
       <Box
         sx={{
           display: 'grid',
@@ -257,7 +317,7 @@ export const LoggedInNativeDashboard = ({
               {isChhattisgarhi ? 'सक्रिय फसलें अऊ रकबा' : 'सक्रिय फसलें व कुल रकबा'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.08rem', lineHeight: 1.25, mt: 0.2 }}>
-              {farmerAcres} एकड़ ({safePlots.length || 1} प्लॉट)
+              {farmerAcres} एकड़ ({safePlots.length || 1} खेत)
             </Typography>
             <Typography variant="caption" sx={{ color: '#16a34a', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
               🌾 {activePlot?.crop || 'धान'} ({activePlot?.sowDate ? 'सक्रिय' : 'कैलेंडर'}) →
@@ -306,10 +366,15 @@ export const LoggedInNativeDashboard = ({
           </Box>
         </Paper>
 
-        {/* Tile 3: Live Microclimate & Soil Moisture */}
+        {/* Tile 3: Live Microclimate Weather */}
         <Paper
           elevation={0}
-          onClick={() => { stopSpeech(); setOpenDistrictPicker(true); }}
+          onClick={() => {
+            stopSpeech();
+            const el = document.getElementById('kaka-weather-card');
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            else setOpenDistrictPicker(true);
+          }}
           sx={{
             p: 1.8,
             borderRadius: 3.5,
@@ -339,7 +404,7 @@ export const LoggedInNativeDashboard = ({
               {activeFarmer?.village ? `${activeFarmer.village}` : selectedDistrict} {isChhattisgarhi ? 'मौसम अऊ नमी' : 'मौसम व मिट्टी नमी'}
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: '1.02rem', lineHeight: 1.25, mt: 0.2 }}>
-              नमी {weather?.soilMoisture?.percentage || 44}% • {weather?.sprayAdvisory?.canSpray ? (isChhattisgarhi ? 'छिड़काव बने हे' : 'छिड़काव सही') : (isChhattisgarhi ? 'सावधानी' : 'सावधानी')}
+              नमी {weather?.soilMoisture?.percentage || 44}% • {weather?.sprayAdvisory?.canSpray ? (isChhattisgarhi ? 'छिड़काव सही' : 'छिड़काव सही') : (isChhattisgarhi ? 'सावधानी' : 'सावधानी')}
             </Typography>
             <Typography variant="caption" sx={{ color: '#0284c7', fontWeight: 700, fontSize: '0.68rem', mt: 0.4, display: 'flex', alignItems: 'center', gap: 0.4 }}>
               🌿 हवा {weather?.windSpeed || 7} km/h • यूरिया छिड़काव अनुकूल →
@@ -370,7 +435,7 @@ export const LoggedInNativeDashboard = ({
               <SensorsIcon sx={{ fontSize: 22 }} />
             </Box>
             <Chip
-              label={`${(deviceRegistry?.motor ? 1 : 0) + (deviceRegistry?.soilProbe ? 1 : 0)} डिवाइस सक्रिय`}
+              label={`${(deviceRegistry?.motor ? 1 : 0) + (deviceRegistry?.soilProbe ? 1 : 0)} उपकरण सक्रिय`}
               size="small"
               sx={{ bgcolor: '#d1fae5', color: '#065f46', fontWeight: 800, fontSize: '0.65rem', height: 20 }}
             />
@@ -389,7 +454,7 @@ export const LoggedInNativeDashboard = ({
         </Paper>
       </Box>
 
-      {/* ── 3. Balanced 2-Column Agritech Workstation Layout ── */}
+      {/* ── 3. Harmonized 2-Column Agritech Workstation Layout (Matching Guest Hierarchy 1:1) ── */}
       <Box
         sx={{
           display: 'grid',
@@ -398,10 +463,272 @@ export const LoggedInNativeDashboard = ({
           alignItems: 'start'
         }}
       >
-        {/* LEFT COLUMN (Workstation Primary Stream) */}
+        {/* LEFT / MAIN COLUMN */}
         <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column' }}>
 
-          {/* CARD A: Smart Farm Devices & IoT Management Hub */}
+          {/* 1. Shared Microclimate Weather & Spray Advisory Card (Top of Main Column) */}
+          <HomeWeatherCard
+            weather={weather}
+            weatherLoading={weatherLoading}
+            selectedDistrict={selectedDistrict}
+            exactLocation={exactLocation || (activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict)}
+            isGpsLocation={isGpsLocation}
+            isChhattisgarhi={isChhattisgarhi}
+            highlightWeatherCard={highlightWeatherCard}
+            detectingGps={detectingGps}
+            handleDetectLiveGps={handleDetectLiveGps}
+            handleReadAdvisory={handleReadAdvisory}
+            setOpenDistrictPicker={setOpenDistrictPicker}
+            onNavigate={onNavigate}
+          />
+
+          {/* 2. Unified 8-Tile Modern App Launcher Grid */}
+          <Box sx={{ mb: 1.2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 0.8 }}>
+              {isChhattisgarhi ? '⚡ मुख्य कृषि सेवा अऊ स्मार्ट टूल्स' : '⚡ मुख्य कृषि सेवाएं व स्मार्ट टूल्स'}
+            </Typography>
+            <Chip
+              icon={<SensorsIcon sx={{ fontSize: '13px !important', color: '#1b5e20' }} />}
+              label={isChhattisgarhi ? '📡 डिवाइस हब' : '📡 डिवाइस हब'}
+              clickable
+              size="small"
+              onClick={() => { stopSpeech(); setOpenDeviceHub(true); }}
+              sx={{
+                bgcolor: '#e8f5e9',
+                color: '#1b5e20',
+                fontWeight: 800,
+                fontSize: '0.7rem',
+                height: 24,
+                borderRadius: '6px',
+                border: '1px solid #c8e6c9',
+                '&:hover': { bgcolor: '#c8e6c9' }
+              }}
+            />
+          </Box>
+
+          <QuickLauncherGrid
+            isChhattisgarhi={isChhattisgarhi}
+            activeFarmer={activeFarmer}
+            onNavigate={onNavigate}
+            onOpenGpsTracker={() => setOpenGpsTracker(true)}
+            onOpenMotorModal={() => setOpenMotorModal(true)}
+            onOpenSoilIot={() => setOpenSoilIot(true)}
+            onOpenMeraKhet={() => setOpenMeraKhet(true)}
+          />
+
+          {/* 3. Live Plot Workstation Card with Multi-Plot Switcher Tabs & 5-Step Visual Timeline */}
+          <Card
+            sx={{
+              p: { xs: 1.8, sm: 2.2 },
+              mb: 2.5,
+              borderRadius: 4,
+              bgcolor: '#ffffff',
+              border: '1.5px solid #a5d6a7',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.05)'
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AgricultureIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
+                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
+                  {isChhattisgarhi ? '🌱 मोर सक्रिय खेत अऊ आज के किसानी काम' : '🌱 मेरे सक्रिय खेत व आज के कृषि कार्य (Live Field Workstation)'}
+                </Typography>
+              </Box>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={() => setOpenMeraKhet(true)}
+                sx={{
+                  bgcolor: '#2e7d32',
+                  color: '#fff',
+                  fontWeight: 800,
+                  fontSize: '0.72rem',
+                  borderRadius: 2,
+                  px: 1.4,
+                  py: 0.3
+                }}
+              >
+                + {isChhattisgarhi ? 'नवा फसल/कैलेंडर जोड़व' : 'नई फसल/कैलेंडर जोड़ें'}
+              </Button>
+            </Box>
+
+            {/* Multi-Plot Switcher Tabs (if more than 1 plot) */}
+            {safePlots.length > 1 && (
+              <Box sx={{ display: 'flex', gap: 1, bgcolor: '#f1f5f9', p: 0.5, borderRadius: 3, mb: 1.8, border: '1px solid #e2e8f0', overflowX: 'auto' }}>
+                {safePlots.map((p, idx) => (
+                  <Button
+                    key={p.id || idx}
+                    size="small"
+                    onClick={() => setSelectedPlotIndex(idx)}
+                    sx={{
+                      borderRadius: 2.5,
+                      fontWeight: 800,
+                      fontSize: '0.78rem',
+                      py: 0.7,
+                      px: 1.5,
+                      whiteSpace: 'nowrap',
+                      bgcolor: selectedPlotIndex === idx ? '#1b5e20' : 'transparent',
+                      color: selectedPlotIndex === idx ? '#ffffff' : '#475569',
+                      boxShadow: selectedPlotIndex === idx ? '0 2px 8px rgba(27,94,32,0.25)' : 'none',
+                      '&:hover': { bgcolor: selectedPlotIndex === idx ? '#14532d' : '#e2e8f0' }
+                    }}
+                  >
+                    🌾 {p.name || `खेत #${idx + 1}`} ({p.crop || 'धान'}{p.areaAcres ? `, ${p.areaAcres} एकड़` : ''})
+                  </Button>
+                ))}
+              </Box>
+            )}
+
+            {/* Stage Visual Timeline Box */}
+            <Box
+              sx={{
+                p: 1.8,
+                borderRadius: 3,
+                bgcolor: '#f0fdf4',
+                border: '1.5px solid #bbf7d0',
+                mb: 1.8
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.94rem' }}>
+                  🌾 {activePlot.name || 'खेत 1'} ({activePlotAnalysis.cropRule?.name || activePlot.crop || 'धान'}{activePlot.variety ? ` - ${activePlot.variety}` : ''}) — {activePlot.areaAcres || farmerAcres} एकड़
+                </Typography>
+                <Chip
+                  label={`⏱️ ${isChhattisgarhi ? (activePlotAnalysis.dayLabelCg || activePlotAnalysis.dayLabel) : activePlotAnalysis.dayLabel}`}
+                  size="small"
+                  sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.7rem', height: 22 }}
+                />
+              </Box>
+
+              {/* 5-Step Visual Checkpoints Progression */}
+              <Box sx={{ position: 'relative', my: 2.2, px: 1 }}>
+                <Box sx={{ position: 'absolute', top: 14, left: 24, right: 24, height: 4, bgcolor: '#cbd5e1', zIndex: 1, borderRadius: 2 }} />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: 14,
+                    left: 24,
+                    width: `${Math.min(Math.max(activePlotAnalysis.progressPercent || 35, 10), 92)}%`,
+                    height: 4,
+                    bgcolor: '#16a34a',
+                    zIndex: 2,
+                    borderRadius: 2,
+                    transition: 'width 0.4s ease'
+                  }}
+                />
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 3 }}>
+                  {[
+                    { label: isChhattisgarhi ? 'बोवाई/रोपाई' : 'बुआई/रोपाई', minP: 0, doneP: 20 },
+                    { label: isChhattisgarhi ? 'कल्ले फूटना' : 'कल्ले फूटना', minP: 20, doneP: 45 },
+                    { label: isChhattisgarhi ? 'गभोट/फूल' : 'गभोट/फूल', minP: 45, doneP: 70 },
+                    { label: isChhattisgarhi ? 'दूधिया/बाली' : 'दूधिया/बाली', minP: 70, doneP: 90 },
+                    { label: isChhattisgarhi ? 'कटाई अऊ मंडी' : 'कटाई व मंडी', minP: 90, doneP: 100 }
+                  ].map((step, sIdx) => {
+                    const pct = activePlotAnalysis.progressPercent || 35;
+                    const isDone = pct >= step.doneP;
+                    const isActive = pct >= step.minP && pct < step.doneP;
+                    return (
+                      <Box key={sIdx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                        <Box
+                          sx={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            bgcolor: isDone ? '#16a34a' : '#ffffff',
+                            color: isDone ? '#ffffff' : (isActive ? '#16a34a' : '#64748b'),
+                            border: `3px solid ${isDone ? '#16a34a' : (isActive ? '#16a34a' : '#cbd5e1')}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '0.7rem',
+                            fontWeight: 900,
+                            boxShadow: isActive ? '0 0 0 4px rgba(22, 163, 74, 0.2)' : 'none'
+                          }}
+                        >
+                          {isDone ? '✓' : sIdx + 1}
+                        </Box>
+                        <Typography variant="caption" sx={{ fontSize: '0.66rem', fontWeight: isActive ? 800 : 700, color: isActive ? '#166534' : '#64748b', whiteSpace: 'nowrap' }}>
+                          {step.label}
+                        </Typography>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+
+              {/* Today's Recommended Action Box */}
+              <Box
+                sx={{
+                  p: 1.4,
+                  borderRadius: 2.5,
+                  bgcolor: '#ffffff',
+                  border: '1px solid #bbf7d0',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 1
+                }}
+              >
+                <Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>💡</Typography>
+                <Box>
+                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.78rem', display: 'block' }}>
+                    {isChhattisgarhi ? `आज के जरूरी काम (${activeFarmer.name || 'किसान साथी'} बर):` : `आज का आवश्यक कृषि कार्य (${activeFarmer.name || 'किसान साथी'} के लिए):`}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#14532d', fontSize: '0.76rem', lineHeight: 1.4, display: 'block', mt: 0.2 }}>
+                    {activePlotAnalysis.currentStage?.task || (isChhattisgarhi ? 'खेत के रोज देखरेख करव अऊ उचित नमी बना के रखव।' : 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।')}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Quick Action Navigation Buttons */}
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => { stopSpeech(); onNavigate('doctor'); }}
+                sx={{
+                  flex: 1,
+                  py: 0.8,
+                  borderRadius: 2.5,
+                  borderColor: '#a7f3d0',
+                  bgcolor: '#f0fdf4',
+                  color: '#166534',
+                  fontWeight: 800,
+                  fontSize: '0.76rem',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#dcfce7', borderColor: '#86efac' }
+                }}
+              >
+                🔍 {isChhattisgarhi ? 'फसल रोग अऊ कीरा जांचव' : 'फसल रोग व कीट जांचें'}
+              </Button>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={() => {
+                  stopSpeech();
+                  onNavigate('schemes');
+                  window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 0 } }));
+                }}
+                sx={{
+                  flex: 1,
+                  py: 0.8,
+                  borderRadius: 2.5,
+                  borderColor: '#bae6fd',
+                  bgcolor: '#f0f9ff',
+                  color: '#0369a1',
+                  fontWeight: 800,
+                  fontSize: '0.76rem',
+                  textTransform: 'none',
+                  '&:hover': { bgcolor: '#e0f2fe', borderColor: '#38bdf8' }
+                }}
+              >
+                🧮 {activePlot.areaAcres || farmerAcres} {isChhattisgarhi ? 'एकड़ के सटीक खाद हिसाब' : 'एकड़ का सटीक खाद हिसाब'}
+              </Button>
+            </Box>
+          </Card>
+
+          {/* 4. Smart Farm Devices & IoT Management Hub */}
           <Card
             sx={{
               p: { xs: 1.8, sm: 2.2 },
@@ -416,7 +743,7 @@ export const LoggedInNativeDashboard = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <SensorsIcon sx={{ color: '#059669', fontSize: 24 }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
-                  {isChhattisgarhi ? '⚡ स्मार्ट कृषि यंत्र अऊ डिवाइस प्रबंधन' : '⚡ स्मार्ट कृषि यंत्र व डिवाइस प्रबंधन (IoT Device Hub)'}
+                  {isChhattisgarhi ? '⚡ स्मार्ट कृषि यंत्र अऊ डिवाइस प्रबंधन' : '⚡ स्मार्ट कृषि यंत्र व डिवाइस प्रबंधन (IoT Hub)'}
                 </Typography>
               </Box>
               <Button
@@ -631,407 +958,9 @@ export const LoggedInNativeDashboard = ({
                 </Button>
               </Paper>
             </Box>
-
-            {/* Broad Pairing CTA Button */}
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={() => setOpenDeviceHub(true)}
-              sx={{
-                mt: 1.8,
-                py: 1,
-                borderRadius: 3,
-                borderStyle: 'dashed',
-                borderWidth: '1.5px',
-                borderColor: '#10b981',
-                bgcolor: '#ecfdf5',
-                color: '#065f46',
-                fontWeight: 800,
-                fontSize: '0.82rem',
-                textTransform: 'none',
-                '&:hover': { bgcolor: '#d1fae5', borderColor: '#059669' }
-              }}
-            >
-              📶 <strong>{isChhattisgarhi ? 'नवा स्मार्ट डिवाइस कनेक्ट करव' : 'नया स्मार्ट डिवाइस कनेक्ट करें'}</strong>&nbsp;({isChhattisgarhi ? 'ब्लूटूथ सेंसर, GSM स्टार्टर, ऑटो ड्रिप' : 'ब्लूटूथ सेंसर, GSM स्टार्टर, ऑटो ड्रिप'})
-            </Button>
           </Card>
 
-          {/* CARD B: Live Plot Workstation Card with Multi-Plot Switcher Tabs & 5-Step Visual Timeline */}
-          <Card
-            sx={{
-              p: { xs: 1.8, sm: 2.2 },
-              mb: 2.5,
-              borderRadius: 4,
-              bgcolor: '#ffffff',
-              border: '1.5px solid #a5d6a7',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.05)'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AgricultureIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
-                  {isChhattisgarhi ? '🌱 मोर सक्रिय खेत अऊ आज के किसानी काम' : '🌱 मेरे सक्रिय खेत व आज के कृषि कार्य (Live Field Workstation)'}
-                </Typography>
-              </Box>
-              <Button
-                size="small"
-                variant="contained"
-                onClick={() => setOpenMeraKhet(true)}
-                sx={{
-                  bgcolor: '#2e7d32',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: '0.72rem',
-                  borderRadius: 2,
-                  px: 1.4,
-                  py: 0.3
-                }}
-              >
-                + {isChhattisgarhi ? 'नवा फसल/कैलेंडर जोड़व' : 'नई फसल/कैलेंडर जोड़ें'}
-              </Button>
-            </Box>
-
-            {/* Multi-Plot Switcher Tabs (if more than 1 plot) */}
-            {safePlots.length > 1 && (
-              <Box sx={{ display: 'flex', gap: 1, bgcolor: '#f1f5f9', p: 0.5, borderRadius: 3, mb: 1.8, border: '1px solid #e2e8f0', overflowX: 'auto' }}>
-                {safePlots.map((p, idx) => (
-                  <Button
-                    key={p.id || idx}
-                    size="small"
-                    onClick={() => setSelectedPlotIndex(idx)}
-                    sx={{
-                      borderRadius: 2.5,
-                      fontWeight: 800,
-                      fontSize: '0.78rem',
-                      py: 0.7,
-                      px: 1.5,
-                      whiteSpace: 'nowrap',
-                      bgcolor: selectedPlotIndex === idx ? '#1b5e20' : 'transparent',
-                      color: selectedPlotIndex === idx ? '#ffffff' : '#475569',
-                      boxShadow: selectedPlotIndex === idx ? '0 2px 8px rgba(27,94,32,0.25)' : 'none',
-                      '&:hover': { bgcolor: selectedPlotIndex === idx ? '#14532d' : '#e2e8f0' }
-                    }}
-                  >
-                    🌾 {p.name || `खेत #${idx + 1}`} ({p.crop || 'धान'}{p.areaAcres ? `, ${p.areaAcres} एकड़` : ''})
-                  </Button>
-                ))}
-              </Box>
-            )}
-
-            {/* Stage Visual Timeline Box */}
-            <Box
-              sx={{
-                p: 1.8,
-                borderRadius: 3,
-                bgcolor: '#f0fdf4',
-                border: '1.5px solid #bbf7d0',
-                mb: 1.8
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1, flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#166534', fontSize: '0.94rem' }}>
-                  🌾 {activePlot.name || 'खेत 1'} ({activePlotAnalysis.cropRule?.name || activePlot.crop || 'धान'}{activePlot.variety ? ` - ${activePlot.variety}` : ''}) — {activePlot.areaAcres || farmerAcres} एकड़
-                </Typography>
-                <Chip
-                  label={`⏱️ ${isChhattisgarhi ? (activePlotAnalysis.dayLabelCg || activePlotAnalysis.dayLabel) : activePlotAnalysis.dayLabel}`}
-                  size="small"
-                  sx={{ bgcolor: '#dcfce7', color: '#166534', fontWeight: 800, fontSize: '0.7rem', height: 22 }}
-                />
-              </Box>
-
-              {/* 5-Step Visual Checkpoints Progression */}
-              <Box sx={{ position: 'relative', my: 2.2, px: 1 }}>
-                {/* Background track line */}
-                <Box sx={{ position: 'absolute', top: 14, left: 24, right: 24, height: 4, bgcolor: '#cbd5e1', zIndex: 1, borderRadius: 2 }} />
-                {/* Dynamic progress line */}
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: 14,
-                    left: 24,
-                    width: `${Math.min(Math.max(activePlotAnalysis.progressPercent || 35, 10), 92)}%`,
-                    height: 4,
-                    bgcolor: '#16a34a',
-                    zIndex: 2,
-                    borderRadius: 2,
-                    transition: 'width 0.4s ease'
-                  }}
-                />
-
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 3 }}>
-                  {[
-                    { label: isChhattisgarhi ? 'बोवाई/रोपाई' : 'बुआई/रोपाई', minP: 0, doneP: 20 },
-                    { label: isChhattisgarhi ? 'कल्ले फूटना' : 'कल्ले फूटना', minP: 20, doneP: 45 },
-                    { label: isChhattisgarhi ? 'गभोट/फूल' : 'गभोट/फूल', minP: 45, doneP: 70 },
-                    { label: isChhattisgarhi ? 'दूधिया/बाली' : 'दूधिया/बाली', minP: 70, doneP: 90 },
-                    { label: isChhattisgarhi ? 'कटाई अऊ मंडी' : 'कटाई व मंडी', minP: 90, doneP: 100 }
-                  ].map((step, sIdx) => {
-                    const pct = activePlotAnalysis.progressPercent || 35;
-                    const isDone = pct >= step.doneP;
-                    const isActive = pct >= step.minP && pct < step.doneP;
-                    return (
-                      <Box key={sIdx} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
-                        <Box
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: '50%',
-                            bgcolor: isDone ? '#16a34a' : '#ffffff',
-                            color: isDone ? '#ffffff' : (isActive ? '#16a34a' : '#64748b'),
-                            border: `3px solid ${isDone ? '#16a34a' : (isActive ? '#16a34a' : '#cbd5e1')}`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.7rem',
-                            fontWeight: 900,
-                            boxShadow: isActive ? '0 0 0 4px rgba(22, 163, 74, 0.2)' : 'none'
-                          }}
-                        >
-                          {isDone ? '✓' : sIdx + 1}
-                        </Box>
-                        <Typography variant="caption" sx={{ fontSize: '0.66rem', fontWeight: isActive ? 800 : 700, color: isActive ? '#166534' : '#64748b', whiteSpace: 'nowrap' }}>
-                          {step.label}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
-
-              {/* Today's Recommended Action Box */}
-              <Box
-                sx={{
-                  p: 1.4,
-                  borderRadius: 2.5,
-                  bgcolor: '#ffffff',
-                  border: '1px solid #bbf7d0',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 1
-                }}
-              >
-                <Typography sx={{ fontSize: '1.1rem', lineHeight: 1 }}>💡</Typography>
-                <Box>
-                  <Typography variant="caption" sx={{ color: '#166534', fontWeight: 800, fontSize: '0.78rem', display: 'block' }}>
-                    {isChhattisgarhi ? `आज के जरूरी काम (${activeFarmer.name || 'किसान साथी'} बर):` : `आज का आवश्यक कृषि कार्य (${activeFarmer.name || 'किसान साथी'} के लिए):`}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#14532d', fontSize: '0.76rem', lineHeight: 1.4, display: 'block', mt: 0.2 }}>
-                    {activePlotAnalysis.currentStage?.task || (isChhattisgarhi ? 'खेत के रोज देखरेख करव अऊ उचित नमी बना के रखव।' : 'खेत की नियमित निगरानी करें और उचित नमी बनाए रखें।')}
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            {/* Quick Action Navigation Buttons */}
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => { stopSpeech(); onNavigate('doctor'); }}
-                sx={{
-                  flex: 1,
-                  py: 0.8,
-                  borderRadius: 2.5,
-                  borderColor: '#a7f3d0',
-                  bgcolor: '#f0fdf4',
-                  color: '#166534',
-                  fontWeight: 800,
-                  fontSize: '0.76rem',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#dcfce7', borderColor: '#86efac' }
-                }}
-              >
-                🔍 {isChhattisgarhi ? 'फसल रोग अऊ कीरा जांचव' : 'फसल रोग व कीट जांचें'}
-              </Button>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  stopSpeech();
-                  onNavigate('schemes');
-                  window.dispatchEvent(new CustomEvent('kisan_switch_subtab', { detail: { subTab: 0 } }));
-                }}
-                sx={{
-                  flex: 1,
-                  py: 0.8,
-                  borderRadius: 2.5,
-                  borderColor: '#bae6fd',
-                  bgcolor: '#f0f9ff',
-                  color: '#0369a1',
-                  fontWeight: 800,
-                  fontSize: '0.76rem',
-                  textTransform: 'none',
-                  '&:hover': { bgcolor: '#e0f2fe', borderColor: '#38bdf8' }
-                }}
-              >
-                🧮 {activePlot.areaAcres || farmerAcres} {isChhattisgarhi ? 'एकड़ के सटीक खाद हिसाब' : 'एकड़ का सटीक खाद हिसाब'}
-              </Button>
-            </Box>
-          </Card>
-
-          {/* CARD C: Floating Weather & Spray Card */}
-          <Card
-            id="kaka-weather-card"
-            className={highlightWeatherCard ? 'kaka-spotlight-pulse' : ''}
-            sx={{
-              mb: 2.2,
-              p: { xs: 1.5, sm: 2 },
-              borderRadius: 3.5,
-              bgcolor: '#ffffff',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
-              transition: 'all 0.3s ease'
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-                <Typography sx={{ fontSize: { xs: '1.9rem', sm: '2.2rem' }, lineHeight: 1 }}>
-                  {weather?.conditionIcon || '🌤️'}
-                </Typography>
-                <Box>
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.8 }}>
-                    <Typography variant="h4" sx={{ fontWeight: 900, color: '#1e293b', lineHeight: 1, fontSize: { xs: '1.8rem', sm: '2.125rem' } }}>
-                      {weather ? `${weather.temp}°` : (weatherLoading ? '--°' : '30°')}
-                    </Typography>
-                    <Typography variant="subtitle2" sx={{ color: '#475569', fontWeight: 700, fontSize: { xs: '0.82rem', sm: '0.9rem' } }}>
-                      {weather
-                        ? (isChhattisgarhi ? (weather.conditionTextCg || weather.conditionText) : weather.conditionText)
-                        : (weatherLoading ? (isChhattisgarhi ? 'लाइव मौसम लोड होत हे...' : 'लाइव मौसम लोड हो रहा है...') : (isChhattisgarhi ? 'उघरा अकास' : 'साफ मौसम'))}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, mt: 0.3, flexWrap: 'wrap' }}>
-                    <Typography
-                      variant="caption"
-                      onClick={() => setOpenDistrictPicker(true)}
-                      sx={{
-                        color: '#1b5e20',
-                        fontWeight: 800,
-                        fontSize: '0.74rem',
-                        cursor: 'pointer',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.3,
-                        borderRadius: 1.5,
-                        px: 0.7,
-                        py: 0.15,
-                        bgcolor: 'rgba(27,94,32,0.08)',
-                        '&:hover': { bgcolor: 'rgba(27,94,32,0.16)' }
-                      }}
-                    >
-                      📍 {exactLocation || (activeFarmer?.village ? `${activeFarmer.village}, ${selectedDistrict}` : selectedDistrict)} <span style={{ fontSize: '0.64rem', color: '#2e7d32' }}>({isChhattisgarhi ? 'बदलव ▾' : 'बदलें ▾'})</span>
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, flexWrap: 'wrap' }}>
-                <KakaWalkthroughButton featureId="home" />
-                <Chip
-                  label={(isChhattisgarhi ? (weather?.sprayAdvisory?.badgeCg || weather?.sprayAdvisory?.badge) : weather?.sprayAdvisory?.badge) || (isChhattisgarhi ? 'छिड़काव बर बने हे' : 'छिड़काव अनुकूल')}
-                  size="small"
-                  sx={{
-                    bgcolor: weather?.sprayAdvisory?.canSpray ? '#e8f5e9' : '#fff3e0',
-                    color: weather?.sprayAdvisory?.canSpray ? '#1b5e20' : '#e65100',
-                    border: weather?.sprayAdvisory?.canSpray ? '1px solid #a5d6a7' : '1px solid #ffcc80',
-                    fontWeight: 800,
-                    fontSize: '0.72rem',
-                    height: 26
-                  }}
-                />
-                <IconButton
-                  size="small"
-                  onClick={handleReadAdvisory}
-                  sx={{ bgcolor: '#f1f5f9', color: '#1b5e20', p: 0.6 }}
-                >
-                  <VolumeUpIcon sx={{ fontSize: 18 }} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Metrics Strip */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 1, mb: 1.5 }}>
-              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                  <WaterDropIcon sx={{ fontSize: 13, color: '#0288d1' }} /> {isChhattisgarhi ? 'पानी (बरसात)' : 'वर्षा'}
-                </Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.rainProbability}%` : (weatherLoading ? '--' : '0%')}
-                </Typography>
-              </Box>
-              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                  <AirIcon sx={{ fontSize: 13, color: '#00897b' }} /> {isChhattisgarhi ? 'हवा के गति' : 'हवा'}
-                </Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.windSpeed} km/h` : (weatherLoading ? '--' : '0 km/h')}
-                </Typography>
-              </Box>
-              <Box sx={{ p: 1, bgcolor: '#f8fafc', borderRadius: 2.5, textAlign: 'center', border: '1px solid #f1f5f9' }}>
-                <Typography variant="caption" sx={{ color: '#64748b', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.3 }}>
-                  💧 {isChhattisgarhi ? 'उमस (नमी)' : 'आर्द्रता'}
-                </Typography>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '0.88rem' }}>
-                  {weather ? `${weather.humidity}%` : (weatherLoading ? '--' : '0%')}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* Satellite Soil Moisture & Smart Irrigation Meter (0-9cm root zone) */}
-            {weather?.soilMoisture && (
-              <Box
-                sx={{
-                  p: 1.2,
-                  mb: 1.5,
-                  borderRadius: 2.5,
-                  bgcolor: weather.soilMoisture.bg || '#f0fdf4',
-                  border: `1px solid ${weather.soilMoisture.color || '#2e7d32'}40`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: 1
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 200 }}>
-                  <Typography sx={{ fontSize: '1.25rem', lineHeight: 1 }}>🌱</Typography>
-                  <Box sx={{ width: '100%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 0.3 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: weather.soilMoisture.color || '#166534', fontSize: '0.8rem' }}>
-                        {isChhattisgarhi ? 'खेत माटी नमी (0-9 सेमी जड़ क्षेत्र):' : 'खेत मिट्टी नमी (0-9 सेमी जड़ क्षेत्र):'} <strong>{weather.soilMoisture.percentage}%</strong>
-                      </Typography>
-                      <Chip
-                        label={isChhattisgarhi ? weather.soilMoisture.labelCg : weather.soilMoisture.label}
-                        size="small"
-                        sx={{ height: 20, fontSize: '0.64rem', fontWeight: 800, bgcolor: '#ffffff', color: weather.soilMoisture.color || '#166534', border: `1px solid ${weather.soilMoisture.color || '#166534'}` }}
-                      />
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={weather.soilMoisture.percentage}
-                      sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(0,0,0,0.06)', '& .MuiLinearProgress-bar': { bgcolor: weather.soilMoisture.color || '#166534', borderRadius: 3 }, mb: 0.4 }}
-                    />
-                    <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.72rem', display: 'block', lineHeight: 1.3 }}>
-                      {isChhattisgarhi ? weather.soilMoisture.adviceCg : weather.soilMoisture.advice}
-                    </Typography>
-                  </Box>
-                </Box>
-              </Box>
-            )}
-          </Card>
-
-          {/* CARD D: Unified 8-Tile Modern App Launcher Grid */}
-          <QuickLauncherGrid
-            isChhattisgarhi={isChhattisgarhi}
-            activeFarmer={activeFarmer}
-            onNavigate={onNavigate}
-            onOpenGpsTracker={() => setOpenGpsTracker(true)}
-            onOpenMotorModal={() => setOpenMotorModal(true)}
-            onOpenSoilIot={() => setOpenSoilIot(true)}
-            onOpenMeraKhet={() => setOpenMeraKhet(true)}
-          />
-
-          {/* Mandi Rates Pulse (Mobile Only: xs & sm) */}
+          {/* 5. Mandi Rates Pulse (Mobile Only: xs & sm) */}
           <Box sx={{ display: { xs: 'block', md: 'none' }, mb: 2.2 }}>
             <MandiPulseCard
               liveMandiRates={liveMandiRates}
@@ -1040,6 +969,13 @@ export const LoggedInNativeDashboard = ({
               onNavigate={onNavigate}
             />
           </Box>
+
+          {/* 6. Smart Chhattisgarh Farmer Assistance & Procurement Hub */}
+          <CgAssistanceHubCard
+            isChhattisgarhi={isChhattisgarhi}
+            onNavigate={onNavigate}
+            onOpenTokenGuide={() => setOpenTokenGuide(true)}
+          />
         </Box>
 
         {/* RIGHT COLUMN (Workstation Intelligence Hub: md and up, ~36%, sticky) */}
@@ -1185,4 +1121,3 @@ export const LoggedInNativeDashboard = ({
     </Box>
   );
 };
-
